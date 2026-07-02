@@ -7,3 +7,5 @@ pydantic
 python-multipart
 pytest
 httpx
+transformers
+torch

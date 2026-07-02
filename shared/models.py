@@ -28,3 +28,5 @@ class PageResult:
     text_blocks: List[TextBlock]
     layout_regions: List[LayoutRegion]
     warnings: List[str] = field(default_factory=list)
+    layoutlm_results: Optional[Dict[str, Any]] = None
+

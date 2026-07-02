@@ -15,7 +15,8 @@ def _validate_pdf(file: UploadFile):
 @router.post("/upload", status_code=201)
 async def upload_pdf(
     background_tasks: BackgroundTasks,
-    file: UploadFile = File(...)
+    file: UploadFile = File(...),
+    run_layoutlm: bool = False
 ):
     _validate_pdf(file)
     job_id = str(uuid.uuid4())
@@ -28,7 +29,8 @@ async def upload_pdf(
     with open(pdf_path, "wb") as f:
         shutil.copyfileobj(file.file, f)
         
-    background_tasks.add_task(run_ocr_job, job_id, pdf_path)
+    background_tasks.add_task(run_ocr_job, job_id, pdf_path, run_layoutlm)
+
     
     return {
         "job_id": job_id,

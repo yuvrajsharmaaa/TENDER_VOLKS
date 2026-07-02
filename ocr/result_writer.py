@@ -20,6 +20,9 @@ def write_page_json(page_result: PageResult, output_dir: Path) -> Path:
         "warnings": page_result.warnings
     }
     
+    if page_result.layoutlm_results is not None:
+        data["layoutlm_results"] = page_result.layoutlm_results
+    
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
     return out_path
@@ -41,7 +44,8 @@ def write_aggregate_json(job_id: str, pages: List[PageResult], output_dir: Path,
             {
                 "page_number": p.page_number,
                 "text_block_count": len(p.text_blocks),
-                "layout_region_count": len(p.layout_regions)
+                "layout_region_count": len(p.layout_regions),
+                "layoutlm_results": p.layoutlm_results
             } for p in pages
         ],
         "summary": {
