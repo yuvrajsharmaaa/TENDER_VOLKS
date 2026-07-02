@@ -733,6 +733,40 @@
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.2);
         }
+        
+        .badge-entity {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+            font-family: var(--font-mono);
+        }
+        
+        .entity-bid_no {
+            background-color: rgba(168, 85, 247, 0.15);
+            color: #c084fc;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+        
+        .entity-date {
+            background-color: rgba(236, 72, 153, 0.15);
+            color: #f472b6;
+            border: 1px solid rgba(236, 72, 153, 0.3);
+        }
+        
+        .entity-org {
+            background-color: rgba(244, 63, 94, 0.15);
+            color: #fb7185;
+            border: 1px solid rgba(244, 63, 94, 0.3);
+        }
+        
+        .entity-amount {
+            background-color: rgba(251, 146, 60, 0.15);
+            color: #fb923c;
+            border: 1px solid rgba(251, 146, 60, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -800,6 +834,7 @@
                     <div class="toggle-group">
                         <button class="toggle-btn active" id="toggleTextBtn">Text Blocks</button>
                         <button class="toggle-btn active" id="toggleLayoutBtn">Layout Regions</button>
+                        <button class="toggle-btn active" id="toggleEntitiesBtn">Entities</button>
                         <button class="toggle-btn" id="toggleLabelsBtn">Labels</button>
                     </div>
 
@@ -840,6 +875,7 @@
             <div class="tabs-header">
                 <button class="tab-btn active" data-tab="text-tab">Text Blocks</button>
                 <button class="tab-btn" data-tab="layout-tab">Layout Regions</button>
+                <button class="tab-btn" data-tab="entities-tab">Key Entities</button>
                 <button class="tab-btn" data-tab="meta-tab">Metadata</button>
             </div>
 
@@ -892,6 +928,26 @@
                             <!-- Injected Table -->
                         </div>
                     </div>
+
+                <!-- Key Entities Tab -->
+                <div class="tab-panel" id="entities-tab">
+                    <div class="panel-section-title">LayoutLM Key Entities</div>
+                    <div class="details-table-wrapper" style="flex: 1; overflow-y: auto;">
+                        <table class="details-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Entity Type</th>
+                                    <th>Extracted Value</th>
+                                </tr>
+                            </thead>
+                            <tbody id="entitiesTableBody">
+                                <tr>
+                                    <td colspan="3" style="text-align: center; color: var(--text-secondary)">No entities extracted</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- Metadata/Warnings Tab -->
@@ -934,6 +990,7 @@
         let pageData = null; // page_xxxx.json content
         let textBlocksVisible = true;
         let layoutRegionsVisible = true;
+        let entitiesVisible = true;
         let labelsVisible = false;
         let confidenceThreshold = 0.5;
 
@@ -956,6 +1013,13 @@
             'footer': '#64748b'     // Slate
         };
 
+        const entityColors = {
+            'bid_no': '#c084fc',    // Purple
+            'date': '#f472b6',      // Pink
+            'org': '#fb7185',       // Rose
+            'amount': '#fb923c'     // Orange
+        };
+
         // DOM elements
         const jobListEl = document.getElementById('jobList');
         const refreshJobsBtn = document.getElementById('refreshJobsBtn');
@@ -968,6 +1032,7 @@
         
         const toggleTextBtn = document.getElementById('toggleTextBtn');
         const toggleLayoutBtn = document.getElementById('toggleLayoutBtn');
+        const toggleEntitiesBtn = document.getElementById('toggleEntitiesBtn');
         const toggleLabelsBtn = document.getElementById('toggleLabelsBtn');
 
         const viewport = document.getElementById('viewport');
@@ -983,6 +1048,7 @@
 
         const textBlocksTableBody = document.getElementById('textBlocksTableBody');
         const layoutRegionsTableBody = document.getElementById('layoutRegionsTableBody');
+        const entitiesTableBody = document.getElementById('entitiesTableBody');
         const tableHtmlSection = document.getElementById('tableHtmlSection');
         const reconstructedTableContainer = document.getElementById('reconstructedTableContainer');
         
@@ -1265,6 +1331,69 @@
                     overlaySvg.appendChild(g);
                 });
             }
+
+            // 3. Draw LayoutLM Entities
+            if (entitiesVisible && pageData.layoutlm_results && pageData.layoutlm_results.entities) {
+                const imgWidth = pageData.image_width_px || pageImage.naturalWidth || 1000;
+                const imgHeight = pageData.image_height_px || pageImage.naturalHeight || 1000;
+                
+                pageData.layoutlm_results.entities.forEach((entity, entIdx) => {
+                    const box = entity.box; // [x0, y0, x1, y1] in 0-1000 space
+                    
+                    // Denormalize to image pixel coordinates
+                    const x0 = (box[0] * imgWidth) / 1000;
+                    const y0 = (box[1] * imgHeight) / 1000;
+                    const x1 = (box[2] * imgWidth) / 1000;
+                    const y1 = (box[3] * imgHeight) / 1000;
+                    
+                    const width = x1 - x0;
+                    const height = y1 - y0;
+                    
+                    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                    g.dataset.entityIdx = entIdx;
+                    
+                    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    rect.setAttribute('x', x0);
+                    rect.setAttribute('y', y0);
+                    rect.setAttribute('width', width);
+                    rect.setAttribute('height', height);
+                    
+                    const strokeColor = entityColors[entity.label.toLowerCase()] || '#a855f7';
+                    rect.setAttribute('stroke', strokeColor);
+                    rect.setAttribute('stroke-width', '2.5');
+                    rect.setAttribute('fill', 'rgba(168, 85, 247, 0.05)');
+                    rect.setAttribute('class', 'bbox-rect');
+                    rect.style.color = strokeColor;
+                    
+                    // Mouse events to highlight in Table
+                    rect.addEventListener('mouseenter', () => highlightItem('entity', entIdx));
+                    rect.addEventListener('mouseleave', () => unhighlightItem('entity', entIdx));
+                    
+                    g.appendChild(rect);
+                    
+                    // Add entity badge tag
+                    const fontSize = Math.max(6, Math.min(10, height * 0.4));
+                    const labelText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    labelText.setAttribute('x', x0 + 2);
+                    labelText.setAttribute('y', y0 - 2);
+                    labelText.setAttribute('class', 'text-block-label');
+                    labelText.style.fontSize = `${fontSize}px`;
+                    labelText.textContent = `[${entity.label}]`;
+                    
+                    const labelBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    labelBg.setAttribute('x', x0);
+                    labelBg.setAttribute('y', y0 - fontSize - 4);
+                    labelBg.setAttribute('width', Math.min(width, 80));
+                    labelBg.setAttribute('height', fontSize + 4);
+                    labelBg.setAttribute('fill', strokeColor);
+                    labelBg.setAttribute('class', 'text-block-label-bg');
+                    
+                    g.appendChild(labelBg);
+                    g.appendChild(labelText);
+                    
+                    overlaySvg.appendChild(g);
+                });
+            }
         }
 
         // Toggles & Confidence Sliders Listeners
@@ -1277,6 +1406,12 @@
         toggleLayoutBtn.addEventListener('click', () => {
             layoutRegionsVisible = !layoutRegionsVisible;
             toggleLayoutBtn.classList.toggle('active', layoutRegionsVisible);
+            renderOverlays();
+        });
+
+        toggleEntitiesBtn.addEventListener('click', () => {
+            entitiesVisible = !entitiesVisible;
+            toggleEntitiesBtn.classList.toggle('active', entitiesVisible);
             renderOverlays();
         });
 
@@ -1298,6 +1433,7 @@
         function updateTables() {
             updateTextTable();
             updateLayoutTable();
+            updateEntitiesTable();
         }
 
         function updateTextTable() {
@@ -1372,6 +1508,42 @@
             });
         }
 
+        function updateEntitiesTable() {
+            if (!entitiesTableBody) return;
+            
+            if (!pageData || !pageData.layoutlm_results || !pageData.layoutlm_results.entities) {
+                entitiesTableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-secondary)">No entities extracted for this page</td></tr>`;
+                return;
+            }
+            
+            entitiesTableBody.innerHTML = '';
+            const entities = pageData.layoutlm_results.entities;
+            
+            if (entities.length === 0) {
+                entitiesTableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-secondary)">No entities found on this page</td></tr>`;
+                return;
+            }
+            
+            entities.forEach((entity, entIdx) => {
+                const tr = document.createElement('tr');
+                tr.id = `row-entity-${entIdx}`;
+                
+                const labelClass = `entity-${entity.label.toLowerCase()}`;
+                
+                tr.innerHTML = `
+                    <td style="font-family: var(--font-mono); font-size: 0.75rem;">ENT_${String(entIdx + 1).padStart(2, '0')}</td>
+                    <td><span class="badge-entity ${labelClass}">${entity.label}</span></td>
+                    <td style="word-break: break-word; font-weight: 500;">${escapeHtml(entity.text)}</td>
+                `;
+                
+                // Hover interactions
+                tr.addEventListener('mouseenter', () => highlightItem('entity', entIdx, true));
+                tr.addEventListener('mouseleave', () => unhighlightItem('entity', entIdx, true));
+                
+                entitiesTableBody.appendChild(tr);
+            });
+        }
+
         function selectLayoutRegion(region) {
             // Unhighlight other details rows
             document.querySelectorAll('#layoutRegionsTableBody tr').forEach(r => r.classList.remove('highlighted'));
@@ -1395,12 +1567,16 @@
         // Highlight/Unhighlight items in both Canvas and Sidebar lists
         function highlightItem(type, id, fromTable = false) {
             // Find target element on canvas
-            let canvasSelector = type === 'block' ? `g[data-block-id="${id}"] rect` : `rect[data-region-id="${id}"]`;
+            let canvasSelector = type === 'block' ? `g[data-block-id="${id}"] rect` 
+                               : type === 'region' ? `rect[data-region-id="${id}"]`
+                               : `g[data-entity-idx="${id}"] rect`;
             const canvasEl = overlaySvg.querySelector(canvasSelector);
             if (canvasEl) {
                 canvasEl.classList.add('highlighted');
                 if (type === 'region') {
                     canvasEl.setAttribute('fill', `${canvasEl.getAttribute('stroke')}22`);
+                } else if (type === 'entity') {
+                    canvasEl.setAttribute('fill', `${canvasEl.getAttribute('stroke')}44`);
                 } else {
                     canvasEl.setAttribute('fill', `${canvasEl.getAttribute('stroke')}44`);
                 }
@@ -1417,12 +1593,16 @@
         }
 
         function unhighlightItem(type, id, fromTable = false) {
-            let canvasSelector = type === 'block' ? `g[data-block-id="${id}"] rect` : `rect[data-region-id="${id}"]`;
+            let canvasSelector = type === 'block' ? `g[data-block-id="${id}"] rect` 
+                               : type === 'region' ? `rect[data-region-id="${id}"]`
+                               : `g[data-entity-idx="${id}"] rect`;
             const canvasEl = overlaySvg.querySelector(canvasSelector);
             if (canvasEl) {
                 canvasEl.classList.remove('highlighted');
                 if (type === 'region') {
                     canvasEl.setAttribute('fill', 'rgba(255, 255, 255, 0.01)');
+                } else if (type === 'entity') {
+                    canvasEl.setAttribute('fill', 'rgba(168, 85, 247, 0.05)');
                 } else {
                     canvasEl.setAttribute('fill', 'rgba(255, 255, 255, 0.03)');
                 }
