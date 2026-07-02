@@ -1,0 +1,1071 @@
+{
+  "job_id": "eval_2_1782992888",
+  "page_number": 2,
+  "image_path": "C:\\Users\\Asus\\Desktop\\Tender_Volks\\main\\storage\\jobs\\eval_2_1782992888\\pages\\page_0002.png",
+  "image_width_px": 0,
+  "image_height_px": 0,
+  "processing_time_seconds": 9.61132526397705,
+  "text_blocks": [
+    {
+      "block_id": "blk_0001",
+      "text": "Bid Details/fas faarur",
+      "confidence": 0.907,
+      "bounding_box": {
+        "x1": 684,
+        "y1": 175,
+        "x2": 972,
+        "y2": 207
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0002",
+      "text": "Startup Exemption for Years Of",
+      "confidence": 0.9977,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 234,
+        "x2": 568,
+        "y2": 266
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0003",
+      "text": "Experience/3gag  aqf  Fcrc3ry c/ and",
+      "confidence": 0.8848,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 270,
+        "x2": 699,
+        "y2": 305
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0004",
+      "text": "Yes",
+      "confidence": 0.9996,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 278,
+        "x2": 814,
+        "y2": 307
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0005",
+      "text": "Experience Criteria,Past Performance,Bidder",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 373,
+        "x2": 1328,
+        "y2": 404
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0006",
+      "text": "Turnover,Certificate (Requested in ATC),OEM Authorization.",
+      "confidence": 0.9779,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 404,
+        "x2": 1513,
+        "y2": 436
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0007",
+      "text": "Certificate,OEM Annual Turnover,Additional Doc 1.",
+      "confidence": 0.979,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 434,
+        "x2": 1390,
+        "y2": 465
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0008",
+      "text": "Document required from seller/fagdr  aist",
+      "confidence": 0.925,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 475,
+        "x2": 723,
+        "y2": 507
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0009",
+      "text": "(Requested in ATC),Compliance of BoQ specification and",
+      "confidence": 0.9853,
+      "bounding_box": {
+        "x1": 765,
+        "y1": 473,
+        "x2": 1476,
+        "y2": 497
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0010",
+      "text": "supporting document",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 765,
+        "y1": 504,
+        "x2": 1041,
+        "y2": 529
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0011",
+      "text": "FpJP>2 dIe",
+      "confidence": 0.7213,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 521,
+        "x2": 258,
+        "y2": 548
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0012",
+      "text": "*In case any bidder is seeking exemption from Experience /",
+      "confidence": 0.9952,
+      "bounding_box": {
+        "x1": 767,
+        "y1": 534,
+        "x2": 1515,
+        "y2": 558
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0013",
+      "text": "Turnover Criteria, the supporting documents to prove his.",
+      "confidence": 0.9779,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 558,
+        "x2": 1488,
+        "y2": 595
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0014",
+      "text": "eligibility for exemption must be uploaded for evaluation by.",
+      "confidence": 0.9802,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 590,
+        "x2": 1520,
+        "y2": 626
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0015",
+      "text": "the buyer.",
+      "confidence": 0.937,
+      "bounding_box": {
+        "x1": 757,
+        "y1": 618,
+        "x2": 893,
+        "y2": 658
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0016",
+      "text": "Do you want to show documents uploaded",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 675,
+        "x2": 728,
+        "y2": 707
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0017",
+      "text": "by bidders to all bidders participated in",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 704,
+        "x2": 686,
+        "y2": 736
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0018",
+      "text": "No",
+      "confidence": 0.9993,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 714,
+        "x2": 804,
+        "y2": 743
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0019",
+      "text": "bid?/",
+      "confidence": 0.9935,
+      "bounding_box": {
+        "x1": 118,
+        "y1": 743,
+        "x2": 199,
+        "y2": 777
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0020",
+      "text": "Past Performance/faJd uggia",
+      "confidence": 0.8228,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 809,
+        "x2": 524,
+        "y2": 841
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0021",
+      "text": "50 %",
+      "confidence": 0.9969,
+      "bounding_box": {
+        "x1": 757,
+        "y1": 801,
+        "x2": 837,
+        "y2": 844
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0022",
+      "text": "Bid to RA enabled/fs  Ra aaat afy fyr",
+      "confidence": 0.8719,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 870,
+        "x2": 748,
+        "y2": 901
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0023",
+      "text": "Yes",
+      "confidence": 0.9729,
+      "bounding_box": {
+        "x1": 747,
+        "y1": 871,
+        "x2": 815,
+        "y2": 905
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0024",
+      "text": " RA Qualification Rule",
+      "confidence": 0.9706,
+      "bounding_box": {
+        "x1": 118,
+        "y1": 928,
+        "x2": 428,
+        "y2": 965
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0025",
+      "text": "50% Lowest Priced Technically Qualified Bidders",
+      "confidence": 0.9963,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 931,
+        "x2": 1380,
+        "y2": 962
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0026",
+      "text": "Type of Bid/as qt ycR",
+      "confidence": 0.8913,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 992,
+        "x2": 438,
+        "y2": 1023
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0027",
+      "text": "Two Packet Bid",
+      "confidence": 0.9708,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 992,
+        "x2": 959,
+        "y2": 1023
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0028",
+      "text": "Time allowed for Technical Clarifications",
+      "confidence": 0.9978,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 1048,
+        "x2": 701,
+        "y2": 1079
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0029",
+      "text": "3RIa aqnT Fugc0I ?g 3Hd HHY",
+      "confidence": 0.55,
+      "bounding_box": {
+        "x1": 118,
+        "y1": 1126,
+        "x2": 590,
+        "y2": 1162
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0030",
+      "text": "Inspection Required (By Empanelled.",
+      "confidence": 0.9761,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 1189,
+        "x2": 640,
+        "y2": 1221
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0031",
+      "text": "Inspection Authority I Agencies pre-.",
+      "confidence": 0.97,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 1221,
+        "x2": 640,
+        "y2": 1252
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0032",
+      "text": "No",
+      "confidence": 0.9993,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 1221,
+        "x2": 804,
+        "y2": 1252
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0033",
+      "text": "registered with GeM)",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 1247,
+        "x2": 426,
+        "y2": 1279
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0034",
+      "text": "Evaluation Method/edicd yg",
+      "confidence": 0.8515,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 1308,
+        "x2": 561,
+        "y2": 1340
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0035",
+      "text": "Total value wise evaluation",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 1308,
+        "x2": 1112,
+        "y2": 1340
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0036",
+      "text": "Financial Document Required/faal gdldsl",
+      "confidence": 0.9063,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 1372,
+        "x2": 711,
+        "y2": 1403
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0037",
+      "text": "Yes",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 1396,
+        "x2": 814,
+        "y2": 1425
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0038",
+      "text": "1$ JPcph&PIE I",
+      "confidence": 0.6119,
+      "bounding_box": {
+        "x1": 118,
+        "y1": 1416,
+        "x2": 317,
+        "y2": 1450
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0039",
+      "text": "Arbitration Clause",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 118,
+        "y1": 1472,
+        "x2": 386,
+        "y2": 1508
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0040",
+      "text": "No",
+      "confidence": 0.9996,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 1476,
+        "x2": 804,
+        "y2": 1508
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0041",
+      "text": "Mediation Clause",
+      "confidence": 0.9926,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 1525,
+        "x2": 369,
+        "y2": 1557
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0042",
+      "text": "No",
+      "confidence": 0.9993,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 1528,
+        "x2": 804,
+        "y2": 1559
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0043",
+      "text": "EMD Detail/$ast faquT",
+      "confidence": 0.9129,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1618,
+        "x2": 428,
+        "y2": 1652
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0044",
+      "text": " Required/3llqrychdl",
+      "confidence": 0.8112,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 1710,
+        "x2": 367,
+        "y2": 1742
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0045",
+      "text": "No",
+      "confidence": 0.9995,
+      "bounding_box": {
+        "x1": 758,
+        "y1": 1713,
+        "x2": 807,
+        "y2": 1740
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0046",
+      "text": "ePBG Detail/$ndsit faqur",
+      "confidence": 0.8676,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1830,
+        "x2": 455,
+        "y2": 1861
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0047",
+      "text": "Advisory Bank/sd$st dc",
+      "confidence": 0.9075,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 1925,
+        "x2": 472,
+        "y2": 1956
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0048",
+      "text": "State Bank of India",
+      "confidence": 0.9988,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 1925,
+        "x2": 1011,
+        "y2": 1956
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0049",
+      "text": "ePBG Percentage(%)/$qdst afaR (%)",
+      "confidence": 0.8713,
+      "bounding_box": {
+        "x1": 125,
+        "y1": 1993,
+        "x2": 625,
+        "y2": 2027
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0050",
+      "text": "3.00",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 1995,
+        "x2": 829,
+        "y2": 2022
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0051",
+      "text": "Duration of ePBG required (Months)/$ydsit at",
+      "confidence": 0.9395,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 2064,
+        "x2": 713,
+        "y2": 2095
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0052",
+      "text": "38",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 2083,
+        "x2": 804,
+        "y2": 2115
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0053",
+      "text": "(PUe) BJRE PRJhE",
+      "confidence": 0.5108,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 2105,
+        "x2": 376,
+        "y2": 2139
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0054",
+      "text": "2/6",
+      "confidence": 0.9947,
+      "bounding_box": {
+        "x1": 1530,
+        "y1": 2256,
+        "x2": 1579,
+        "y2": 2283
+      },
+      "language_hint": "en"
+    }
+  ],
+  "layout_regions": [
+    {
+      "region_id": "reg_0001",
+      "region_type": "table",
+      "bounding_box": {
+        "x1": 94,
+        "y1": 194,
+        "x2": 1569,
+        "y2": 2183
+      },
+      "contained_block_ids": [],
+      "table_structure": {
+        "cell_bbox": [
+          [
+            126.46275329589844,
+            11.763136863708496,
+            687.5509033203125,
+            12.19961929321289,
+            692.78515625,
+            49.781211853027344,
+            126.59330749511719,
+            49.35787582397461
+          ],
+          [
+            36.53175354003906,
+            48.76347732543945,
+            543.8262939453125,
+            48.673614501953125,
+            545.5140380859375,
+            130.83216857910156,
+            36.760990142822266,
+            131.3161163330078
+          ],
+          [
+            715.5714111328125,
+            40.176025390625,
+            975.02294921875,
+            40.35055160522461,
+            970.0809326171875,
+            112.16759490966797,
+            711.2730102539062,
+            113.0758056640625
+          ],
+          [
+            53.92899703979492,
+            184.1149444580078,
+            564.3668212890625,
+            177.9393768310547,
+            568.0234985351562,
+            374.0437927246094,
+            53.6821174621582,
+            383.63250732421875
+          ],
+          [
+            673.1841430664062,
+            172.26123046875,
+            1386.0379638671875,
+            171.43011474609375,
+            1383.7779541015625,
+            451.4186706542969,
+            667.478515625,
+            452.4111328125
+          ],
+          [
+            52.74985122680664,
+            487.81402587890625,
+            538.6028442382812,
+            485.1573486328125,
+            545.1235961914062,
+            590.8353271484375,
+            54.03034591674805,
+            590.2780151367188
+          ],
+          [
+            696.0220336914062,
+            497.5889587402344,
+            1246.858154296875,
+            495.625,
+            1249.4422607421875,
+            579.3854370117188,
+            700.098388671875,
+            582.335205078125
+          ],
+          [
+            43.00006103515625,
+            618.60693359375,
+            497.5584716796875,
+            616.1373901367188,
+            506.0816650390625,
+            671.1446533203125,
+            44.13855743408203,
+            673.6458740234375
+          ],
+          [
+            687.8455200195312,
+            609.358642578125,
+            1003.4940185546875,
+            608.1339721679688,
+            1008.0835571289062,
+            673.0929565429688,
+            692.2576293945312,
+            676.4511108398438
+          ],
+          [
+            53.817298889160156,
+            702.85986328125,
+            534.256591796875,
+            699.1254272460938,
+            540.316162109375,
+            750.9364013671875,
+            54.78563690185547,
+            755.9299926757812
+          ],
+          [
+            645.0939331054688,
+            695.6235961914062,
+            927.1381225585938,
+            693.1045532226562,
+            931.085693359375,
+            751.2017211914062,
+            649.2561645507812,
+            756.5626831054688
+          ],
+          [
+            41.0947380065918,
+            747.7277221679688,
+            419.7449035644531,
+            745.1868896484375,
+            423.8277893066406,
+            796.641357421875,
+            41.557247161865234,
+            800.2471923828125
+          ],
+          [
+            670.2987060546875,
+            741.2605590820312,
+            1315.8572998046875,
+            741.8719482421875,
+            1316.3134765625,
+            802.6884155273438,
+            670.9566040039062,
+            804.5322875976562
+          ],
+          [
+            52.566123962402344,
+            813.9849243164062,
+            439.1445007324219,
+            809.5210571289062,
+            442.9660339355469,
+            883.779052734375,
+            53.10927200317383,
+            889.0538330078125
+          ],
+          [
+            673.2139892578125,
+            796.6304321289062,
+            1069.2413330078125,
+            796.9891357421875,
+            1069.4912109375,
+            868.12744140625,
+            673.2252807617188,
+            869.8028564453125
+          ],
+          [
+            44.32546615600586,
+            894.44775390625,
+            534.2026977539062,
+            891.6580810546875,
+            537.8231811523438,
+            994.2451782226562,
+            44.57428741455078,
+            997.45166015625
+          ],
+          [
+            697.2538452148438,
+            869.2692260742188,
+            1144.93310546875,
+            871.090087890625,
+            1143.494384765625,
+            957.3497924804688,
+            695.2672729492188,
+            957.4854125976562
+          ],
+          [
+            43.87640380859375,
+            1021.5256958007812,
+            513.9015502929688,
+            1020.2832641601562,
+            517.4048461914062,
+            1095.677001953125,
+            44.22027587890625,
+            1096.2501220703125
+          ],
+          [
+            678.7808227539062,
+            1005.8392944335938,
+            1173.474853515625,
+            1008.4669189453125,
+            1173.1669921875,
+            1077.22509765625,
+            677.9188232421875,
+            1076.1026611328125
+          ],
+          [
+            34.631649017333984,
+            1123.2401123046875,
+            500.5561218261719,
+            1123.715576171875,
+            503.94781494140625,
+            1187.2371826171875,
+            34.95298385620117,
+            1186.6148681640625
+          ],
+          [
+            674.1483764648438,
+            1113.2418212890625,
+            1146.8846435546875,
+            1117.0430908203125,
+            1147.576416015625,
+            1177.2958984375,
+            674.1424560546875,
+            1174.8570556640625
+          ],
+          [
+            37.42131805419922,
+            1210.5408935546875,
+            503.0657043457031,
+            1210.171142578125,
+            504.7521057128906,
+            1267.7808837890625,
+            37.62419128417969,
+            1267.707763671875
+          ],
+          [
+            692.5507202148438,
+            1200.57763671875,
+            1076.8272705078125,
+            1204.608642578125,
+            1076.455078125,
+            1257.727783203125,
+            690.9906616210938,
+            1255.3948974609375
+          ],
+          [
+            32.55693054199219,
+            1295.7806396484375,
+            440.6807556152344,
+            1297.8201904296875,
+            442.3235168457031,
+            1339.775146484375,
+            32.619808197021484,
+            1337.9556884765625
+          ],
+          [
+            688.2464599609375,
+            1282.004150390625,
+            940.3571166992188,
+            1286.4083251953125,
+            941.425537109375,
+            1331.3095703125,
+            688.4871826171875,
+            1328.309814453125
+          ],
+          [
+            53.525482177734375,
+            1372.387451171875,
+            417.6346130371094,
+            1375.6898193359375,
+            418.7923889160156,
+            1410.8623046875,
+            53.50883865356445,
+            1408.073974609375
+          ],
+          [
+            683.7909545898438,
+            1348.7861328125,
+            936.3123779296875,
+            1350.7978515625,
+            937.7926025390625,
+            1385.6429443359375,
+            683.8834228515625,
+            1383.520751953125
+          ],
+          [
+            28.100135803222656,
+            1414.0506591796875,
+            770.8284912109375,
+            1418.36279296875,
+            772.5030517578125,
+            1476.8260498046875,
+            28.016000747680664,
+            1472.1187744140625
+          ],
+          [
+            31.934606552124023,
+            1494.6199951171875,
+            489.27398681640625,
+            1501.35302734375,
+            484.7857666015625,
+            1565.4302978515625,
+            31.537002563476562,
+            1559.7685546875
+          ],
+          [
+            684.3682861328125,
+            1494.389404296875,
+            1189.7305908203125,
+            1498.1717529296875,
+            1185.84619140625,
+            1561.829833984375,
+            679.6638793945312,
+            1559.0811767578125
+          ],
+          [
+            29.413434982299805,
+            1612.1480712890625,
+            635.4490356445312,
+            1616.9825439453125,
+            636.5131225585938,
+            1672.244873046875,
+            29.533706665039062,
+            1667.2283935546875
+          ],
+          [
+            24.978004455566406,
+            1732.7161865234375,
+            421.1515197753906,
+            1736.38037109375,
+            417.710205078125,
+            1791.4757080078125,
+            24.827199935913086,
+            1788.0328369140625
+          ],
+          [
+            707.1924438476562,
+            1725.4166259765625,
+            1105.8787841796875,
+            1727.0069580078125,
+            1104.159423828125,
+            1789.8873291015625,
+            705.6200561523438,
+            1788.7362060546875
+          ],
+          [
+            38.07806396484375,
+            1803.9520263671875,
+            500.85064697265625,
+            1804.0633544921875,
+            505.58294677734375,
+            1870.54541015625,
+            38.95450210571289,
+            1870.4007568359375
+          ],
+          [
+            696.2930297851562,
+            1803.643310546875,
+            850.6864624023438,
+            1802.430908203125,
+            853.7468872070312,
+            1867.1134033203125,
+            700.2664184570312,
+            1868.3397216796875
+          ],
+          [
+            35.49250793457031,
+            1886.041748046875,
+            511.74615478515625,
+            1887.0504150390625,
+            516.583740234375,
+            1956.877197265625,
+            36.28691482543945,
+            1956.263427734375
+          ],
+          [
+            721.9486083984375,
+            1890.0535888671875,
+            928.0293579101562,
+            1890.4464111328125,
+            927.3880615234375,
+            1953.5340576171875,
+            720.8690185546875,
+            1953.4036865234375
+          ]
+        ],
+        "html": "<html><body><table><thead><tr><td colspan=\"2\"></td></tr><tr><td>Startup Exemption for Years Of Experience/3H 市 af  FT3 / and Turnover/ 3  F   H </td><td>Yes</td></tr></thead><tbody><tr><td>Document required from seller/faba  i </td><td>Experience Criteria,Past Performance,Bidder Turnover,Certificate (Requested in ATC),OEM Authorization Certificate,OEM Annual Turnover,Additional Doc 1 (Requested in ATC),Compliance of BoQ specification and supporting document *In case any bidder is seeking exemption from Experience / Turnover Criteria, the supporting documents to prove his eligibility for exemption must be uploaded for evaluation by the buyer</td></tr><tr><td>Do you want to show documents uploaded by bidders to all bidders participated in bid?/</td><td>No</td></tr><tr><td>Past Performance/@ </td><td>50 %</td></tr><tr><td>Bid to RA enabled/  Ra   </td><td>Yes</td></tr><tr><td>RA Qualification Rule</td><td> 50% Lowest Priced Technically Qualified Bidders</td></tr><tr><td>Type of Bid/s  y Time allowed for Technical Clarifications</td><td>Two Packet Bid</td></tr><tr><td>during technical evaluation/f Hic     </td><td>3 Days</td></tr><tr><td>Inspection Required (By Empanelled Inspection Authority / Agencies pre- registered with GeM)</td><td>No</td></tr><tr><td>Evaluation Method/Hia Financial Document Required/fadg gtd</td><td>Total value wise evaluation</td></tr><tr><td> 3</td><td>Yes</td></tr><tr><td>Arbitration Clause Mediation Clause</td><td>No</td></tr><tr><td></td><td>No</td></tr><tr><td colspan=\"2\">EMD Detail/vHst fdqR</td></tr><tr><td>Required/3HqRqca</td><td>No</td></tr><tr><td colspan=\"2\"> ePBG Detail/utt faQ</td></tr><tr><td>Advisory Bank/s </td><td>State Bank of India</td></tr><tr><td>ePBG Percentage(%)/utt a (%)</td><td>3.00</td></tr><tr><td>Duration of ePBG required (Months)/$udst a  ().</td><td>38</td></tr></tbody></table></body></html>"
+      }
+    },
+    {
+      "region_id": "reg_0002",
+      "region_type": "table_caption",
+      "bounding_box": {
+        "x1": 686,
+        "y1": 178,
+        "x2": 966,
+        "y2": 201
+      },
+      "contained_block_ids": [],
+      "table_structure": null
+    },
+    {
+      "region_id": "reg_0003",
+      "region_type": "footer",
+      "bounding_box": {
+        "x1": 1534,
+        "y1": 2260,
+        "x2": 1573,
+        "y2": 2277
+      },
+      "contained_block_ids": [],
+      "table_structure": null
+    }
+  ],
+  "warnings": []
+}

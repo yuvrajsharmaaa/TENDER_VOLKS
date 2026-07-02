@@ -1,0 +1,975 @@
+{
+  "job_id": "eval_3_1782992957",
+  "page_number": 3,
+  "image_path": "C:\\Users\\Asus\\Desktop\\Tender_Volks\\main\\storage\\jobs\\eval_3_1782992957\\pages\\page_0003.png",
+  "image_width_px": 0,
+  "image_height_px": 0,
+  "processing_time_seconds": 13.452369689941406,
+  "text_blocks": [
+    {
+      "block_id": "blk_0001",
+      "text": "2. If the bidder is a Startup, the bidder shall be exempted from the requirement of \"Bidder Turnover\" criteria and",
+      "confidence": 0.9929,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 161,
+        "x2": 1530,
+        "y2": 185
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0002",
+      "text": "offered products, it would be exempted from the \"OEM Average Turnover\" criteria also subject to meeting of",
+      "confidence": 0.98,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 222,
+        "x2": 1478,
+        "y2": 253
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0003",
+      "text": "the supporting documents to prove his eligibility for exemption must be uploaded for evaluation by the buyer.",
+      "confidence": 0.9964,
+      "bounding_box": {
+        "x1": 108,
+        "y1": 280,
+        "x2": 1501,
+        "y2": 319
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0004",
+      "text": "3. Estimated Bid Value indicated above is being declared solely for the purpose of guidance on EMD amount and.",
+      "confidence": 0.987,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 317,
+        "x2": 1528,
+        "y2": 348
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0005",
+      "text": "for determining the Eligibility Criteria related to Turn Over, Past Performance and Project / Past Experience etc.",
+      "confidence": 0.9877,
+      "bounding_box": {
+        "x1": 108,
+        "y1": 343,
+        "x2": 1505,
+        "y2": 380
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0006",
+      "text": "This has no relevance or bearing on the price to be quoted by the bidders and is also not going to have any",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 108,
+        "y1": 375,
+        "x2": 1461,
+        "y2": 409
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0007",
+      "text": "quoted prices which would be determined by the buyer based on its own assessment of reasonableness and",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 441,
+        "x2": 1476,
+        "y2": 473
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0008",
+      "text": "based on competitive prices received in Bid / RA process..",
+      "confidence": 0.9918,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 473,
+        "x2": 834,
+        "y2": 504
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0009",
+      "text": "4. Past Performance: The Bidder or its OEm {themselves or through re-seller(s)} should have supplied same or",
+      "confidence": 0.9914,
+      "bounding_box": {
+        "x1": 108,
+        "y1": 502,
+        "x2": 1505,
+        "y2": 534
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0010",
+      "text": " similar Category Products for 40% of bid quantity, in at least one of the last three Financial years before the bid",
+      "confidence": 0.9943,
+      "bounding_box": {
+        "x1": 106,
+        "y1": 531,
+        "x2": 1518,
+        "y2": 565
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0011",
+      "text": "opening date to any Central / State Govt Organization / Psu. Copies of relevant contracts (proving supply of.",
+      "confidence": 0.9905,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 570,
+        "x2": 1469,
+        "y2": 594
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0012",
+      "text": "cumulative order quantity in any one financial year) to be submitted along with bid in support of quantity",
+      "confidence": 0.9859,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 597,
+        "x2": 1437,
+        "y2": 629
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0013",
+      "text": "supplied in the relevant Financial year. In case of bunch bids, the category related to primary product having",
+      "confidence": 0.989,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 629,
+        "x2": 1483,
+        "y2": 660
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0014",
+      "text": "highest bid value should meet this criterion.",
+      "confidence": 0.989,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 663,
+        "x2": 664,
+        "y2": 687
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0015",
+      "text": "Excel Upload Required/Rda a 3yals fy dl at 3llq?aqdl :",
+      "confidence": 0.8258,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 729,
+        "x2": 920,
+        "y2": 760
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0016",
+      "text": "Price Bid Breakup with Buy Back Option - 1744883917.xlsx",
+      "confidence": 0.9913,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 794,
+        "x2": 851,
+        "y2": 826
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0017",
+      "text": "Stationary Valve Regulated Lead Acid Batteries (V2) As Per IS 15549 ( 240 pieces )",
+      "confidence": 0.9943,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 858,
+        "x2": 1476,
+        "y2": 889
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0018",
+      "text": "Technical Specifications/anddr faffeai",
+      "confidence": 0.9016,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 926,
+        "x2": 657,
+        "y2": 958
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0019",
+      "text": "*3 acuRt fafafe  3gHrt / As per GeM Category Specification",
+      "confidence": 0.8633,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 992,
+        "x2": 950,
+        "y2": 1028
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0020",
+      "text": "Specification Name/fafife ",
+      "confidence": 0.9369,
+      "bounding_box": {
+        "x1": 416,
+        "y1": 1077,
+        "x2": 814,
+        "y2": 1114
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0021",
+      "text": "Bid Requirement/fas  f 3lld?yc (Allowed",
+      "confidence": 0.9299,
+      "bounding_box": {
+        "x1": 876,
+        "y1": 1082,
+        "x2": 1486,
+        "y2": 1113
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0022",
+      "text": "Specification",
+      "confidence": 0.979,
+      "bounding_box": {
+        "x1": 167,
+        "y1": 1101,
+        "x2": 354,
+        "y2": 1135
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0023",
+      "text": "Values)/3gdd Hy",
+      "confidence": 0.832,
+      "bounding_box": {
+        "x1": 1053,
+        "y1": 1126,
+        "x2": 1309,
+        "y2": 1157
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0024",
+      "text": "Generic",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 125,
+        "y1": 1196,
+        "x2": 231,
+        "y2": 1223
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0025",
+      "text": "Battery voltage (in volt)",
+      "confidence": 0.9984,
+      "bounding_box": {
+        "x1": 413,
+        "y1": 1191,
+        "x2": 760,
+        "y2": 1223
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0026",
+      "text": "12",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 839,
+        "y1": 1191,
+        "x2": 876,
+        "y2": 1223
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0027",
+      "text": "Battery capacity (in Ah)",
+      "confidence": 0.9993,
+      "bounding_box": {
+        "x1": 411,
+        "y1": 1245,
+        "x2": 755,
+        "y2": 1282
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0028",
+      "text": "200",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 834,
+        "y1": 1250,
+        "x2": 893,
+        "y2": 1279
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0029",
+      "text": "Construction",
+      "confidence": 0.9998,
+      "bounding_box": {
+        "x1": 125,
+        "y1": 1308,
+        "x2": 290,
+        "y2": 1335
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0030",
+      "text": "Material of container.",
+      "confidence": 0.9623,
+      "bounding_box": {
+        "x1": 411,
+        "y1": 1303,
+        "x2": 677,
+        "y2": 1338
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0031",
+      "text": "Polypropylene co-polymer (PPCP)",
+      "confidence": 0.9962,
+      "bounding_box": {
+        "x1": 836,
+        "y1": 1306,
+        "x2": 1262,
+        "y2": 1338
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0032",
+      "text": "Number of cells per battery",
+      "confidence": 0.9926,
+      "bounding_box": {
+        "x1": 411,
+        "y1": 1357,
+        "x2": 809,
+        "y2": 1394
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0033",
+      "text": "1 Cell for 2 Volt Battery, 3 Cells for 6 Volt Battery, 6.",
+      "confidence": 0.9751,
+      "bounding_box": {
+        "x1": 834,
+        "y1": 1357,
+        "x2": 1496,
+        "y2": 1394
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0034",
+      "text": "Cells for 12 Volt Battery",
+      "confidence": 0.9998,
+      "bounding_box": {
+        "x1": 834,
+        "y1": 1391,
+        "x2": 1144,
+        "y2": 1425
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0035",
+      "text": "Warranty and",
+      "confidence": 0.9889,
+      "bounding_box": {
+        "x1": 120,
+        "y1": 1444,
+        "x2": 305,
+        "y2": 1484
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0036",
+      "text": "Warranty (in years)",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 411,
+        "y1": 1445,
+        "x2": 696,
+        "y2": 1484
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0037",
+      "text": "2, 3 Or higher",
+      "confidence": 0.9992,
+      "bounding_box": {
+        "x1": 839,
+        "y1": 1452,
+        "x2": 1018,
+        "y2": 1479
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0038",
+      "text": "Marking",
+      "confidence": 0.9998,
+      "bounding_box": {
+        "x1": 120,
+        "y1": 1478,
+        "x2": 232,
+        "y2": 1513
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0039",
+      "text": "Additional Specification Parameters - Stationary Valve Regulated Lead Acid Batteries (v2) As Per IS",
+      "confidence": 0.9941,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1732,
+        "x2": 1523,
+        "y2": 1764
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0040",
+      "text": "15549 ( 240 pieces)",
+      "confidence": 0.9774,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1766,
+        "x2": 403,
+        "y2": 1798
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0041",
+      "text": "Specification Parameter",
+      "confidence": 0.9981,
+      "bounding_box": {
+        "x1": 157,
+        "y1": 1813,
+        "x2": 507,
+        "y2": 1844
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0042",
+      "text": "Bid Requirement (Allowed Values).",
+      "confidence": 0.9841,
+      "bounding_box": {
+        "x1": 797,
+        "y1": 1827,
+        "x2": 1284,
+        "y2": 1859
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0043",
+      "text": " Name",
+      "confidence": 0.9456,
+      "bounding_box": {
+        "x1": 285,
+        "y1": 1847,
+        "x2": 374,
+        "y2": 1874
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0044",
+      "text": "Please Refer Attached ATc Document (The bidder should quote the products",
+      "confidence": 0.9876,
+      "bounding_box": {
+        "x1": 553,
+        "y1": 1900,
+        "x2": 1523,
+        "y2": 1937
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0045",
+      "text": "For Complete Technical",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 125,
+        "y1": 1935,
+        "x2": 428,
+        "y2": 1966
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0046",
+      "text": "strictly as per the tender specifications. Complete technical details, along.",
+      "confidence": 0.9898,
+      "bounding_box": {
+        "x1": 556,
+        "y1": 1937,
+        "x2": 1483,
+        "y2": 1969
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0047",
+      "text": "Specification and Scope of",
+      "confidence": 0.9962,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 1969,
+        "x2": 462,
+        "y2": 2000
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0048",
+      "text": "with the brand, specification, technical literature, etc., highlighting the.",
+      "confidence": 0.9902,
+      "bounding_box": {
+        "x1": 556,
+        "y1": 1969,
+        "x2": 1446,
+        "y2": 2000
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0049",
+      "text": "Supply",
+      "confidence": 0.9984,
+      "bounding_box": {
+        "x1": 125,
+        "y1": 2003,
+        "x2": 216,
+        "y2": 2030
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0050",
+      "text": "specifications, must be supplied along with the technical bid. Failure to.",
+      "confidence": 0.9931,
+      "bounding_box": {
+        "x1": 561,
+        "y1": 2003,
+        "x2": 1446,
+        "y2": 2027
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0051",
+      "text": "comply with this requirement may result in the bid being rejected.)",
+      "confidence": 0.997,
+      "bounding_box": {
+        "x1": 556,
+        "y1": 2030,
+        "x2": 1402,
+        "y2": 2061
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0052",
+      "text": "* Bidders offering must also comply with the additional specification parameters mentioned above.",
+      "confidence": 0.9998,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 2076,
+        "x2": 1358,
+        "y2": 2112
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0053",
+      "text": "3/8",
+      "confidence": 0.9976,
+      "bounding_box": {
+        "x1": 1532,
+        "y1": 2256,
+        "x2": 1579,
+        "y2": 2283
+      },
+      "language_hint": "en"
+    }
+  ],
+  "layout_regions": [
+    {
+      "region_id": "reg_0001",
+      "region_type": "text",
+      "bounding_box": {
+        "x1": 100,
+        "y1": 163,
+        "x2": 1518,
+        "y2": 692
+      },
+      "contained_block_ids": [],
+      "table_structure": null
+    },
+    {
+      "region_id": "reg_0002",
+      "region_type": "text",
+      "bounding_box": {
+        "x1": 220,
+        "y1": 2081,
+        "x2": 1410,
+        "y2": 2138
+      },
+      "contained_block_ids": [],
+      "table_structure": null
+    },
+    {
+      "region_id": "reg_0003",
+      "region_type": "title",
+      "bounding_box": {
+        "x1": 133,
+        "y1": 860,
+        "x2": 1345,
+        "y2": 953
+      },
+      "contained_block_ids": [],
+      "table_structure": null
+    },
+    {
+      "region_id": "reg_0004",
+      "region_type": "title",
+      "bounding_box": {
+        "x1": 100,
+        "y1": 727,
+        "x2": 924,
+        "y2": 826
+      },
+      "contained_block_ids": [],
+      "table_structure": null
+    },
+    {
+      "region_id": "reg_0005",
+      "region_type": "table",
+      "bounding_box": {
+        "x1": 101,
+        "y1": 1050,
+        "x2": 1558,
+        "y2": 1534
+      },
+      "contained_block_ids": [],
+      "table_structure": {
+        "cell_bbox": [
+          [
+            26.254749298095703,
+            21.44230079650879,
+            329.7434387207031,
+            22.888578414916992,
+            322.0286865234375,
+            120.6152572631836,
+            24.15784454345703,
+            116.49996185302734
+          ],
+          [
+            303.1356506347656,
+            17.436065673828125,
+            770.6947021484375,
+            17.820858001708984,
+            764.5003662109375,
+            124.65629577636719,
+            295.91021728515625,
+            123.63556671142578
+          ],
+          [
+            717.9754028320312,
+            14.826886177062988,
+            1421.20654296875,
+            15.163590431213379,
+            1419.699951171875,
+            126.39202880859375,
+            707.2001342773438,
+            125.795166015625
+          ],
+          [
+            13.849114418029785,
+            113.0034408569336,
+            229.5758514404297,
+            114.41978454589844,
+            229.31143188476562,
+            202.2591094970703,
+            13.693106651306152,
+            200.45509338378906
+          ],
+          [
+            297.7060852050781,
+            118.33406829833984,
+            718.2041625976562,
+            120.646240234375,
+            713.738037109375,
+            198.4527130126953,
+            293.1601867675781,
+            196.33258056640625
+          ],
+          [
+            712.4234008789062,
+            124.05429077148438,
+            1428.3831787109375,
+            127.28076934814453,
+            1427.4705810546875,
+            202.31439208984375,
+            703.103271484375,
+            199.30841064453125
+          ],
+          [
+            11.998122215270996,
+            203.58816528320312,
+            249.4271240234375,
+            204.13510131835938,
+            250.20672607421875,
+            325.26617431640625,
+            11.969988822937012,
+            325.60491943359375
+          ],
+          [
+            300.6478271484375,
+            195.93064880371094,
+            721.2704467773438,
+            196.0671844482422,
+            723.336669921875,
+            258.21734619140625,
+            299.33013916015625,
+            260.0888977050781
+          ],
+          [
+            712.1396484375,
+            192.43182373046875,
+            1425.335693359375,
+            195.994873046875,
+            1424.56201171875,
+            262.05889892578125,
+            705.09326171875,
+            259.7560119628906
+          ],
+          [
+            293.8052673339844,
+            258.0079040527344,
+            743.4808349609375,
+            260.7316589355469,
+            744.4247436523438,
+            330.1490783691406,
+            295.1758117675781,
+            328.60626220703125
+          ],
+          [
+            699.187255859375,
+            258.823974609375,
+            1425.472900390625,
+            261.513671875,
+            1424.739013671875,
+            332.2994689941406,
+            694.0503540039062,
+            330.2783203125
+          ],
+          [
+            12.705638885498047,
+            348.31732177734375,
+            266.9450988769531,
+            349.7301940917969,
+            266.55078125,
+            439.2175598144531,
+            12.512199401855469,
+            438.73248291015625
+          ],
+          [
+            297.41943359375,
+            339.5219421386719,
+            743.9027099609375,
+            340.42822265625,
+            738.750732421875,
+            424.27337646484375,
+            293.5022277832031,
+            424.0213623046875
+          ],
+          [
+            704.59619140625,
+            336.20977783203125,
+            1434.193603515625,
+            336.70550537109375,
+            1433.740478515625,
+            424.7634582519531,
+            701.5646362304688,
+            424.9181823730469
+          ],
+          [
+            12.047433853149414,
+            408.9039306640625,
+            255.2932586669922,
+            408.91058349609375,
+            253.1731414794922,
+            480.2533874511719,
+            11.781866073608398,
+            480.21868896484375
+          ],
+          [
+            291.73675537109375,
+            403.9263000488281,
+            735.89111328125,
+            401.6299743652344,
+            733.8032836914062,
+            479.14300537109375,
+            289.72308349609375,
+            479.2857666015625
+          ],
+          [
+            717.2924194335938,
+            404.7579650878906,
+            1398.92919921875,
+            401.48980712890625,
+            1398.1854248046875,
+            475.9898986816406,
+            715.4935913085938,
+            476.39312744140625
+          ]
+        ],
+        "html": "<html><body><table><tr><td>Specification</td><td>Specification Name/faffe 可 </td><td>Bid Requirement/s  f 3HgRe (Allowed Values)3H </td></tr><tr><td>Generic</td><td>Battery voltage (in volt)</td><td>12</td></tr><tr><td rowspan=\"2\">Construction</td><td>Battery capacity (in Ah)</td><td>200</td></tr><tr><td>Material of container Number of cells per battery</td><td>Polypropylene co-polymer (PPCP) 1 Cell for 2 Volt Battery, 3 Cells for 6 Volt Battery, 6</td></tr><tr><td>Warranty and</td><td></td><td>Cells for 12 Volt Battery</td></tr><tr><td>Marking</td><td>Warranty (in years)</td><td>2, 3 Or higher</td></tr></table></body></html>"
+      }
+    },
+    {
+      "region_id": "reg_0006",
+      "region_type": "table",
+      "bounding_box": {
+        "x1": 104,
+        "y1": 1797,
+        "x2": 1539,
+        "y2": 2072
+      },
+      "contained_block_ids": [],
+      "table_structure": {
+        "cell_bbox": [
+          [
+            21.4855899810791,
+            5.249903678894043,
+            458.6591796875,
+            5.706896781921387,
+            451.26556396484375,
+            95.64037322998047,
+            19.894567489624023,
+            93.89876556396484
+          ],
+          [
+            423.49652099609375,
+            5.2275800704956055,
+            1399.458740234375,
+            5.586663722991943,
+            1397.51904296875,
+            84.4578628540039,
+            409.6498107910156,
+            82.98638153076172
+          ],
+          [
+            13.655961036682129,
+            100.06639099121094,
+            424.803955078125,
+            101.56611633300781,
+            425.6224365234375,
+            271.2542419433594,
+            13.509586334228516,
+            271.1167907714844
+          ],
+          [
+            445.1465148925781,
+            97.48626708984375,
+            1423.14794921875,
+            97.41867065429688,
+            1422.1737060546875,
+            270.7622375488281,
+            424.5628967285156,
+            270.6908264160156
+          ]
+        ],
+        "html": "<html><body><table><tr><td>Specification Parameter Name</td><td>Bid Requirement (Allowed Values)</td></tr><tr><td>For Complete Technical Specification and Scope of Supply</td><td>Please Refer Attached ATC Document (The bidder should quote the products strictly as per the tender specifications. Complete technical details, along with the brand, specification, technical literature, etc., highlighting the specifications, must be supplied along with the technical bid. Failure to comply with this requirement may result in the bid being rejected.)</td></tr></table></body></html>"
+      }
+    },
+    {
+      "region_id": "reg_0007",
+      "region_type": "table_caption",
+      "bounding_box": {
+        "x1": 106,
+        "y1": 1736,
+        "x2": 1528,
+        "y2": 1795
+      },
+      "contained_block_ids": [],
+      "table_structure": null
+    },
+    {
+      "region_id": "reg_0008",
+      "region_type": "table_caption",
+      "bounding_box": {
+        "x1": 197,
+        "y1": 999,
+        "x2": 803,
+        "y2": 1026
+      },
+      "contained_block_ids": [],
+      "table_structure": null
+    },
+    {
+      "region_id": "reg_0009",
+      "region_type": "footer",
+      "bounding_box": {
+        "x1": 1535,
+        "y1": 2260,
+        "x2": 1574,
+        "y2": 2277
+      },
+      "contained_block_ids": [],
+      "table_structure": null
+    }
+  ],
+  "warnings": []
+}

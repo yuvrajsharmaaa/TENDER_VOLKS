@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tender OCR Results Visualizer</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --panel-bg: rgba(30, 41, 59, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-primary: #3b82f6;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-error: #ef4444;
+            --accent-purple: #8b5cf6;
+            --font-main: 'Outfit', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .header-title-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-badge {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-purple));
+            color: white;
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            letter-spacing: 0.05em;
+        }
+
+        header h1 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            background: linear-gradient(to right, #ffffff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-success);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-success);
+        }
+
+        /* App Layout */
+        .app-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            background: radial-gradient(circle at 50% 50%, rgba(30, 41, 59, 0.2) 0%, rgba(15, 23, 42, 0) 100%);
+        }
+
+        /* Sidebar - Job List */
+        .sidebar {
+            width: 320px;
+            border-right: 1px solid var(--border-color);
+            background-color: rgba(15, 23, 42, 0.4);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .refresh-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.4rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .refresh-btn:hover {
+            color: var(--text-primary);
+            background-color: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .job-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .job-card {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .job-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: transparent;
+            transition: background 0.2s ease;
+        }
+
+        .job-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+            background-color: rgba(30, 41, 59, 0.9);
+        }
+
+        .job-card.active {
+            border-color: rgba(59, 130, 246, 0.4);
+            background-color: rgba(59, 130, 246, 0.08);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .job-card.active::before {
+            background: var(--accent-primary);
+        }
+
+        .job-filename {
+            font-weight: 500;
+            font-size: 0.9rem;
+            line-height: 1.3;
+            margin-bottom: 0.5rem;
+            word-break: break-all;
+            color: var(--text-primary);
+        }
+
+        .job-meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .meta-badge {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+        }
+
+        /* Main Workspace */
+        .workspace {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background-color: #0b0f19;
+        }
+
+        /* Workspace Toolbar */
+        .toolbar {
+            height: 60px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: rgba(15, 23, 42, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            gap: 1.5rem;
+        }
+
+        .page-navigation {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.45rem 0.9rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .btn:hover:not(:disabled) {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .page-select-container {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .page-dropdown {
+            background-color: #1e293b;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.4rem 1.5rem 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-family: var(--font-main);
+            font-weight: 500;
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 1rem;
+        }
+
+        .page-dropdown:focus {
+            border-color: var(--accent-primary);
+        }
+
+        .view-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 0.25rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .toggle-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .toggle-btn.active {
+            background-color: var(--accent-primary);
+            color: white;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .slider-group input[type="range"] {
+            appearance: none;
+            width: 100px;
+            height: 4px;
+            background: #1e293b;
+            border-radius: 2px;
+            outline: none;
+        }
+
+        .slider-group input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--accent-primary);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .slider-group input[type="range"]::-webkit-slider-thumb:hover {
+            background: #60a5fa;
+        }
+
+        /* Interactive Canvas Area */
+        .canvas-area {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .viewport {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #0b0f19;
+        }
+
+        .viewport:active {
+            cursor: grabbing;
+        }
+
+        .zoom-container {
+            position: relative;
+            transform-origin: 50% 50%;
+            display: inline-block;
+            transition: transform 0.05s ease-out;
+        }
+
+        .zoom-container img {
+            display: block;
+            max-width: 100%;
+            max-height: 80vh;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .overlay-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: visible;
+        }
+
+        /* SVG Bounding Boxes styling */
+        .bbox-rect {
+            fill: transparent;
+            stroke-width: 1.5;
+            pointer-events: auto;
+            cursor: pointer;
+            transition: fill 0.15s ease, stroke-width 0.1s ease;
+        }
+
+        .bbox-rect:hover, .bbox-rect.highlighted {
+            stroke-width: 3;
+            filter: drop-shadow(0px 0px 4px currentColor);
+        }
+
+        .text-block-label {
+            font-size: 8px;
+            font-family: var(--font-mono);
+            font-weight: 500;
+            fill: #ffffff;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .text-block-label-bg {
+            pointer-events: none;
+        }
+
+        /* Zoom Toolbar floating inside canvas */
+        .floating-controls {
+            position: absolute;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            z-index: 5;
+        }
+
+        .floating-btn {
+            width: 36px;
+            height: 36px;
+            background-color: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+
+        .floating-btn:hover {
+            background-color: rgba(30, 41, 59, 1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        /* Details Panel */
+        .details-panel {
+            width: 480px;
+            border-left: 1px solid var(--border-color);
+            background-color: rgba(15, 23, 42, 0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .tabs-header {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            background-color: rgba(15, 23, 42, 0.3);
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-secondary);
+            font-family: var(--font-main);
+            font-weight: 500;
+            font-size: 0.85rem;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        .tab-btn.active {
+            color: var(--accent-primary);
+            border-bottom-color: var(--accent-primary);
+            background-color: rgba(59, 130, 246, 0.03);
+        }
+
+        .tab-content-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.25rem;
+        }
+
+        .tab-panel {
+            display: none;
+            height: 100%;
+        }
+
+        .tab-panel.active {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .panel-section-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        /* Custom tables */
+        .details-table-wrapper {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            text-align: left;
+        }
+
+        .details-table th {
+            background-color: rgba(30, 41, 59, 0.8);
+            color: var(--text-secondary);
+            font-weight: 500;
+            padding: 0.6rem 0.8rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .details-table td {
+            padding: 0.6rem 0.8rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            vertical-align: middle;
+            color: var(--text-primary);
+        }
+
+        .details-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .details-table tr {
+            transition: background-color 0.15s ease;
+        }
+
+        .details-table tbody tr:hover, .details-table tbody tr.highlighted {
+            background-color: rgba(255, 255, 255, 0.04);
+            cursor: pointer;
+        }
+
+        .details-table tbody tr.highlighted {
+            background-color: rgba(59, 130, 246, 0.12);
+            border-left: 2px solid var(--accent-primary);
+        }
+
+        .conf-badge {
+            font-family: var(--font-mono);
+            font-weight: 500;
+            padding: 0.15rem 0.35rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        .conf-high {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--accent-success);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .conf-med {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: var(--accent-warning);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .conf-low {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--accent-error);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .badge-region {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            text-transform: capitalize;
+        }
+
+        /* Rendered HTML Table in UI */
+        .html-table-container {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem;
+            background-color: rgba(255, 255, 255, 0.02);
+            overflow-x: auto;
+            max-height: 280px;
+        }
+
+        .html-table-container table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .html-table-container th, .html-table-container td {
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 0.4rem 0.6rem;
+            text-align: left;
+        }
+
+        .html-table-container tr:hover td {
+            color: var(--text-primary);
+            background-color: rgba(255, 255, 255, 0.01);
+        }
+
+        /* Info boxes */
+        .info-card {
+            background-color: rgba(30, 41, 59, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.85rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .info-card-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+        }
+
+        .info-card-label {
+            color: var(--text-secondary);
+        }
+
+        .info-card-val {
+            font-weight: 500;
+            font-family: var(--font-mono);
+        }
+
+        /* Warnings Box */
+        .warnings-box {
+            background-color: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 8px;
+            padding: 0.85rem 1rem;
+            color: #fca5a5;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            font-size: 0.85rem;
+        }
+
+        .warnings-box h4 {
+            font-weight: 600;
+            color: #ef4444;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        /* Empty/Default views */
+        .empty-view {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-secondary);
+            gap: 1rem;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .empty-view-icon {
+            font-size: 2.5rem;
+            opacity: 0.5;
+        }
+
+        /* Scrollbars styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title-container">
+            <span class="logo-badge">TENDER OCR</span>
+            <h1>Results Quality Visualizer</h1>
+        </div>
+        <div class="header-status">
+            <span class="status-dot"></span>
+            <span>Local Evaluation Engine</span>
+        </div>
+    </header>
+
+    <div class="app-container">
+        
+        <!-- Sidebar - Completed Jobs -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Completed Jobs</h2>
+                <button class="refresh-btn" id="refreshJobsBtn" title="Refresh list">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89M9 11l3-3m0 0l3 3m-3-3v12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="job-list" id="jobList">
+                <div class="empty-view">
+                    <span class="empty-view-icon">🔍</span>
+                    <p>Scanning directory...</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace (Toolbar + Canvas) -->
+        <main class="workspace">
+            
+            <!-- Toolbar controls -->
+            <div class="toolbar">
+                <div class="page-navigation">
+                    <button class="btn" id="prevPageBtn" disabled>
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Prev
+                    </button>
+                    <div class="page-select-container">
+                        <span>Page</span>
+                        <select class="page-dropdown" id="pageDropdown" disabled>
+                            <option value="">-</option>
+                        </select>
+                        <span id="pageCountLabel">of -</span>
+                    </div>
+                    <button class="btn" id="nextPageBtn" disabled>
+                        Next
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="view-controls">
+                    <!-- Toggle filters -->
+                    <div class="toggle-group">
+                        <button class="toggle-btn active" id="toggleTextBtn">Text Blocks</button>
+                        <button class="toggle-btn active" id="toggleLayoutBtn">Layout Regions</button>
+                        <button class="toggle-btn" id="toggleLabelsBtn">Labels</button>
+                    </div>
+
+                    <!-- Confidence Threshold slider -->
+                    <div class="slider-group">
+                        <span>Min Confidence:</span>
+                        <input type="range" id="confidenceSlider" min="0" max="100" value="50" step="5">
+                        <span id="confidenceValue" style="width: 32px; font-family: var(--font-mono)">50%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Canvas Area -->
+            <div class="canvas-area">
+                <div class="viewport" id="viewport">
+                    <div class="zoom-container" id="zoomContainer">
+                        <div class="empty-view" id="canvasPlaceholder">
+                            <span class="empty-view-icon">📄</span>
+                            <h3>Select a Job from the sidebar to inspect OCR results</h3>
+                            <p>Verify multilingual extraction layers, table bounding boxes, and metadata confidence.</p>
+                        </div>
+                        <img id="pageImage" style="display: none;">
+                        <svg class="overlay-svg" id="overlaySvg" style="display: none;"></svg>
+                    </div>
+                </div>
+
+                <!-- Floating Zoom Buttons -->
+                <div class="floating-controls" id="floatingControls" style="display: none;">
+                    <button class="floating-btn" id="zoomInBtn" title="Zoom In">+</button>
+                    <button class="floating-btn" id="zoomOutBtn" title="Zoom Out">-</button>
+                    <button class="floating-btn" id="zoomResetBtn" title="Reset View">⟲</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Details Sidebar Panel -->
+        <aside class="details-panel" id="detailsPanel">
+            <div class="tabs-header">
+                <button class="tab-btn active" data-tab="text-tab">Text Blocks</button>
+                <button class="tab-btn" data-tab="layout-tab">Layout Regions</button>
+                <button class="tab-btn" data-tab="meta-tab">Metadata</button>
+            </div>
+
+            <div class="tab-content-container">
+                <!-- Text Blocks Tab -->
+                <div class="tab-panel active" id="text-tab">
+                    <div class="panel-section-title">Extracted Text Blocks</div>
+                    <div class="details-table-wrapper" style="flex: 1; overflow-y: auto;">
+                        <table class="details-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Detected Text</th>
+                                    <th style="width: 75px">Conf</th>
+                                </tr>
+                            </thead>
+                            <tbody id="textBlocksTableBody">
+                                <tr>
+                                    <td colspan="3" style="text-align: center; color: var(--text-secondary)">No page selected</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Layout Regions Tab -->
+                <div class="tab-panel" id="layout-tab">
+                    <div class="panel-section-title">Layout Regions Detected</div>
+                    <div class="details-table-wrapper" style="max-height: 250px; overflow-y: auto; margin-bottom: 1rem;">
+                        <table class="details-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Region Type</th>
+                                    <th>Coordinates</th>
+                                </tr>
+                            </thead>
+                            <tbody id="layoutRegionsTableBody">
+                                <tr>
+                                    <td colspan="3" style="text-align: center; color: var(--text-secondary)">No page selected</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Highlighted Table Container -->
+                    <div id="tableHtmlSection" style="display: none; flex-direction: column; gap: 0.5rem;">
+                        <div class="panel-section-title">Reconstructed Table Structure</div>
+                        <div class="html-table-container" id="reconstructedTableContainer">
+                            <!-- Injected Table -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Metadata/Warnings Tab -->
+                <div class="tab-panel" id="meta-tab">
+                    <div class="panel-section-title">Page & File Metadata</div>
+                    <div class="info-card" id="pageMetaCard">
+                        <div class="info-card-row">
+                            <span class="info-card-label">Job ID:</span>
+                            <span class="info-card-val" id="metaJobId">-</span>
+                        </div>
+                        <div class="info-card-row">
+                            <span class="info-card-label">Page Number:</span>
+                            <span class="info-card-val" id="metaPageNum">-</span>
+                        </div>
+                        <div class="info-card-row">
+                            <span class="info-card-label">Processing Time:</span>
+                            <span class="info-card-val" id="metaProcessingTime">-</span>
+                        </div>
+                    </div>
+
+                    <div class="warnings-box" id="warningsBox" style="display: none; margin-top: 1rem;">
+                        <h4>⚠️ System Warnings</h4>
+                        <ul id="warningsList" style="padding-left: 1.25rem;">
+                            <!-- Injected warnings -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+    <script>
+        // State variables
+        let jobsList = [];
+        let selectedJobId = null;
+        let selectedPageNum = 1;
+        let pageCount = 0;
+        
+        let pageData = null; // page_xxxx.json content
+        let textBlocksVisible = true;
+        let layoutRegionsVisible = true;
+        let labelsVisible = false;
+        let confidenceThreshold = 0.5;
+
+        // Zoom / Pan State
+        let scale = 1;
+        let translateX = 0;
+        let translateY = 0;
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+
+        // Bounding box colors (stroke representation)
+        const regionColors = {
+            'text': '#3b82f6',      // Blue
+            'title': '#10b981',     // Green
+            'table': '#06b6d4',     // Cyan
+            'figure': '#8b5cf6',    // Purple
+            'stamp': '#f97316',     // Orange
+            'header': '#ec4899',    // Pink
+            'footer': '#64748b'     // Slate
+        };
+
+        // DOM elements
+        const jobListEl = document.getElementById('jobList');
+        const refreshJobsBtn = document.getElementById('refreshJobsBtn');
+        const prevPageBtn = document.getElementById('prevPageBtn');
+        const nextPageBtn = document.getElementById('nextPageBtn');
+        const pageDropdown = document.getElementById('pageDropdown');
+        const pageCountLabel = document.getElementById('pageCountLabel');
+        const confidenceSlider = document.getElementById('confidenceSlider');
+        const confidenceValue = document.getElementById('confidenceValue');
+        
+        const toggleTextBtn = document.getElementById('toggleTextBtn');
+        const toggleLayoutBtn = document.getElementById('toggleLayoutBtn');
+        const toggleLabelsBtn = document.getElementById('toggleLabelsBtn');
+
+        const viewport = document.getElementById('viewport');
+        const zoomContainer = document.getElementById('zoomContainer');
+        const canvasPlaceholder = document.getElementById('canvasPlaceholder');
+        const pageImage = document.getElementById('pageImage');
+        const overlaySvg = document.getElementById('overlaySvg');
+        const floatingControls = document.getElementById('floatingControls');
+
+        const zoomInBtn = document.getElementById('zoomInBtn');
+        const zoomOutBtn = document.getElementById('zoomOutBtn');
+        const zoomResetBtn = document.getElementById('zoomResetBtn');
+
+        const textBlocksTableBody = document.getElementById('textBlocksTableBody');
+        const layoutRegionsTableBody = document.getElementById('layoutRegionsTableBody');
+        const tableHtmlSection = document.getElementById('tableHtmlSection');
+        const reconstructedTableContainer = document.getElementById('reconstructedTableContainer');
+        
+        const metaJobId = document.getElementById('metaJobId');
+        const metaPageNum = document.getElementById('metaPageNum');
+        const metaProcessingTime = document.getElementById('metaProcessingTime');
+        const warningsBox = document.getElementById('warningsBox');
+        const warningsList = document.getElementById('warningsList');
+
+        // Initial setup
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchJobsList();
+            setupZoomAndPan();
+            setupTabNavigation();
+        });
+
+        // Fetch completed jobs from backend
+        async function fetchJobsList() {
+            try {
+                const response = await fetch('/api/jobs');
+                jobsList = await response.json();
+                renderJobsList();
+            } catch (err) {
+                console.error("Failed to load jobs list", err);
+                jobListEl.innerHTML = `
+                    <div class="empty-view" style="color: var(--accent-error)">
+                        <span class="empty-view-icon">⚠️</span>
+                        <p>Error connecting to backend API</p>
+                    </div>`;
+            }
+        }
+
+        function renderJobsList() {
+            if (jobsList.length === 0) {
+                jobListEl.innerHTML = `
+                    <div class="empty-view">
+                        <span class="empty-view-icon">📂</span>
+                        <p>No completed jobs found in storage/jobs/</p>
+                    </div>`;
+                return;
+            }
+
+            jobListEl.innerHTML = '';
+            jobsList.forEach(job => {
+                const card = document.createElement('div');
+                card.className = `job-card ${job.job_id === selectedJobId ? 'active' : ''}`;
+                card.dataset.jobId = job.job_id;
+                
+                const duration = job.total_processing_time_seconds ? `${job.total_processing_time_seconds.toFixed(1)}s` : 'N/A';
+                
+                card.innerHTML = `
+                    <div class="job-filename">${job.original_filename}</div>
+                    <div class="job-meta-row">
+                        <span class="meta-badge" title="Page count">${job.page_count} Pages</span>
+                        <span class="meta-badge" title="Processing duration">${duration}</span>
+                        <span class="meta-badge" title="Text blocks count">${job.total_text_blocks} Blks</span>
+                        <span class="meta-badge" title="Layout regions count">${job.total_layout_regions} Regs</span>
+                    </div>
+                `;
+                
+                card.addEventListener('click', () => selectJob(job.job_id, job.page_count));
+                jobListEl.appendChild(card);
+            });
+        }
+
+        refreshJobsBtn.addEventListener('click', () => {
+            fetchJobsList();
+        });
+
+        // Select a job
+        function selectJob(jobId, totalPages) {
+            selectedJobId = jobId;
+            selectedPageNum = 1;
+            pageCount = totalPages;
+
+            // Highlight selected card
+            document.querySelectorAll('.job-card').forEach(c => {
+                c.classList.toggle('active', c.dataset.jobId === jobId);
+            });
+
+            // Update page navigation controls
+            prevPageBtn.disabled = true;
+            nextPageBtn.disabled = pageCount <= 1;
+            pageDropdown.disabled = false;
+
+            // Populate dropdown
+            pageDropdown.innerHTML = '';
+            for (let i = 1; i <= pageCount; i++) {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = `Page ${i}`;
+                pageDropdown.appendChild(opt);
+            }
+            pageDropdown.value = 1;
+            pageCountLabel.textContent = `of ${pageCount}`;
+
+            // Load first page
+            loadPageData(1);
+        }
+
+        // Handle page navigation
+        prevPageBtn.addEventListener('click', () => {
+            if (selectedPageNum > 1) {
+                selectedPageNum--;
+                pageDropdown.value = selectedPageNum;
+                loadPageData(selectedPageNum);
+            }
+        });
+
+        nextPageBtn.addEventListener('click', () => {
+            if (selectedPageNum < pageCount) {
+                selectedPageNum++;
+                pageDropdown.value = selectedPageNum;
+                loadPageData(selectedPageNum);
+            }
+        });
+
+        pageDropdown.addEventListener('change', (e) => {
+            selectedPageNum = parseInt(e.target.value);
+            loadPageData(selectedPageNum);
+        });
+
+        // Load specific page images and JSON results
+        async function loadPageData(pageNum) {
+            if (!selectedJobId) return;
+            
+            selectedPageNum = pageNum;
+            prevPageBtn.disabled = selectedPageNum <= 1;
+            nextPageBtn.disabled = selectedPageNum >= pageCount;
+
+            const pageStr = String(pageNum).padStart(4, '0');
+            const imageUrl = `/storage/jobs/${selectedJobId}/pages/page_${pageStr}.png`;
+            const jsonUrl = `/storage/jobs/${selectedJobId}/pages/page_${pageStr}.json`;
+
+            canvasPlaceholder.style.display = 'none';
+            pageImage.style.display = 'block';
+            overlaySvg.style.display = 'block';
+            floatingControls.style.display = 'flex';
+
+            // Show loading state
+            pageImage.style.opacity = 0.4;
+            
+            try {
+                // Fetch page JSON
+                const response = await fetch(jsonUrl);
+                pageData = await response.json();
+                
+                // Fetch image dimensions
+                const img = new Image();
+                img.onload = () => {
+                    pageImage.src = imageUrl;
+                    pageImage.style.opacity = 1;
+                    
+                    // Setup SVG viewBox matching actual PNG dimensions
+                    overlaySvg.setAttribute('viewBox', `0 0 ${img.naturalWidth} ${img.naturalHeight}`);
+                    
+                    // Reset zoom
+                    resetZoom();
+                    
+                    // Render layers
+                    renderOverlays();
+                    
+                    // Update Tables
+                    updateTables();
+                    updateMetaTab();
+                };
+                img.src = imageUrl;
+
+            } catch (err) {
+                console.error("Failed to load page data files", err);
+                // Try just loading the image if JSON fails
+                pageImage.src = imageUrl;
+                pageImage.style.opacity = 1;
+                overlaySvg.style.display = 'none';
+                
+                textBlocksTableBody.innerHTML = `<tr><td colspan="3" style="color: var(--accent-error)">Failed to load page JSON details</td></tr>`;
+                layoutRegionsTableBody.innerHTML = `<tr><td colspan="3" style="color: var(--accent-error)">Failed to load page JSON details</td></tr>`;
+            }
+        }
+
+        // Render overlays onto the SVG
+        function renderOverlays() {
+            if (!pageData) return;
+            
+            overlaySvg.innerHTML = '';
+            
+            // 1. Draw Layout Regions (Drawn at background of text blocks)
+            if (layoutRegionsVisible && pageData.layout_regions) {
+                pageData.layout_regions.forEach(region => {
+                    const box = region.bounding_box;
+                    const width = box.x2 - box.x1;
+                    const height = box.y2 - box.y1;
+                    
+                    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    rect.setAttribute('x', box.x1);
+                    rect.setAttribute('y', box.y1);
+                    rect.setAttribute('width', width);
+                    rect.setAttribute('height', height);
+                    
+                    const strokeColor = regionColors[region.region_type.toLowerCase()] || '#ffffff';
+                    rect.setAttribute('stroke', strokeColor);
+                    rect.setAttribute('stroke-dasharray', '4, 4');
+                    rect.setAttribute('fill', 'rgba(255, 255, 255, 0.01)');
+                    rect.setAttribute('class', 'bbox-rect');
+                    rect.dataset.regionId = region.region_id;
+                    rect.style.color = strokeColor;
+                    
+                    // Mouse events to highlight in Table
+                    rect.addEventListener('mouseenter', () => highlightItem('region', region.region_id));
+                    rect.addEventListener('mouseleave', () => unhighlightItem('region', region.region_id));
+                    rect.addEventListener('click', () => selectLayoutRegion(region));
+
+                    overlaySvg.appendChild(rect);
+                });
+            }
+
+            // 2. Draw Text Blocks
+            if (textBlocksVisible && pageData.text_blocks) {
+                pageData.text_blocks.forEach(block => {
+                    // Filter by confidence threshold
+                    if (block.confidence < confidenceThreshold) return;
+
+                    const box = block.bounding_box;
+                    const width = box.x2 - box.x1;
+                    const height = box.y2 - box.y1;
+
+                    // Group to hold rect + text label
+                    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                    g.dataset.blockId = block.block_id;
+
+                    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    rect.setAttribute('x', box.x1);
+                    rect.setAttribute('y', box.y1);
+                    rect.setAttribute('width', width);
+                    rect.setAttribute('height', height);
+                    
+                    // Color code by confidence
+                    let color = varToHex('--accent-error'); // Red
+                    if (block.confidence >= 0.85) {
+                        color = varToHex('--accent-success'); // Green
+                    } else if (block.confidence >= 0.50) {
+                        color = varToHex('--accent-warning'); // Yellow
+                    }
+                    
+                    rect.setAttribute('stroke', color);
+                    rect.setAttribute('fill', 'rgba(255, 255, 255, 0.03)');
+                    rect.setAttribute('class', 'bbox-rect');
+                    rect.style.color = color;
+                    
+                    // Mouse events to highlight in Table
+                    rect.addEventListener('mouseenter', () => highlightItem('block', block.block_id));
+                    rect.addEventListener('mouseleave', () => unhighlightItem('block', block.block_id));
+
+                    g.appendChild(rect);
+
+                    // Add label text if toggled
+                    if (labelsVisible) {
+                        const fontSize = Math.max(6, Math.min(10, height * 0.4));
+                        
+                        const labelText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        labelText.setAttribute('x', box.x1 + 2);
+                        labelText.setAttribute('y', box.y1 - 2);
+                        labelText.setAttribute('class', 'text-block-label');
+                        labelText.style.fontSize = `${fontSize}px`;
+                        labelText.textContent = `${block.text.substring(0, 15)}${block.text.length > 15 ? '...' : ''} (${(block.confidence*100).toFixed(0)}%)`;
+                        
+                        // Background overlay behind text for readability
+                        const labelBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                        labelBg.setAttribute('x', box.x1);
+                        labelBg.setAttribute('y', box.y1 - fontSize - 4);
+                        labelBg.setAttribute('width', Math.min(width, 100));
+                        labelBg.setAttribute('height', fontSize + 4);
+                        labelBg.setAttribute('fill', color);
+                        labelBg.setAttribute('class', 'text-block-label-bg');
+
+                        g.appendChild(labelBg);
+                        g.appendChild(labelText);
+                    }
+
+                    overlaySvg.appendChild(g);
+                });
+            }
+        }
+
+        // Toggles & Confidence Sliders Listeners
+        toggleTextBtn.addEventListener('click', () => {
+            textBlocksVisible = !textBlocksVisible;
+            toggleTextBtn.classList.toggle('active', textBlocksVisible);
+            renderOverlays();
+        });
+
+        toggleLayoutBtn.addEventListener('click', () => {
+            layoutRegionsVisible = !layoutRegionsVisible;
+            toggleLayoutBtn.classList.toggle('active', layoutRegionsVisible);
+            renderOverlays();
+        });
+
+        toggleLabelsBtn.addEventListener('click', () => {
+            labelsVisible = !labelsVisible;
+            toggleLabelsBtn.classList.toggle('active', labelsVisible);
+            renderOverlays();
+        });
+
+        confidenceSlider.addEventListener('input', (e) => {
+            const val = e.target.value;
+            confidenceValue.textContent = `${val}%`;
+            confidenceThreshold = val / 100;
+            renderOverlays();
+            updateTextTable(); // Refresh details list as well
+        });
+
+        // Update Tables
+        function updateTables() {
+            updateTextTable();
+            updateLayoutTable();
+        }
+
+        function updateTextTable() {
+            if (!pageData || !pageData.text_blocks) {
+                textBlocksTableBody.innerHTML = `<tr><td colspan="3" style="text-align: center">No text blocks found</td></tr>`;
+                return;
+            }
+
+            textBlocksTableBody.innerHTML = '';
+            let filteredBlocks = pageData.text_blocks.filter(b => b.confidence >= confidenceThreshold);
+
+            if (filteredBlocks.length === 0) {
+                textBlocksTableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-secondary)">No blocks above threshold</td></tr>`;
+                return;
+            }
+
+            filteredBlocks.forEach(block => {
+                const tr = document.createElement('tr');
+                tr.id = `row-block-${block.block_id}`;
+                
+                let confClass = 'conf-low';
+                if (block.confidence >= 0.85) confClass = 'conf-high';
+                else if (block.confidence >= 0.50) confClass = 'conf-med';
+
+                tr.innerHTML = `
+                    <td style="font-family: var(--font-mono); font-size: 0.75rem;">${block.block_id}</td>
+                    <td style="word-break: break-word;">${escapeHtml(block.text)}</td>
+                    <td><span class="conf-badge ${confClass}">${(block.confidence * 100).toFixed(0)}%</span></td>
+                `;
+
+                // Hover interactions
+                tr.addEventListener('mouseenter', () => highlightItem('block', block.block_id, true));
+                tr.addEventListener('mouseleave', () => unhighlightItem('block', block.block_id, true));
+
+                textBlocksTableBody.appendChild(tr);
+            });
+        }
+
+        function updateLayoutTable() {
+            if (!pageData || !pageData.layout_regions) {
+                layoutRegionsTableBody.innerHTML = `<tr><td colspan="3" style="text-align: center">No layout regions found</td></tr>`;
+                return;
+            }
+
+            layoutRegionsTableBody.innerHTML = '';
+            
+            if (pageData.layout_regions.length === 0) {
+                layoutRegionsTableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-secondary)">No regions detected</td></tr>`;
+                return;
+            }
+
+            pageData.layout_regions.forEach(region => {
+                const tr = document.createElement('tr');
+                tr.id = `row-region-${region.region_id}`;
+
+                const box = region.bounding_box;
+                const coordStr = `${box.x1},${box.y1} to ${box.x2},${box.y2}`;
+                const badgeColor = regionColors[region.region_type.toLowerCase()] || '#ffffff';
+
+                tr.innerHTML = `
+                    <td style="font-family: var(--font-mono); font-size: 0.75rem;">${region.region_id}</td>
+                    <td><span class="badge-region" style="background-color: ${badgeColor}33; color: ${badgeColor}; border: 1px solid ${badgeColor}66">${region.region_type}</span></td>
+                    <td style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-secondary)">${coordStr}</td>
+                `;
+
+                // Hover interactions
+                tr.addEventListener('mouseenter', () => highlightItem('region', region.region_id, true));
+                tr.addEventListener('mouseleave', () => unhighlightItem('region', region.region_id, true));
+                tr.addEventListener('click', () => selectLayoutRegion(region));
+
+                layoutRegionsTableBody.appendChild(tr);
+            });
+        }
+
+        function selectLayoutRegion(region) {
+            // Unhighlight other details rows
+            document.querySelectorAll('#layoutRegionsTableBody tr').forEach(r => r.classList.remove('highlighted'));
+            const targetRow = document.getElementById(`row-region-${region.region_id}`);
+            if (targetRow) {
+                targetRow.classList.add('highlighted');
+                targetRow.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+
+            // Switch to Layout tab in Sidebar
+            document.querySelector('.tab-btn[data-tab="layout-tab"]').click();
+
+            if (region.region_type.toLowerCase() === 'table' && region.html) {
+                tableHtmlSection.style.display = 'flex';
+                reconstructedTableContainer.innerHTML = region.html;
+            } else {
+                tableHtmlSection.style.display = 'none';
+            }
+        }
+
+        // Highlight/Unhighlight items in both Canvas and Sidebar lists
+        function highlightItem(type, id, fromTable = false) {
+            // Find target element on canvas
+            let canvasSelector = type === 'block' ? `g[data-block-id="${id}"] rect` : `rect[data-region-id="${id}"]`;
+            const canvasEl = overlaySvg.querySelector(canvasSelector);
+            if (canvasEl) {
+                canvasEl.classList.add('highlighted');
+                if (type === 'region') {
+                    canvasEl.setAttribute('fill', `${canvasEl.getAttribute('stroke')}22`);
+                } else {
+                    canvasEl.setAttribute('fill', `${canvasEl.getAttribute('stroke')}44`);
+                }
+            }
+
+            // Find target element in sidebar list
+            const tableRow = document.getElementById(`row-${type}-${id}`);
+            if (tableRow) {
+                tableRow.classList.add('highlighted');
+                if (!fromTable) {
+                    tableRow.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                }
+            }
+        }
+
+        function unhighlightItem(type, id, fromTable = false) {
+            let canvasSelector = type === 'block' ? `g[data-block-id="${id}"] rect` : `rect[data-region-id="${id}"]`;
+            const canvasEl = overlaySvg.querySelector(canvasSelector);
+            if (canvasEl) {
+                canvasEl.classList.remove('highlighted');
+                if (type === 'region') {
+                    canvasEl.setAttribute('fill', 'rgba(255, 255, 255, 0.01)');
+                } else {
+                    canvasEl.setAttribute('fill', 'rgba(255, 255, 255, 0.03)');
+                }
+            }
+
+            const tableRow = document.getElementById(`row-${type}-${id}`);
+            if (tableRow) {
+                tableRow.classList.remove('highlighted');
+            }
+        }
+
+        // Update Metadata Tab
+        function updateMetaTab() {
+            if (!pageData) return;
+
+            metaJobId.textContent = selectedJobId;
+            metaPageNum.textContent = pageData.page_number;
+            metaProcessingTime.textContent = pageData.processing_time_seconds ? `${pageData.processing_time_seconds.toFixed(2)}s` : 'N/A';
+
+            if (pageData.warnings && pageData.warnings.length > 0) {
+                warningsBox.style.display = 'flex';
+                warningsList.innerHTML = '';
+                pageData.warnings.forEach(warn => {
+                    const li = document.createElement('li');
+                    li.textContent = warn;
+                    warningsList.appendChild(li);
+                });
+            } else {
+                warningsBox.style.display = 'none';
+            }
+        }
+
+        // Helper: Convert HSL or Hex variables to plain color codes
+        function varToHex(varName) {
+            if (varName === '--accent-success') return '#10b981';
+            if (varName === '--accent-warning') return '#f59e0b';
+            if (varName === '--accent-error') return '#ef4444';
+            return '#3b82f6';
+        }
+
+        // Helper: HTML Escaping
+        function escapeHtml(str) {
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Sidebar Tabs Setup
+        function setupTabNavigation() {
+            const tabs = document.querySelectorAll('.tab-btn');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+
+                    const target = tab.dataset.tab;
+                    document.querySelectorAll('.tab-panel').forEach(p => {
+                        p.classList.toggle('active', p.id === target);
+                    });
+                });
+            });
+        }
+
+        // Zoom and Pan Handlers
+        function setupZoomAndPan() {
+            viewport.addEventListener('mousedown', (e) => {
+                if (e.target.closest('.bbox-rect') || e.target.closest('button')) return; // Avoid drag on clickables
+                isDragging = true;
+                viewport.style.cursor = 'grabbing';
+                startX = e.clientX - translateX;
+                startY = e.clientY - translateY;
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                translateX = e.clientX - startX;
+                translateY = e.clientY - startY;
+                applyTransform();
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    viewport.style.cursor = 'grab';
+                }
+            });
+
+            // Mouse wheel Zoom
+            viewport.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                
+                const zoomFactor = 1.1;
+                let newScale = scale;
+                if (e.deltaY < 0) {
+                    newScale *= zoomFactor;
+                } else {
+                    newScale /= zoomFactor;
+                }
+                
+                // Bound Zoom
+                newScale = Math.max(0.2, Math.min(10, newScale));
+                
+                // Zoom to mouse cursor coordinates
+                const rect = zoomContainer.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                translateX -= mouseX * (newScale / scale - 1);
+                translateY -= mouseY * (newScale / scale - 1);
+                
+                scale = newScale;
+                applyTransform();
+            }, { passive: false });
+
+            // Button zoom controllers
+            zoomInBtn.addEventListener('click', () => {
+                scale *= 1.25;
+                scale = Math.min(10, scale);
+                applyTransform();
+            });
+
+            zoomOutBtn.addEventListener('click', () => {
+                scale /= 1.25;
+                scale = Math.max(0.2, scale);
+                applyTransform();
+            });
+
+            zoomResetBtn.addEventListener('click', () => {
+                resetZoom();
+            });
+        }
+
+        function resetZoom() {
+            scale = 1;
+            translateX = 0;
+            translateY = 0;
+            applyTransform();
+        }
+
+        function applyTransform() {
+            zoomContainer.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+        }
+    </script>
+</body>
+</html>

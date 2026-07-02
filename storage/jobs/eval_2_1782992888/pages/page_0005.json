@@ -1,0 +1,897 @@
+{
+  "job_id": "eval_2_1782992888",
+  "page_number": 5,
+  "image_path": "C:\\Users\\Asus\\Desktop\\Tender_Volks\\main\\storage\\jobs\\eval_2_1782992888\\pages\\page_0005.png",
+  "image_width_px": 0,
+  "image_height_px": 0,
+  "processing_time_seconds": 10.402579545974731,
+  "text_blocks": [
+    {
+      "block_id": "blk_0001",
+      "text": "Consignees/Reporting Officer/qRfaat/Rufe 3rfgcrt and/ ar Quantity/Ha",
+      "confidence": 0.8897,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 222,
+        "x2": 1114,
+        "y2": 253
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0002",
+      "text": "Consignee",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 332,
+        "y1": 305,
+        "x2": 482,
+        "y2": 331
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0003",
+      "text": "Reporting/Officer/",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 276,
+        "y1": 331,
+        "x2": 534,
+        "y2": 363
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0004",
+      "text": "S.No./.",
+      "confidence": 0.9921,
+      "bounding_box": {
+        "x1": 130,
+        "y1": 341,
+        "x2": 244,
+        "y2": 368
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0005",
+      "text": "Delivery Days/fSdlat ",
+      "confidence": 0.8748,
+      "bounding_box": {
+        "x1": 1200,
+        "y1": 344,
+        "x2": 1518,
+        "y2": 378
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0006",
+      "text": "Address/4dl",
+      "confidence": 0.9292,
+      "bounding_box": {
+        "x1": 679,
+        "y1": 361,
+        "x2": 841,
+        "y2": 387
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0007",
+      "text": "Quantity/ar",
+      "confidence": 0.9371,
+      "bounding_box": {
+        "x1": 989,
+        "y1": 358,
+        "x2": 1166,
+        "y2": 385
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0008",
+      "text": "Ie?Jhd/Ph",
+      "confidence": 0.7734,
+      "bounding_box": {
+        "x1": 315,
+        "y1": 368,
+        "x2": 492,
+        "y2": 395
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0009",
+      "text": "i.",
+      "confidence": 0.8958,
+      "bounding_box": {
+        "x1": 170,
+        "y1": 380,
+        "x2": 202,
+        "y2": 412
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0010",
+      "text": "***********",
+      "confidence": 0.9437,
+      "bounding_box": {
+        "x1": 270,
+        "y1": 475,
+        "x2": 416,
+        "y2": 505
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0011",
+      "text": "nwwel***********",
+      "confidence": 0.9416,
+      "bounding_box": {
+        "x1": 553,
+        "y1": 472,
+        "x2": 790,
+        "y2": 512
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0012",
+      "text": "1",
+      "confidence": 0.9998,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 482,
+        "x2": 145,
+        "y2": 507
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0013",
+      "text": "4",
+      "confidence": 0.9983,
+      "bounding_box": {
+        "x1": 972,
+        "y1": 478,
+        "x2": 1006,
+        "y2": 512
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0014",
+      "text": "60",
+      "confidence": 0.9995,
+      "bounding_box": {
+        "x1": 1186,
+        "y1": 480,
+        "x2": 1232,
+        "y2": 509
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0015",
+      "text": "Buyer Added Bid Specific Terms and Conditions/har arr ast $ fs at fatu ar",
+      "confidence": 0.9282,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 633,
+        "x2": 1532,
+        "y2": 677
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0016",
+      "text": "Generic",
+      "confidence": 0.9995,
+      "bounding_box": {
+        "x1": 194,
+        "y1": 714,
+        "x2": 312,
+        "y2": 748
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0017",
+      "text": "1.",
+      "confidence": 0.9869,
+      "bounding_box": {
+        "x1": 155,
+        "y1": 724,
+        "x2": 184,
+        "y2": 741
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0018",
+      "text": "OPTION CLAUsE: The Purchaser reserves the right to increase or decrease the quantity to be ordered up",
+      "confidence": 0.9842,
+      "bounding_box": {
+        "x1": 197,
+        "y1": 780,
+        "x2": 1513,
+        "y2": 811
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0019",
+      "text": "to 25 percent of bid quantity at the time of placement of contract. The purchaser also reserves the right to",
+      "confidence": 0.9844,
+      "bounding_box": {
+        "x1": 197,
+        "y1": 811,
+        "x2": 1540,
+        "y2": 843
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0020",
+      "text": "increase the ordered quantity up to 25% of the contracted quantity during the currency of the contract at",
+      "confidence": 0.9903,
+      "bounding_box": {
+        "x1": 197,
+        "y1": 843,
+        "x2": 1530,
+        "y2": 875
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0021",
+      "text": "the contracted rates. The delivery period of quantity shall commence from the last date of original.",
+      "confidence": 0.9915,
+      "bounding_box": {
+        "x1": 197,
+        "y1": 875,
+        "x2": 1441,
+        "y2": 906
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0022",
+      "text": "delivery order and in cases where option clause is exercised during the extended delivery period the",
+      "confidence": 0.9933,
+      "bounding_box": {
+        "x1": 199,
+        "y1": 909,
+        "x2": 1464,
+        "y2": 933
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0023",
+      "text": "additional time shall commence from the last date of extended delivery period. The additional delivery",
+      "confidence": 0.9952,
+      "bounding_box": {
+        "x1": 199,
+        "y1": 936,
+        "x2": 1488,
+        "y2": 967
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0024",
+      "text": "time shall be (Increased quantity : Original quantity)  Original delivery period (in days), subject to",
+      "confidence": 0.9899,
+      "bounding_box": {
+        "x1": 194,
+        "y1": 965,
+        "x2": 1461,
+        "y2": 999
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0025",
+      "text": "minimum of 30 days. If the original delivery period is less than 30 days, the additional time equals the",
+      "confidence": 0.9964,
+      "bounding_box": {
+        "x1": 199,
+        "y1": 1004,
+        "x2": 1483,
+        "y2": 1028
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0026",
+      "text": "original delivery period. The Purchaser may extend this calculated delivery duration up to the original",
+      "confidence": 0.9947,
+      "bounding_box": {
+        "x1": 199,
+        "y1": 1031,
+        "x2": 1481,
+        "y2": 1062
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0027",
+      "text": "delivery period while exercising the option clause. Bidders must comply with these terms.",
+      "confidence": 0.9936,
+      "bounding_box": {
+        "x1": 197,
+        "y1": 1062,
+        "x2": 1331,
+        "y2": 1094
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0028",
+      "text": "2. Oem",
+      "confidence": 0.7409,
+      "bounding_box": {
+        "x1": 148,
+        "y1": 1123,
+        "x2": 268,
+        "y2": 1157
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0029",
+      "text": "IMPORTED PRODUcTS: In case of imported products, OEM or Authorized Seller of OEM should have a",
+      "confidence": 0.9844,
+      "bounding_box": {
+        "x1": 199,
+        "y1": 1189,
+        "x2": 1466,
+        "y2": 1221
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0030",
+      "text": "registered office in India to provide after sales service support in India. The certificate to this effect should",
+      "confidence": 0.9912,
+      "bounding_box": {
+        "x1": 197,
+        "y1": 1223,
+        "x2": 1537,
+        "y2": 1255
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0031",
+      "text": "be submitted.",
+      "confidence": 0.9991,
+      "bounding_box": {
+        "x1": 197,
+        "y1": 1252,
+        "x2": 369,
+        "y2": 1279
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0032",
+      "text": "Disclaimer/3rdn",
+      "confidence": 0.8769,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1364,
+        "x2": 458,
+        "y2": 1404
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0033",
+      "text": "The additional terms and conditions have been incorporated by the Buyer after approval of the Competent",
+      "confidence": 0.9915,
+      "bounding_box": {
+        "x1": 118,
+        "y1": 1447,
+        "x2": 1456,
+        "y2": 1472
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0034",
+      "text": "on the bidding process, its outcome, and consequences thereof including any eccentricity / restriction arising in.",
+      "confidence": 0.996,
+      "bounding_box": {
+        "x1": 116,
+        "y1": 1506,
+        "x2": 1518,
+        "y2": 1537
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0035",
+      "text": "the bidding process due to these ATCs and due to modification of technical specifications and / or terms and.",
+      "confidence": 0.9892,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1540,
+        "x2": 1483,
+        "y2": 1572
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0036",
+      "text": "conditions governing the bid. If any clause(s) is / are incorporated by the Buyer regarding following, the bid and",
+      "confidence": 0.9873,
+      "bounding_box": {
+        "x1": 118,
+        "y1": 1574,
+        "x2": 1520,
+        "y2": 1598
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0037",
+      "text": "resultant contracts shall be treated as null and void and such bids may be cancelled by GeM at any stage of.",
+      "confidence": 0.995,
+      "bounding_box": {
+        "x1": 116,
+        "y1": 1601,
+        "x2": 1476,
+        "y2": 1632
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0038",
+      "text": "bidding process without any notice:-",
+      "confidence": 0.9969,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1630,
+        "x2": 576,
+        "y2": 1664
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0039",
+      "text": "1. Definition of Class I and Class II suppliers in the bid not in line with the extant Order / Office Memorandum.",
+      "confidence": 0.9858,
+      "bounding_box": {
+        "x1": 150,
+        "y1": 1696,
+        "x2": 1530,
+        "y2": 1727
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0040",
+      "text": "issued by DPIIT in this regard.",
+      "confidence": 0.9618,
+      "bounding_box": {
+        "x1": 197,
+        "y1": 1727,
+        "x2": 578,
+        "y2": 1759
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0041",
+      "text": "2.",
+      "confidence": 0.9691,
+      "bounding_box": {
+        "x1": 153,
+        "y1": 1774,
+        "x2": 199,
+        "y2": 1793
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0042",
+      "text": " Seeking EMD submission from bidder(s), including via Additional Terms & Conditions, in contravention to",
+      "confidence": 0.987,
+      "bounding_box": {
+        "x1": 189,
+        "y1": 1769,
+        "x2": 1518,
+        "y2": 1801
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0043",
+      "text": "exemption provided to such sellers under GeM GTC.",
+      "confidence": 0.9978,
+      "bounding_box": {
+        "x1": 199,
+        "y1": 1803,
+        "x2": 851,
+        "y2": 1827
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0044",
+      "text": "3. Publishing Custom / BoQ bids for items for which regular GeM categories are available without any",
+      "confidence": 0.996,
+      "bounding_box": {
+        "x1": 148,
+        "y1": 1837,
+        "x2": 1439,
+        "y2": 1869
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0045",
+      "text": "Category item bunched with it.",
+      "confidence": 0.9928,
+      "bounding_box": {
+        "x1": 197,
+        "y1": 1871,
+        "x2": 590,
+        "y2": 1903
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0046",
+      "text": "4.",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 155,
+        "y1": 1915,
+        "x2": 189,
+        "y2": 1935
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0047",
+      "text": " Creating BoQ bid for single item.",
+      "confidence": 0.9882,
+      "bounding_box": {
+        "x1": 192,
+        "y1": 1913,
+        "x2": 610,
+        "y2": 1937
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0048",
+      "text": "5. Mentioning specific Brand or Make or Model or Manufacturer or Dealer name.",
+      "confidence": 0.9878,
+      "bounding_box": {
+        "x1": 150,
+        "y1": 1949,
+        "x2": 1168,
+        "y2": 1981
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0049",
+      "text": "6. Mandating submission of documents in physical form as a pre-requisite to qualify bidders.",
+      "confidence": 0.9916,
+      "bounding_box": {
+        "x1": 148,
+        "y1": 1988,
+        "x2": 1328,
+        "y2": 2020
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0050",
+      "text": "7. Floating / creation of work contracts as Custom Bids in Services.",
+      "confidence": 0.9805,
+      "bounding_box": {
+        "x1": 150,
+        "y1": 2027,
+        "x2": 1006,
+        "y2": 2059
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0051",
+      "text": "8. Seeking sample with bid or approval of samples during bid evaluation process. (However, in bids for",
+      "confidence": 0.9864,
+      "bounding_box": {
+        "x1": 148,
+        "y1": 2069,
+        "x2": 1459,
+        "y2": 2100
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0052",
+      "text": "attached categories, trials are allowed as per approved procurement policy of the buyer nodal Ministries)",
+      "confidence": 0.9945,
+      "bounding_box": {
+        "x1": 197,
+        "y1": 2100,
+        "x2": 1523,
+        "y2": 2132
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0053",
+      "text": "9. Mandating foreign / international certifications even in case of existence of Indian Standards without",
+      "confidence": 0.9946,
+      "bounding_box": {
+        "x1": 148,
+        "y1": 2139,
+        "x2": 1466,
+        "y2": 2171
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0054",
+      "text": "5/6",
+      "confidence": 0.9979,
+      "bounding_box": {
+        "x1": 1530,
+        "y1": 2256,
+        "x2": 1579,
+        "y2": 2283
+      },
+      "language_hint": "en"
+    }
+  ],
+  "layout_regions": [
+    {
+      "region_id": "reg_0001",
+      "region_type": "text",
+      "bounding_box": {
+        "x1": 189,
+        "y1": 783,
+        "x2": 1539,
+        "y2": 1086
+      },
+      "contained_block_ids": [],
+      "table_structure": null
+    },
+    {
+      "region_id": "reg_0002",
+      "region_type": "text",
+      "bounding_box": {
+        "x1": 174,
+        "y1": 1193,
+        "x2": 1531,
+        "y2": 1280
+      },
+      "contained_block_ids": [],
+      "table_structure": null
+    },
+    {
+      "region_id": "reg_0003",
+      "region_type": "text",
+      "bounding_box": {
+        "x1": 119,
+        "y1": 1451,
+        "x2": 1527,
+        "y2": 2137
+      },
+      "contained_block_ids": [],
+      "table_structure": null
+    },
+    {
+      "region_id": "reg_0004",
+      "region_type": "text",
+      "bounding_box": {
+        "x1": 118,
+        "y1": 1451,
+        "x2": 1527,
+        "y2": 1782
+      },
+      "contained_block_ids": [],
+      "table_structure": null
+    },
+    {
+      "region_id": "reg_0005",
+      "region_type": "title",
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1370,
+        "x2": 454,
+        "y2": 1401
+      },
+      "contained_block_ids": [],
+      "table_structure": null
+    },
+    {
+      "region_id": "reg_0006",
+      "region_type": "title",
+      "bounding_box": {
+        "x1": 154,
+        "y1": 1130,
+        "x2": 261,
+        "y2": 1150
+      },
+      "contained_block_ids": [],
+      "table_structure": null
+    },
+    {
+      "region_id": "reg_0007",
+      "region_type": "title",
+      "bounding_box": {
+        "x1": 125,
+        "y1": 641,
+        "x2": 1530,
+        "y2": 723
+      },
+      "contained_block_ids": [],
+      "table_structure": null
+    },
+    {
+      "region_id": "reg_0008",
+      "region_type": "table",
+      "bounding_box": {
+        "x1": 98,
+        "y1": 278,
+        "x2": 1551,
+        "y2": 537
+      },
+      "contained_block_ids": [],
+      "table_structure": {
+        "cell_bbox": [
+          [
+            12.962518692016602,
+            16.197484970092773,
+            176.916259765625,
+            16.920822143554688,
+            175.09437561035156,
+            195.1243133544922,
+            12.063163757324219,
+            194.6003875732422
+          ],
+          [
+            160.1076202392578,
+            16.051639556884766,
+            498.7155456542969,
+            15.991320610046387,
+            500.8876647949219,
+            193.57369995117188,
+            159.0225830078125,
+            195.08316040039062
+          ],
+          [
+            464.923583984375,
+            16.340415954589844,
+            861.1417236328125,
+            16.317991256713867,
+            864.8717041015625,
+            176.95201110839844,
+            469.4090576171875,
+            178.4028778076172
+          ],
+          [
+            840.7227783203125,
+            13.210780143737793,
+            1079.4664306640625,
+            13.493059158325195,
+            1083.309814453125,
+            174.85931396484375,
+            848.1044311523438,
+            175.9521484375
+          ],
+          [
+            1075.172607421875,
+            11.882583618164062,
+            1436.6859130859375,
+            12.431705474853516,
+            1436.5654296875,
+            179.34986877441406,
+            1079.4193115234375,
+            179.71253967285156
+          ],
+          [
+            6.851906776428223,
+            182.1584014892578,
+            117.16746520996094,
+            183.97161865234375,
+            116.06956481933594,
+            249.0469207763672,
+            6.721299648284912,
+            248.69712829589844
+          ],
+          [
+            165.33497619628906,
+            182.99644470214844,
+            403.30096435546875,
+            184.3964080810547,
+            400.6888732910156,
+            249.32179260253906,
+            163.42520141601562,
+            249.0946044921875
+          ],
+          [
+            468.1843566894531,
+            185.06378173828125,
+            818.6547241210938,
+            185.98379516601562,
+            814.4107055664062,
+            247.1699981689453,
+            462.2054138183594,
+            247.01806640625
+          ],
+          [
+            859.1841430664062,
+            184.7950897216797,
+            1052.6964111328125,
+            185.51368713378906,
+            1052.1334228515625,
+            246.08599853515625,
+            860.0925903320312,
+            245.98414611816406
+          ],
+          [
+            1097.31201171875,
+            187.05235290527344,
+            1373.1046142578125,
+            187.4507598876953,
+            1373.1787109375,
+            245.93043518066406,
+            1101.7069091796875,
+            245.9464569091797
+          ]
+        ],
+        "html": "<html><body><table><tr><td>S.No.5. 4.</td><td>Consignee Reporting/officer/ /Ruf 3Hf@</td><td>Address/</td><td>Quantity/</td><td>Delivery Days/ea </td></tr><tr><td>1</td><td>***********</td><td>*** ammu</td><td>4</td><td>60</td></tr></table></body></html>"
+      }
+    },
+    {
+      "region_id": "reg_0009",
+      "region_type": "table_caption",
+      "bounding_box": {
+        "x1": 115,
+        "y1": 223,
+        "x2": 1113,
+        "y2": 250
+      },
+      "contained_block_ids": [],
+      "table_structure": null
+    },
+    {
+      "region_id": "reg_0010",
+      "region_type": "footer",
+      "bounding_box": {
+        "x1": 1534,
+        "y1": 2260,
+        "x2": 1573,
+        "y2": 2278
+      },
+      "contained_block_ids": [],
+      "table_structure": null
+    },
+    {
+      "region_id": "reg_0011",
+      "region_type": "reference",
+      "bounding_box": {
+        "x1": 152,
+        "y1": 1465,
+        "x2": 1518,
+        "y2": 2167
+      },
+      "contained_block_ids": [],
+      "table_structure": null
+    }
+  ],
+  "warnings": []
+}

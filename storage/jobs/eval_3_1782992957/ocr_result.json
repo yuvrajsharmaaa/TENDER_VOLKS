@@ -1,0 +1,53 @@
+{
+  "job_id": "eval_3_1782992957",
+  "original_filename": "GeM-Bidding-7747584.pdf_1746189248_17620609.pdf",
+  "status": "completed",
+  "page_count": 8,
+  "total_processing_time_seconds": 72.8762834072113,
+  "pages": [
+    {
+      "page_number": 1,
+      "text_block_count": 61,
+      "layout_region_count": 4
+    },
+    {
+      "page_number": 2,
+      "text_block_count": 42,
+      "layout_region_count": 7
+    },
+    {
+      "page_number": 3,
+      "text_block_count": 53,
+      "layout_region_count": 9
+    },
+    {
+      "page_number": 4,
+      "text_block_count": 51,
+      "layout_region_count": 3
+    },
+    {
+      "page_number": 5,
+      "text_block_count": 46,
+      "layout_region_count": 17
+    },
+    {
+      "page_number": 6,
+      "text_block_count": 44,
+      "layout_region_count": 9
+    },
+    {
+      "page_number": 7,
+      "text_block_count": 45,
+      "layout_region_count": 6
+    },
+    {
+      "page_number": 8,
+      "text_block_count": 2,
+      "layout_region_count": 2
+    }
+  ],
+  "summary": {
+    "total_text_blocks": 344,
+    "total_layout_regions": 57
+  }
+}

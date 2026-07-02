@@ -1,0 +1,727 @@
+{
+  "job_id": "eval_1_1782992814",
+  "page_number": 3,
+  "image_path": "C:\\Users\\Asus\\Desktop\\Tender_Volks\\main\\storage\\jobs\\eval_1_1782992814\\pages\\page_0003.png",
+  "image_width_px": 0,
+  "image_height_px": 0,
+  "processing_time_seconds": 11.785577297210693,
+  "text_blocks": [
+    {
+      "block_id": "blk_0001",
+      "text": "Providers for Services are eligible for exemption from EmD. Traders are excluded from the purview of this",
+      "confidence": 0.9929,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 161,
+        "x2": 1437,
+        "y2": 185
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0002",
+      "text": "Policy./3H cT RIaf h 3gHR $vHST c h $cgch fasc ct Hcfa eCJT  fa fas 5h HT2T gg HAfa 3FdIdg 9FgA cht1",
+      "confidence": 0.6246,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 190,
+        "x2": 1478,
+        "y2": 222
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0003",
+      "text": "4 EJl H$ L IhJIhIh2 1 EIh x 26 H IHd$ IPIPK IPH dKJ 4 lEIPH hD IPJPGE dJ  yEP>r Wpq PleP!E 4 lle?4 $HdHd",
+      "confidence": 0.5872,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 222,
+        "x2": 1520,
+        "y2": 253
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0004",
+      "text": "1$ Ihle Ib> e Hh",
+      "confidence": 0.6382,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 253,
+        "x2": 374,
+        "y2": 285
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0005",
+      "text": "(b). EmD & Performance security should be in favour of Beneficiary, wherever it is applicable./$vast 3it siura",
+      "confidence": 0.964,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 312,
+        "x2": 1486,
+        "y2": 348
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0006",
+      "text": "3HTad RTfRT, 3i yF aIJI 3ldT t, aTHT2ff gh q8T a 3\\dT aT?1",
+      "confidence": 0.5895,
+      "bounding_box": {
+        "x1": 108,
+        "y1": 343,
+        "x2": 777,
+        "y2": 380
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0007",
+      "text": "Beneficiary/araraif :",
+      "confidence": 0.889,
+      "bounding_box": {
+        "x1": 108,
+        "y1": 404,
+        "x2": 381,
+        "y2": 441
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0008",
+      "text": "Supdt. of Police (Systems).",
+      "confidence": 0.9827,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 446,
+        "x2": 445,
+        "y2": 478
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0009",
+      "text": "Central Bureau of Investigation, System Division, 6th Floor, B-Wing, Plot 5-B, CGO Complex, Lodhi Road, New",
+      "confidence": 0.9856,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 478,
+        "x2": 1481,
+        "y2": 509
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0010",
+      "text": "Delhi-110003",
+      "confidence": 0.9992,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 512,
+        "x2": 280,
+        "y2": 536
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0011",
+      "text": "(Supdt. Of Police Systems).",
+      "confidence": 0.9513,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 541,
+        "x2": 450,
+        "y2": 573
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0012",
+      "text": "MII Compliance/a3$3n$ 3guld",
+      "confidence": 0.897,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 609,
+        "x2": 558,
+        "y2": 641
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0013",
+      "text": "MIl Compliance/3n$3n$ 3gula",
+      "confidence": 0.8935,
+      "bounding_box": {
+        "x1": 120,
+        "y1": 697,
+        "x2": 554,
+        "y2": 733
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0014",
+      "text": "Yes",
+      "confidence": 0.9987,
+      "bounding_box": {
+        "x1": 765,
+        "y1": 702,
+        "x2": 817,
+        "y2": 731
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0015",
+      "text": "MSE Purchase Preference/ava$ aRc aud",
+      "confidence": 0.9036,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 792,
+        "x2": 711,
+        "y2": 824
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0016",
+      "text": "MSE Purchase Preference/yavH$ g a4dl",
+      "confidence": 0.88,
+      "bounding_box": {
+        "x1": 125,
+        "y1": 884,
+        "x2": 689,
+        "y2": 909
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0017",
+      "text": "Yes",
+      "confidence": 0.9988,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 884,
+        "x2": 817,
+        "y2": 914
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0018",
+      "text": "1. If the bidder is a Micro or Small Enterprise as per latest definitions under MsmE rules, the bidder shall be",
+      "confidence": 0.9883,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1050,
+        "x2": 1461,
+        "y2": 1082
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0019",
+      "text": "quality and technical specifications. If the bidder is OEM of the offered products, it would be exempted from the",
+      "confidence": 0.9914,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1113,
+        "x2": 1518,
+        "y2": 1145
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0020",
+      "text": "'OEM Average Turnover\" criteria also subject to meeting of quality and technical specifications. In case any",
+      "confidence": 0.98,
+      "bounding_box": {
+        "x1": 116,
+        "y1": 1145,
+        "x2": 1464,
+        "y2": 1177
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0021",
+      "text": "for exemption must be uploaded for evaluation by the buyer..",
+      "confidence": 0.9871,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1211,
+        "x2": 881,
+        "y2": 1235
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0022",
+      "text": "2. If the bidder is a Startup, the bidder shall be exempted from the requirement of \"Bidder Turnover\" criteria and",
+      "confidence": 0.9962,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1238,
+        "x2": 1530,
+        "y2": 1269
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0023",
+      "text": "'Experience Criteria\" subject to their meeting of quality and technical specifications. If the bidder is OEM of the",
+      "confidence": 0.9839,
+      "bounding_box": {
+        "x1": 116,
+        "y1": 1269,
+        "x2": 1513,
+        "y2": 1301
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0024",
+      "text": "offered products, it would be exempted from the \"OEM Average Turnover\" criteria also subject to meeting of",
+      "confidence": 0.9885,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1301,
+        "x2": 1483,
+        "y2": 1333
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0025",
+      "text": "quality and technical specifications. In case any bidder is seeking exemption from Turnover / Experience Criteria,",
+      "confidence": 0.9856,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1333,
+        "x2": 1532,
+        "y2": 1364
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0026",
+      "text": "the supporting documents to prove his eligibility for exemption must be uploaded for evaluation by the buyer.",
+      "confidence": 0.9986,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1364,
+        "x2": 1498,
+        "y2": 1396
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0027",
+      "text": "3. The minimum average annual financial turnover of the bidder during the last three years, ending on 31st",
+      "confidence": 0.9969,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1399,
+        "x2": 1461,
+        "y2": 1423
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0028",
+      "text": "the form of certified Audited Balance Sheets of relevant periods or a certificate from the Chartered Accountant /",
+      "confidence": 0.9966,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1457,
+        "x2": 1523,
+        "y2": 1489
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0029",
+      "text": "Cost Accountant indicating the turnover details for the relevant period shall be uploaded with the bid. In case the",
+      "confidence": 0.9907,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1494,
+        "x2": 1535,
+        "y2": 1518
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0030",
+      "text": "completed financial years after the date of constitution shall be taken into account for this criteria.",
+      "confidence": 0.9851,
+      "bounding_box": {
+        "x1": 116,
+        "y1": 1552,
+        "x2": 1348,
+        "y2": 1576
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0031",
+      "text": "4. Years of Past Experience required: The bidder must have experience for number of years as indicated above in",
+      "confidence": 0.9965,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1581,
+        "x2": 1537,
+        "y2": 1613
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0032",
+      "text": "bid document (ending month of March prior to the bid opening) of providing similar type of services to any",
+      "confidence": 0.9937,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1613,
+        "x2": 1454,
+        "y2": 1645
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0033",
+      "text": "Central / State Govt Organization / Psu. Copies of relevant contracts / orders to be uploaded along with bid in",
+      "confidence": 0.995,
+      "bounding_box": {
+        "x1": 108,
+        "y1": 1642,
+        "x2": 1488,
+        "y2": 1676
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0034",
+      "text": "support of having provided services during each of the Financial year..",
+      "confidence": 0.9898,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1676,
+        "x2": 994,
+        "y2": 1708
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0035",
+      "text": "5. Purchase preference to Micro and Small Enterprises (MsEs): Purchase preference will be given to MsEs as",
+      "confidence": 0.9894,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1710,
+        "x2": 1471,
+        "y2": 1735
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0036",
+      "text": "defined in Public Procurement Policy for Micro and Small Enterprises (MSEs) Order, 2012 dated 23.03.2012 issued",
+      "confidence": 0.9934,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1740,
+        "x2": 1540,
+        "y2": 1771
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0037",
+      "text": "by Ministry of Micro, Small and Medium Enterprises and its subsequent Orders/Notifications issued by concerned",
+      "confidence": 0.9953,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1774,
+        "x2": 1525,
+        "y2": 1798
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0038",
+      "text": "Ministry. If the bidder wants to avail the Purchase preference for services, the bidder must be the Service",
+      "confidence": 0.9941,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1798,
+        "x2": 1439,
+        "y2": 1830
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0039",
+      "text": "provider of the offered Service. Relevant documentary evidence in this regard shall be uploaded along with the",
+      "confidence": 0.9975,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1832,
+        "x2": 1513,
+        "y2": 1864
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0040",
+      "text": "bid in respect of the offered service. If L-1 is not an MSE and MSE Service Provider (s) has/have quoted price",
+      "confidence": 0.9853,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1861,
+        "x2": 1471,
+        "y2": 1896
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0041",
+      "text": "within L-1+ 15% of margin of purchase preference /price band as defined in the relevant policy, then 100% order",
+      "confidence": 0.9933,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1896,
+        "x2": 1532,
+        "y2": 1927
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0042",
+      "text": "quantity will be awarded to such MsE bidder subject to acceptance of L1 bid price. The buyers are advised to",
+      "confidence": 0.9924,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1930,
+        "x2": 1483,
+        "y2": 1954
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0043",
+      "text": "Procurement Policy for Micro and Small Enterprises Order, 2012 and Public Procurement (Preference to Make in",
+      "confidence": 0.9972,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1993,
+        "x2": 1513,
+        "y2": 2017
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0044",
+      "text": "India) Order, 2017. Benefits of MsE will be allowed only if the credentials of the service provider are validated on-",
+      "confidence": 0.9865,
+      "bounding_box": {
+        "x1": 116,
+        "y1": 2020,
+        "x2": 1535,
+        "y2": 2051
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0045",
+      "text": "line in GeM profile as well as validated and approved by the Buyer after evaluation of submitted documents.",
+      "confidence": 0.979,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 2051,
+        "x2": 1471,
+        "y2": 2083
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0046",
+      "text": "6. If L-1 is not an MSE and MSE Service Provider (s) has/have quoted price within L-1+ 15% of margin of purchase",
+      "confidence": 0.9853,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 2081,
+        "x2": 1540,
+        "y2": 2115
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0047",
+      "text": "preference /price band as defined in the relevant policy, then 1o0% order quantity will be awarded to such MSE",
+      "confidence": 0.9925,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 2112,
+        "x2": 1515,
+        "y2": 2147
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0048",
+      "text": "bidder subject to acceptance of L1 bid price.",
+      "confidence": 0.993,
+      "bounding_box": {
+        "x1": 108,
+        "y1": 2147,
+        "x2": 672,
+        "y2": 2178
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0049",
+      "text": "3/8",
+      "confidence": 0.9936,
+      "bounding_box": {
+        "x1": 1532,
+        "y1": 2256,
+        "x2": 1579,
+        "y2": 2283
+      },
+      "language_hint": "en"
+    }
+  ],
+  "layout_regions": [
+    {
+      "region_id": "reg_0001",
+      "region_type": "text",
+      "bounding_box": {
+        "x1": 102,
+        "y1": 1050,
+        "x2": 1536,
+        "y2": 2176
+      },
+      "contained_block_ids": [],
+      "table_structure": null
+    },
+    {
+      "region_id": "reg_0002",
+      "region_type": "text",
+      "bounding_box": {
+        "x1": 101,
+        "y1": 161,
+        "x2": 1512,
+        "y2": 570
+      },
+      "contained_block_ids": [],
+      "table_structure": null
+    },
+    {
+      "region_id": "reg_0003",
+      "region_type": "title",
+      "bounding_box": {
+        "x1": 109,
+        "y1": 610,
+        "x2": 556,
+        "y2": 639
+      },
+      "contained_block_ids": [],
+      "table_structure": null
+    },
+    {
+      "region_id": "reg_0004",
+      "region_type": "title",
+      "bounding_box": {
+        "x1": 111,
+        "y1": 794,
+        "x2": 711,
+        "y2": 821
+      },
+      "contained_block_ids": [],
+      "table_structure": null
+    },
+    {
+      "region_id": "reg_0005",
+      "region_type": "table",
+      "bounding_box": {
+        "x1": 101,
+        "y1": 677,
+        "x2": 1542,
+        "y2": 947
+      },
+      "contained_block_ids": [],
+      "table_structure": {
+        "cell_bbox": [
+          [
+            25.48484992980957,
+            4.420741558074951,
+            691.8997192382812,
+            4.915241241455078,
+            677.1696166992188,
+            66.40947723388672,
+            23.169200897216797,
+            64.19187927246094
+          ],
+          [
+            660.0883178710938,
+            3.6599738597869873,
+            1259.618896484375,
+            3.911924123764038,
+            1253.007568359375,
+            59.34982681274414,
+            642.5996704101562,
+            58.40060806274414
+          ],
+          [
+            6.7918782234191895,
+            78.59098815917969,
+            1164.3077392578125,
+            80.26380920410156,
+            1161.0546875,
+            176.91001892089844,
+            6.552123069763184,
+            175.25973510742188
+          ],
+          [
+            24.048486709594727,
+            187.58436584472656,
+            696.5596313476562,
+            188.976806640625,
+            701.8817138671875,
+            257.13885498046875,
+            24.409563064575195,
+            256.8863220214844
+          ],
+          [
+            596.0814208984375,
+            185.23825073242188,
+            1414.640625,
+            185.40530395507812,
+            1414.63916015625,
+            261.1346435546875,
+            598.02294921875,
+            261.1056213378906
+          ]
+        ],
+        "html": "<html><body><table><tr><td>Mll Compliance/TH3I$3I 3HGqU</td><td>Yes</td></tr><tr><td colspan=\"2\">MSE Purchase Preference/  a</td></tr><tr><td>MSE Purchase Preference/TH  aI</td><td>Yes</td></tr></table></body></html>"
+      }
+    },
+    {
+      "region_id": "reg_0006",
+      "region_type": "footer",
+      "bounding_box": {
+        "x1": 1535,
+        "y1": 2260,
+        "x2": 1574,
+        "y2": 2277
+      },
+      "contained_block_ids": [],
+      "table_structure": null
+    }
+  ],
+  "warnings": []
+}

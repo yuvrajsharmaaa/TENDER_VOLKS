@@ -1,0 +1,18 @@
+{
+  "job_id": "3334e898-9c2e-4387-acc6-471d93621794",
+  "original_filename": "original.pdf",
+  "status": "completed",
+  "page_count": 1,
+  "total_processing_time_seconds": 1.079852819442749,
+  "pages": [
+    {
+      "page_number": 1,
+      "text_block_count": 2,
+      "layout_region_count": 1
+    }
+  ],
+  "summary": {
+    "total_text_blocks": 2,
+    "total_layout_regions": 1
+  }
+}
