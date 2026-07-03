@@ -9,7 +9,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from ocr.pipeline import process_pdf
-from shared.constants import STORAGE_ROOT
+from backend.app.core.constants import STORAGE_ROOT
 
 def evaluate():
     sample_dir = Path("sample_files")

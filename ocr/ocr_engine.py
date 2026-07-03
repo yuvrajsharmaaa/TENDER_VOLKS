@@ -1,6 +1,6 @@
 from paddleocr import PaddleOCR
 from pathlib import Path
-from shared.models import TextBlock
+from backend.app.models.models import TextBlock
 import numpy as np
 from PIL import Image
 

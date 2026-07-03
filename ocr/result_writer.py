@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from shared.models import PageResult
+from backend.app.models.models import PageResult
 from typing import List
 
 def write_page_json(page_result: PageResult, output_dir: Path) -> Path:

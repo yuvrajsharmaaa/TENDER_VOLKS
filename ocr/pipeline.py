@@ -4,13 +4,13 @@ from PIL import Image
 
 from ocr.pdf_converter import convert_pdf_to_images
 from ocr.ocr_engine import OcrEngine
-from ocr.layout_detector import LayoutDetector
-from ocr.layoutlm_stage import LayoutLmStage
-from ocr.field_extractor import FieldExtractor, is_contained
+from ocr.layout.layout_detector import LayoutDetector
+from ocr.layout.layoutlm_stage import LayoutLmStage
+from ocr.extractors.field_extractor import FieldExtractor, is_contained
 from ocr.result_writer import write_page_json, write_aggregate_json
 
-from shared.models import PageResult
-from shared.schemas import (
+from backend.app.models.models import PageResult
+from backend.app.schemas.schemas import (
     RawOCRResponse, OCRBlockSchema, BoundingBox,
     LayoutResponse, LayoutRegionSchema,
     ExtractedFieldsResponse

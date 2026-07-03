@@ -1,6 +1,6 @@
 import pytest
-from ocr.field_extractor import FieldExtractor, group_blocks_into_rows, is_contained
-from shared.models import PageResult, TextBlock, LayoutRegion
+from ocr.extractors.field_extractor import FieldExtractor, group_blocks_into_rows, is_contained
+from backend.app.models.models import PageResult, TextBlock, LayoutRegion
 
 def test_is_contained():
     box_block = {"x1": 10, "y1": 10, "x2": 50, "y2": 30}
