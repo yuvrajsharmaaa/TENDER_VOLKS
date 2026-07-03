@@ -16,6 +16,9 @@ class LayoutRegion:
     bounding_box: Dict[str, int]
     contained_block_ids: List[str]
     table_structure: Optional[Dict[str, Any]] = None
+    reading_order_index: int = 0
+    text_content: str = ""
+    confidence: Optional[float] = None
 
 @dataclass
 class PageResult:

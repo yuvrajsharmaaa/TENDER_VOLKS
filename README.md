@@ -20,7 +20,12 @@
 
 ## Section 1 — Project Brief
 
-The MVP objective is to build a reliable, locally-runnable PDF-to-structured-JSON OCR pipeline specifically for Indian Government Tender documents. Success means a developer can POST a PDF (digital or scanned, Hindi/English/mixed), poll a job status endpoint, and retrieve a structured JSON containing page-level text blocks, bounding boxes, detected layout regions (tables, headers, stamps), and confidence scores — within a latency budget sufficient for batch overnight processing. The pipeline is **not** trying to extract named tender fields (e.g., "bid amount," "deadline date") — field extraction is explicitly deferred to a future layer that consumes the structured JSON this pipeline produces.
+The MVP objective is to build a reliable, locally-runnable structure-aware OCR and metadata extraction pipeline specifically for Indian Government Tender documents. Success means a developer can POST a PDF (digital or scanned, Hindi/English/mixed), poll a job status endpoint, and retrieve:
+1. **Raw OCR text blocks** with page-level coordinates and confidence.
+2. **Layout-aware regions** (headings, paragraphs, lists, and tables) with reading order reconstruction.
+3. **Deterministic extracted fields** (e.g., EMD, Tender Fee, NIT No, submission dates, work period, organisation) with confidence scores and block-level traceability refs.
+
+These results are validated via Pydantic and saved on disk in three output files: `raw_ocr.json`, `layout.json`, and `extracted_fields.json`.
 
 ---
 
@@ -169,16 +174,18 @@ tender-ocr/
 │
 ├── ocr/                          # OCR pipeline (Person 1)
 │   ├── __init__.py
-│   ├── pipeline.py               # process_pdf() — the integration boundary function
+│   ├── pipeline.py               # process_pdf() — spatial containment, fields extraction, saves output JSONs
 │   ├── pdf_converter.py          # PyMuPDF: PDF → per-page PNG images
 │   ├── ocr_engine.py             # PaddleOCR wrapper: image → raw text blocks
 │   ├── layout_detector.py        # PP-StructureV3 wrapper: image → region list
 │   ├── page_builder.py           # Merge OCR + layout → PageResult dataclass
+│   ├── field_extractor.py        # Rule-based field extractor (EMD, Fee, dates, NIT, org, contract, etc.)
 │   └── result_writer.py          # Write page_NNNN.json and ocr_result.json
 │
 ├── shared/                       # Shared contracts between Person 1 and Person 2
 │   ├── __init__.py
 │   ├── models.py                 # PageResult, TextBlock, LayoutRegion dataclasses
+│   ├── schemas.py                # Pydantic v2 schemas for raw_ocr, layout, and extracted_fields
 │   └── constants.py              # Status strings, path templates, config values
 │
 ├── storage/                      # Runtime artifact storage (gitignored)
@@ -1123,6 +1130,9 @@ pytest tests/ -v --tb=short
 | Page image | `page_{NNNN}.png` | `page_0001.png` | 1-indexed, zero-padded to 4 digits |
 | Page JSON | `page_{NNNN}.json` | `page_0001.json` | Same number as corresponding PNG |
 | Aggregate result | `ocr_result.json` | `ocr_result.json` | Single file per job, in job root dir |
+| Raw OCR JSON | `raw_ocr.json` | `raw_ocr.json` | Validated raw OCR blocks list, in job root dir |
+| Layout JSON | `layout.json` | `layout.json` | Validated layout-labeled regions, in job root dir |
+| Extracted Fields JSON | `extracted_fields.json` | `extracted_fields.json` | Deterministic extracted fields list, in job root dir |
 | SQLite database | `tender.db` | `data/tender.db` | Fixed name, path from `constants.py` |
 | Log file | `app.log` | `logs/app.log` | Rotated daily in production; MVP: single file |
 | Test fixture | `sample_{type}.pdf` | `sample_digital.pdf` | Types: `digital`, `scanned`, `bilingual` |
@@ -1207,7 +1217,7 @@ docs(readme): add performance expectations table for CPU-only hardware
 
 | Module | Where It Plugs In | Input It Receives | Output It Produces |
 |--------|-------------------|-------------------|--------------------|
-| Field Extraction | After `GET /job/{id}/result` | `ocr_result.json` (job-level aggregate JSON) | Named field dict: `{"tender_id": "...", "bid_deadline": "..."}` |
+| [Done] Field Extraction | Integrated in Pipeline | `PageResult` objects list | Validated Pydantic JSONs (`raw_ocr.json`, `layout.json`, `extracted_fields.json`) |
 | NER | Inside Field Extraction module | `text_blocks` from page JSONs | Entity spans: `[{text, label, page, bounding_box}]` |
 | Validation Engine | After Field Extraction | Extracted field dict + NER output | Validation report: `{field: {value, confidence, issues}}` |
 | LLM Fallback | After Validation Engine (triggered on low-confidence fields) | Low-confidence field values + surrounding text context | Corrected field values with reasoning |
@@ -1241,9 +1251,11 @@ tender-ocr/
 ├── ocr/ocr_engine.py
 ├── ocr/layout_detector.py
 ├── ocr/page_builder.py
+├── ocr/field_extractor.py
 ├── ocr/result_writer.py
 ├── shared/__init__.py
 ├── shared/models.py
+├── shared/schemas.py
 ├── shared/constants.py
 ├── tests/__init__.py
 ├── tests/unit/test_pdf_converter.py
@@ -1467,13 +1479,26 @@ We created a web-based visualization tool to inspect, zoom, and analyze the OCR 
   * **Text Blocks Tab**: Lists block IDs, exact string matches, and confidence percentages.
   * **Layout Regions Tab**: Lists region IDs, coordinates, and types.
   * **Structured Table Preview**: Clicking on a `table` region renders its reconstructed HTML layout directly inside the sidebar for validation!
+  * **Extracted Fields Tab**: Displays visual cards representing the 10 target fields, values, confidence scores, and source evidence.
+  * **Traceability Navigation**: Clicking on any field card automatically changes the active page to the source page, highlights the evidence bounding box on the canvas, and pans/zooms the viewport to focus on it.
   * **Metadata Tab**: Displays execution time, job ID, page number, and any execution warnings.
+
+---
+
+## 🔗 Structure-Aware API Endpoints
+
+FastAPI exposes the validated output JSON payloads directly for external use:
+*   `GET /job/{job_id}/raw-ocr`: Returns `raw_ocr.json` schema content.
+*   `GET /job/{job_id}/layout`: Returns `layout.json` schema content.
+*   `GET /job/{job_id}/extracted-fields`: Returns `extracted_fields.json` schema content.
 
 ---
 
 ## 📁 File Structure Reference
 
-Here are the visualizer files added/modified:
+Here are the visualizer and extractor files added/modified:
+* [field_extractor.py](file:///c:/Users/Asus/Desktop/Tender_Volks/main/ocr/field_extractor.py): The deterministic extractor engine.
+* [schemas.py](file:///c:/Users/Asus/Desktop/Tender_Volks/main/shared/schemas.py): Pydantic schemas validating raw OCR, layout regions, and extracted fields.
 * [visualizer.py](file:///c:/Users/Asus/Desktop/Tender_Volks/main/app/routers/visualizer.py): The FastAPI visualizer router scanning the jobs directory.
 * [main.py](file:///c:/Users/Asus/Desktop/Tender_Volks/main/app/main.py): Registers the visualizer routes and mounts static files under `/storage`.
-* [index.html](file:///c:/Users/Asus/Desktop/Tender_Volks/main/app/static/index.html): The standalone HTML5/JS/CSS frontend.
+* [index.html](file:///c:/Users/Asus/Desktop/Tender_Volks/main/app/static/index.html): The standalone HTML5/JS/CSS frontend with Extracted Fields cards support.
