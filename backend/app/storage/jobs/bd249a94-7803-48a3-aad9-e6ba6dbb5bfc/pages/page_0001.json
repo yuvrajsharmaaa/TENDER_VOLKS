@@ -1,0 +1,54 @@
+{
+  "job_id": "bd249a94-7803-48a3-aad9-e6ba6dbb5bfc",
+  "page_number": 1,
+  "image_path": "/app/backend/app/storage/jobs/bd249a94-7803-48a3-aad9-e6ba6dbb5bfc/pages/page_0001.png",
+  "image_width_px": 1653,
+  "image_height_px": 2339,
+  "processing_time_seconds": 0.5728201866149902,
+  "text_blocks": [
+    {
+      "block_id": "blk_0001",
+      "text": "TENDER NOTICE NO. RLY/2024/TN/0042",
+      "confidence": 0.9996,
+      "bounding_box": {
+        "x1": 278,
+        "y1": 251,
+        "x2": 861,
+        "y2": 283
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0002",
+      "text": "Government of India - Ministry of Railways",
+      "confidence": 0.9972,
+      "bounding_box": {
+        "x1": 275,
+        "y1": 387,
+        "x2": 854,
+        "y2": 426
+      },
+      "language_hint": "en"
+    }
+  ],
+  "layout_regions": [
+    {
+      "region_id": "reg_0001",
+      "region_type": "text",
+      "bounding_box": {
+        "x1": 279,
+        "y1": 392,
+        "x2": 852,
+        "y2": 423
+      },
+      "contained_block_ids": [
+        "blk_0002"
+      ],
+      "table_structure": null,
+      "reading_order_index": 1,
+      "text_content": "Government of India - Ministry of Railways",
+      "confidence": null
+    }
+  ],
+  "warnings": []
+}

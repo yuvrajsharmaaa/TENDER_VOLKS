@@ -1,0 +1,28 @@
+{
+  "job_id": "bd249a94-7803-48a3-aad9-e6ba6dbb5bfc",
+  "original_filename": "original.pdf",
+  "page_count": 1,
+  "processing_time_seconds": 2.9393961429595947,
+  "pages": {
+    "1": [
+      {
+        "region_id": "reg_0001",
+        "region_type": "text",
+        "bounding_box": {
+          "x1": 279,
+          "y1": 392,
+          "x2": 852,
+          "y2": 423
+        },
+        "page_number": 1,
+        "contained_block_ids": [
+          "blk_0002"
+        ],
+        "reading_order_index": 1,
+        "text_content": "Government of India - Ministry of Railways",
+        "confidence": null,
+        "table_structure": null
+      }
+    ]
+  }
+}

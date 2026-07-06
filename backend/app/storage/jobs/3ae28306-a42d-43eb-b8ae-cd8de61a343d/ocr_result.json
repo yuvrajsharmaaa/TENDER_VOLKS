@@ -1,0 +1,19 @@
+{
+  "job_id": "3ae28306-a42d-43eb-b8ae-cd8de61a343d",
+  "original_filename": "original.pdf",
+  "status": "completed",
+  "page_count": 1,
+  "total_processing_time_seconds": 0.8391499519348145,
+  "pages": [
+    {
+      "page_number": 1,
+      "text_block_count": 2,
+      "layout_region_count": 1,
+      "layoutlm_results": null
+    }
+  ],
+  "summary": {
+    "total_text_blocks": 2,
+    "total_layout_regions": 1
+  }
+}

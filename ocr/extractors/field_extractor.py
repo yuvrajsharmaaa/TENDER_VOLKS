@@ -79,6 +79,7 @@ class FieldExtractor:
         
         # Mapping definition of fields with anchors, hindi translations, and type of regex used
         self.rules = {
+            # Legacy Fields
             "EMD": {
                 "anchors": ["emd", "earnest money", "security deposit", "bid security"],
                 "hindi": ["धरोहर राशि", "ईएमडी", "बोली सुरक्षा"],
@@ -87,7 +88,7 @@ class FieldExtractor:
             "Tender Fee": {
                 "anchors": ["tender fee", "cost of document", "document fee", "tender document cost"],
                 "hindi": ["निविदा शुल्क", "दस्तावेज़ शुल्क", "निविदा दस्तावेज मूल्य"],
-                "type": "fee" # allows currency pattern or words like Nil/Exempted
+                "type": "fee"
             },
             "Bid Submission Start Date": {
                 "anchors": ["submission start", "submission opening date", "online submission start", "bid submission date"],
@@ -133,46 +134,150 @@ class FieldExtractor:
                 "anchors": ["period of work", "completion period", "contract period", "delivery period", "completion time"],
                 "hindi": ["कार्य की अवधि", "समाप्ति अवधि", "कार्य अवधि"],
                 "type": "period"
+            },
+            
+            # New Target Fields
+            "bid_number": {
+                "anchors": ["bid number", "bid no", "gem bid number", "gem bid no", "tender number", "tender no", "bid ref", "tender ref", "boli number", "boli no"],
+                "hindi": ["बोली क्रमांक", "बोली संख्या", "निविदा संख्या"],
+                "type": "nit"
+            },
+            "tender_date": {
+                "anchors": ["bid date", "tender date", "date of bid", "date of tender", "published date", "nit date", "gem bid date", "bid start date"],
+                "hindi": ["बोली दिनांक", "निविदा दिनांक", "प्रकाशन तिथि", "आरंभ तिथि"],
+                "type": "date"
+            },
+            "bid_end_datetime": {
+                "anchors": ["bid end date/time", "bid submission end", "submission end", "closing date", "last date of submission", "bid end", "submission closing", "submission deadline", "bid end date"],
+                "hindi": ["बोली समाप्ति", "बोली जमा करने की अंतिम तिथि", "समाप्ति दिनांक", "जमा करने का अंतिम समय"],
+                "type": "datetime"
+            },
+            "bid_open_datetime": {
+                "anchors": ["bid opening date/time", "bid opening date", "opening date", "technical bid opening", "date of opening", "bid opening", "opening time"],
+                "hindi": ["बोली खोले जाने", "बोली खोलने की तिथि", "खोलने की तिथि"],
+                "type": "datetime"
+            },
+            "ministry_name": {
+                "anchors": ["ministry name", "ministry of", "ministry:"],
+                "hindi": ["मंत्रालय का नाम", "मंत्रालय"],
+                "type": "org"
+            },
+            "department_name": {
+                "anchors": ["department name", "department of", "department:"],
+                "hindi": ["विभाग का नाम", "विभाग"],
+                "type": "org"
+            },
+            "organisation_name": {
+                "anchors": ["organisation name", "organization name", "organisation of", "organization of", "organisation:", "organization:", "authority"],
+                "hindi": ["संगठन का नाम", "संगठन", "संस्था"],
+                "type": "org"
+            },
+            "office_name": {
+                "anchors": ["office name", "office:", "office of"],
+                "hindi": ["कार्यालय का नाम", "कार्यालय"],
+                "type": "org"
+            },
+            "buyer_email": {
+                "anchors": ["buyer email", "email id", "email address", "email:", "consignee email", "contact email"],
+                "hindi": ["ईमेल", "खरीदार का ईमेल"],
+                "type": "email"
+            },
+            "item_category": {
+                "anchors": ["item category", "category:", "product category", "primary product category", "major category", "service category"],
+                "hindi": ["मद श्रेणी", "सामग्री श्रेणी", "उत्पाद श्रेणी"],
+                "type": "text"
+            },
+            "similar_category": {
+                "anchors": ["similar category", "similar product category", "equivalent category", "similar item category"],
+                "hindi": ["समान श्रेणी", "समान उत्पाद श्रेणी"],
+                "type": "text"
+            },
+            "contract_period": {
+                "anchors": ["contract period", "period of work", "completion period", "delivery period", "duration of contract", "period of contract"],
+                "hindi": ["कार्य की अवधि", "समाप्ति अवधि", "अनुबंध अवधि"],
+                "type": "period"
+            },
+            "minimum_average_annual_turnover": {
+                "anchors": ["minimum average annual turnover", "average annual turnover", "turnover of the bidder", "bidder turnover", "annual turnover"],
+                "hindi": ["न्यूनतम औसत वार्षिक टर्नओवर", "वार्षिक टर्नओवर"],
+                "type": "currency"
+            },
+            "years_of_past_experience": {
+                "anchors": ["years of past experience", "past experience", "experience criteria", "bidder experience", "years of experience"],
+                "hindi": ["अनुभव", "पूर्व अनुभव"],
+                "type": "experience"
+            },
+            "past_experience_required": {
+                "anchors": ["past experience required", "past performance", "experience required", "performance required", "past experience required?"],
+                "hindi": ["पूर्व प्रदर्शन", "पूर्व अनुभव आवश्यक"],
+                "type": "yes_no"
             }
         }
 
     def _match_value_pattern(self, text: str, field_type: str) -> Optional[str]:
         """Verify if text matches the expected pattern for field_type and return matched string."""
+        text_clean = text.strip()
+        if not text_clean:
+            return None
+            
         if field_type == "date":
-            m = self.date_regex.search(text)
+            m = self.date_regex.search(text_clean)
+            return m.group(0) if m else None
+        elif field_type == "datetime":
+            m = re.search(r'\b\d{2}[-/\.]\d{2}[-/\.]\d{4}(?:\s+\d{2}:\d{2}(?::\d{2})?)?\b', text_clean)
+            return m.group(0) if m else None
+        elif field_type == "email":
+            m = re.search(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', text_clean)
             return m.group(0) if m else None
         elif field_type == "currency":
-            m = self.currency_regex.search(text)
+            m = self.currency_regex.search(text_clean)
+            if m:
+                return m.group(0)
+            m = re.search(r'\b\d+(?:,\d+)*(?:\.\d+)?\s*(?:Lakh|Crore|Lacs|Cr|/-)?\b', text_clean, re.IGNORECASE)
             return m.group(0) if m else None
         elif field_type == "fee":
-            if any(w in text.lower() for w in ["nil", "free", "exempted", "no fee", "निःशुल्क"]):
+            if any(w in text_clean.lower() for w in ["nil", "free", "exempted", "no fee", "निःशुल्क"]):
                 return "Nil / Exempted"
-            m = self.currency_regex.search(text)
+            m = self.currency_regex.search(text_clean)
             return m.group(0) if m else None
         elif field_type == "nit":
-            m = self.nit_regex.search(text)
+            m = self.nit_regex.search(text_clean)
             if m:
                 return m.group(1) if m.group(1) is not None else m.group(0)
             return None
         elif field_type == "validity":
-            m = self.validity_regex.search(text)
+            m = self.validity_regex.search(text_clean)
             return m.group(0) if m else None
         elif field_type == "period":
-            m = self.period_regex.search(text)
+            m = self.period_regex.search(text_clean)
+            return m.group(0) if m else None
+        elif field_type == "experience":
+            m = re.search(r'\b\d+\s*(?:year|years|yr|yrs|साल|वर्ष)\b', text_clean, re.IGNORECASE)
+            return m.group(0) if m else None
+        elif field_type == "yes_no":
+            m = re.search(r'\b(?:yes|no|required|not required|हाँ|नहीं)\b', text_clean, re.IGNORECASE)
             return m.group(0) if m else None
         elif field_type == "org":
-            # For orgs, return clean substring of words representing the name (usually excluding simple keywords)
-            words = text.strip()
-            if len(words) > 5 and len(words) < 100:
-                return words
+            words = text_clean.strip()
+            if len(words) > 3 and len(words) < 150:
+                if not words.lower().startswith(("bid document", "bid details", "boli vivran")):
+                    return words
+            return None
+        elif field_type == "text":
+            cleaned = text_clean.strip()
+            if len(cleaned) > 2 and len(cleaned) < 150:
+                if not cleaned.lower().startswith(("bid document", "bid details", "boli vivran")):
+                    return cleaned
             return None
         return None
 
     def extract_fields(self, pages: List[PageResult]) -> List[ExtractedFieldSchema]:
         extracted = []
+        print(f"\n[FIELD_EXTRACTOR_DEBUG] Starting field extraction on {len(pages)} page(s).", flush=True)
         
         for field_name, rule in self.rules.items():
             candidates: List[Dict[str, Any]] = []
+            print(f"[FIELD_EXTRACTOR_DEBUG] Processing rule '{field_name}' (expected type: '{rule['type']}')", flush=True)
             
             for page in pages:
                 page_num = page.page_number
@@ -182,14 +287,12 @@ class FieldExtractor:
                 # Pre-process tables
                 table_regions = [r for r in regions if r.region_type.lower() == "table"]
                 for table in table_regions:
-                    # Find all blocks spatially inside this table
                     table_blocks = [b for b in blocks if is_contained(b.bounding_box, table.bounding_box)]
                     if not table_blocks:
                         continue
                         
                     rows = group_blocks_into_rows(table_blocks)
                     for row in rows:
-                        # Find if any cell/block in the row matches keywords
                         anchor_found = None
                         anchor_score = 0.0
                         
@@ -197,21 +300,22 @@ class FieldExtractor:
                             txt_lower = block.text.lower()
                             if any(k in txt_lower for k in rule["hindi"]):
                                 anchor_found = block
-                                anchor_score = 0.40 # Hindi match
+                                anchor_score = 0.40
                                 break
                             elif any(k in txt_lower for k in rule["anchors"]):
                                 anchor_found = block
-                                anchor_score = 0.35 # Exact English match
+                                anchor_score = 0.35
                                 break
                                 
                         if anchor_found:
-                            # Search other cells in this same row for a matching value pattern
+                            print(f"  [FIELD_EXTRACTOR_DEBUG] Table row anchor matched: '{anchor_found.text}'", flush=True)
                             for block in row:
                                 if block == anchor_found:
                                     continue
                                 val = self._match_value_pattern(block.text, rule["type"])
+                                print(f"    [FIELD_EXTRACTOR_DEBUG] Table cell value test: '{block.text}' -> matched val: '{val}'", flush=True)
                                 if val:
-                                    conf = anchor_score + 0.35 + 0.20 + 0.05 # anchor + value + row alignment + table region
+                                    conf = anchor_score + 0.35 + 0.20 + 0.05
                                     conf = min(1.0, conf)
                                     candidates.append({
                                         "value": val,
@@ -236,23 +340,22 @@ class FieldExtractor:
                                         ]
                                     })
                 
-                # Scan general blocks (if not matched or to find alternate options)
+                # Scan general blocks
                 for idx, block in enumerate(blocks):
                     txt_lower = block.text.lower()
                     anchor_score = 0.0
-                    is_hindi = False
                     
                     if any(k in txt_lower for k in rule["hindi"]):
                         anchor_score = 0.40
-                        is_hindi = True
                     elif any(k in txt_lower for k in rule["anchors"]):
                         anchor_score = 0.35
                     
                     if anchor_score > 0.0:
-                        # 1. Check if value is in the SAME block
+                        # 1. Check same block
                         val = self._match_value_pattern(block.text, rule["type"])
                         if val and len(val) < len(block.text):
-                            conf = anchor_score + 0.35 + 0.25 # anchor + pattern + same block
+                            print(f"  [FIELD_EXTRACTOR_DEBUG] Same-block match: '{block.text}' -> '{val}'", flush=True)
+                            conf = anchor_score + 0.35 + 0.25
                             conf = min(1.0, conf)
                             candidates.append({
                                 "value": val,
@@ -270,15 +373,15 @@ class FieldExtractor:
                             })
                             continue
                         
-                        # 2. Check the NEXT block in reading order
+                        # 2. Check next block
                         if idx + 1 < len(blocks):
                             next_block = blocks[idx+1]
                             val = self._match_value_pattern(next_block.text, rule["type"])
                             if val:
-                                # Distance check: must be visually close
                                 dist_y = abs(next_block.bounding_box["y1"] - block.bounding_box["y2"])
                                 if dist_y < 50:
-                                    conf = anchor_score + 0.35 + 0.15 # anchor + pattern + adjacent block
+                                    print(f"  [FIELD_EXTRACTOR_DEBUG] Next-block match: '{block.text}' | '{next_block.text}' -> '{val}'", flush=True)
+                                    conf = anchor_score + 0.35 + 0.15
                                     conf = min(1.0, conf)
                                     candidates.append({
                                         "value": val,
@@ -302,7 +405,7 @@ class FieldExtractor:
                                     })
                                     continue
                                     
-                        # 3. Spatial nearest-neighbor (horizontal to the right or vertical directly below)
+                        # 3. Nearest-neighbor
                         cx_a = (block.bounding_box["x1"] + block.bounding_box["x2"]) / 2
                         cy_a = (block.bounding_box["y1"] + block.bounding_box["y2"]) / 2
                         
@@ -317,7 +420,6 @@ class FieldExtractor:
                             cx_o = (other_block.bounding_box["x1"] + other_block.bounding_box["x2"]) / 2
                             cy_o = (other_block.bounding_box["y1"] + other_block.bounding_box["y2"]) / 2
                             
-                            # Filter: only look at blocks to the right or below
                             is_right = other_block.bounding_box["x1"] >= block.bounding_box["x1"] and abs(cy_o - cy_a) < 30
                             is_below = other_block.bounding_box["y1"] >= block.bounding_box["y2"] and abs(cx_o - cx_a) < 150
                             
@@ -331,7 +433,8 @@ class FieldExtractor:
                                         best_neighbor_val = val
                                         
                         if best_neighbor:
-                            conf = anchor_score + 0.35 + 0.15 # anchor + pattern + nearest neighbor
+                            print(f"  [FIELD_EXTRACTOR_DEBUG] Spatial neighbor match: '{block.text}' -> '{best_neighbor.text}' -> '{best_neighbor_val}'", flush=True)
+                            conf = anchor_score + 0.35 + 0.15
                             conf = min(1.0, conf)
                             candidates.append({
                                 "value": best_neighbor_val,
@@ -354,9 +457,9 @@ class FieldExtractor:
                                 ]
                             })
                             
-            # Sort candidates by confidence score and select the best one
             if candidates:
                 best_cand = sorted(candidates, key=lambda c: c["confidence"], reverse=True)[0]
+                print(f"[FIELD_EXTRACTOR_DEBUG] Extracted value for '{field_name}': '{best_cand['value']}' (conf: {best_cand['confidence']})", flush=True)
                 extracted.append(ExtractedFieldSchema(
                     field_name=field_name,
                     value=best_cand["value"],
@@ -366,7 +469,7 @@ class FieldExtractor:
                     source_blocks=best_cand["source_blocks"]
                 ))
             else:
-                # Add default null schema if field is not found (allows robust structure representation)
+                print(f"[FIELD_EXTRACTOR_DEBUG] Extracted value for '{field_name}': Not Found", flush=True)
                 extracted.append(ExtractedFieldSchema(
                     field_name=field_name,
                     value="Not Found",
@@ -376,4 +479,5 @@ class FieldExtractor:
                     source_blocks=[]
                 ))
                 
+        print(f"[FIELD_EXTRACTOR_DEBUG] Finished extraction. Total extracted fields count: {len(extracted)}\n", flush=True)
         return extracted

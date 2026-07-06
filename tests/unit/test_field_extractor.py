@@ -62,3 +62,50 @@ def test_field_extractor_emd_and_fee():
     assert "NIT No" in field_map
     assert field_map["NIT No"].value == "GEM/2025/B/6053925"
     assert field_map["NIT No"].confidence >= 0.8
+
+
+def test_field_extractor_new_gem_fields():
+    extractor = FieldExtractor()
+    
+    # 1. bid_number
+    b1 = TextBlock(block_id="b1", text="Bid Number", confidence=1.0, bounding_box={"x1": 10, "y1": 10, "x2": 100, "y2": 25}, language_hint="en")
+    b2 = TextBlock(block_id="b2", text="GEM/2026/B/123456", confidence=1.0, bounding_box={"x1": 120, "y1": 10, "x2": 300, "y2": 25}, language_hint="en")
+    
+    # 2. buyer_email
+    b3 = TextBlock(block_id="b3", text="Buyer Email", confidence=1.0, bounding_box={"x1": 10, "y1": 40, "x2": 100, "y2": 55}, language_hint="en")
+    b4 = TextBlock(block_id="b4", text="buyer@gem.gov.in", confidence=1.0, bounding_box={"x1": 120, "y1": 40, "x2": 300, "y2": 55}, language_hint="en")
+    
+    # 3. ministry_name
+    b5 = TextBlock(block_id="b5", text="Ministry Name", confidence=1.0, bounding_box={"x1": 10, "y1": 70, "x2": 100, "y2": 85}, language_hint="en")
+    b6 = TextBlock(block_id="b6", text="Ministry Of Defence", confidence=1.0, bounding_box={"x1": 120, "y1": 70, "x2": 300, "y2": 85}, language_hint="en")
+    
+    # 4. years_of_past_experience
+    b7 = TextBlock(block_id="b7", text="Years of Past Experience", confidence=1.0, bounding_box={"x1": 10, "y1": 100, "x2": 200, "y2": 115}, language_hint="en")
+    b8 = TextBlock(block_id="b8", text="3 Year(s)", confidence=1.0, bounding_box={"x1": 220, "y1": 100, "x2": 300, "y2": 115}, language_hint="en")
+    
+    page = PageResult(
+        job_id="test_job",
+        page_number=1,
+        image_path="",
+        image_width_px=1000,
+        image_height_px=1000,
+        processing_time_seconds=0.1,
+        text_blocks=[b1, b2, b3, b4, b5, b6, b7, b8],
+        layout_regions=[]
+    )
+    
+    fields = extractor.extract_fields([page])
+    field_map = {f.field_name: f for f in fields}
+    
+    assert "bid_number" in field_map
+    assert field_map["bid_number"].value == "GEM/2026/B/123456"
+    
+    assert "buyer_email" in field_map
+    assert field_map["buyer_email"].value == "buyer@gem.gov.in"
+    
+    assert "ministry_name" in field_map
+    assert field_map["ministry_name"].value == "Ministry Of Defence"
+    
+    assert "years_of_past_experience" in field_map
+    assert field_map["years_of_past_experience"].value == "3 Year"
+

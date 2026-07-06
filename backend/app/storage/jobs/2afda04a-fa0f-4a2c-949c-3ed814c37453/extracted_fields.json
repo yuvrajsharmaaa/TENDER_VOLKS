@@ -1,0 +1,220 @@
+{
+  "job_id": "2afda04a-fa0f-4a2c-949c-3ed814c37453",
+  "original_filename": "original.pdf",
+  "page_count": 8,
+  "extracted_fields": [
+    {
+      "field_name": "EMD",
+      "value": "Not Found",
+      "confidence": 0.0,
+      "source_page": 1,
+      "evidence": "No matching anchors or value patterns found in document.",
+      "source_blocks": []
+    },
+    {
+      "field_name": "Tender Fee",
+      "value": "Not Found",
+      "confidence": 0.0,
+      "source_page": 1,
+      "evidence": "No matching anchors or value patterns found in document.",
+      "source_blocks": []
+    },
+    {
+      "field_name": "Bid Submission Start Date",
+      "value": "Not Found",
+      "confidence": 0.0,
+      "source_page": 1,
+      "evidence": "No matching anchors or value patterns found in document.",
+      "source_blocks": []
+    },
+    {
+      "field_name": "Bid Submission End Date",
+      "value": "Not Found",
+      "confidence": 0.0,
+      "source_page": 1,
+      "evidence": "No matching anchors or value patterns found in document.",
+      "source_blocks": []
+    },
+    {
+      "field_name": "Bid Opening Date",
+      "value": "12-04-2025 14:30:00",
+      "confidence": 0.85,
+      "source_page": 1,
+      "evidence": "Bid Opening Date/Time/fas gd T | 12-04-2025 14:30:00",
+      "source_blocks": [
+        {
+          "page_number": 1,
+          "block_id": "blk_0013",
+          "region_id": null,
+          "text": "Bid Opening Date/Time/fas gd T",
+          "bounding_box": {
+            "x1": 123,
+            "y1": 614,
+            "x2": 608,
+            "y2": 646
+          }
+        },
+        {
+          "page_number": 1,
+          "block_id": "blk_0014",
+          "region_id": null,
+          "text": "12-04-2025 14:30:00",
+          "bounding_box": {
+            "x1": 763,
+            "y1": 633,
+            "x2": 1036,
+            "y2": 665
+          }
+        }
+      ]
+    },
+    {
+      "field_name": "NIT No",
+      "value": "GEM/2025/B/6053925",
+      "confidence": 0.85,
+      "source_page": 1,
+      "evidence": "Bid Number/aldt aHia (fas ycyr): -> GEM/2025/B/6053925",
+      "source_blocks": [
+        {
+          "page_number": 1,
+          "block_id": "blk_0001",
+          "region_id": null,
+          "text": "Bid Number/aldt aHia (fas ycyr):",
+          "bounding_box": {
+            "x1": 1092,
+            "y1": 187,
+            "x2": 1528,
+            "y2": 227
+          }
+        },
+        {
+          "page_number": 1,
+          "block_id": "blk_0003",
+          "region_id": null,
+          "text": "GEM/2025/B/6053925",
+          "bounding_box": {
+            "x1": 1250,
+            "y1": 231,
+            "x2": 1530,
+            "y2": 263
+          }
+        }
+      ]
+    },
+    {
+      "field_name": "Tender Value",
+      "value": "Not Found",
+      "confidence": 0.0,
+      "source_page": 1,
+      "evidence": "No matching anchors or value patterns found in document.",
+      "source_blocks": []
+    },
+    {
+      "field_name": "Organisation",
+      "value": "Ministry Of Personnel Public Grievances And Pensions.",
+      "confidence": 0.95,
+      "source_page": 1,
+      "evidence": "Row match in table: 'Ministry/State Name/aldR/y  aI' -> ' Ministry Of Personnel Public Grievances And Pensions.'",
+      "source_blocks": [
+        {
+          "page_number": 1,
+          "block_id": "blk_0019",
+          "region_id": "reg_0002",
+          "text": "Ministry/State Name/aldR/y  aI",
+          "bounding_box": {
+            "x1": 121,
+            "y1": 828,
+            "x2": 659,
+            "y2": 860
+          }
+        },
+        {
+          "page_number": 1,
+          "block_id": "blk_0020",
+          "region_id": "reg_0002",
+          "text": " Ministry Of Personnel Public Grievances And Pensions.",
+          "bounding_box": {
+            "x1": 760,
+            "y1": 828,
+            "x2": 1442,
+            "y2": 863
+          }
+        }
+      ]
+    },
+    {
+      "field_name": "Pre-Bid Meeting Date",
+      "value": "20-03-2025 11:00:00",
+      "confidence": 0.85,
+      "source_page": 4,
+      "evidence": "Pre-Bid Date and Time -> 20-03-2025 11:00:00",
+      "source_blocks": [
+        {
+          "page_number": 4,
+          "block_id": "blk_0039",
+          "region_id": null,
+          "text": "Pre-Bid Date and Time",
+          "bounding_box": {
+            "x1": 121,
+            "y1": 1859,
+            "x2": 443,
+            "y2": 1891
+          }
+        },
+        {
+          "page_number": 4,
+          "block_id": "blk_0042",
+          "region_id": null,
+          "text": "20-03-2025 11:00:00",
+          "bounding_box": {
+            "x1": 125,
+            "y1": 1932,
+            "x2": 391,
+            "y2": 1956
+          }
+        }
+      ]
+    },
+    {
+      "field_name": "Bid Validity Period",
+      "value": "Not Found",
+      "confidence": 0.0,
+      "source_page": 1,
+      "evidence": "No matching anchors or value patterns found in document.",
+      "source_blocks": []
+    },
+    {
+      "field_name": "Period of Work",
+      "value": "5 Year",
+      "confidence": 0.95,
+      "source_page": 1,
+      "evidence": "Row match in table: 'Contract Period/3gqt 3af' -> '5 Year(s) 3 Day(s)'",
+      "source_blocks": [
+        {
+          "page_number": 1,
+          "block_id": "blk_0036",
+          "region_id": "reg_0002",
+          "text": "Contract Period/3gqt 3af",
+          "bounding_box": {
+            "x1": 121,
+            "y1": 1401,
+            "x2": 499,
+            "y2": 1433
+          }
+        },
+        {
+          "page_number": 1,
+          "block_id": "blk_0037",
+          "region_id": "reg_0002",
+          "text": "5 Year(s) 3 Day(s)",
+          "bounding_box": {
+            "x1": 770,
+            "y1": 1401,
+            "x2": 1004,
+            "y2": 1433
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1079 @@
+{
+  "job_id": "2afda04a-fa0f-4a2c-949c-3ed814c37453",
+  "page_number": 5,
+  "image_path": "/app/backend/app/storage/jobs/2afda04a-fa0f-4a2c-949c-3ed814c37453/pages/page_0005.png",
+  "image_width_px": 1653,
+  "image_height_px": 2339,
+  "processing_time_seconds": 8.911022424697876,
+  "text_blocks": [
+    {
+      "block_id": "blk_0001",
+      "text": "Specification",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 384,
+        "y1": 175,
+        "x2": 578,
+        "y2": 207
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0002",
+      "text": "Values",
+      "confidence": 0.9998,
+      "bounding_box": {
+        "x1": 1139,
+        "y1": 178,
+        "x2": 1242,
+        "y2": 205
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0003",
+      "text": "Core",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 125,
+        "y1": 233,
+        "x2": 198,
+        "y2": 269
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0004",
+      "text": "Description /Nomenclature of Service Proposed for",
+      "confidence": 0.9996,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 292,
+        "x2": 763,
+        "y2": 324
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0005",
+      "text": "Selection of an Agency for Implementation of UPS",
+      "confidence": 0.9964,
+      "bounding_box": {
+        "x1": 856,
+        "y1": 292,
+        "x2": 1486,
+        "y2": 324
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0006",
+      "text": "procurement using custom bid functionality.",
+      "confidence": 0.9875,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 324,
+        "x2": 681,
+        "y2": 356
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0007",
+      "text": "Infrastruture including Site Preparation",
+      "confidence": 0.9916,
+      "bounding_box": {
+        "x1": 856,
+        "y1": 324,
+        "x2": 1350,
+        "y2": 356
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0008",
+      "text": "Regulatory/ Statutory Compliance of Service.",
+      "confidence": 0.9818,
+      "bounding_box": {
+        "x1": 120,
+        "y1": 378,
+        "x2": 691,
+        "y2": 412
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0009",
+      "text": "YES",
+      "confidence": 0.9875,
+      "bounding_box": {
+        "x1": 850,
+        "y1": 374,
+        "x2": 909,
+        "y2": 412
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0010",
+      "text": "Compliance of Service to SOw, STC, SLA etc.",
+      "confidence": 0.9769,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 436,
+        "x2": 686,
+        "y2": 468
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0011",
+      "text": "YES",
+      "confidence": 0.9947,
+      "bounding_box": {
+        "x1": 854,
+        "y1": 436,
+        "x2": 908,
+        "y2": 465
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0012",
+      "text": "Addon(s)/s3ii",
+      "confidence": 0.9377,
+      "bounding_box": {
+        "x1": 125,
+        "y1": 499,
+        "x2": 342,
+        "y2": 531
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0013",
+      "text": "Additional Specification Documents/3rfaR faffe atalds",
+      "confidence": 0.9396,
+      "bounding_box": {
+        "x1": 108,
+        "y1": 636,
+        "x2": 890,
+        "y2": 673
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0014",
+      "text": "Consignees/Reporting Officer/qfat/Rulfer 3fugRT",
+      "confidence": 0.8972,
+      "bounding_box": {
+        "x1": 108,
+        "y1": 821,
+        "x2": 809,
+        "y2": 858
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0015",
+      "text": "The quantity.",
+      "confidence": 0.9722,
+      "bounding_box": {
+        "x1": 984,
+        "y1": 904,
+        "x2": 1166,
+        "y2": 936
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0016",
+      "text": "of",
+      "confidence": 0.9981,
+      "bounding_box": {
+        "x1": 1060,
+        "y1": 940,
+        "x2": 1097,
+        "y2": 965
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0017",
+      "text": "Consignee",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 324,
+        "y1": 950,
+        "x2": 485,
+        "y2": 990
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0018",
+      "text": "procurement",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 986,
+        "y1": 970,
+        "x2": 1171,
+        "y2": 997
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0019",
+      "text": "S.No./.",
+      "confidence": 0.9219,
+      "bounding_box": {
+        "x1": 127,
+        "y1": 986,
+        "x2": 249,
+        "y2": 1029
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0020",
+      "text": "Additional",
+      "confidence": 0.9998,
+      "bounding_box": {
+        "x1": 1281,
+        "y1": 977,
+        "x2": 1435,
+        "y2": 1016
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0021",
+      "text": "Reporting/Officer/",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 276,
+        "y1": 987,
+        "x2": 534,
+        "y2": 1018
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0022",
+      "text": "\"1\" indicates",
+      "confidence": 0.9968,
+      "bounding_box": {
+        "x1": 981,
+        "y1": 994,
+        "x2": 1171,
+        "y2": 1031
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0023",
+      "text": "Je?Jhd/lPgh",
+      "confidence": 0.7003,
+      "bounding_box": {
+        "x1": 312,
+        "y1": 1021,
+        "x2": 492,
+        "y2": 1055
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0024",
+      "text": "Address/udl",
+      "confidence": 0.915,
+      "bounding_box": {
+        "x1": 679,
+        "y1": 1016,
+        "x2": 841,
+        "y2": 1043
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0025",
+      "text": "Requirement/3rfaR",
+      "confidence": 0.9578,
+      "bounding_box": {
+        "x1": 1220,
+        "y1": 1014,
+        "x2": 1500,
+        "y2": 1045
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0026",
+      "text": "i.",
+      "confidence": 0.8551,
+      "bounding_box": {
+        "x1": 170,
+        "y1": 1033,
+        "x2": 202,
+        "y2": 1065
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0027",
+      "text": "Project",
+      "confidence": 0.9998,
+      "bounding_box": {
+        "x1": 1021,
+        "y1": 1028,
+        "x2": 1134,
+        "y2": 1062
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0028",
+      "text": "based or",
+      "confidence": 0.9645,
+      "bounding_box": {
+        "x1": 1008,
+        "y1": 1057,
+        "x2": 1144,
+        "y2": 1097
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0029",
+      "text": "Lumpsum",
+      "confidence": 0.9995,
+      "bounding_box": {
+        "x1": 1006,
+        "y1": 1096,
+        "x2": 1149,
+        "y2": 1123
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0030",
+      "text": " based hiring.",
+      "confidence": 0.9645,
+      "bounding_box": {
+        "x1": 976,
+        "y1": 1118,
+        "x2": 1169,
+        "y2": 1158
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0031",
+      "text": "110003,SYSTEM DIVISION, B",
+      "confidence": 0.9037,
+      "bounding_box": {
+        "x1": 556,
+        "y1": 1179,
+        "x2": 920,
+        "y2": 1216
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0032",
+      "text": " Manoranjan",
+      "confidence": 0.9886,
+      "bounding_box": {
+        "x1": 268,
+        "y1": 1225,
+        "x2": 426,
+        "y2": 1265
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0033",
+      "text": "WING, 6TH FLOOR, CBI HEAD",
+      "confidence": 0.9981,
+      "bounding_box": {
+        "x1": 556,
+        "y1": 1216,
+        "x2": 930,
+        "y2": 1247
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0034",
+      "text": "N/A",
+      "confidence": 0.9964,
+      "bounding_box": {
+        "x1": 1191,
+        "y1": 1230,
+        "x2": 1242,
+        "y2": 1260
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0035",
+      "text": "OFFICE, LODHI ROAD, CGO",
+      "confidence": 0.9831,
+      "bounding_box": {
+        "x1": 561,
+        "y1": 1250,
+        "x2": 898,
+        "y2": 1274
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0036",
+      "text": "COMPLEX, NEW DELHI-110003",
+      "confidence": 0.9849,
+      "bounding_box": {
+        "x1": 558,
+        "y1": 1279,
+        "x2": 945,
+        "y2": 1304
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0037",
+      "text": "Buyer Added Bid Specific Terms and Conditions/ar arr sist $ fs at fat ad.",
+      "confidence": 0.918,
+      "bounding_box": {
+        "x1": 116,
+        "y1": 1438,
+        "x2": 1530,
+        "y2": 1472
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0038",
+      "text": "1. Generic",
+      "confidence": 0.9933,
+      "bounding_box": {
+        "x1": 153,
+        "y1": 1515,
+        "x2": 310,
+        "y2": 1542
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0039",
+      "text": "OPTioN CLAUsE: The buyer can increase or decrease the contract quantity or contract duration up to 25.",
+      "confidence": 0.9713,
+      "bounding_box": {
+        "x1": 194,
+        "y1": 1574,
+        "x2": 1510,
+        "y2": 1611
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0040",
+      "text": "percent at the time of issue of the contract. However, once the contract is issued, contract quantity or.",
+      "confidence": 0.9913,
+      "bounding_box": {
+        "x1": 199,
+        "y1": 1613,
+        "x2": 1483,
+        "y2": 1637
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0041",
+      "text": "contract duration can only be increased up to 25 percent. Bidders are bound to accept the revised",
+      "confidence": 0.9974,
+      "bounding_box": {
+        "x1": 197,
+        "y1": 1645,
+        "x2": 1434,
+        "y2": 1669
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0042",
+      "text": "quantity or duration",
+      "confidence": 0.9977,
+      "bounding_box": {
+        "x1": 197,
+        "y1": 1674,
+        "x2": 450,
+        "y2": 1698
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0043",
+      "text": "2. Generic",
+      "confidence": 0.9956,
+      "bounding_box": {
+        "x1": 150,
+        "y1": 1737,
+        "x2": 307,
+        "y2": 1764
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0044",
+      "text": "Malicious Code Certificate:",
+      "confidence": 0.9794,
+      "bounding_box": {
+        "x1": 192,
+        "y1": 1830,
+        "x2": 534,
+        "y2": 1861
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0045",
+      "text": "The seller should upload following certificate in the bid:-",
+      "confidence": 0.9964,
+      "bounding_box": {
+        "x1": 194,
+        "y1": 1896,
+        "x2": 898,
+        "y2": 1920
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0046",
+      "text": "(a) This is to certify that the Hardware and the Software being offered, as part of the contract, does not.",
+      "confidence": 0.9899,
+      "bounding_box": {
+        "x1": 194,
+        "y1": 1925,
+        "x2": 1498,
+        "y2": 1956
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0047",
+      "text": "contain Embedded Malicious code that would activate procedures to :-.",
+      "confidence": 0.9914,
+      "bounding_box": {
+        "x1": 197,
+        "y1": 1959,
+        "x2": 1080,
+        "y2": 1983
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0048",
+      "text": "(i) Inhibit the desires and designed function of the equipment.",
+      "confidence": 0.9958,
+      "bounding_box": {
+        "x1": 256,
+        "y1": 1986,
+        "x2": 1038,
+        "y2": 2017
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0049",
+      "text": "(ii) Cause physical damage to the user or equipment during the exploitation.",
+      "confidence": 0.9864,
+      "bounding_box": {
+        "x1": 258,
+        "y1": 2017,
+        "x2": 1223,
+        "y2": 2049
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0050",
+      "text": "(ili) Tap information resident or transient in the equipment/network.",
+      "confidence": 0.9923,
+      "bounding_box": {
+        "x1": 256,
+        "y1": 2049,
+        "x2": 1109,
+        "y2": 2081
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0051",
+      "text": "(b) The firm will be considered to be in breach of the procurement contract, in case physical damage, loss.",
+      "confidence": 0.9885,
+      "bounding_box": {
+        "x1": 194,
+        "y1": 2081,
+        "x2": 1528,
+        "y2": 2112
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0052",
+      "text": "of information or infringements related to copyright and Intellectual Property Right (IPRs) are caused due",
+      "confidence": 0.9926,
+      "bounding_box": {
+        "x1": 197,
+        "y1": 2115,
+        "x2": 1518,
+        "y2": 2139
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0053",
+      "text": "to activation of any such malicious code in embedded software.",
+      "confidence": 0.9951,
+      "bounding_box": {
+        "x1": 192,
+        "y1": 2144,
+        "x2": 996,
+        "y2": 2176
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0054",
+      "text": "5/8",
+      "confidence": 0.9947,
+      "bounding_box": {
+        "x1": 1530,
+        "y1": 2256,
+        "x2": 1579,
+        "y2": 2283
+      },
+      "language_hint": "en"
+    }
+  ],
+  "layout_regions": [
+    {
+      "region_id": "reg_0001",
+      "region_type": "text",
+      "bounding_box": {
+        "x1": 166,
+        "y1": 1582,
+        "x2": 1515,
+        "y2": 1703
+      },
+      "contained_block_ids": [
+        "blk_0039",
+        "blk_0040",
+        "blk_0041",
+        "blk_0042"
+      ],
+      "table_structure": null,
+      "reading_order_index": 1,
+      "text_content": "OPTioN CLAUsE: The buyer can increase or decrease the contract quantity or contract duration up to 25.\npercent at the time of issue of the contract. However, once the contract is issued, contract quantity or.\ncontract duration can only be increased up to 25 percent. Bidders are bound to accept the revised\nquantity or duration",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0002",
+      "region_type": "title",
+      "bounding_box": {
+        "x1": 152,
+        "y1": 1741,
+        "x2": 307,
+        "y2": 1761
+      },
+      "contained_block_ids": [
+        "blk_0043"
+      ],
+      "table_structure": null,
+      "reading_order_index": 2,
+      "text_content": "2. Generic",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0003",
+      "region_type": "title",
+      "bounding_box": {
+        "x1": 134,
+        "y1": 1438,
+        "x2": 1345,
+        "y2": 1524
+      },
+      "contained_block_ids": [
+        "blk_0037"
+      ],
+      "table_structure": null,
+      "reading_order_index": 3,
+      "text_content": "Buyer Added Bid Specific Terms and Conditions/ar arr sist $ fs at fat ad.",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0004",
+      "region_type": "table",
+      "bounding_box": {
+        "x1": 98,
+        "y1": 878,
+        "x2": 1562,
+        "y2": 1337
+      },
+      "contained_block_ids": [
+        "blk_0015",
+        "blk_0016",
+        "blk_0017",
+        "blk_0018",
+        "blk_0020",
+        "blk_0019",
+        "blk_0021",
+        "blk_0022",
+        "blk_0025",
+        "blk_0024",
+        "blk_0023",
+        "blk_0027",
+        "blk_0026",
+        "blk_0028",
+        "blk_0029",
+        "blk_0030",
+        "blk_0031",
+        "blk_0033",
+        "blk_0032",
+        "blk_0034",
+        "blk_0035",
+        "blk_0036"
+      ],
+      "table_structure": {
+        "cell_bbox": [
+          [
+            13.96481990814209,
+            11.735258102416992,
+            193.1486053466797,
+            12.89716625213623,
+            190.20632934570312,
+            313.4117126464844,
+            12.886022567749023,
+            310.04925537109375
+          ],
+          [
+            169.77662658691406,
+            18.72369384765625,
+            448.32733154296875,
+            19.940202713012695,
+            434.49676513671875,
+            299.7513732910156,
+            161.07513427734375,
+            295.89971923828125
+          ],
+          [
+            487.81884765625,
+            16.91219139099121,
+            854.11669921875,
+            17.92461585998535,
+            836.7305297851562,
+            285.8949890136719,
+            472.82489013671875,
+            282.6234436035156
+          ],
+          [
+            864.5413208007812,
+            15.501476287841797,
+            1111.224365234375,
+            16.752662658691406,
+            1096.3394775390625,
+            316.92193603515625,
+            846.41259765625,
+            313.992431640625
+          ],
+          [
+            1089.3328857421875,
+            14.330859184265137,
+            1430.1895751953125,
+            15.749205589294434,
+            1427.7359619140625,
+            308.0865478515625,
+            1073.8944091796875,
+            304.3371887207031
+          ],
+          [
+            7.596219062805176,
+            286.3533935546875,
+            131.40492248535156,
+            296.1940002441406,
+            127.17880249023438,
+            424.6750793457031,
+            7.2704925537109375,
+            421.8573303222656
+          ],
+          [
+            186.313720703125,
+            304.687744140625,
+            407.1596984863281,
+            313.29296875,
+            396.3039855957031,
+            439.68914794921875,
+            179.75503540039062,
+            438.1699523925781
+          ],
+          [
+            482.52093505859375,
+            308.3964538574219,
+            876.39501953125,
+            315.4747314453125,
+            859.2671508789062,
+            445.8719177246094,
+            465.84478759765625,
+            445.0438232421875
+          ],
+          [
+            872.0618896484375,
+            309.1968688964844,
+            1082.1793212890625,
+            314.9175720214844,
+            1068.3564453125,
+            444.05352783203125,
+            857.609619140625,
+            443.2795104980469
+          ],
+          [
+            1094.9287109375,
+            307.4932556152344,
+            1423.0762939453125,
+            312.599609375,
+            1421.0625,
+            437.3594970703125,
+            1087.4384765625,
+            436.42462158203125
+          ]
+        ],
+        "html": "<html><body><table><tr><td>S.No./5. 4.</td><td>Consignee Reporting/officer/ 喂Nt/Ru 3</td><td>Address/</td><td>The quantity of procurement \"1\" indicates Project based or Lumpsum based hiring.</td><td>Additional Requirement/3nfaR币 </td></tr><tr><td></td><td>Manoranjan</td><td>110003,SYSTEM DIVISION, B WING, 6TH FLOOR, CBI HEAD OFFICE,LODHI ROAD,CGO COMPLEX, NEW DELHI-110003</td><td></td><td>N/A</td></tr></table></body></html>"
+      },
+      "reading_order_index": 4,
+      "text_content": "The quantity.\nof\nConsignee\nprocurement\nAdditional\nS.No./.\nReporting/Officer/\n\"1\" indicates\nRequirement/3rfaR\nAddress/udl\nJe?Jhd/lPgh\nProject\ni.\nbased or\nLumpsum\n based hiring.\n110003,SYSTEM DIVISION, B\nWING, 6TH FLOOR, CBI HEAD\n Manoranjan\nN/A\nOFFICE, LODHI ROAD, CGO\nCOMPLEX, NEW DELHI-110003",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0005",
+      "region_type": "table",
+      "bounding_box": {
+        "x1": 95,
+        "y1": 151,
+        "x2": 1565,
+        "y2": 656
+      },
+      "contained_block_ids": [
+        "blk_0001",
+        "blk_0002",
+        "blk_0003",
+        "blk_0004",
+        "blk_0005",
+        "blk_0006",
+        "blk_0007",
+        "blk_0009",
+        "blk_0008",
+        "blk_0010",
+        "blk_0011",
+        "blk_0012",
+        "blk_0013"
+      ],
+      "table_structure": {
+        "cell_bbox": [
+          [
+            23.954832077026367,
+            4.966567039489746,
+            782.6207275390625,
+            5.206730842590332,
+            779.2699584960938,
+            61.703617095947266,
+            23.382177352905273,
+            60.51129150390625
+          ],
+          [
+            689.647216796875,
+            4.81049108505249,
+            1457.20654296875,
+            4.878068447113037,
+            1457.0,
+            56.703060150146484,
+            690.055419921875,
+            57.362361907958984
+          ],
+          [
+            19.161876678466797,
+            63.166160583496094,
+            825.8617553710938,
+            65.04808044433594,
+            810.7258911132812,
+            120.22057342529297,
+            18.41866111755371,
+            116.65579986572266
+          ],
+          [
+            650.6331176757812,
+            67.0610122680664,
+            1426.8519287109375,
+            68.46955108642578,
+            1425.98681640625,
+            114.53522491455078,
+            644.4829711914062,
+            111.0810546875
+          ],
+          [
+            10.374632835388184,
+            126.01334381103516,
+            693.5419921875,
+            129.3036651611328,
+            679.3739013671875,
+            201.0098876953125,
+            9.922754287719727,
+            197.5748748779297
+          ],
+          [
+            727.2552490234375,
+            130.56077575683594,
+            1456.9954833984375,
+            133.3572540283203,
+            1456.673583984375,
+            205.54547119140625,
+            719.1238403320312,
+            201.8759002685547
+          ],
+          [
+            27.289995193481445,
+            196.18637084960938,
+            689.7239990234375,
+            199.90948486328125,
+            682.9064331054688,
+            266.1192321777344,
+            26.509498596191406,
+            262.9832458496094
+          ],
+          [
+            725.7380981445312,
+            199.2705841064453,
+            1437.3287353515625,
+            203.51654052734375,
+            1436.1708984375,
+            268.1484375,
+            714.1646118164062,
+            264.3857421875
+          ],
+          [
+            25.593223571777344,
+            259.9365539550781,
+            708.0443115234375,
+            264.8724060058594,
+            700.4498291015625,
+            320.5145263671875,
+            24.821741104125977,
+            316.5856018066406
+          ],
+          [
+            729.936767578125,
+            261.32354736328125,
+            1457.58447265625,
+            266.3270568847656,
+            1457.2650146484375,
+            319.1230163574219,
+            723.8419799804688,
+            315.2524719238281
+          ],
+          [
+            11.298548698425293,
+            316.6279296875,
+            1155.4129638671875,
+            321.51910400390625,
+            1147.9527587890625,
+            391.93023681640625,
+            10.987360954284668,
+            388.4046325683594
+          ],
+          [
+            744.2715454101562,
+            314.1731262207031,
+            1447.6185302734375,
+            318.2017517089844,
+            1447.0029296875,
+            380.0754089355469,
+            734.6309204101562,
+            376.2544860839844
+          ],
+          [
+            20.94382095336914,
+            365.4698181152344,
+            1414.4007568359375,
+            367.5263671875,
+            1409.5823974609375,
+            497.4864196777344,
+            19.106828689575195,
+            497.24102783203125
+          ]
+        ],
+        "html": "<html><body><table><tbody><tr><td>Specification</td><td>Values</td></tr><tr><td>Core</td><td></td></tr><tr><td>Description /Nomenclature of Service Proposed for procurement using custom bid functionality</td><td>Selection of an Agency for Implementation of UPS Infrastruture including Site Preparation</td></tr><tr><td>Regulatory/ Statutory Compliance of Service</td><td>YES</td></tr><tr><td>Compliance of Service to SOw, STC, SLA etc</td><td>YES</td></tr><tr><td>Addon(s)/</td><td></td></tr><tr><td colspan=\"2\"></td></tr></tbody></table></body></html>"
+      },
+      "reading_order_index": 5,
+      "text_content": "Specification\nValues\nCore\nDescription /Nomenclature of Service Proposed for\nSelection of an Agency for Implementation of UPS\nprocurement using custom bid functionality.\nInfrastruture including Site Preparation\nYES\nRegulatory/ Statutory Compliance of Service.\nCompliance of Service to SOw, STC, SLA etc.\nYES\nAddon(s)/s3ii\nAdditional Specification Documents/3rfaR faffe atalds",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0006",
+      "region_type": "table_caption",
+      "bounding_box": {
+        "x1": 105,
+        "y1": 827,
+        "x2": 811,
+        "y2": 855
+      },
+      "contained_block_ids": [
+        "blk_0014"
+      ],
+      "table_structure": null,
+      "reading_order_index": 6,
+      "text_content": "Consignees/Reporting Officer/qfat/Rulfer 3fugRT",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0007",
+      "region_type": "footer",
+      "bounding_box": {
+        "x1": 1534,
+        "y1": 2260,
+        "x2": 1574,
+        "y2": 2277
+      },
+      "contained_block_ids": [
+        "blk_0054"
+      ],
+      "table_structure": null,
+      "reading_order_index": 7,
+      "text_content": "5/8",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0008",
+      "region_type": "reference",
+      "bounding_box": {
+        "x1": 188,
+        "y1": 1884,
+        "x2": 1502,
+        "y2": 2172
+      },
+      "contained_block_ids": [
+        "blk_0045",
+        "blk_0046",
+        "blk_0047",
+        "blk_0048",
+        "blk_0049",
+        "blk_0050",
+        "blk_0051",
+        "blk_0052",
+        "blk_0053"
+      ],
+      "table_structure": null,
+      "reading_order_index": 8,
+      "text_content": "The seller should upload following certificate in the bid:-\n(a) This is to certify that the Hardware and the Software being offered, as part of the contract, does not.\ncontain Embedded Malicious code that would activate procedures to :-.\n(i) Inhibit the desires and designed function of the equipment.\n(ii) Cause physical damage to the user or equipment during the exploitation.\n(ili) Tap information resident or transient in the equipment/network.\n(b) The firm will be considered to be in breach of the procurement contract, in case physical damage, loss.\nof information or infringements related to copyright and Intellectual Property Right (IPRs) are caused due\nto activation of any such malicious code in embedded software.",
+      "confidence": null
+    }
+  ],
+  "warnings": []
+}

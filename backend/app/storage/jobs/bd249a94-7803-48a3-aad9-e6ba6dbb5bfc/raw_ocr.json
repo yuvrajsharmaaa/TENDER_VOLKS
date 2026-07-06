@@ -1,0 +1,34 @@
+{
+  "job_id": "bd249a94-7803-48a3-aad9-e6ba6dbb5bfc",
+  "original_filename": "original.pdf",
+  "page_count": 1,
+  "processing_time_seconds": 2.9393656253814697,
+  "pages": {
+    "1": [
+      {
+        "block_id": "blk_0001",
+        "text": "TENDER NOTICE NO. RLY/2024/TN/0042",
+        "confidence": 0.9996,
+        "bounding_box": {
+          "x1": 278,
+          "y1": 251,
+          "x2": 861,
+          "y2": 283
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0002",
+        "text": "Government of India - Ministry of Railways",
+        "confidence": 0.9972,
+        "bounding_box": {
+          "x1": 275,
+          "y1": 387,
+          "x2": 854,
+          "y2": 426
+        },
+        "page_number": 1
+      }
+    ]
+  }
+}
