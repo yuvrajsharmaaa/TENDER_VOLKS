@@ -1,0 +1,4560 @@
+{
+  "job_id": "4fd7d48d-b043-4ea5-804b-51be16d3bfe8",
+  "original_filename": "original.pdf",
+  "page_count": 8,
+  "processing_time_seconds": 234.0626516342163,
+  "pages": {
+    "1": [
+      {
+        "block_id": "blk_0001",
+        "text": "Bid Number/aldt aHia (fas ycyr):",
+        "confidence": 0.8061,
+        "bounding_box": {
+          "x1": 1092,
+          "y1": 187,
+          "x2": 1528,
+          "y2": 227
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0002",
+        "text": "GeM",
+        "confidence": 0.9948,
+        "bounding_box": {
+          "x1": 273,
+          "y1": 205,
+          "x2": 411,
+          "y2": 256
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0003",
+        "text": "GEM/2025/B/6053925",
+        "confidence": 0.9989,
+        "bounding_box": {
+          "x1": 1250,
+          "y1": 231,
+          "x2": 1530,
+          "y2": 263
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0004",
+        "text": "Azadi Ka",
+        "confidence": 0.9647,
+        "bounding_box": {
+          "x1": 462,
+          "y1": 246,
+          "x2": 586,
+          "y2": 283
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0005",
+        "text": "Governmentd",
+        "confidence": 0.9223,
+        "bounding_box": {
+          "x1": 273,
+          "y1": 256,
+          "x2": 411,
+          "y2": 280
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0006",
+        "text": "Amrit Mahotsav",
+        "confidence": 0.9638,
+        "bounding_box": {
+          "x1": 447,
+          "y1": 270,
+          "x2": 672,
+          "y2": 302
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0007",
+        "text": "Dated/faic : 13-03-2025",
+        "confidence": 0.9676,
+        "bounding_box": {
+          "x1": 1207,
+          "y1": 263,
+          "x2": 1530,
+          "y2": 305
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0008",
+        "text": "e Marketplace",
+        "confidence": 0.9587,
+        "bounding_box": {
+          "x1": 261,
+          "y1": 278,
+          "x2": 421,
+          "y2": 307
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0009",
+        "text": "Bid Document/ fs atdld",
+        "confidence": 0.9238,
+        "bounding_box": {
+          "x1": 632,
+          "y1": 375,
+          "x2": 1021,
+          "y2": 407
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0010",
+        "text": "Bid Details/fas faaqur",
+        "confidence": 0.9023,
+        "bounding_box": {
+          "x1": 681,
+          "y1": 482,
+          "x2": 969,
+          "y2": 514
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0011",
+        "text": "Bid End Date/Time/is ag d  arg/Hay",
+        "confidence": 0.8768,
+        "bounding_box": {
+          "x1": 123,
+          "y1": 551,
+          "x2": 706,
+          "y2": 575
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0012",
+        "text": "12-04-2025 14:00:00",
+        "confidence": 0.9996,
+        "bounding_box": {
+          "x1": 763,
+          "y1": 548,
+          "x2": 1036,
+          "y2": 580
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0013",
+        "text": "Bid Opening Date/Time/fas gd T",
+        "confidence": 0.9247,
+        "bounding_box": {
+          "x1": 123,
+          "y1": 614,
+          "x2": 608,
+          "y2": 646
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0014",
+        "text": "12-04-2025 14:30:00",
+        "confidence": 0.9995,
+        "bounding_box": {
+          "x1": 763,
+          "y1": 633,
+          "x2": 1036,
+          "y2": 665
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0015",
+        "text": "hHH/DP",
+        "confidence": 0.5646,
+        "bounding_box": {
+          "x1": 115,
+          "y1": 653,
+          "x2": 264,
+          "y2": 690
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0016",
+        "text": "Bid Offer Validity (From End Date)/fas trT",
+        "confidence": 0.9469,
+        "bounding_box": {
+          "x1": 123,
+          "y1": 721,
+          "x2": 740,
+          "y2": 753
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0017",
+        "text": "60 (Days)",
+        "confidence": 0.9653,
+        "bounding_box": {
+          "x1": 760,
+          "y1": 741,
+          "x2": 890,
+          "y2": 775
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0018",
+        "text": "auar (aa a aT a(q )",
+        "confidence": 0.5978,
+        "bounding_box": {
+          "x1": 116,
+          "y1": 760,
+          "x2": 443,
+          "y2": 797
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0019",
+        "text": "Ministry/State Name/aldR/y  aI",
+        "confidence": 0.9018,
+        "bounding_box": {
+          "x1": 121,
+          "y1": 828,
+          "x2": 659,
+          "y2": 860
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0020",
+        "text": " Ministry Of Personnel Public Grievances And Pensions.",
+        "confidence": 0.9823,
+        "bounding_box": {
+          "x1": 760,
+          "y1": 828,
+          "x2": 1442,
+          "y2": 863
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0021",
+        "text": "Department Name/faaa ar aI",
+        "confidence": 0.8525,
+        "bounding_box": {
+          "x1": 121,
+          "y1": 894,
+          "x2": 556,
+          "y2": 926
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0022",
+        "text": "Department Of Personnel And Training",
+        "confidence": 0.9997,
+        "bounding_box": {
+          "x1": 763,
+          "y1": 894,
+          "x2": 1255,
+          "y2": 926
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0023",
+        "text": "Organisation Name/lot qt a",
+        "confidence": 0.9286,
+        "bounding_box": {
+          "x1": 123,
+          "y1": 962,
+          "x2": 568,
+          "y2": 987
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0024",
+        "text": "Central Bureau Of Investigation (cbi)",
+        "confidence": 0.9986,
+        "bounding_box": {
+          "x1": 765,
+          "y1": 962,
+          "x2": 1227,
+          "y2": 987
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0025",
+        "text": "Office Name/rafary T aH",
+        "confidence": 0.8499,
+        "bounding_box": {
+          "x1": 121,
+          "y1": 1023,
+          "x2": 485,
+          "y2": 1055
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0026",
+        "text": "Head Office.",
+        "confidence": 0.9407,
+        "bounding_box": {
+          "x1": 765,
+          "y1": 1026,
+          "x2": 915,
+          "y2": 1053
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0027",
+        "text": "bdl $A/Buyer Email",
+        "confidence": 0.9174,
+        "bounding_box": {
+          "x1": 121,
+          "y1": 1089,
+          "x2": 421,
+          "y2": 1121
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0028",
+        "text": "deepti.v@cbi.gov.in",
+        "confidence": 0.9998,
+        "bounding_box": {
+          "x1": 763,
+          "y1": 1089,
+          "x2": 1018,
+          "y2": 1121
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0029",
+        "text": "Custom Bid for Services - Selection of an Agency for.",
+        "confidence": 0.9924,
+        "bounding_box": {
+          "x1": 763,
+          "y1": 1148,
+          "x2": 1422,
+          "y2": 1179
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0030",
+        "text": "Item Category/g eaR",
+        "confidence": 0.8701,
+        "bounding_box": {
+          "x1": 121,
+          "y1": 1177,
+          "x2": 453,
+          "y2": 1211
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0031",
+        "text": "Implementation of UPs Infrastruture including Site",
+        "confidence": 0.9939,
+        "bounding_box": {
+          "x1": 765,
+          "y1": 1182,
+          "x2": 1400,
+          "y2": 1206
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0032",
+        "text": "Preparation",
+        "confidence": 0.9997,
+        "bounding_box": {
+          "x1": 762,
+          "y1": 1208,
+          "x2": 913,
+          "y2": 1238
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0033",
+        "text": "Operation and Maintenance Power House / Power",
+        "confidence": 0.9902,
+        "bounding_box": {
+          "x1": 844,
+          "y1": 1286,
+          "x2": 1471,
+          "y2": 1318
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0034",
+        "text": "Similar Category/ala stoi",
+        "confidence": 0.8573,
+        "bounding_box": {
+          "x1": 120,
+          "y1": 1296,
+          "x2": 487,
+          "y2": 1333
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0035",
+        "text": "Plant",
+        "confidence": 0.9996,
+        "bounding_box": {
+          "x1": 844,
+          "y1": 1318,
+          "x2": 922,
+          "y2": 1352
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0036",
+        "text": "Contract Period/3gqt 3af",
+        "confidence": 0.891,
+        "bounding_box": {
+          "x1": 121,
+          "y1": 1401,
+          "x2": 499,
+          "y2": 1433
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0037",
+        "text": "5 Year(s) 3 Day(s)",
+        "confidence": 0.9993,
+        "bounding_box": {
+          "x1": 770,
+          "y1": 1401,
+          "x2": 1004,
+          "y2": 1433
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0038",
+        "text": "Minimum Average Annual Turnover of the",
+        "confidence": 0.9905,
+        "bounding_box": {
+          "x1": 121,
+          "y1": 1459,
+          "x2": 718,
+          "y2": 1491
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0039",
+        "text": "bidder (For 3 Years)/ast r ydd 3ilHd",
+        "confidence": 0.9167,
+        "bounding_box": {
+          "x1": 123,
+          "y1": 1494,
+          "x2": 672,
+          "y2": 1525
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0040",
+        "text": "300 Lakh (s)",
+        "confidence": 0.9994,
+        "bounding_box": {
+          "x1": 760,
+          "y1": 1498,
+          "x2": 928,
+          "y2": 1538
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0041",
+        "text": "qrfqq cd3q (3 qqf aT)",
+        "confidence": 0.784,
+        "bounding_box": {
+          "x1": 121,
+          "y1": 1540,
+          "x2": 426,
+          "y2": 1572
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0042",
+        "text": "Years of Past Experience Required for",
+        "confidence": 0.998,
+        "bounding_box": {
+          "x1": 121,
+          "y1": 1598,
+          "x2": 664,
+          "y2": 1630
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0043",
+        "text": "same/similar service/3-/la Aa3if  f",
+        "confidence": 0.9064,
+        "bounding_box": {
+          "x1": 121,
+          "y1": 1635,
+          "x2": 713,
+          "y2": 1667
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0044",
+        "text": "5 Year (s)",
+        "confidence": 0.9981,
+        "bounding_box": {
+          "x1": 763,
+          "y1": 1645,
+          "x2": 890,
+          "y2": 1671
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0045",
+        "text": "hP y DHPE PIeR PlJhE",
+        "confidence": 0.5352,
+        "bounding_box": {
+          "x1": 121,
+          "y1": 1679,
+          "x2": 433,
+          "y2": 1710
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0046",
+        "text": "Past Experience of Similar Services",
+        "confidence": 0.9998,
+        "bounding_box": {
+          "x1": 123,
+          "y1": 1742,
+          "x2": 625,
+          "y2": 1766
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0047",
+        "text": "required/st as ar Aa3if ar fadl 3ldy5",
+        "confidence": 0.7263,
+        "bounding_box": {
+          "x1": 123,
+          "y1": 1776,
+          "x2": 689,
+          "y2": 1808
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0048",
+        "text": "Yes",
+        "confidence": 0.9996,
+        "bounding_box": {
+          "x1": 760,
+          "y1": 1781,
+          "x2": 814,
+          "y2": 1810
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0049",
+        "text": "MSE Exemption for Years Of",
+        "confidence": 0.9986,
+        "bounding_box": {
+          "x1": 123,
+          "y1": 1879,
+          "x2": 526,
+          "y2": 1910
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0050",
+        "text": "Experience/3gag $ aqf  aa$ c/ and",
+        "confidence": 0.8757,
+        "bounding_box": {
+          "x1": 123,
+          "y1": 1915,
+          "x2": 691,
+          "y2": 1949
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0051",
+        "text": "Yes",
+        "confidence": 0.9997,
+        "bounding_box": {
+          "x1": 763,
+          "y1": 1922,
+          "x2": 814,
+          "y2": 1952
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0052",
+        "text": "Turnover/cd3i $ fa aa$ qt c yIy ",
+        "confidence": 0.7759,
+        "bounding_box": {
+          "x1": 123,
+          "y1": 1959,
+          "x2": 694,
+          "y2": 1991
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0053",
+        "text": "Startup Exemption for Years Of",
+        "confidence": 0.9991,
+        "bounding_box": {
+          "x1": 123,
+          "y1": 2017,
+          "x2": 571,
+          "y2": 2049
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0054",
+        "text": "Experience/3igaq $ aqf  Fcrc3ry c/ and",
+        "confidence": 0.8791,
+        "bounding_box": {
+          "x1": 123,
+          "y1": 2054,
+          "x2": 696,
+          "y2": 2088
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0055",
+        "text": "Yes",
+        "confidence": 0.9992,
+        "bounding_box": {
+          "x1": 759,
+          "y1": 2058,
+          "x2": 815,
+          "y2": 2099
+        },
+        "page_number": 1
+      },
+      {
+        "block_id": "blk_0056",
+        "text": "1/8",
+        "confidence": 0.9981,
+        "bounding_box": {
+          "x1": 1530,
+          "y1": 2256,
+          "x2": 1579,
+          "y2": 2283
+        },
+        "page_number": 1
+      }
+    ],
+    "2": [
+      {
+        "block_id": "blk_0001",
+        "text": "Bid Details/fas faarur",
+        "confidence": 0.9107,
+        "bounding_box": {
+          "x1": 684,
+          "y1": 175,
+          "x2": 972,
+          "y2": 207
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0002",
+        "text": "Experience Criteria,Bidder Turnover,Certificate (Requested",
+        "confidence": 0.9932,
+        "bounding_box": {
+          "x1": 762,
+          "y1": 231,
+          "x2": 1508,
+          "y2": 266
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0003",
+        "text": "in ATC),OEM Authorization Certificate,Additional Doc 1",
+        "confidence": 0.9977,
+        "bounding_box": {
+          "x1": 760,
+          "y1": 263,
+          "x2": 1451,
+          "y2": 297
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0004",
+        "text": "(Requested in ATC),Additional Doc 2 (Requested in",
+        "confidence": 0.9942,
+        "bounding_box": {
+          "x1": 760,
+          "y1": 297,
+          "x2": 1407,
+          "y2": 329
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0005",
+        "text": "Document required from seller/fdgar  aiJ",
+        "confidence": 0.9312,
+        "bounding_box": {
+          "x1": 120,
+          "y1": 331,
+          "x2": 723,
+          "y2": 366
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0006",
+        "text": "ATC),Additional Doc 3 (Requested in ATC),Additional Doc 4",
+        "confidence": 0.9991,
+        "bounding_box": {
+          "x1": 760,
+          "y1": 329,
+          "x2": 1508,
+          "y2": 361
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0007",
+        "text": "(Requested in ATC)",
+        "confidence": 0.9999,
+        "bounding_box": {
+          "x1": 763,
+          "y1": 358,
+          "x2": 1011,
+          "y2": 390
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0008",
+        "text": "FRJP>2 dIe",
+        "confidence": 0.7108,
+        "bounding_box": {
+          "x1": 123,
+          "y1": 383,
+          "x2": 258,
+          "y2": 409
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0009",
+        "text": "*In case any bidder is seeking exemption from Experience /",
+        "confidence": 0.998,
+        "bounding_box": {
+          "x1": 767,
+          "y1": 395,
+          "x2": 1515,
+          "y2": 419
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0010",
+        "text": "Turnover Criteria, the supporting documents to prove his",
+        "confidence": 0.9999,
+        "bounding_box": {
+          "x1": 760,
+          "y1": 419,
+          "x2": 1486,
+          "y2": 453
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0011",
+        "text": "eligibility for exemption must be uploaded for evaluation by",
+        "confidence": 0.9892,
+        "bounding_box": {
+          "x1": 763,
+          "y1": 453,
+          "x2": 1520,
+          "y2": 485
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0012",
+        "text": "the buyer",
+        "confidence": 0.9891,
+        "bounding_box": {
+          "x1": 763,
+          "y1": 487,
+          "x2": 890,
+          "y2": 514
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0013",
+        "text": "Do you want to show documents uploaded",
+        "confidence": 0.9999,
+        "bounding_box": {
+          "x1": 123,
+          "y1": 536,
+          "x2": 726,
+          "y2": 568
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0014",
+        "text": "by bidders to all bidders participated in",
+        "confidence": 0.9971,
+        "bounding_box": {
+          "x1": 121,
+          "y1": 568,
+          "x2": 689,
+          "y2": 599
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0015",
+        "text": "Yes",
+        "confidence": 0.9997,
+        "bounding_box": {
+          "x1": 760,
+          "y1": 575,
+          "x2": 812,
+          "y2": 604
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0016",
+        "text": "bid?/",
+        "confidence": 0.9949,
+        "bounding_box": {
+          "x1": 121,
+          "y1": 602,
+          "x2": 199,
+          "y2": 636
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0017",
+        "text": "Bid to RA enabled/gs  Rq asat ay fy",
+        "confidence": 0.877,
+        "bounding_box": {
+          "x1": 123,
+          "y1": 670,
+          "x2": 745,
+          "y2": 694
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0018",
+        "text": "Yes",
+        "confidence": 0.9929,
+        "bounding_box": {
+          "x1": 753,
+          "y1": 664,
+          "x2": 816,
+          "y2": 703
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0019",
+        "text": "RA Qualification Rule",
+        "confidence": 0.9999,
+        "bounding_box": {
+          "x1": 121,
+          "y1": 729,
+          "x2": 426,
+          "y2": 760
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0020",
+        "text": "H1-Highest Priced Bid Elimination.",
+        "confidence": 0.9851,
+        "bounding_box": {
+          "x1": 763,
+          "y1": 729,
+          "x2": 1188,
+          "y2": 760
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0021",
+        "text": "Type of Bid/as qt yqR",
+        "confidence": 0.8489,
+        "bounding_box": {
+          "x1": 121,
+          "y1": 787,
+          "x2": 438,
+          "y2": 819
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0022",
+        "text": "Two Packet Bid",
+        "confidence": 0.9636,
+        "bounding_box": {
+          "x1": 760,
+          "y1": 785,
+          "x2": 959,
+          "y2": 816
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0023",
+        "text": "Time allowed for Technical Clarifications",
+        "confidence": 0.9796,
+        "bounding_box": {
+          "x1": 123,
+          "y1": 845,
+          "x2": 701,
+          "y2": 877
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0024",
+        "text": "during technical evaluation/dndit aedicht ",
+        "confidence": 0.8449,
+        "bounding_box": {
+          "x1": 121,
+          "y1": 882,
+          "x2": 753,
+          "y2": 914
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0025",
+        "text": "2 Days",
+        "confidence": 0.998,
+        "bounding_box": {
+          "x1": 747,
+          "y1": 884,
+          "x2": 857,
+          "y2": 922
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0026",
+        "text": "3RIa aqnT Fqg|q0I >g 3gHd HHy",
+        "confidence": 0.5512,
+        "bounding_box": {
+          "x1": 118,
+          "y1": 921,
+          "x2": 590,
+          "y2": 960
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0027",
+        "text": "Estimated Bid Value/3galfaa fas Hey",
+        "confidence": 0.8694,
+        "bounding_box": {
+          "x1": 121,
+          "y1": 992,
+          "x2": 635,
+          "y2": 1023
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0028",
+        "text": "22500000",
+        "confidence": 0.9998,
+        "bounding_box": {
+          "x1": 757,
+          "y1": 984,
+          "x2": 898,
+          "y2": 1024
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0029",
+        "text": "Evaluation Method/digd ygl",
+        "confidence": 0.8636,
+        "bounding_box": {
+          "x1": 123,
+          "y1": 1055,
+          "x2": 563,
+          "y2": 1087
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0030",
+        "text": "Total value wise evaluation",
+        "confidence": 0.9963,
+        "bounding_box": {
+          "x1": 760,
+          "y1": 1055,
+          "x2": 1109,
+          "y2": 1087
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0031",
+        "text": "Financial Document Indicating Price",
+        "confidence": 0.9998,
+        "bounding_box": {
+          "x1": 123,
+          "y1": 1113,
+          "x2": 637,
+          "y2": 1145
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0032",
+        "text": "Breakup Required/ey sifat adl fadl adlds",
+        "confidence": 0.7922,
+        "bounding_box": {
+          "x1": 123,
+          "y1": 1150,
+          "x2": 740,
+          "y2": 1182
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0033",
+        "text": "Yes",
+        "confidence": 0.9995,
+        "bounding_box": {
+          "x1": 760,
+          "y1": 1157,
+          "x2": 812,
+          "y2": 1187
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0034",
+        "text": " gh$PlE hlEK",
+        "confidence": 0.5539,
+        "bounding_box": {
+          "x1": 118,
+          "y1": 1194,
+          "x2": 327,
+          "y2": 1226
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0035",
+        "text": "Arbitration Clause",
+        "confidence": 0.9989,
+        "bounding_box": {
+          "x1": 121,
+          "y1": 1250,
+          "x2": 384,
+          "y2": 1282
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0036",
+        "text": "No",
+        "confidence": 0.9995,
+        "bounding_box": {
+          "x1": 760,
+          "y1": 1252,
+          "x2": 804,
+          "y2": 1284
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0037",
+        "text": "Mediation Clause",
+        "confidence": 0.9999,
+        "bounding_box": {
+          "x1": 121,
+          "y1": 1306,
+          "x2": 371,
+          "y2": 1338
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0038",
+        "text": "No",
+        "confidence": 0.9997,
+        "bounding_box": {
+          "x1": 760,
+          "y1": 1306,
+          "x2": 804,
+          "y2": 1335
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0039",
+        "text": "EMD Detail/$uast faqur",
+        "confidence": 0.8636,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 1396,
+          "x2": 430,
+          "y2": 1428
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0040",
+        "text": "Advisory Bank/sar$st ac",
+        "confidence": 0.8356,
+        "bounding_box": {
+          "x1": 120,
+          "y1": 1484,
+          "x2": 470,
+          "y2": 1520
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0041",
+        "text": "State Bank of India",
+        "confidence": 0.9632,
+        "bounding_box": {
+          "x1": 760,
+          "y1": 1484,
+          "x2": 1011,
+          "y2": 1520
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0042",
+        "text": "EMD Amount/$vaST fT",
+        "confidence": 0.8466,
+        "bounding_box": {
+          "x1": 125,
+          "y1": 1559,
+          "x2": 426,
+          "y2": 1584
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0043",
+        "text": "200000",
+        "confidence": 0.9997,
+        "bounding_box": {
+          "x1": 760,
+          "y1": 1554,
+          "x2": 868,
+          "y2": 1589
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0044",
+        "text": "ePBG Detail/$qdsit faqu",
+        "confidence": 0.8861,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 1679,
+          "x2": 458,
+          "y2": 1710
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0045",
+        "text": "Advisory Bank/sdr$sRt dc",
+        "confidence": 0.8703,
+        "bounding_box": {
+          "x1": 123,
+          "y1": 1771,
+          "x2": 472,
+          "y2": 1803
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0046",
+        "text": "State Bank of India",
+        "confidence": 0.9998,
+        "bounding_box": {
+          "x1": 763,
+          "y1": 1771,
+          "x2": 1011,
+          "y2": 1803
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0047",
+        "text": "ePBG Percentage(%)/$qdst afa (%)",
+        "confidence": 0.9008,
+        "bounding_box": {
+          "x1": 125,
+          "y1": 1840,
+          "x2": 625,
+          "y2": 1871
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0048",
+        "text": "5.00",
+        "confidence": 0.9996,
+        "bounding_box": {
+          "x1": 754,
+          "y1": 1831,
+          "x2": 831,
+          "y2": 1877
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0049",
+        "text": "Duration of ePBG required (Months)/$qdsit ",
+        "confidence": 0.9572,
+        "bounding_box": {
+          "x1": 123,
+          "y1": 1908,
+          "x2": 713,
+          "y2": 1939
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0050",
+        "text": "64",
+        "confidence": 1.0,
+        "bounding_box": {
+          "x1": 767,
+          "y1": 1930,
+          "x2": 804,
+          "y2": 1959
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0051",
+        "text": "(PGe) BJdE PJhE",
+        "confidence": 0.5441,
+        "bounding_box": {
+          "x1": 125,
+          "y1": 1952,
+          "x2": 376,
+          "y2": 1983
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0052",
+        "text": "relevant category as per GeM GTC with the bid. Under MSE category, only manufacturers for goods and Service",
+        "confidence": 0.9909,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 2127,
+          "x2": 1513,
+          "y2": 2159
+        },
+        "page_number": 2
+      },
+      {
+        "block_id": "blk_0053",
+        "text": "2/8",
+        "confidence": 0.9635,
+        "bounding_box": {
+          "x1": 1530,
+          "y1": 2256,
+          "x2": 1579,
+          "y2": 2283
+        },
+        "page_number": 2
+      }
+    ],
+    "3": [
+      {
+        "block_id": "blk_0001",
+        "text": "Providers for Services are eligible for exemption from EmD. Traders are excluded from the purview of this",
+        "confidence": 0.9929,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 161,
+          "x2": 1437,
+          "y2": 185
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0002",
+        "text": "Policy./3H cT RIaf h 3gHR $vHST c h $cgch fasc ct Hcfa eCJT  fa fas 5h HT2T gg HAfa 3FdIdg 9FgA cht1",
+        "confidence": 0.6246,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 190,
+          "x2": 1478,
+          "y2": 222
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0003",
+        "text": "4 EJl H$ L IhJIhIh2 1 EIh x 26 H IHd$ IPIPK IPH dKJ 4 lEIPH hD IPJPGE dJ  yEP>r Wpq PleP!E 4 lle?4 $HdHd",
+        "confidence": 0.5872,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 222,
+          "x2": 1520,
+          "y2": 253
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0004",
+        "text": "1$ Ihle Ib> e Hh",
+        "confidence": 0.6382,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 253,
+          "x2": 374,
+          "y2": 285
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0005",
+        "text": "(b). EmD & Performance security should be in favour of Beneficiary, wherever it is applicable./$vast 3it siura",
+        "confidence": 0.964,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 312,
+          "x2": 1486,
+          "y2": 348
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0006",
+        "text": "3HTad RTfRT, 3i yF aIJI 3ldT t, aTHT2ff gh q8T a 3\\dT aT?1",
+        "confidence": 0.5895,
+        "bounding_box": {
+          "x1": 108,
+          "y1": 343,
+          "x2": 777,
+          "y2": 380
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0007",
+        "text": "Beneficiary/araraif :",
+        "confidence": 0.889,
+        "bounding_box": {
+          "x1": 108,
+          "y1": 404,
+          "x2": 381,
+          "y2": 441
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0008",
+        "text": "Supdt. of Police (Systems).",
+        "confidence": 0.9827,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 446,
+          "x2": 445,
+          "y2": 478
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0009",
+        "text": "Central Bureau of Investigation, System Division, 6th Floor, B-Wing, Plot 5-B, CGO Complex, Lodhi Road, New",
+        "confidence": 0.9856,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 478,
+          "x2": 1481,
+          "y2": 509
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0010",
+        "text": "Delhi-110003",
+        "confidence": 0.9992,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 512,
+          "x2": 280,
+          "y2": 536
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0011",
+        "text": "(Supdt. Of Police Systems).",
+        "confidence": 0.9513,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 541,
+          "x2": 450,
+          "y2": 573
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0012",
+        "text": "MII Compliance/a3$3n$ 3guld",
+        "confidence": 0.897,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 609,
+          "x2": 558,
+          "y2": 641
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0013",
+        "text": "MIl Compliance/3n$3n$ 3gula",
+        "confidence": 0.8935,
+        "bounding_box": {
+          "x1": 120,
+          "y1": 697,
+          "x2": 554,
+          "y2": 733
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0014",
+        "text": "Yes",
+        "confidence": 0.9987,
+        "bounding_box": {
+          "x1": 765,
+          "y1": 702,
+          "x2": 817,
+          "y2": 731
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0015",
+        "text": "MSE Purchase Preference/ava$ aRc aud",
+        "confidence": 0.9036,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 792,
+          "x2": 711,
+          "y2": 824
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0016",
+        "text": "MSE Purchase Preference/yavH$ g a4dl",
+        "confidence": 0.88,
+        "bounding_box": {
+          "x1": 125,
+          "y1": 884,
+          "x2": 689,
+          "y2": 909
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0017",
+        "text": "Yes",
+        "confidence": 0.9988,
+        "bounding_box": {
+          "x1": 763,
+          "y1": 884,
+          "x2": 817,
+          "y2": 914
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0018",
+        "text": "1. If the bidder is a Micro or Small Enterprise as per latest definitions under MsmE rules, the bidder shall be",
+        "confidence": 0.9883,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 1050,
+          "x2": 1461,
+          "y2": 1082
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0019",
+        "text": "quality and technical specifications. If the bidder is OEM of the offered products, it would be exempted from the",
+        "confidence": 0.9914,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 1113,
+          "x2": 1518,
+          "y2": 1145
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0020",
+        "text": "'OEM Average Turnover\" criteria also subject to meeting of quality and technical specifications. In case any",
+        "confidence": 0.98,
+        "bounding_box": {
+          "x1": 116,
+          "y1": 1145,
+          "x2": 1464,
+          "y2": 1177
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0021",
+        "text": "for exemption must be uploaded for evaluation by the buyer..",
+        "confidence": 0.9871,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 1211,
+          "x2": 881,
+          "y2": 1235
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0022",
+        "text": "2. If the bidder is a Startup, the bidder shall be exempted from the requirement of \"Bidder Turnover\" criteria and",
+        "confidence": 0.9962,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 1238,
+          "x2": 1530,
+          "y2": 1269
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0023",
+        "text": "'Experience Criteria\" subject to their meeting of quality and technical specifications. If the bidder is OEM of the",
+        "confidence": 0.9839,
+        "bounding_box": {
+          "x1": 116,
+          "y1": 1269,
+          "x2": 1513,
+          "y2": 1301
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0024",
+        "text": "offered products, it would be exempted from the \"OEM Average Turnover\" criteria also subject to meeting of",
+        "confidence": 0.9885,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 1301,
+          "x2": 1483,
+          "y2": 1333
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0025",
+        "text": "quality and technical specifications. In case any bidder is seeking exemption from Turnover / Experience Criteria,",
+        "confidence": 0.9912,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 1333,
+          "x2": 1532,
+          "y2": 1364
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0026",
+        "text": "the supporting documents to prove his eligibility for exemption must be uploaded for evaluation by the buyer.",
+        "confidence": 0.9986,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 1364,
+          "x2": 1498,
+          "y2": 1396
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0027",
+        "text": "3. The minimum average annual financial turnover of the bidder during the last three years, ending on 31st",
+        "confidence": 0.9969,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 1399,
+          "x2": 1461,
+          "y2": 1423
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0028",
+        "text": "the form of certified Audited Balance Sheets of relevant periods or a certificate from the Chartered Accountant /",
+        "confidence": 0.9966,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 1457,
+          "x2": 1523,
+          "y2": 1489
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0029",
+        "text": "Cost Accountant indicating the turnover details for the relevant period shall be uploaded with the bid. In case the",
+        "confidence": 0.9907,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 1494,
+          "x2": 1535,
+          "y2": 1518
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0030",
+        "text": "completed financial years after the date of constitution shall be taken into account for this criteria.",
+        "confidence": 0.9851,
+        "bounding_box": {
+          "x1": 116,
+          "y1": 1552,
+          "x2": 1348,
+          "y2": 1576
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0031",
+        "text": "4. Years of Past Experience required: The bidder must have experience for number of years as indicated above in",
+        "confidence": 0.9965,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 1581,
+          "x2": 1537,
+          "y2": 1613
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0032",
+        "text": "bid document (ending month of March prior to the bid opening) of providing similar type of services to any",
+        "confidence": 0.9937,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 1613,
+          "x2": 1454,
+          "y2": 1645
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0033",
+        "text": "Central / State Govt Organization / Psu. Copies of relevant contracts / orders to be uploaded along with bid in",
+        "confidence": 0.995,
+        "bounding_box": {
+          "x1": 108,
+          "y1": 1642,
+          "x2": 1488,
+          "y2": 1676
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0034",
+        "text": "support of having provided services during each of the Financial year..",
+        "confidence": 0.9898,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 1676,
+          "x2": 994,
+          "y2": 1708
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0035",
+        "text": "5. Purchase preference to Micro and Small Enterprises (MsEs): Purchase preference will be given to MsEs as",
+        "confidence": 0.9894,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 1710,
+          "x2": 1471,
+          "y2": 1735
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0036",
+        "text": "defined in Public Procurement Policy for Micro and Small Enterprises (MSEs) Order, 2012 dated 23.03.2012 issued",
+        "confidence": 0.9934,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 1740,
+          "x2": 1540,
+          "y2": 1771
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0037",
+        "text": "by Ministry of Micro, Small and Medium Enterprises and its subsequent Orders/Notifications issued by concerned",
+        "confidence": 0.9953,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 1774,
+          "x2": 1525,
+          "y2": 1798
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0038",
+        "text": "Ministry. If the bidder wants to avail the Purchase preference for services, the bidder must be the Service",
+        "confidence": 0.9941,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 1798,
+          "x2": 1439,
+          "y2": 1830
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0039",
+        "text": "provider of the offered Service. Relevant documentary evidence in this regard shall be uploaded along with the",
+        "confidence": 0.9975,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 1832,
+          "x2": 1513,
+          "y2": 1864
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0040",
+        "text": "bid in respect of the offered service. If L-1 is not an MSE and MSE Service Provider (s) has/have quoted price",
+        "confidence": 0.9853,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 1861,
+          "x2": 1471,
+          "y2": 1896
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0041",
+        "text": "within L-1+ 15% of margin of purchase preference /price band as defined in the relevant policy, then 100% order",
+        "confidence": 0.9899,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 1896,
+          "x2": 1532,
+          "y2": 1927
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0042",
+        "text": "quantity will be awarded to such MsE bidder subject to acceptance of L1 bid price. The buyers are advised to",
+        "confidence": 0.9924,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 1930,
+          "x2": 1483,
+          "y2": 1954
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0043",
+        "text": "Procurement Policy for Micro and Small Enterprises Order, 2012 and Public Procurement (Preference to Make in",
+        "confidence": 0.9972,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 1993,
+          "x2": 1513,
+          "y2": 2017
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0044",
+        "text": "India) Order, 2017. Benefits of MsE will be allowed only if the credentials of the service provider are validated on-",
+        "confidence": 0.9865,
+        "bounding_box": {
+          "x1": 116,
+          "y1": 2020,
+          "x2": 1535,
+          "y2": 2051
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0045",
+        "text": "line in GeM profile as well as validated and approved by the Buyer after evaluation of submitted documents.",
+        "confidence": 0.979,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 2051,
+          "x2": 1471,
+          "y2": 2083
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0046",
+        "text": "6. If L-1 is not an MSE and MSE Service Provider (s) has/have quoted price within L-1+ 15% of margin of purchase",
+        "confidence": 0.9853,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 2081,
+          "x2": 1540,
+          "y2": 2115
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0047",
+        "text": "preference /price band as defined in the relevant policy, then 1o0% order quantity will be awarded to such MSE",
+        "confidence": 0.9925,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 2112,
+          "x2": 1515,
+          "y2": 2147
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0048",
+        "text": "bidder subject to acceptance of L1 bid price.",
+        "confidence": 0.993,
+        "bounding_box": {
+          "x1": 108,
+          "y1": 2147,
+          "x2": 672,
+          "y2": 2178
+        },
+        "page_number": 3
+      },
+      {
+        "block_id": "blk_0049",
+        "text": "3/8",
+        "confidence": 0.9936,
+        "bounding_box": {
+          "x1": 1532,
+          "y1": 2256,
+          "x2": 1579,
+          "y2": 2283
+        },
+        "page_number": 3
+      }
+    ],
+    "4": [
+      {
+        "block_id": "blk_0001",
+        "text": "7. Estimated Bid Value indicated above is being declared solely for the purpose of guidance on EmD amount and",
+        "confidence": 0.9966,
+        "bounding_box": {
+          "x1": 108,
+          "y1": 158,
+          "x2": 1528,
+          "y2": 190
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0002",
+        "text": "for determining the Eligibility Criteria related to Turn Over, Past Performance and Project / Past Experience etc.",
+        "confidence": 0.99,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 190,
+          "x2": 1505,
+          "y2": 222
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0003",
+        "text": "This has no relevance or bearing on the price to be quoted by the bidders and is also not going to have any",
+        "confidence": 0.9908,
+        "bounding_box": {
+          "x1": 108,
+          "y1": 219,
+          "x2": 1461,
+          "y2": 253
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0004",
+        "text": "impact on bid participation. Also this is not going to be used as a criteria in determining reasonableness of",
+        "confidence": 0.9982,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 253,
+          "x2": 1454,
+          "y2": 285
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0005",
+        "text": "quoted prices which would be determined by the buyer based on its own assessment of reasonableness and",
+        "confidence": 0.9937,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 288,
+          "x2": 1473,
+          "y2": 312
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0006",
+        "text": "based on competitive prices received in Bid / RA process.",
+        "confidence": 0.9963,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 314,
+          "x2": 829,
+          "y2": 346
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0007",
+        "text": "8. Past Experience of Similar Services: The bidder must have successfully executed/completed similar Services",
+        "confidence": 0.9938,
+        "bounding_box": {
+          "x1": 108,
+          "y1": 346,
+          "x2": 1508,
+          "y2": 378
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0008",
+        "text": "over the last three years i.e. the current financial year and the last three financial years(ending month of March",
+        "confidence": 0.9912,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 383,
+          "x2": 1515,
+          "y2": 407
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0009",
+        "text": "prior to the bid opening): -",
+        "confidence": 0.9959,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 407,
+          "x2": 440,
+          "y2": 441
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0010",
+        "text": "1. Three similar completed services costing not less than the amount equal to 40% (forty percent) of the",
+        "confidence": 0.9873,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 441,
+          "x2": 1429,
+          "y2": 473
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0011",
+        "text": "estimated cost; or",
+        "confidence": 0.9975,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 473,
+          "x2": 340,
+          "y2": 502
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0012",
+        "text": "2. Two similar completed services costing not less than the amount equal to 50% (fifty percent) of the estimated",
+        "confidence": 0.9855,
+        "bounding_box": {
+          "x1": 108,
+          "y1": 502,
+          "x2": 1530,
+          "y2": 534
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0013",
+        "text": "cost; or",
+        "confidence": 0.9697,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 538,
+          "x2": 209,
+          "y2": 563
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0014",
+        "text": "cost.",
+        "confidence": 0.9994,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 599,
+          "x2": 172,
+          "y2": 626
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0015",
+        "text": "9. Reverse Auction would be conducted amongst all the technically qualified bidders except the Highest quoting",
+        "confidence": 0.9891,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 653,
+          "x2": 1523,
+          "y2": 685
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0016",
+        "text": "bidder. The technically qualified Highest Quoting bidder will not be allowed to participate in RA. However, H-1",
+        "confidence": 0.9984,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 682,
+          "x2": 1488,
+          "y2": 714
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0017",
+        "text": "will also be allowed to participate in RA in following cases:",
+        "confidence": 0.9847,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 716,
+          "x2": 846,
+          "y2": 748
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0018",
+        "text": "i. If number of technically qualified bidders are only 2 or 3..",
+        "confidence": 0.9879,
+        "bounding_box": {
+          "x1": 162,
+          "y1": 775,
+          "x2": 905,
+          "y2": 799
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0019",
+        "text": "ii. If Buyer has chosen to split the bid amongst N sellers, and H1 bid is coming within N.",
+        "confidence": 0.9948,
+        "bounding_box": {
+          "x1": 153,
+          "y1": 804,
+          "x2": 1264,
+          "y2": 836
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0020",
+        "text": "ili. In case Primary product of only one OEm is left in contention for participation in RA on elimination of H-1..",
+        "confidence": 0.9782,
+        "bounding_box": {
+          "x1": 145,
+          "y1": 833,
+          "x2": 1510,
+          "y2": 865
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0021",
+        "text": "iv. If L-1 is non-MSE and H-1 is eligible MSE and H-1 price is coming within price band of 15% of Non-MSE L-1",
+        "confidence": 0.9884,
+        "bounding_box": {
+          "x1": 148,
+          "y1": 870,
+          "x2": 1518,
+          "y2": 894
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0022",
+        "text": "v. If L-1 is non-MIl and H-1 is eligible MII and H-1 price is coming within price band of 20% of Non-MII L-1",
+        "confidence": 0.9653,
+        "bounding_box": {
+          "x1": 155,
+          "y1": 901,
+          "x2": 1469,
+          "y2": 926
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0023",
+        "text": "Additional Qualification/Data Required/3rfaR qigydl /3lld?yc 3cr",
+        "confidence": 0.8952,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 965,
+          "x2": 1001,
+          "y2": 997
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0024",
+        "text": "Introduction about the project /services being proposed for procurement using custom bid.",
+        "confidence": 0.9937,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 1033,
+          "x2": 1395,
+          "y2": 1067
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0025",
+        "text": "functionality:1741845888.pdf",
+        "confidence": 0.9986,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 1070,
+          "x2": 514,
+          "y2": 1094
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0026",
+        "text": "Instruction To Bidder:1741845996.pdf",
+        "confidence": 0.9978,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 1118,
+          "x2": 630,
+          "y2": 1155
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0027",
+        "text": "Pre Qualification Criteria ( PQc ) etc if any required:1741846010.pdf.",
+        "confidence": 0.9757,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 1177,
+          "x2": 1055,
+          "y2": 1208
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0028",
+        "text": "Scope of Work:1741852261.pdf",
+        "confidence": 0.9961,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 1233,
+          "x2": 539,
+          "y2": 1265
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0029",
+        "text": "Payment Terms:1741846071.pdf",
+        "confidence": 0.9998,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 1291,
+          "x2": 556,
+          "y2": 1323
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0030",
+        "text": "Penalties:1741846120.pdf",
+        "confidence": 0.9878,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 1347,
+          "x2": 467,
+          "y2": 1379
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0031",
+        "text": "Quantifiable Specification / Standards of The Service/ B0Q1741846151.pdf",
+        "confidence": 0.9897,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 1403,
+          "x2": 1154,
+          "y2": 1435
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0032",
+        "text": "GEM Availability Report ( GAR):1741846168.pdf.",
+        "confidence": 0.9724,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 1459,
+          "x2": 765,
+          "y2": 1491
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0033",
+        "text": "Buyer's Competent Authority Approval:1741846232.pdf",
+        "confidence": 0.9987,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 1515,
+          "x2": 876,
+          "y2": 1547
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0034",
+        "text": "Undertaking of Competent Authority is mandatory to create Custom Bid for Services. Please",
+        "confidence": 0.9989,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 1572,
+          "x2": 1419,
+          "y2": 1603
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0035",
+        "text": "download standard format document and upload:1741846294.pdf",
+        "confidence": 0.9994,
+        "bounding_box": {
+          "x1": 108,
+          "y1": 1603,
+          "x2": 1023,
+          "y2": 1635
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0036",
+        "text": "Any other Documents As per Specific Requirement of Buyer -1:1741846342.pdf",
+        "confidence": 0.9994,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 1659,
+          "x2": 1213,
+          "y2": 1691
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0037",
+        "text": "Any other Documents As per Specific Requirement of Buyer -2:1741846348.pdf",
+        "confidence": 0.9947,
+        "bounding_box": {
+          "x1": 108,
+          "y1": 1715,
+          "x2": 1210,
+          "y2": 1747
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0038",
+        "text": "Pre Bid Detail(s)",
+        "confidence": 0.9716,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 1788,
+          "x2": 349,
+          "y2": 1820
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0039",
+        "text": "Pre-Bid Date and Time",
+        "confidence": 0.9998,
+        "bounding_box": {
+          "x1": 121,
+          "y1": 1859,
+          "x2": 443,
+          "y2": 1891
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0040",
+        "text": "Pre-Bid Venue",
+        "confidence": 0.9925,
+        "bounding_box": {
+          "x1": 549,
+          "y1": 1861,
+          "x2": 755,
+          "y2": 1893
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0041",
+        "text": "Central Bureau of Investigation, Conference Hall, 8th Floor B-Wing, Plot 5-B,",
+        "confidence": 0.9784,
+        "bounding_box": {
+          "x1": 551,
+          "y1": 1915,
+          "x2": 1503,
+          "y2": 1947
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0042",
+        "text": "20-03-2025 11:00:00",
+        "confidence": 0.9997,
+        "bounding_box": {
+          "x1": 125,
+          "y1": 1932,
+          "x2": 391,
+          "y2": 1956
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0043",
+        "text": "CGO Complex, Lodhi Road, New Delhi-110003.",
+        "confidence": 0.9712,
+        "bounding_box": {
+          "x1": 549,
+          "y1": 1947,
+          "x2": 1132,
+          "y2": 1978
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0044",
+        "text": "Custom Bid For Services - Selection Of An Agency For Implementation Of UPS.",
+        "confidence": 0.9737,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 2020,
+          "x2": 1387,
+          "y2": 2054
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0045",
+        "text": "Infrastruture Including Site Preparation ( 1 )",
+        "confidence": 0.9952,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 2056,
+          "x2": 846,
+          "y2": 2088
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0046",
+        "text": "Technical Specifications/agdct faffeui",
+        "confidence": 0.9049,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 2125,
+          "x2": 654,
+          "y2": 2156
+        },
+        "page_number": 4
+      },
+      {
+        "block_id": "blk_0047",
+        "text": "4/8",
+        "confidence": 0.9872,
+        "bounding_box": {
+          "x1": 1532,
+          "y1": 2256,
+          "x2": 1579,
+          "y2": 2283
+        },
+        "page_number": 4
+      }
+    ],
+    "5": [
+      {
+        "block_id": "blk_0001",
+        "text": "Specification",
+        "confidence": 0.9999,
+        "bounding_box": {
+          "x1": 384,
+          "y1": 175,
+          "x2": 578,
+          "y2": 207
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0002",
+        "text": "Values",
+        "confidence": 0.9998,
+        "bounding_box": {
+          "x1": 1139,
+          "y1": 178,
+          "x2": 1242,
+          "y2": 205
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0003",
+        "text": "Core",
+        "confidence": 0.9997,
+        "bounding_box": {
+          "x1": 125,
+          "y1": 233,
+          "x2": 198,
+          "y2": 269
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0004",
+        "text": "Description /Nomenclature of Service Proposed for",
+        "confidence": 0.9996,
+        "bounding_box": {
+          "x1": 123,
+          "y1": 292,
+          "x2": 763,
+          "y2": 324
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0005",
+        "text": "Selection of an Agency for Implementation of UPS",
+        "confidence": 0.9964,
+        "bounding_box": {
+          "x1": 856,
+          "y1": 292,
+          "x2": 1486,
+          "y2": 324
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0006",
+        "text": "procurement using custom bid functionality.",
+        "confidence": 0.9875,
+        "bounding_box": {
+          "x1": 123,
+          "y1": 324,
+          "x2": 681,
+          "y2": 356
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0007",
+        "text": "Infrastruture including Site Preparation",
+        "confidence": 0.9916,
+        "bounding_box": {
+          "x1": 856,
+          "y1": 324,
+          "x2": 1350,
+          "y2": 356
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0008",
+        "text": "Regulatory/ Statutory Compliance of Service.",
+        "confidence": 0.9818,
+        "bounding_box": {
+          "x1": 120,
+          "y1": 378,
+          "x2": 691,
+          "y2": 412
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0009",
+        "text": "YES",
+        "confidence": 0.9875,
+        "bounding_box": {
+          "x1": 850,
+          "y1": 374,
+          "x2": 909,
+          "y2": 412
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0010",
+        "text": "Compliance of Service to SOw, STC, SLA etc.",
+        "confidence": 0.9769,
+        "bounding_box": {
+          "x1": 123,
+          "y1": 436,
+          "x2": 686,
+          "y2": 468
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0011",
+        "text": "YES",
+        "confidence": 0.9947,
+        "bounding_box": {
+          "x1": 854,
+          "y1": 436,
+          "x2": 908,
+          "y2": 465
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0012",
+        "text": "Addon(s)/s3ii",
+        "confidence": 0.9377,
+        "bounding_box": {
+          "x1": 125,
+          "y1": 499,
+          "x2": 342,
+          "y2": 531
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0013",
+        "text": "Additional Specification Documents/3rfaR faffe atalds",
+        "confidence": 0.9396,
+        "bounding_box": {
+          "x1": 108,
+          "y1": 636,
+          "x2": 890,
+          "y2": 673
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0014",
+        "text": "Consignees/Reporting Officer/qfat/Rulfer 3fugRT",
+        "confidence": 0.8972,
+        "bounding_box": {
+          "x1": 108,
+          "y1": 821,
+          "x2": 809,
+          "y2": 858
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0015",
+        "text": "The quantity.",
+        "confidence": 0.9722,
+        "bounding_box": {
+          "x1": 984,
+          "y1": 904,
+          "x2": 1166,
+          "y2": 936
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0016",
+        "text": "of",
+        "confidence": 0.9981,
+        "bounding_box": {
+          "x1": 1060,
+          "y1": 940,
+          "x2": 1097,
+          "y2": 965
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0017",
+        "text": "Consignee",
+        "confidence": 0.9999,
+        "bounding_box": {
+          "x1": 324,
+          "y1": 950,
+          "x2": 485,
+          "y2": 990
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0018",
+        "text": "procurement",
+        "confidence": 0.9997,
+        "bounding_box": {
+          "x1": 986,
+          "y1": 970,
+          "x2": 1171,
+          "y2": 997
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0019",
+        "text": "S.No./.",
+        "confidence": 0.9219,
+        "bounding_box": {
+          "x1": 127,
+          "y1": 986,
+          "x2": 249,
+          "y2": 1029
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0020",
+        "text": "Additional",
+        "confidence": 0.9998,
+        "bounding_box": {
+          "x1": 1281,
+          "y1": 977,
+          "x2": 1435,
+          "y2": 1016
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0021",
+        "text": "Reporting/Officer/",
+        "confidence": 0.9999,
+        "bounding_box": {
+          "x1": 276,
+          "y1": 987,
+          "x2": 534,
+          "y2": 1018
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0022",
+        "text": "\"1\" indicates",
+        "confidence": 0.9968,
+        "bounding_box": {
+          "x1": 981,
+          "y1": 994,
+          "x2": 1171,
+          "y2": 1031
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0023",
+        "text": "Je?Jhd/lPgh",
+        "confidence": 0.7003,
+        "bounding_box": {
+          "x1": 312,
+          "y1": 1021,
+          "x2": 492,
+          "y2": 1055
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0024",
+        "text": "Address/udl",
+        "confidence": 0.915,
+        "bounding_box": {
+          "x1": 679,
+          "y1": 1016,
+          "x2": 841,
+          "y2": 1043
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0025",
+        "text": "Requirement/3rfaR",
+        "confidence": 0.9578,
+        "bounding_box": {
+          "x1": 1220,
+          "y1": 1014,
+          "x2": 1500,
+          "y2": 1045
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0026",
+        "text": "i.",
+        "confidence": 0.8551,
+        "bounding_box": {
+          "x1": 170,
+          "y1": 1033,
+          "x2": 202,
+          "y2": 1065
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0027",
+        "text": "Project",
+        "confidence": 0.9998,
+        "bounding_box": {
+          "x1": 1021,
+          "y1": 1028,
+          "x2": 1134,
+          "y2": 1062
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0028",
+        "text": "based or",
+        "confidence": 0.9645,
+        "bounding_box": {
+          "x1": 1008,
+          "y1": 1057,
+          "x2": 1144,
+          "y2": 1097
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0029",
+        "text": "Lumpsum",
+        "confidence": 0.9995,
+        "bounding_box": {
+          "x1": 1006,
+          "y1": 1096,
+          "x2": 1149,
+          "y2": 1123
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0030",
+        "text": " based hiring.",
+        "confidence": 0.9645,
+        "bounding_box": {
+          "x1": 976,
+          "y1": 1118,
+          "x2": 1169,
+          "y2": 1158
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0031",
+        "text": "110003,SYSTEM DIVISION, B",
+        "confidence": 0.9037,
+        "bounding_box": {
+          "x1": 556,
+          "y1": 1179,
+          "x2": 920,
+          "y2": 1216
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0032",
+        "text": " Manoranjan",
+        "confidence": 0.9886,
+        "bounding_box": {
+          "x1": 268,
+          "y1": 1225,
+          "x2": 426,
+          "y2": 1265
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0033",
+        "text": "WING, 6TH FLOOR, CBI HEAD",
+        "confidence": 0.9981,
+        "bounding_box": {
+          "x1": 556,
+          "y1": 1216,
+          "x2": 930,
+          "y2": 1247
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0034",
+        "text": "N/A",
+        "confidence": 0.9964,
+        "bounding_box": {
+          "x1": 1191,
+          "y1": 1230,
+          "x2": 1242,
+          "y2": 1260
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0035",
+        "text": "OFFICE, LODHI ROAD, CGO",
+        "confidence": 0.9831,
+        "bounding_box": {
+          "x1": 561,
+          "y1": 1250,
+          "x2": 898,
+          "y2": 1274
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0036",
+        "text": "COMPLEX, NEW DELHI-110003",
+        "confidence": 0.9849,
+        "bounding_box": {
+          "x1": 558,
+          "y1": 1279,
+          "x2": 945,
+          "y2": 1304
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0037",
+        "text": "Buyer Added Bid Specific Terms and Conditions/ar arr sist $ fs at fat ad.",
+        "confidence": 0.918,
+        "bounding_box": {
+          "x1": 116,
+          "y1": 1438,
+          "x2": 1530,
+          "y2": 1472
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0038",
+        "text": "1. Generic",
+        "confidence": 0.9933,
+        "bounding_box": {
+          "x1": 153,
+          "y1": 1515,
+          "x2": 310,
+          "y2": 1542
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0039",
+        "text": "OPTioN CLAUsE: The buyer can increase or decrease the contract quantity or contract duration up to 25.",
+        "confidence": 0.9713,
+        "bounding_box": {
+          "x1": 194,
+          "y1": 1574,
+          "x2": 1510,
+          "y2": 1611
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0040",
+        "text": "percent at the time of issue of the contract. However, once the contract is issued, contract quantity or.",
+        "confidence": 0.9913,
+        "bounding_box": {
+          "x1": 199,
+          "y1": 1613,
+          "x2": 1483,
+          "y2": 1637
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0041",
+        "text": "contract duration can only be increased up to 25 percent. Bidders are bound to accept the revised",
+        "confidence": 0.9974,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 1645,
+          "x2": 1434,
+          "y2": 1669
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0042",
+        "text": "quantity or duration",
+        "confidence": 0.9977,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 1674,
+          "x2": 450,
+          "y2": 1698
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0043",
+        "text": "2. Generic",
+        "confidence": 0.9956,
+        "bounding_box": {
+          "x1": 150,
+          "y1": 1737,
+          "x2": 307,
+          "y2": 1764
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0044",
+        "text": "Malicious Code Certificate:",
+        "confidence": 0.9794,
+        "bounding_box": {
+          "x1": 192,
+          "y1": 1830,
+          "x2": 534,
+          "y2": 1861
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0045",
+        "text": "The seller should upload following certificate in the bid:-",
+        "confidence": 0.9964,
+        "bounding_box": {
+          "x1": 194,
+          "y1": 1896,
+          "x2": 898,
+          "y2": 1920
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0046",
+        "text": "(a) This is to certify that the Hardware and the Software being offered, as part of the contract, does not.",
+        "confidence": 0.9899,
+        "bounding_box": {
+          "x1": 194,
+          "y1": 1925,
+          "x2": 1498,
+          "y2": 1956
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0047",
+        "text": "contain Embedded Malicious code that would activate procedures to :-.",
+        "confidence": 0.9914,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 1959,
+          "x2": 1080,
+          "y2": 1983
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0048",
+        "text": "(i) Inhibit the desires and designed function of the equipment.",
+        "confidence": 0.9958,
+        "bounding_box": {
+          "x1": 256,
+          "y1": 1986,
+          "x2": 1038,
+          "y2": 2017
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0049",
+        "text": "(ii) Cause physical damage to the user or equipment during the exploitation.",
+        "confidence": 0.9864,
+        "bounding_box": {
+          "x1": 258,
+          "y1": 2017,
+          "x2": 1223,
+          "y2": 2049
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0050",
+        "text": "(ili) Tap information resident or transient in the equipment/network.",
+        "confidence": 0.9923,
+        "bounding_box": {
+          "x1": 256,
+          "y1": 2049,
+          "x2": 1109,
+          "y2": 2081
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0051",
+        "text": "(b) The firm will be considered to be in breach of the procurement contract, in case physical damage, loss.",
+        "confidence": 0.9885,
+        "bounding_box": {
+          "x1": 194,
+          "y1": 2081,
+          "x2": 1528,
+          "y2": 2112
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0052",
+        "text": "of information or infringements related to copyright and Intellectual Property Right (IPRs) are caused due",
+        "confidence": 0.9926,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 2115,
+          "x2": 1518,
+          "y2": 2139
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0053",
+        "text": "to activation of any such malicious code in embedded software.",
+        "confidence": 0.9951,
+        "bounding_box": {
+          "x1": 192,
+          "y1": 2144,
+          "x2": 996,
+          "y2": 2176
+        },
+        "page_number": 5
+      },
+      {
+        "block_id": "blk_0054",
+        "text": "5/8",
+        "confidence": 0.9947,
+        "bounding_box": {
+          "x1": 1530,
+          "y1": 2256,
+          "x2": 1579,
+          "y2": 2283
+        },
+        "page_number": 5
+      }
+    ],
+    "6": [
+      {
+        "block_id": "blk_0001",
+        "text": "3.",
+        "confidence": 0.991,
+        "bounding_box": {
+          "x1": 150,
+          "y1": 166,
+          "x2": 202,
+          "y2": 192
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0002",
+        "text": "Generic",
+        "confidence": 0.9989,
+        "bounding_box": {
+          "x1": 186,
+          "y1": 158,
+          "x2": 313,
+          "y2": 198
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0003",
+        "text": "Bidder financial standing: The bidder should not be under liquidation, court receivership or similar",
+        "confidence": 0.9951,
+        "bounding_box": {
+          "x1": 194,
+          "y1": 224,
+          "x2": 1471,
+          "y2": 261
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0004",
+        "text": "proceedings, should not be bankrupt. Bidder to upload undertaking to this effect with bid..",
+        "confidence": 0.9912,
+        "bounding_box": {
+          "x1": 194,
+          "y1": 258,
+          "x2": 1326,
+          "y2": 292
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0005",
+        "text": "Generic",
+        "confidence": 0.9994,
+        "bounding_box": {
+          "x1": 191,
+          "y1": 319,
+          "x2": 313,
+          "y2": 359
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0006",
+        "text": "4.",
+        "confidence": 0.9538,
+        "bounding_box": {
+          "x1": 155,
+          "y1": 329,
+          "x2": 199,
+          "y2": 348
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0007",
+        "text": "Bidders shall quote only those products (Part of Service delivery) in the bid which are not obsolete in the",
+        "confidence": 0.9975,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 390,
+          "x2": 1518,
+          "y2": 422
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0008",
+        "text": "market and has at least 7 years residual market life i.e. the offered product shall not be declared end-of-",
+        "confidence": 0.983,
+        "bounding_box": {
+          "x1": 199,
+          "y1": 424,
+          "x2": 1513,
+          "y2": 448
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0009",
+        "text": "life by the OEM before this period..",
+        "confidence": 0.988,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 451,
+          "x2": 630,
+          "y2": 482
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0010",
+        "text": "5. Generic",
+        "confidence": 0.9829,
+        "bounding_box": {
+          "x1": 153,
+          "y1": 519,
+          "x2": 310,
+          "y2": 546
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0011",
+        "text": "Manufacturer Authorization:Wherever Authorised Distributors/service providers are submitting the",
+        "confidence": 0.9999,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 580,
+          "x2": 1488,
+          "y2": 612
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0012",
+        "text": "bid, Authorisation Form /Certificate with OEM/Original Service Provider details such as name, designation,",
+        "confidence": 0.9884,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 612,
+          "x2": 1525,
+          "y2": 643
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0013",
+        "text": "address, e-mail Id and Phone No. required to be furnished along with the bid.",
+        "confidence": 0.9869,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 643,
+          "x2": 1161,
+          "y2": 675
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0014",
+        "text": "6. Purchase Preference (Centre)",
+        "confidence": 0.9565,
+        "bounding_box": {
+          "x1": 148,
+          "y1": 707,
+          "x2": 622,
+          "y2": 738
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0015",
+        "text": "Preference to Make In India products (For bids less than 200 Crore):Preference shall be given to Class 1",
+        "confidence": 0.9918,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 772,
+          "x2": 1498,
+          "y2": 804
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0016",
+        "text": "Iocal supplier as defined in public procurement (Preference to Make in India), Order 2017 as amended",
+        "confidence": 0.9972,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 804,
+          "x2": 1483,
+          "y2": 836
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0017",
+        "text": "from time to time and its subsequent Orders/Notifications issued by concerned Nodal Ministry for specific",
+        "confidence": 0.9922,
+        "bounding_box": {
+          "x1": 199,
+          "y1": 838,
+          "x2": 1523,
+          "y2": 863
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0018",
+        "text": "Goods/Products. The minimum local content to qualify as a Class 1 local supplier is denoted in the bid",
+        "confidence": 0.9776,
+        "bounding_box": {
+          "x1": 202,
+          "y1": 870,
+          "x2": 1478,
+          "y2": 894
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0019",
+        "text": "document 5o%. If the bidder wants to avail the Purchase preference, the bidder must upload a certificate",
+        "confidence": 0.9903,
+        "bounding_box": {
+          "x1": 202,
+          "y1": 901,
+          "x2": 1523,
+          "y2": 926
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0020",
+        "text": "from the OEM regarding the percentage of the local content and the details of locations at which the local",
+        "confidence": 0.9908,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 928,
+          "x2": 1528,
+          "y2": 960
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0021",
+        "text": "value addition is made along with their bid, failing which no purchase preference shall be granted. In case",
+        "confidence": 0.9804,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 960,
+          "x2": 1532,
+          "y2": 992
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0022",
+        "text": "the bid value is more than Rs 10 Crore, the declaration relating to percentage of local content shall be",
+        "confidence": 0.9937,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 992,
+          "x2": 1486,
+          "y2": 1023
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0023",
+        "text": "certified by the statutory auditor or cost auditor, if the OEM is a company and by a practicing cost",
+        "confidence": 0.9971,
+        "bounding_box": {
+          "x1": 199,
+          "y1": 1023,
+          "x2": 1432,
+          "y2": 1055
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0024",
+        "text": "per Mll order dated 4.6.2020 will be eligible to bid. Non - Local suppliers as per Mll order dated 04.06.2020",
+        "confidence": 0.9872,
+        "bounding_box": {
+          "x1": 199,
+          "y1": 1121,
+          "x2": 1540,
+          "y2": 1145
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0025",
+        "text": "are not eligible to participate. In case Buyer has selected Purchase preference to Micro and Small",
+        "confidence": 0.9957,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 1148,
+          "x2": 1422,
+          "y2": 1179
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0026",
+        "text": "Enterprises clause in the bid, the same will get precedence over this clause..",
+        "confidence": 0.9909,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 1179,
+          "x2": 1154,
+          "y2": 1209
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0027",
+        "text": "7.",
+        "confidence": 0.9892,
+        "bounding_box": {
+          "x1": 155,
+          "y1": 1247,
+          "x2": 182,
+          "y2": 1267
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0028",
+        "text": "Certificates",
+        "confidence": 0.9996,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 1245,
+          "x2": 364,
+          "y2": 1272
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0029",
+        "text": "Bidder's offer is liable to be rejected if they don't upload any of the certificates / documents sought in the",
+        "confidence": 0.9948,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 1306,
+          "x2": 1528,
+          "y2": 1338
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0030",
+        "text": "Bid document, ATC and Corrigendum if any.",
+        "confidence": 0.9997,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 1340,
+          "x2": 753,
+          "y2": 1372
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0031",
+        "text": "8. Buyer Added Bid Specific ATC",
+        "confidence": 0.9945,
+        "bounding_box": {
+          "x1": 148,
+          "y1": 1401,
+          "x2": 617,
+          "y2": 1433
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0032",
+        "text": "Buyer Added text based ATC clauses.",
+        "confidence": 0.9735,
+        "bounding_box": {
+          "x1": 199,
+          "y1": 1472,
+          "x2": 662,
+          "y2": 1496
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0033",
+        "text": "Fall Clause",
+        "confidence": 0.9997,
+        "bounding_box": {
+          "x1": 194,
+          "y1": 1530,
+          "x2": 335,
+          "y2": 1557
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0034",
+        "text": "The Bidder undertakes that he has not supplied/is not supplying the similar pro ducts, systems or subsyste",
+        "confidence": 0.9993,
+        "bounding_box": {
+          "x1": 192,
+          "y1": 1584,
+          "x2": 1540,
+          "y2": 1615
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0035",
+        "text": "ms at a price lower than that offered in the present bid in respect of any other Ministry/Department of the",
+        "confidence": 0.9907,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 1620,
+          "x2": 1535,
+          "y2": 1645
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0036",
+        "text": "G ng poddns der wnnans-qnd ao wnnaas aeauend aan deen ahead nue ae punnn dngn d! pue eaann ao annhnnnner",
+        "confidence": 0.5322,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 1652,
+          "x2": 1540,
+          "y2": 1676
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0037",
+        "text": "he Bidder to any other Ministry/Department of the Government of India at a low er price, then that very pri",
+        "confidence": 0.9944,
+        "bounding_box": {
+          "x1": 194,
+          "y1": 1676,
+          "x2": 1540,
+          "y2": 1708
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0038",
+        "text": "ce, with due allowance for elapsed time, will be applicable to the present case and the difference in the co",
+        "confidence": 0.992,
+        "bounding_box": {
+          "x1": 194,
+          "y1": 1710,
+          "x2": 1542,
+          "y2": 1742
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0039",
+        "text": "st would be refunded by the Bidder to the Buyer, even if the contract has already been concluded. The Bid",
+        "confidence": 0.9982,
+        "bounding_box": {
+          "x1": 194,
+          "y1": 1742,
+          "x2": 1545,
+          "y2": 1774
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0040",
+        "text": "der shall strive to accord the most favored customer treatment to the Buyer in respect of all matters pertai",
+        "confidence": 0.9827,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 1776,
+          "x2": 1540,
+          "y2": 1801
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0041",
+        "text": "ning to the present case..",
+        "confidence": 0.9725,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 1808,
+          "x2": 509,
+          "y2": 1832
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0042",
+        "text": "9. Service & Support",
+        "confidence": 0.9958,
+        "bounding_box": {
+          "x1": 150,
+          "y1": 1920,
+          "x2": 460,
+          "y2": 1952
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0043",
+        "text": "Telephone No. for Service Support..",
+        "confidence": 0.9881,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 2017,
+          "x2": 640,
+          "y2": 2049
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0044",
+        "text": "10.",
+        "confidence": 0.9993,
+        "bounding_box": {
+          "x1": 143,
+          "y1": 2086,
+          "x2": 189,
+          "y2": 2105
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0045",
+        "text": "Service & Support",
+        "confidence": 0.9687,
+        "bounding_box": {
+          "x1": 194,
+          "y1": 2081,
+          "x2": 460,
+          "y2": 2112
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0046",
+        "text": "Escalation Matrix For Service Support : Bidder/OEM must provide Escalation Matrix of Telephone Numbers",
+        "confidence": 0.9903,
+        "bounding_box": {
+          "x1": 202,
+          "y1": 2149,
+          "x2": 1540,
+          "y2": 2173
+        },
+        "page_number": 6
+      },
+      {
+        "block_id": "blk_0047",
+        "text": "6/8",
+        "confidence": 0.9967,
+        "bounding_box": {
+          "x1": 1532,
+          "y1": 2256,
+          "x2": 1579,
+          "y2": 2283
+        },
+        "page_number": 6
+      }
+    ],
+    "7": [
+      {
+        "block_id": "blk_0001",
+        "text": "for Service Support.",
+        "confidence": 0.9999,
+        "bounding_box": {
+          "x1": 194,
+          "y1": 156,
+          "x2": 448,
+          "y2": 188
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0002",
+        "text": "11. Service & Support",
+        "confidence": 0.9963,
+        "bounding_box": {
+          "x1": 140,
+          "y1": 224,
+          "x2": 460,
+          "y2": 256
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0003",
+        "text": "AVAILABILITY OF OFFICE OF SERVICE PROVIDER: An office of the Service Provider must be located in the",
+        "confidence": 0.9889,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 288,
+          "x2": 1510,
+          "y2": 319
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0004",
+        "text": "state of Consignee. DOCUMENTARY EVIDENCE TO BE SUBMITTED.",
+        "confidence": 0.9872,
+        "bounding_box": {
+          "x1": 199,
+          "y1": 324,
+          "x2": 1033,
+          "y2": 348
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0005",
+        "text": "12. Past Project Experience",
+        "confidence": 0.9942,
+        "bounding_box": {
+          "x1": 138,
+          "y1": 385,
+          "x2": 539,
+          "y2": 417
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0006",
+        "text": "Proof for Past Experience and Project Experience clause: For fulfilling the experience criteria any",
+        "confidence": 0.9935,
+        "bounding_box": {
+          "x1": 199,
+          "y1": 446,
+          "x2": 1500,
+          "y2": 478
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0007",
+        "text": "one of the following documents may be considered as valid proof for meeting the experience criteria:a.",
+        "confidence": 0.9956,
+        "bounding_box": {
+          "x1": 199,
+          "y1": 480,
+          "x2": 1496,
+          "y2": 512
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0008",
+        "text": "invoices have been executed.b. Execution certificate by client with contract value.c. Any other document.",
+        "confidence": 0.9948,
+        "bounding_box": {
+          "x1": 199,
+          "y1": 548,
+          "x2": 1523,
+          "y2": 573
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0009",
+        "text": "considered as valid proof for meeting the experience criteria:a. Contract copy along with Invoice(s) with",
+        "confidence": 0.9907,
+        "bounding_box": {
+          "x1": 199,
+          "y1": 633,
+          "x2": 1505,
+          "y2": 665
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0010",
+        "text": "self-certification by the bidder that service/supplies against the invoices have been executed.b. Execution.",
+        "confidence": 0.9834,
+        "bounding_box": {
+          "x1": 202,
+          "y1": 672,
+          "x2": 1530,
+          "y2": 697
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0011",
+        "text": "Party Inspection release note, etc..",
+        "confidence": 0.9781,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 728,
+          "x2": 630,
+          "y2": 763
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0012",
+        "text": "Disclaimer/3rdnu",
+        "confidence": 0.8853,
+        "bounding_box": {
+          "x1": 110,
+          "y1": 838,
+          "x2": 458,
+          "y2": 885
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0013",
+        "text": "The additional terms and conditions have been incorporated by the Buyer after approval of the Competent",
+        "confidence": 0.9922,
+        "bounding_box": {
+          "x1": 116,
+          "y1": 921,
+          "x2": 1459,
+          "y2": 953
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0014",
+        "text": "Authority in Buyer Organization, whereby Buyer organization is solely responsible for the impact of these clauses",
+        "confidence": 0.9943,
+        "bounding_box": {
+          "x1": 116,
+          "y1": 958,
+          "x2": 1537,
+          "y2": 982
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0015",
+        "text": "on the bidding process, its outcome, and consequences thereof including any eccentricity / restriction arising in",
+        "confidence": 0.9858,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 982,
+          "x2": 1520,
+          "y2": 1018
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0016",
+        "text": "the bidding process due to these ATCs and due to modification of technical specifications and / or terms and.",
+        "confidence": 0.9855,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 1016,
+          "x2": 1478,
+          "y2": 1048
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0017",
+        "text": "bidding process without any notice:-.",
+        "confidence": 0.9915,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 1109,
+          "x2": 578,
+          "y2": 1140
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0018",
+        "text": " Definition of Class I and Class Il suppliers in the bid not in line with the extant Order / Office Memorandum",
+        "confidence": 0.9782,
+        "bounding_box": {
+          "x1": 192,
+          "y1": 1174,
+          "x2": 1530,
+          "y2": 1206
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0019",
+        "text": "I.",
+        "confidence": 0.938,
+        "bounding_box": {
+          "x1": 157,
+          "y1": 1184,
+          "x2": 180,
+          "y2": 1199
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0020",
+        "text": "issued by DPllT in this regard..",
+        "confidence": 0.9566,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 1206,
+          "x2": 573,
+          "y2": 1235
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0021",
+        "text": "2.",
+        "confidence": 0.9987,
+        "bounding_box": {
+          "x1": 150,
+          "y1": 1247,
+          "x2": 197,
+          "y2": 1274
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0022",
+        "text": "Seeking EmD submission from bidder(s), including via Additional Terms & Conditions, in contravention to",
+        "confidence": 0.9932,
+        "bounding_box": {
+          "x1": 194,
+          "y1": 1243,
+          "x2": 1515,
+          "y2": 1274
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0023",
+        "text": "exemption provided to such sellers under GeM GTC.",
+        "confidence": 0.9825,
+        "bounding_box": {
+          "x1": 202,
+          "y1": 1282,
+          "x2": 851,
+          "y2": 1306
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0024",
+        "text": "3.",
+        "confidence": 0.9999,
+        "bounding_box": {
+          "x1": 153,
+          "y1": 1321,
+          "x2": 184,
+          "y2": 1342
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0025",
+        "text": " Publishing Custom / BOQ bids for items for which regular GeM categories are available without any",
+        "confidence": 0.9817,
+        "bounding_box": {
+          "x1": 194,
+          "y1": 1316,
+          "x2": 1441,
+          "y2": 1347
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0026",
+        "text": "Category item bunched with it.",
+        "confidence": 0.9759,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 1345,
+          "x2": 593,
+          "y2": 1377
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0027",
+        "text": "4.",
+        "confidence": 0.9821,
+        "bounding_box": {
+          "x1": 153,
+          "y1": 1391,
+          "x2": 199,
+          "y2": 1411
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0028",
+        "text": " Creating BoQ bid for single item.",
+        "confidence": 0.9769,
+        "bounding_box": {
+          "x1": 189,
+          "y1": 1386,
+          "x2": 610,
+          "y2": 1418
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0029",
+        "text": "5. Mentioning specific Brand or Make or Model or Manufacturer or Dealer name.",
+        "confidence": 0.9876,
+        "bounding_box": {
+          "x1": 148,
+          "y1": 1425,
+          "x2": 1166,
+          "y2": 1457
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0030",
+        "text": "6. Mandating submission of documents in physical form as a pre-requisite to qualify bidders.",
+        "confidence": 0.9973,
+        "bounding_box": {
+          "x1": 150,
+          "y1": 1467,
+          "x2": 1328,
+          "y2": 1498
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0031",
+        "text": "7. Floating / creation of work contracts as Custom Bids in Services.",
+        "confidence": 0.9881,
+        "bounding_box": {
+          "x1": 150,
+          "y1": 1506,
+          "x2": 1004,
+          "y2": 1537
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0032",
+        "text": "8.",
+        "confidence": 0.9998,
+        "bounding_box": {
+          "x1": 153,
+          "y1": 1550,
+          "x2": 180,
+          "y2": 1569
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0033",
+        "text": "Seeking sample with bid or approval of samples during bid evaluation process. (However, in bids for",
+        "confidence": 0.9941,
+        "bounding_box": {
+          "x1": 194,
+          "y1": 1545,
+          "x2": 1459,
+          "y2": 1576
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0034",
+        "text": " Mandating foreign / international certifications even in case of existence of Indian Standards without",
+        "confidence": 0.9926,
+        "bounding_box": {
+          "x1": 189,
+          "y1": 1615,
+          "x2": 1464,
+          "y2": 1647
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0035",
+        "text": "specifying equivalent Indian Certification / standards.",
+        "confidence": 0.9983,
+        "bounding_box": {
+          "x1": 199,
+          "y1": 1652,
+          "x2": 871,
+          "y2": 1676
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0036",
+        "text": "10.",
+        "confidence": 0.9978,
+        "bounding_box": {
+          "x1": 140,
+          "y1": 1691,
+          "x2": 184,
+          "y2": 1710
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0037",
+        "text": "Seeking experience from specific organization / department / institute only or from foreign / export.",
+        "confidence": 0.9844,
+        "bounding_box": {
+          "x1": 194,
+          "y1": 1686,
+          "x2": 1446,
+          "y2": 1718
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0038",
+        "text": "experience",
+        "confidence": 0.9994,
+        "bounding_box": {
+          "x1": 199,
+          "y1": 1723,
+          "x2": 342,
+          "y2": 1747
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0039",
+        "text": "11.",
+        "confidence": 0.9468,
+        "bounding_box": {
+          "x1": 143,
+          "y1": 1762,
+          "x2": 194,
+          "y2": 1781
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0040",
+        "text": " Creating bid for items from irrelevant categories..",
+        "confidence": 0.9848,
+        "bounding_box": {
+          "x1": 189,
+          "y1": 1754,
+          "x2": 814,
+          "y2": 1786
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0041",
+        "text": " Incorporating any clause against the MsmE policy and Preference to Make in India Policy.",
+        "confidence": 0.9861,
+        "bounding_box": {
+          "x1": 182,
+          "y1": 1793,
+          "x2": 1316,
+          "y2": 1830
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0042",
+        "text": "12.",
+        "confidence": 0.9951,
+        "bounding_box": {
+          "x1": 143,
+          "y1": 1803,
+          "x2": 194,
+          "y2": 1822
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0043",
+        "text": "13. Reference of conditions published on any external site or reference to external documents/clauses.",
+        "confidence": 0.9818,
+        "bounding_box": {
+          "x1": 135,
+          "y1": 1835,
+          "x2": 1444,
+          "y2": 1869
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0044",
+        "text": "14. Asking for any Tender fee / Bid Participation fee / Auction fee in case of Bids / Forward Auction, as the",
+        "confidence": 0.9935,
+        "bounding_box": {
+          "x1": 135,
+          "y1": 1876,
+          "x2": 1478,
+          "y2": 1908
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0045",
+        "text": "case may be.",
+        "confidence": 0.984,
+        "bounding_box": {
+          "x1": 202,
+          "y1": 1913,
+          "x2": 367,
+          "y2": 1937
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0046",
+        "text": "15.",
+        "confidence": 0.9821,
+        "bounding_box": {
+          "x1": 143,
+          "y1": 1952,
+          "x2": 199,
+          "y2": 1971
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0047",
+        "text": " Any ATC clause in contravention with GeM GTC Clause 4 (xili)(h) will be invalid. In case of multiple L1",
+        "confidence": 0.9904,
+        "bounding_box": {
+          "x1": 189,
+          "y1": 1947,
+          "x2": 1471,
+          "y2": 1978
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0048",
+        "text": "bidders against a service bid, the buyer shall place the Contract by selection of a bidder amongst the L-1",
+        "confidence": 0.9921,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 1978,
+          "x2": 1518,
+          "y2": 2010
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0049",
+        "text": "bidders through a Random Algorithm executed by GeM system..",
+        "confidence": 0.9898,
+        "bounding_box": {
+          "x1": 197,
+          "y1": 2010,
+          "x2": 999,
+          "y2": 2042
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0050",
+        "text": "Further, if any seller has any objection/grievance against these additional clauses or otherwise on any aspect of",
+        "confidence": 0.9999,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 2071,
+          "x2": 1520,
+          "y2": 2103
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0051",
+        "text": "this bid, they can raise their representation against the same by using the Representation window provided in",
+        "confidence": 0.9951,
+        "bounding_box": {
+          "x1": 108,
+          "y1": 2098,
+          "x2": 1503,
+          "y2": 2134
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0052",
+        "text": "the bid details field in Seller dashboard after logging in as a seller within 4 days of bid publication on GeM. Buyer",
+        "confidence": 0.9972,
+        "bounding_box": {
+          "x1": 108,
+          "y1": 2134,
+          "x2": 1530,
+          "y2": 2166
+        },
+        "page_number": 7
+      },
+      {
+        "block_id": "blk_0053",
+        "text": "7/8",
+        "confidence": 0.9582,
+        "bounding_box": {
+          "x1": 1532,
+          "y1": 2256,
+          "x2": 1579,
+          "y2": 2283
+        },
+        "page_number": 7
+      }
+    ],
+    "8": [
+      {
+        "block_id": "blk_0001",
+        "text": "such representations.",
+        "confidence": 0.9988,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 190,
+          "x2": 384,
+          "y2": 222
+        },
+        "page_number": 8
+      },
+      {
+        "block_id": "blk_0002",
+        "text": "All GeM Sellers / Service Providers are mandated to ensure compliance with all the applicable laws /.",
+        "confidence": 0.9825,
+        "bounding_box": {
+          "x1": 118,
+          "y1": 302,
+          "x2": 1535,
+          "y2": 334
+        },
+        "page_number": 8
+      },
+      {
+        "block_id": "blk_0003",
+        "text": "acts / rules including but not limited to all Labour Laws such as The Minimum Wages Act, 1948, The.",
+        "confidence": 0.9901,
+        "bounding_box": {
+          "x1": 118,
+          "y1": 331,
+          "x2": 1528,
+          "y2": 363
+        },
+        "page_number": 8
+      },
+      {
+        "block_id": "blk_0004",
+        "text": "Payment of Wages Act, 1936, The Payment of Bonus Act, 1965, The Equal Remuneration Act, 1976,",
+        "confidence": 0.9971,
+        "bounding_box": {
+          "x1": 123,
+          "y1": 365,
+          "x2": 1525,
+          "y2": 397
+        },
+        "page_number": 8
+      },
+      {
+        "block_id": "blk_0005",
+        "text": "The Payment of Gratuity Act, 1972 etc. Any non-compliance will be treated as breach of contract",
+        "confidence": 0.9963,
+        "bounding_box": {
+          "x1": 138,
+          "y1": 397,
+          "x2": 1513,
+          "y2": 429
+        },
+        "page_number": 8
+      },
+      {
+        "block_id": "blk_0006",
+        "text": "and Buyer may take suitable actions as per GeM Contract.",
+        "confidence": 0.9983,
+        "bounding_box": {
+          "x1": 411,
+          "y1": 429,
+          "x2": 1240,
+          "y2": 460
+        },
+        "page_number": 8
+      },
+      {
+        "block_id": "blk_0007",
+        "text": "This Bid is governed by the General Terms and Conditions/arar-y fy 3il ara, conditons stipulated in Bid and",
+        "confidence": 0.9672,
+        "bounding_box": {
+          "x1": 123,
+          "y1": 507,
+          "x2": 1528,
+          "y2": 538
+        },
+        "page_number": 8
+      },
+      {
+        "block_id": "blk_0008",
+        "text": "specified in General Terms and Conditions/Hrar-y faua 3il ard is contradicted by the conditions stipulated in",
+        "confidence": 0.9524,
+        "bounding_box": {
+          "x1": 108,
+          "y1": 580,
+          "x2": 1483,
+          "y2": 612
+        },
+        "page_number": 8
+      },
+      {
+        "block_id": "blk_0009",
+        "text": "Service Level Agreement, then it will over ride the conditions in the General Terms and Conditions.",
+        "confidence": 0.9958,
+        "bounding_box": {
+          "x1": 108,
+          "y1": 619,
+          "x2": 1353,
+          "y2": 651
+        },
+        "page_number": 8
+      },
+      {
+        "block_id": "blk_0010",
+        "text": "In terms of GeM GTc clause 26 regarding Restrictions on procurement from a bidder of a country which shares a land border with India, any bidder from a country which",
+        "confidence": 0.9878,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 668,
+          "x2": 1537,
+          "y2": 692
+        },
+        "page_number": 8
+      },
+      {
+        "block_id": "blk_0011",
+        "text": "shares a land border with India will be eligible to bid in this tender only if the bidder is registered with the Competent Authority. While participating in bid, Bidder has to",
+        "confidence": 0.9944,
+        "bounding_box": {
+          "x1": 113,
+          "y1": 692,
+          "x2": 1540,
+          "y2": 716
+        },
+        "page_number": 8
+      },
+      {
+        "block_id": "blk_0012",
+        "text": "undertake compliance of this and any false declaration and non-compliance of this would be a ground for immediate termination of the contract and further legal action",
+        "confidence": 0.9905,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 714,
+          "x2": 1540,
+          "y2": 738
+        },
+        "page_number": 8
+      },
+      {
+        "block_id": "blk_0013",
+        "text": "Plb H lSJ  ItR KI R>4 $H I Ie hH 4 Pie  Je2H  9Z Sp  JPIt hldlH Iy H/smelayn yhm auepaoaoe a!",
+        "confidence": 0.5014,
+        "bounding_box": {
+          "x1": 108,
+          "y1": 743,
+          "x2": 1542,
+          "y2": 775
+        },
+        "page_number": 8
+      },
+      {
+        "block_id": "blk_0014",
+        "text": "q aRAqg  Hqg  aRa  H2 afA Aar HIT c<t aTa Rr cT $ aft fas $H fRcr  fs t  fc aat qT alJT",
+        "confidence": 0.5889,
+        "bounding_box": {
+          "x1": 108,
+          "y1": 785,
+          "x2": 1540,
+          "y2": 816
+        },
+        "page_number": 8
+      },
+      {
+        "block_id": "blk_0015",
+        "text": "le $b lE le IP>4 PWhPHE LbH$ Lb 2SJ hHH PK Iele H SI PoFh Hh  lLb3IK HlH IDI F2 SeJ 9n pC",
+        "confidence": 0.5059,
+        "bounding_box": {
+          "x1": 111,
+          "y1": 828,
+          "x2": 1540,
+          "y2": 863
+        },
+        "page_number": 8
+      },
+      {
+        "block_id": "blk_0016",
+        "text": "JIdd a\\yuT fv 3T a $HcT 3Iq4Id T c{ q 3Iqqq aT acchId HHIH cn<d 3iR cIqa h 3gHR 3TT aT aaT aqI$",
+        "confidence": 0.6225,
+        "bounding_box": {
+          "x1": 106,
+          "y1": 870,
+          "x2": 1540,
+          "y2": 906
+        },
+        "page_number": 8
+      },
+      {
+        "block_id": "blk_0017",
+        "text": "I e dlBlE I",
+        "confidence": 0.5341,
+        "bounding_box": {
+          "x1": 108,
+          "y1": 921,
+          "x2": 280,
+          "y2": 948
+        },
+        "page_number": 8
+      },
+      {
+        "block_id": "blk_0018",
+        "text": "---Thank You/q4dlg---",
+        "confidence": 0.9203,
+        "bounding_box": {
+          "x1": 654,
+          "y1": 1001,
+          "x2": 991,
+          "y2": 1033
+        },
+        "page_number": 8
+      },
+      {
+        "block_id": "blk_0019",
+        "text": "8 / 8",
+        "confidence": 0.9041,
+        "bounding_box": {
+          "x1": 1532,
+          "y1": 2256,
+          "x2": 1579,
+          "y2": 2283
+        },
+        "page_number": 8
+      }
+    ]
+  }
+}

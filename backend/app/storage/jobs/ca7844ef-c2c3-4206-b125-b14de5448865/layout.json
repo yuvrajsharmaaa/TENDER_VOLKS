@@ -1,0 +1,2640 @@
+{
+  "job_id": "ca7844ef-c2c3-4206-b125-b14de5448865",
+  "original_filename": "original.pdf",
+  "page_count": 8,
+  "processing_time_seconds": 71.84064745903015,
+  "pages": {
+    "1": [
+      {
+        "region_id": "reg_0001",
+        "region_type": "figure_caption",
+        "bounding_box": {
+          "x1": 632,
+          "y1": 379,
+          "x2": 1020,
+          "y2": 403
+        },
+        "page_number": 1,
+        "contained_block_ids": [
+          "blk_0009"
+        ],
+        "reading_order_index": 1,
+        "text_content": "Bid Document/ fs atdld",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0002",
+        "region_type": "table",
+        "bounding_box": {
+          "x1": 91,
+          "y1": 526,
+          "x2": 1567,
+          "y2": 2166
+        },
+        "page_number": 1,
+        "contained_block_ids": [
+          "blk_0012",
+          "blk_0011",
+          "blk_0013",
+          "blk_0014",
+          "blk_0015",
+          "blk_0016",
+          "blk_0017",
+          "blk_0018",
+          "blk_0019",
+          "blk_0020",
+          "blk_0022",
+          "blk_0021",
+          "blk_0024",
+          "blk_0023",
+          "blk_0025",
+          "blk_0026",
+          "blk_0027",
+          "blk_0028",
+          "blk_0029",
+          "blk_0030",
+          "blk_0031",
+          "blk_0032",
+          "blk_0033",
+          "blk_0034",
+          "blk_0035",
+          "blk_0036",
+          "blk_0037",
+          "blk_0038",
+          "blk_0039",
+          "blk_0040",
+          "blk_0041",
+          "blk_0042",
+          "blk_0043",
+          "blk_0044",
+          "blk_0045",
+          "blk_0046",
+          "blk_0048",
+          "blk_0047",
+          "blk_0049",
+          "blk_0050",
+          "blk_0051",
+          "blk_0052",
+          "blk_0053",
+          "blk_0054",
+          "blk_0055",
+          "blk_0056",
+          "blk_0058",
+          "blk_0057",
+          "blk_0059",
+          "blk_0060"
+        ],
+        "reading_order_index": 2,
+        "text_content": " 08-05-2025 16:00:00\nBid End Date/Time/is ag d  arg/Hay\nBid Opening Date/Time/fas gd T\n08-05-2025 16:30:00\nhHH/DP\nBid Offer Validity (From End Date)/fas trT\n180 (Days)\n(H D(P Iy F 2p) JPBR\nMinistry/State Name/aldR/y  aI\n Ministry Of Heavy Industries And Public Enterprises\nDepartment Of Heavy Industry\nDepartment Name/faaa ar aI\nN/a\nOrganisation Name/lot qt a\nOffice Name/nrafary aT aH\n National Automotive Board\ntdl $A/Buyer Email\nbuyer1.dhi.hr@gembuyer.in\nTotal Quantity/ge ar\n240\nStationary Valve Regulated Lead Acid Batteries (V2) as per\nItem Category/ eR\nIS 15549 (Q3)\nMSE Exemption for Years Of\nExperience/3rgag $ aqf  aua$ c/ and\nYes\nStartup Exemption for Years Of\nExperience/3gag  auf  Fcrc3ry c/ and\nYes\nTurnover/ ca3ia  f Fcrc3y at c y ?\nExperience Criteria,Past Performance,Bidder\nTurnover,Certificate (Requested in ATC),OEM Authorization\nCertificate,Additional Doc 1 (Requested in ATC),Additional\nDoc 2 (Requested in ATC),Additional Doc 3 (Requested in\nDocument required from seller/fdhar  aig)\nATC),Additional Doc 4 (Requested in ATC),Compliance of\nBoQ specification and supporting document\nFpIP>2 dIe\n*In case any bidder is seeking exemption from Experience /\nTurnover Criteria, the supporting documents to prove his\neligibility for exemption must be uploaded for evaluation by\nthe buyer\nDo you want to show documents uploaded\nby bidders to all bidders participated in\nYes\nbid?/\n40 %\nPast Performance/iadd ygdi\nBid to RA enabled/fas  Ra aarat afhy fhyr\nNo",
+        "confidence": null,
+        "table_structure": {
+          "cell_bbox": [
+            [
+              75.698486328125,
+              9.60341739654541,
+              567.50634765625,
+              9.884444236755371,
+              564.5799560546875,
+              58.44483184814453,
+              73.90989685058594,
+              58.24221420288086
+            ],
+            [
+              687.8513793945312,
+              11.440266609191895,
+              1152.9569091796875,
+              11.514556884765625,
+              1146.0880126953125,
+              56.16547775268555,
+              681.5087280273438,
+              57.14113998413086
+            ],
+            [
+              51.60811996459961,
+              88.01078033447266,
+              526.7722778320312,
+              86.66654968261719,
+              528.7368774414062,
+              152.8238525390625,
+              51.512271881103516,
+              154.44703674316406
+            ],
+            [
+              680.8750610351562,
+              84.97105407714844,
+              1277.5362548828125,
+              84.86329650878906,
+              1273.3197021484375,
+              146.82008361816406,
+              671.9439697265625,
+              147.03921508789062
+            ],
+            [
+              52.81825256347656,
+              183.86865234375,
+              579.3357543945312,
+              183.27395629882812,
+              577.733642578125,
+              279.57061767578125,
+              52.74531555175781,
+              278.158935546875
+            ],
+            [
+              680.3951416015625,
+              189.90374755859375,
+              1172.06884765625,
+              189.9558868408203,
+              1166.2108154296875,
+              268.1503601074219,
+              671.6915283203125,
+              267.57440185546875
+            ],
+            [
+              48.42103576660156,
+              298.1694641113281,
+              582.25830078125,
+              300.603271484375,
+              580.6951293945312,
+              356.7648620605469,
+              48.252891540527344,
+              353.1983947753906
+            ],
+            [
+              676.9398803710938,
+              302.8640441894531,
+              1364.9666748046875,
+              304.9822998046875,
+              1363.463623046875,
+              358.0075378417969,
+              670.8818969726562,
+              356.3412170410156
+            ],
+            [
+              49.73412322998047,
+              365.5212707519531,
+              548.9971923828125,
+              366.9066467285156,
+              548.5186157226562,
+              410.1683349609375,
+              49.72772216796875,
+              408.7025146484375
+            ],
+            [
+              692.0009155273438,
+              365.9469299316406,
+              1256.5042724609375,
+              368.3076477050781,
+              1253.7154541015625,
+              414.56842041015625,
+              685.749755859375,
+              413.15460205078125
+            ],
+            [
+              56.32731246948242,
+              429.74444580078125,
+              557.6716918945312,
+              430.11907958984375,
+              555.7144775390625,
+              471.0852355957031,
+              56.1125602722168,
+              470.353271484375
+            ],
+            [
+              671.842529296875,
+              426.0820007324219,
+              1174.4302978515625,
+              428.4483642578125,
+              1170.7880859375,
+              473.48980712890625,
+              665.3287963867188,
+              472.46630859375
+            ],
+            [
+              46.31708526611328,
+              490.91961669921875,
+              539.3167114257812,
+              492.11639404296875,
+              537.9130249023438,
+              532.2432250976562,
+              46.11524963378906,
+              530.9528198242188
+            ],
+            [
+              679.3435668945312,
+              485.29864501953125,
+              1189.1092529296875,
+              488.3111267089844,
+              1185.879638671875,
+              530.4642333984375,
+              672.5917358398438,
+              528.9474487304688
+            ],
+            [
+              44.13695526123047,
+              549.9166259765625,
+              514.1279907226562,
+              551.1727905273438,
+              513.470703125,
+              592.9381713867188,
+              43.99315643310547,
+              591.75732421875
+            ],
+            [
+              682.7059326171875,
+              545.1475830078125,
+              1179.6697998046875,
+              547.979248046875,
+              1176.5823974609375,
+              591.1778564453125,
+              677.1537475585938,
+              589.7252197265625
+            ],
+            [
+              36.55092239379883,
+              608.4649658203125,
+              524.6419677734375,
+              609.1446533203125,
+              524.8004760742188,
+              657.56787109375,
+              36.434993743896484,
+              656.90185546875
+            ],
+            [
+              666.3359375,
+              606.00830078125,
+              1010.3900756835938,
+              609.1256713867188,
+              1006.8065185546875,
+              658.2626342773438,
+              661.8154296875,
+              656.480224609375
+            ],
+            [
+              43.252349853515625,
+              686.8202514648438,
+              557.8404541015625,
+              687.3131103515625,
+              556.992431640625,
+              744.1280517578125,
+              42.88026428222656,
+              743.4044189453125
+            ],
+            [
+              698.7657470703125,
+              673.9309692382812,
+              1417.5262451171875,
+              677.632568359375,
+              1416.19091796875,
+              740.485107421875,
+              691.369873046875,
+              736.9842529296875
+            ],
+            [
+              42.69482421875,
+              767.5285034179688,
+              575.8765258789062,
+              766.3167724609375,
+              575.6593017578125,
+              878.1166381835938,
+              42.54572677612305,
+              879.2896118164062
+            ],
+            [
+              702.2811889648438,
+              760.37060546875,
+              1343.6842041015625,
+              761.2739868164062,
+              1340.5042724609375,
+              857.1470947265625,
+              692.1544799804688,
+              856.7791137695312
+            ],
+            [
+              60.73884582519531,
+              904.1638793945312,
+              560.0994873046875,
+              903.6913452148438,
+              562.0082397460938,
+              1009.819091796875,
+              60.75324630737305,
+              1010.6021728515625
+            ],
+            [
+              693.170166015625,
+              905.342529296875,
+              1374.236083984375,
+              906.435302734375,
+              1371.904052734375,
+              996.7677001953125,
+              683.4419555664062,
+              996.4763793945312
+            ],
+            [
+              43.31554412841797,
+              1073.733642578125,
+              603.598876953125,
+              1078.2032470703125,
+              608.505859375,
+              1281.2359619140625,
+              43.32196044921875,
+              1275.55615234375
+            ],
+            [
+              707.6136474609375,
+              1043.0811767578125,
+              1428.800048828125,
+              1045.5899658203125,
+              1426.4903564453125,
+              1359.4566650390625,
+              690.0571899414062,
+              1355.700927734375
+            ],
+            [
+              27.877666473388672,
+              1400.423583984375,
+              570.8377075195312,
+              1399.5372314453125,
+              573.11328125,
+              1490.658447265625,
+              28.07965660095215,
+              1491.03125
+            ],
+            [
+              735.2847900390625,
+              1407.4234619140625,
+              1358.3189697265625,
+              1405.85888671875,
+              1357.888671875,
+              1474.08837890625,
+              735.0330810546875,
+              1475.6260986328125
+            ],
+            [
+              45.73347854614258,
+              1501.41162109375,
+              527.4801025390625,
+              1500.7666015625,
+              528.4295043945312,
+              1554.0091552734375,
+              46.23208236694336,
+              1554.4716796875
+            ],
+            [
+              759.983642578125,
+              1502.72412109375,
+              1311.1295166015625,
+              1501.9189453125,
+              1311.827880859375,
+              1550.625244140625,
+              761.9509887695312,
+              1551.7215576171875
+            ],
+            [
+              29.811946868896484,
+              1573.6046142578125,
+              591.6338500976562,
+              1575.8558349609375,
+              587.303466796875,
+              1626.8697509765625,
+              29.673757553100586,
+              1626.239013671875
+            ],
+            [
+              740.3998413085938,
+              1577.24658203125,
+              1221.2442626953125,
+              1578.7139892578125,
+              1217.4161376953125,
+              1627.6624755859375,
+              735.9656372070312,
+              1627.3525390625
+            ]
+          ],
+          "html": "<html><body><table><thead><tr><td>Bid End Date/Time/  /H</td><td>08-05-2025 16:00:00</td></tr></thead><tbody><tr><td>Bid Opening Date/Time/s ge f /</td><td>08-05-2025 16:30:00</td></tr><tr><td>Bid Offer Validity (From End Date)s t33I ( )</td><td>180 (Days)</td></tr><tr><td>Ministry/State Name//T  H</td><td>Ministry Of Heavy Industries And Public Enterprises</td></tr><tr><td>Department Name/可 T H</td><td> Department Of Heavy Industry</td></tr><tr><td>Organisation Name/o 可 H</td><td>N/a</td></tr><tr><td>Office Name/f  </td><td>National Automotive Board</td></tr><tr><td> $a/Buyer Email</td><td>buyerl.dhi.hr@gembuyer.in</td></tr><tr><td>Total Quantity/ </td><td>240</td></tr><tr><td>Item Category/ </td><td>Stationary Valve Regulated Lead Acid Batteries (V2) as per IS 15549 (Q3)</td></tr><tr><td>MSE Exemption for Years Of Experience/3 市 af  T / and Turnover/3      H </td><td>Yes</td></tr><tr><td>Startup Exemption for Years Of Experience/3  a  F3 / and Turnover/    F   </td><td>Yes</td></tr><tr><td>Document required from seller/ada  i </td><td>Experience Criteria,Past Performance,Bidder Turnover,Certificate (Requested in ATC),OEM Authorization Certificate,Additional Doc 1 (Requested in ATC),Additional Doc 2 (Requested in ATC),Additional Doc 3 (Requested in ATC),Additional Doc 4 (Requested in ATC),Compliance of BoQ specification and supporting document *In case any bidder is seeking exemption from Experience / Turnover Criteria, the supporting documents to prove his eligibility for exemption must be uploaded for evaluation by the buyer</td></tr><tr><td>Do you want to show documents uploaded by bidders to all bidders participated in bid?/</td><td>Yes</td></tr><tr><td>Past Performance/@ </td><td>40 % </td></tr><tr><td>Bid to RA enabled/  Ra   </td><td>No</td></tr></tbody></table></body></html>"
+        }
+      },
+      {
+        "region_id": "reg_0003",
+        "region_type": "table_caption",
+        "bounding_box": {
+          "x1": 684,
+          "y1": 486,
+          "x2": 967,
+          "y2": 509
+        },
+        "page_number": 1,
+        "contained_block_ids": [
+          "blk_0010"
+        ],
+        "reading_order_index": 3,
+        "text_content": "Bid Details/fas faaqur",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0004",
+        "region_type": "footer",
+        "bounding_box": {
+          "x1": 1535,
+          "y1": 2260,
+          "x2": 1574,
+          "y2": 2277
+        },
+        "page_number": 1,
+        "contained_block_ids": [
+          "blk_0061"
+        ],
+        "reading_order_index": 4,
+        "text_content": "1/8",
+        "confidence": null,
+        "table_structure": null
+      }
+    ],
+    "2": [
+      {
+        "region_id": "reg_0001",
+        "region_type": "text",
+        "bounding_box": {
+          "x1": 107,
+          "y1": 1419,
+          "x2": 1517,
+          "y2": 1868
+        },
+        "page_number": 2,
+        "contained_block_ids": [
+          "blk_0027",
+          "blk_0028",
+          "blk_0029",
+          "blk_0030",
+          "blk_0031",
+          "blk_0032",
+          "blk_0033",
+          "blk_0034",
+          "blk_0035",
+          "blk_0036",
+          "blk_0037",
+          "blk_0038"
+        ],
+        "reading_order_index": 1,
+        "text_content": "(a). EMD EXEMPTION: The bidder seeking EMD exemption, must submit the valid supporting document for the\nrelevant category as per GeM GTC with the bid. Under MSE category, only manufacturers for goods and Service\nProviders for Services are eligible for exemption from EmD. Traders are excluded from the purview of this\nPolicy./3H cT RIaf h 3gHR $vHST c h $cgch fast ct Hqfa hCJT g fac fas h HT2T ?g HAfa 3FdIdgr 9Fgd cn<$1\nQHVH$ ghCJRT $ 3iaia hda aFg3if  fc fafafaT a2T AT3f $ fav AqT acIaI $vHsT  gc $ qT3$1 cyIqrRqf at $H aA \nI3 Ihle Ib}Sb H \\h2\n(b). EmD & Performance security should be in favour of Beneficiary, wherever it is applicable./$vast 3it iuraa\nIdJIl lPl e Hh 4 J?eI'$ lPl IeIR 3h ! 'ltJI PDIP\nBeneficiary/araraif :\nInternational Centre For Automotive Technology\nUnit - National Automotive Board, Plot No. 26, Sector - 3, Near HsliDc Office, IMT Manesar, Gurugram - 122051\n(International Centre For Automotive Technology)",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0002",
+        "region_type": "text",
+        "bounding_box": {
+          "x1": 104,
+          "y1": 1980,
+          "x2": 1532,
+          "y2": 2167
+        },
+        "page_number": 2,
+        "contained_block_ids": [
+          "blk_0039",
+          "blk_0040",
+          "blk_0041"
+        ],
+        "reading_order_index": 2,
+        "text_content": "1. If the bidder is a Micro or Small Enterprise as per latest definitions under MsME rules, the bidder shall be\n\"OEm Average Turnover\" criteria also subject to meeting of quality and technical specifications. In case any\nfor exemption must be uploaded for evaluation by the buyer.",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0003",
+        "region_type": "title",
+        "bounding_box": {
+          "x1": 106,
+          "y1": 1006,
+          "x2": 461,
+          "y2": 1032
+        },
+        "page_number": 2,
+        "contained_block_ids": [
+          "blk_0019"
+        ],
+        "reading_order_index": 3,
+        "text_content": "ePBG Detail/$qdsit fqRu",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0004",
+        "region_type": "table",
+        "bounding_box": {
+          "x1": 101,
+          "y1": 1067,
+          "x2": 1561,
+          "y2": 1337
+        },
+        "page_number": 2,
+        "contained_block_ids": [
+          "blk_0021",
+          "blk_0020",
+          "blk_0023",
+          "blk_0022",
+          "blk_0024",
+          "blk_0025",
+          "blk_0026"
+        ],
+        "reading_order_index": 4,
+        "text_content": "HDFC Bank\nAdvisory Bank/sdl$sR dc\n5.00\nePBG Percentage(%)/$udsi afaR (%)\nDuration of ePBG required (Months)/$udsit a\n26\n(PG) BJbE PJhE",
+        "confidence": null,
+        "table_structure": {
+          "cell_bbox": [
+            [
+              27.935361862182617,
+              11.456786155700684,
+              611.9532470703125,
+              12.384754180908203,
+              598.7286376953125,
+              78.77854919433594,
+              25.525562286376953,
+              76.15174865722656
+            ],
+            [
+              665.7180786132812,
+              10.256070137023926,
+              1226.60498046875,
+              10.771924018859863,
+              1209.3792724609375,
+              69.16251373291016,
+              631.237060546875,
+              67.72258758544922
+            ],
+            [
+              32.16967010498047,
+              86.03119659423828,
+              648.7401123046875,
+              90.56440734863281,
+              630.6426391601562,
+              139.9220428466797,
+              29.82496452331543,
+              135.55442810058594
+            ],
+            [
+              700.3615112304688,
+              82.4451904296875,
+              1228.2440185546875,
+              85.6650390625,
+              1202.09130859375,
+              134.5702667236328,
+              648.9231567382812,
+              131.5302276611328
+            ],
+            [
+              20.310028076171875,
+              156.76388549804688,
+              654.3555908203125,
+              160.36270141601562,
+              639.5260620117188,
+              251.90245056152344,
+              19.209575653076172,
+              250.97088623046875
+            ],
+            [
+              683.19189453125,
+              154.05484008789062,
+              1401.077880859375,
+              156.3533935546875,
+              1395.5272216796875,
+              245.384521484375,
+              649.0903930664062,
+              244.5143280029297
+            ]
+          ],
+          "html": "<html><body><table><tr><td>Advisory Bank/sag 5</td><td>HDFC Bank</td></tr><tr><td>ePBG Percentage(%)/$ut aR (%)</td><td>5.00</td></tr><tr><td>Duration of ePBG required (Months)/udlGtt f fa a ().</td><td>26</td></tr></table></body></html>"
+        }
+      },
+      {
+        "region_id": "reg_0005",
+        "region_type": "table",
+        "bounding_box": {
+          "x1": 89,
+          "y1": 200,
+          "x2": 1570,
+          "y2": 1215
+        },
+        "page_number": 2,
+        "contained_block_ids": [
+          "blk_0002",
+          "blk_0003",
+          "blk_0004",
+          "blk_0005",
+          "blk_0006",
+          "blk_0008",
+          "blk_0007",
+          "blk_0009",
+          "blk_0010",
+          "blk_0011",
+          "blk_0012",
+          "blk_0013",
+          "blk_0014",
+          "blk_0016",
+          "blk_0015",
+          "blk_0018",
+          "blk_0017",
+          "blk_0019",
+          "blk_0021",
+          "blk_0020",
+          "blk_0023",
+          "blk_0022"
+        ],
+        "reading_order_index": 5,
+        "text_content": "Type of Bid/s ar yqR\nTwo Packet Bid\nTime allowed for Technical Clarifications\naRIa aqdT FqgIqq0r %g 3gHd HH4\nInspection Required (By Empanelled.\nNo\nInspection Authority I Agencies pre-.\nregistered with GeM)\nEstimated Bid Value/3gaIfaa fas ay\n3149760\nEvaluation Method/edih ygl\nTotal value wise evaluation\nEMD Detail/$ast faaqur\nHDFC Bank\nAdvisory Bank/gsdr$sRt dc\n63000\nEMD Amount/$vast rfRT\nePBG Detail/$qdsit fqRu\nHDFC Bank\nAdvisory Bank/sdl$sR dc\n5.00\nePBG Percentage(%)/$udsi afaR (%)",
+        "confidence": null,
+        "table_structure": {
+          "cell_bbox": [
+            [
+              29.70052719116211,
+              7.6060285568237305,
+              656.7157592773438,
+              7.934685230255127,
+              652.4490966796875,
+              94.42903900146484,
+              28.823341369628906,
+              92.81584930419922
+            ],
+            [
+              637.78759765625,
+              8.911314010620117,
+              1383.74560546875,
+              9.017269134521484,
+              1380.9759521484375,
+              76.58353424072266,
+              628.9056396484375,
+              77.35736083984375
+            ],
+            [
+              41.97478103637695,
+              81.33539581298828,
+              639.4469604492188,
+              80.93472290039062,
+              633.9899291992188,
+              197.01393127441406,
+              41.18085479736328,
+              197.286376953125
+            ],
+            [
+              631.1651000976562,
+              74.96785736083984,
+              1462.5130615234375,
+              76.33646392822266,
+              1461.7349853515625,
+              207.17137145996094,
+              620.131591796875,
+              204.77671813964844
+            ],
+            [
+              18.818422317504883,
+              211.58267211914062,
+              629.5249633789062,
+              213.5979766845703,
+              625.1904296875,
+              333.44281005859375,
+              18.452417373657227,
+              330.484130859375
+            ],
+            [
+              631.7230834960938,
+              211.54010009765625,
+              1466.5892333984375,
+              216.42140197753906,
+              1466.242919921875,
+              324.4599304199219,
+              625.6799926757812,
+              318.83404541015625
+            ],
+            [
+              18.280593872070312,
+              316.2162170410156,
+              609.470458984375,
+              321.28558349609375,
+              604.702880859375,
+              404.1715087890625,
+              17.867708206176758,
+              399.0234680175781
+            ],
+            [
+              638.1058959960938,
+              310.82073974609375,
+              1461.3465576171875,
+              317.6791687011719,
+              1461.115478515625,
+              395.9107666015625,
+              635.6648559570312,
+              389.7213439941406
+            ],
+            [
+              27.18295669555664,
+              391.6756896972656,
+              599.2512817382812,
+              397.74859619140625,
+              591.9837646484375,
+              476.3792724609375,
+              26.39260482788086,
+              471.056640625
+            ],
+            [
+              625.1766967773438,
+              381.0392150878906,
+              1414.5728759765625,
+              387.9671630859375,
+              1413.201171875,
+              457.259033203125,
+              619.0424194335938,
+              451.5967102050781
+            ],
+            [
+              18.10453987121582,
+              445.0729064941406,
+              809.0426025390625,
+              453.0769348144531,
+              797.8843383789062,
+              555.1358032226562,
+              17.473604202270508,
+              547.8953857421875
+            ],
+            [
+              18.3272705078125,
+              577.8793334960938,
+              578.75390625,
+              585.0477905273438,
+              568.8875122070312,
+              662.5584106445312,
+              17.638242721557617,
+              657.1409912109375
+            ],
+            [
+              616.8016967773438,
+              574.2993774414062,
+              1452.1524658203125,
+              581.940673828125,
+              1451.7513427734375,
+              672.5422973632812,
+              613.48046875,
+              667.217529296875
+            ],
+            [
+              40.84159469604492,
+              659.1032104492188,
+              621.221435546875,
+              663.909423828125,
+              618.0768432617188,
+              739.7957763671875,
+              40.22580337524414,
+              735.626953125
+            ],
+            [
+              640.0972900390625,
+              654.6992797851562,
+              1448.000732421875,
+              658.6231079101562,
+              1447.3009033203125,
+              734.9852905273438,
+              636.3660888671875,
+              732.55419921875
+            ],
+            [
+              19.381742477416992,
+              734.0919189453125,
+              1452.881103515625,
+              744.3836669921875,
+              1452.2529296875,
+              862.625732421875,
+              18.919260025024414,
+              856.0208740234375
+            ],
+            [
+              37.39222717285156,
+              893.6853637695312,
+              608.9800415039062,
+              897.1582641601562,
+              603.3857421875,
+              976.6409912109375,
+              36.685977935791016,
+              975.3201293945312
+            ],
+            [
+              609.5938720703125,
+              886.7764282226562,
+              1396.617431640625,
+              886.7496337890625,
+              1395.503662109375,
+              995.3095703125,
+              602.2537231445312,
+              995.3276977539062
+            ],
+            [
+              40.75798416137695,
+              958.1103515625,
+              651.313720703125,
+              959.4644165039062,
+              650.2578125,
+              1012.568359375,
+              40.61609649658203,
+              1012.4530029296875
+            ],
+            [
+              638.568603515625,
+              957.3067626953125,
+              1456.7083740234375,
+              957.2620239257812,
+              1456.10888671875,
+              1012.350830078125,
+              633.3995971679688,
+              1012.3178100585938
+            ]
+          ],
+          "html": "<html><body><table><tbody><tr><td>Type of Bid/s  T</td><td>Two Packet Bid</td></tr><tr><td>Time allowed for Technical Clarifications during technical evaluation/f Hi    </td><td>5 5 Days</td></tr><tr><td>Inspection Required (By Empanelled Inspection Authority / Agencies pre- registered with GeM)</td><td>No</td></tr><tr><td>Estimated Bid Value/3gHa  </td><td>3149760</td></tr><tr><td>Evaluation Method/ic </td><td>Total value wise evaluation</td></tr><tr><td colspan=\"2\">EMD Detail/asfaaRu</td></tr><tr><td>Advisory Bank/sG </td><td>HDFC Bank</td></tr><tr><td>EMD Amount/H TfT</td><td>63000</td></tr><tr><td colspan=\"2\">ePBG Detail/$uft faaQT</td></tr><tr><td>Advisory Bank/sgf </td><td>HDFC Bank</td></tr><tr><td>ePBG Percentage(%)/udft aR (%)</td><td>5.00</td></tr></tbody></table></body></html>"
+        }
+      },
+      {
+        "region_id": "reg_0006",
+        "region_type": "table_caption",
+        "bounding_box": {
+          "x1": 686,
+          "y1": 178,
+          "x2": 966,
+          "y2": 202
+        },
+        "page_number": 2,
+        "contained_block_ids": [
+          "blk_0001"
+        ],
+        "reading_order_index": 6,
+        "text_content": "Bid Details/fas faaru",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0007",
+        "region_type": "footer",
+        "bounding_box": {
+          "x1": 1534,
+          "y1": 2260,
+          "x2": 1574,
+          "y2": 2277
+        },
+        "page_number": 2,
+        "contained_block_ids": [
+          "blk_0042"
+        ],
+        "reading_order_index": 7,
+        "text_content": "2/8",
+        "confidence": null,
+        "table_structure": null
+      }
+    ],
+    "3": [
+      {
+        "region_id": "reg_0001",
+        "region_type": "text",
+        "bounding_box": {
+          "x1": 100,
+          "y1": 163,
+          "x2": 1518,
+          "y2": 692
+        },
+        "page_number": 3,
+        "contained_block_ids": [
+          "blk_0001",
+          "blk_0002",
+          "blk_0003",
+          "blk_0004",
+          "blk_0005",
+          "blk_0006",
+          "blk_0007",
+          "blk_0008",
+          "blk_0009",
+          "blk_0010",
+          "blk_0011",
+          "blk_0012",
+          "blk_0013",
+          "blk_0014"
+        ],
+        "reading_order_index": 1,
+        "text_content": "2. If the bidder is a Startup, the bidder shall be exempted from the requirement of \"Bidder Turnover\" criteria and\noffered products, it would be exempted from the \"OEM Average Turnover\" criteria also subject to meeting of\nthe supporting documents to prove his eligibility for exemption must be uploaded for evaluation by the buyer.\n3. Estimated Bid Value indicated above is being declared solely for the purpose of guidance on EMD amount and.\nfor determining the Eligibility Criteria related to Turn Over, Past Performance and Project / Past Experience etc.\nThis has no relevance or bearing on the price to be quoted by the bidders and is also not going to have any\nquoted prices which would be determined by the buyer based on its own assessment of reasonableness and\nbased on competitive prices received in Bid / RA process..\n4. Past Performance: The Bidder or its OEm {themselves or through re-seller(s)} should have supplied same or\n similar Category Products for 40% of bid quantity, in at least one of the last three Financial years before the bid\nopening date to any Central / State Govt Organization / Psu. Copies of relevant contracts (proving supply of.\ncumulative order quantity in any one financial year) to be submitted along with bid in support of quantity\nsupplied in the relevant Financial year. In case of bunch bids, the category related to primary product having\nhighest bid value should meet this criterion.",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0002",
+        "region_type": "text",
+        "bounding_box": {
+          "x1": 220,
+          "y1": 2081,
+          "x2": 1410,
+          "y2": 2138
+        },
+        "page_number": 3,
+        "contained_block_ids": [
+          "blk_0052"
+        ],
+        "reading_order_index": 2,
+        "text_content": "* Bidders offering must also comply with the additional specification parameters mentioned above.",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0003",
+        "region_type": "title",
+        "bounding_box": {
+          "x1": 133,
+          "y1": 860,
+          "x2": 1345,
+          "y2": 953
+        },
+        "page_number": 3,
+        "contained_block_ids": [
+          "blk_0017",
+          "blk_0018"
+        ],
+        "reading_order_index": 3,
+        "text_content": "Stationary Valve Regulated Lead Acid Batteries (V2) As Per IS 15549 ( 240 pieces )\nTechnical Specifications/anddr faffeai",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0004",
+        "region_type": "title",
+        "bounding_box": {
+          "x1": 100,
+          "y1": 727,
+          "x2": 924,
+          "y2": 826
+        },
+        "page_number": 3,
+        "contained_block_ids": [
+          "blk_0015",
+          "blk_0016"
+        ],
+        "reading_order_index": 4,
+        "text_content": "Excel Upload Required/Rda a 3yals fy dl at 3llq?aqdl :\nPrice Bid Breakup with Buy Back Option - 1744883917.xlsx",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0005",
+        "region_type": "table",
+        "bounding_box": {
+          "x1": 101,
+          "y1": 1050,
+          "x2": 1558,
+          "y2": 1534
+        },
+        "page_number": 3,
+        "contained_block_ids": [
+          "blk_0020",
+          "blk_0021",
+          "blk_0022",
+          "blk_0023",
+          "blk_0025",
+          "blk_0026",
+          "blk_0024",
+          "blk_0027",
+          "blk_0028",
+          "blk_0030",
+          "blk_0031",
+          "blk_0029",
+          "blk_0032",
+          "blk_0033",
+          "blk_0034",
+          "blk_0035",
+          "blk_0036",
+          "blk_0037",
+          "blk_0038"
+        ],
+        "reading_order_index": 5,
+        "text_content": "Specification Name/fafife \nBid Requirement/fas  f 3lld?yc (Allowed\nSpecification\nValues)/3gdd Hy\nBattery voltage (in volt)\n12\nGeneric\nBattery capacity (in Ah)\n200\nMaterial of container.\nPolypropylene co-polymer (PPCP)\nConstruction\nNumber of cells per battery\n1 Cell for 2 Volt Battery, 3 Cells for 6 Volt Battery, 6.\nCells for 12 Volt Battery\nWarranty and\nWarranty (in years)\n2, 3 Or higher\nMarking",
+        "confidence": null,
+        "table_structure": {
+          "cell_bbox": [
+            [
+              26.254749298095703,
+              21.44230079650879,
+              329.7434387207031,
+              22.888578414916992,
+              322.0286865234375,
+              120.6152572631836,
+              24.15784454345703,
+              116.49996185302734
+            ],
+            [
+              303.1356506347656,
+              17.436065673828125,
+              770.6947021484375,
+              17.820858001708984,
+              764.5003662109375,
+              124.65629577636719,
+              295.91021728515625,
+              123.63556671142578
+            ],
+            [
+              717.9754028320312,
+              14.826886177062988,
+              1421.20654296875,
+              15.163590431213379,
+              1419.699951171875,
+              126.39202880859375,
+              707.2001342773438,
+              125.795166015625
+            ],
+            [
+              13.849114418029785,
+              113.0034408569336,
+              229.5758514404297,
+              114.41978454589844,
+              229.31143188476562,
+              202.2591094970703,
+              13.693106651306152,
+              200.45509338378906
+            ],
+            [
+              297.7060852050781,
+              118.33406829833984,
+              718.2041625976562,
+              120.646240234375,
+              713.738037109375,
+              198.4527130126953,
+              293.1601867675781,
+              196.33258056640625
+            ],
+            [
+              712.4234008789062,
+              124.05429077148438,
+              1428.3831787109375,
+              127.28076934814453,
+              1427.4705810546875,
+              202.31439208984375,
+              703.103271484375,
+              199.30841064453125
+            ],
+            [
+              11.998122215270996,
+              203.58816528320312,
+              249.4271240234375,
+              204.13510131835938,
+              250.20672607421875,
+              325.26617431640625,
+              11.969988822937012,
+              325.60491943359375
+            ],
+            [
+              300.6478271484375,
+              195.93064880371094,
+              721.2704467773438,
+              196.0671844482422,
+              723.336669921875,
+              258.21734619140625,
+              299.33013916015625,
+              260.0888977050781
+            ],
+            [
+              712.1396484375,
+              192.43182373046875,
+              1425.335693359375,
+              195.994873046875,
+              1424.56201171875,
+              262.05889892578125,
+              705.09326171875,
+              259.7560119628906
+            ],
+            [
+              293.8052673339844,
+              258.0079040527344,
+              743.4808349609375,
+              260.7316589355469,
+              744.4247436523438,
+              330.1490783691406,
+              295.1758117675781,
+              328.60626220703125
+            ],
+            [
+              699.187255859375,
+              258.823974609375,
+              1425.472900390625,
+              261.513671875,
+              1424.739013671875,
+              332.2994689941406,
+              694.0503540039062,
+              330.2783203125
+            ],
+            [
+              12.705638885498047,
+              348.31732177734375,
+              266.9450988769531,
+              349.7301940917969,
+              266.55078125,
+              439.2175598144531,
+              12.512199401855469,
+              438.73248291015625
+            ],
+            [
+              297.41943359375,
+              339.5219421386719,
+              743.9027099609375,
+              340.42822265625,
+              738.750732421875,
+              424.27337646484375,
+              293.5022277832031,
+              424.0213623046875
+            ],
+            [
+              704.59619140625,
+              336.20977783203125,
+              1434.193603515625,
+              336.70550537109375,
+              1433.740478515625,
+              424.7634582519531,
+              701.5646362304688,
+              424.9181823730469
+            ],
+            [
+              12.047433853149414,
+              408.9039306640625,
+              255.2932586669922,
+              408.91058349609375,
+              253.1731414794922,
+              480.2533874511719,
+              11.781866073608398,
+              480.21868896484375
+            ],
+            [
+              291.73675537109375,
+              403.9263000488281,
+              735.89111328125,
+              401.6299743652344,
+              733.8032836914062,
+              479.14300537109375,
+              289.72308349609375,
+              479.2857666015625
+            ],
+            [
+              717.2924194335938,
+              404.7579650878906,
+              1398.92919921875,
+              401.48980712890625,
+              1398.1854248046875,
+              475.9898986816406,
+              715.4935913085938,
+              476.39312744140625
+            ]
+          ],
+          "html": "<html><body><table><tr><td>Specification</td><td>Specification Name/faffe 可 </td><td>Bid Requirement/s  f 3HgRe (Allowed Values)3H </td></tr><tr><td>Generic</td><td>Battery voltage (in volt)</td><td>12</td></tr><tr><td rowspan=\"2\">Construction</td><td>Battery capacity (in Ah)</td><td>200</td></tr><tr><td>Material of container Number of cells per battery</td><td>Polypropylene co-polymer (PPCP) 1 Cell for 2 Volt Battery, 3 Cells for 6 Volt Battery, 6</td></tr><tr><td>Warranty and</td><td></td><td>Cells for 12 Volt Battery</td></tr><tr><td>Marking</td><td>Warranty (in years)</td><td>2, 3 Or higher</td></tr></table></body></html>"
+        }
+      },
+      {
+        "region_id": "reg_0006",
+        "region_type": "table",
+        "bounding_box": {
+          "x1": 104,
+          "y1": 1797,
+          "x2": 1539,
+          "y2": 2072
+        },
+        "page_number": 3,
+        "contained_block_ids": [
+          "blk_0041",
+          "blk_0042",
+          "blk_0043",
+          "blk_0044",
+          "blk_0045",
+          "blk_0046",
+          "blk_0047",
+          "blk_0048",
+          "blk_0049",
+          "blk_0050",
+          "blk_0051"
+        ],
+        "reading_order_index": 6,
+        "text_content": "Specification Parameter\nBid Requirement (Allowed Values).\n Name\nPlease Refer Attached ATc Document (The bidder should quote the products\nFor Complete Technical\nstrictly as per the tender specifications. Complete technical details, along.\nSpecification and Scope of\nwith the brand, specification, technical literature, etc., highlighting the.\nSupply\nspecifications, must be supplied along with the technical bid. Failure to.\ncomply with this requirement may result in the bid being rejected.)",
+        "confidence": null,
+        "table_structure": {
+          "cell_bbox": [
+            [
+              21.4855899810791,
+              5.249903678894043,
+              458.6591796875,
+              5.706896781921387,
+              451.26556396484375,
+              95.64037322998047,
+              19.894567489624023,
+              93.89876556396484
+            ],
+            [
+              423.49652099609375,
+              5.2275800704956055,
+              1399.458740234375,
+              5.586663722991943,
+              1397.51904296875,
+              84.4578628540039,
+              409.6498107910156,
+              82.98638153076172
+            ],
+            [
+              13.655961036682129,
+              100.06639099121094,
+              424.803955078125,
+              101.56611633300781,
+              425.6224365234375,
+              271.2542419433594,
+              13.509586334228516,
+              271.1167907714844
+            ],
+            [
+              445.1465148925781,
+              97.48626708984375,
+              1423.14794921875,
+              97.41867065429688,
+              1422.1737060546875,
+              270.7622375488281,
+              424.5628967285156,
+              270.6908264160156
+            ]
+          ],
+          "html": "<html><body><table><tr><td>Specification Parameter Name</td><td>Bid Requirement (Allowed Values)</td></tr><tr><td>For Complete Technical Specification and Scope of Supply</td><td>Please Refer Attached ATC Document (The bidder should quote the products strictly as per the tender specifications. Complete technical details, along with the brand, specification, technical literature, etc., highlighting the specifications, must be supplied along with the technical bid. Failure to comply with this requirement may result in the bid being rejected.)</td></tr></table></body></html>"
+        }
+      },
+      {
+        "region_id": "reg_0007",
+        "region_type": "table_caption",
+        "bounding_box": {
+          "x1": 106,
+          "y1": 1736,
+          "x2": 1528,
+          "y2": 1795
+        },
+        "page_number": 3,
+        "contained_block_ids": [
+          "blk_0039",
+          "blk_0040"
+        ],
+        "reading_order_index": 7,
+        "text_content": "Additional Specification Parameters - Stationary Valve Regulated Lead Acid Batteries (v2) As Per IS\n15549 ( 240 pieces)",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0008",
+        "region_type": "table_caption",
+        "bounding_box": {
+          "x1": 197,
+          "y1": 999,
+          "x2": 803,
+          "y2": 1026
+        },
+        "page_number": 3,
+        "contained_block_ids": [
+          "blk_0019"
+        ],
+        "reading_order_index": 8,
+        "text_content": "*3 acuRt fafafe  3gHrt / As per GeM Category Specification",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0009",
+        "region_type": "footer",
+        "bounding_box": {
+          "x1": 1535,
+          "y1": 2260,
+          "x2": 1574,
+          "y2": 2277
+        },
+        "page_number": 3,
+        "contained_block_ids": [
+          "blk_0053"
+        ],
+        "reading_order_index": 9,
+        "text_content": "3/8",
+        "confidence": null,
+        "table_structure": null
+      }
+    ],
+    "4": [
+      {
+        "region_id": "reg_0001",
+        "region_type": "table",
+        "bounding_box": {
+          "x1": 92,
+          "y1": 273,
+          "x2": 1569,
+          "y2": 1855
+        },
+        "page_number": 4,
+        "contained_block_ids": [
+          "blk_0002",
+          "blk_0004",
+          "blk_0003",
+          "blk_0005",
+          "blk_0007",
+          "blk_0008",
+          "blk_0006",
+          "blk_0010",
+          "blk_0009",
+          "blk_0011",
+          "blk_0012",
+          "blk_0013",
+          "blk_0014",
+          "blk_0015",
+          "blk_0016",
+          "blk_0017",
+          "blk_0018",
+          "blk_0019",
+          "blk_0020",
+          "blk_0022",
+          "blk_0021",
+          "blk_0023",
+          "blk_0024",
+          "blk_0025",
+          "blk_0026",
+          "blk_0027",
+          "blk_0029",
+          "blk_0028",
+          "blk_0031",
+          "blk_0030",
+          "blk_0033",
+          "blk_0032",
+          "blk_0034",
+          "blk_0035",
+          "blk_0036",
+          "blk_0037",
+          "blk_0038",
+          "blk_0039",
+          "blk_0040",
+          "blk_0041",
+          "blk_0042",
+          "blk_0043",
+          "blk_0044",
+          "blk_0045",
+          "blk_0047",
+          "blk_0046",
+          "blk_0048",
+          "blk_0049"
+        ],
+        "reading_order_index": 1,
+        "text_content": "Consignee\nReporting/Officer/\nS.No./.\nDelivery Days/fsdat \nAddress/4dl\nQuantity/ar\nIe?Jhd/lPgJ`h\nf\ni.\n122051,INTERNATIONAL\nCENTRE FOR AUTOMOTIVE\nGirish Chander\n1\nTECHNOLGY Plot No 26, Sector\n240\n45\n3, HsIIdC, ImT-Manesar,\nGurgaon 122050\nBuyback Detail\nBuy Back Batteries\nItem Name\n12V 200Ah Buy Back Battery Make NED Energy and Amron\nItem Description\nQuanta\nSerial No.\nNot Available\n12AL200N SMF VRLA & MAX PRO 200-12\n Model\n NED Energy (160 Nos) and Amaron Quanta (80 Nos.).\n Brand\n2021\nYear of Manufacturing\n2022-11-30\nPurchase On\nAge\nSize\n Rating\nQuantity\n240\nUnit\nNos\nBidders are encouraged to visit the ICAT site to inspect the\nRemark\nIocation where the Batteries are installed..\nView Uploaded Image\n Uploaded Image\nDisclaimer/3rdcquT\nThe vendor will be responsible for the un-installation of Buyback items.",
+        "confidence": null,
+        "table_structure": {
+          "cell_bbox": [
+            [
+              8.177811622619629,
+              9.97635555267334,
+              149.56588745117188,
+              10.215179443359375,
+              147.22866821289062,
+              207.11514282226562,
+              7.825385093688965,
+              209.37840270996094
+            ],
+            [
+              156.7837371826172,
+              13.491912841796875,
+              464.3945007324219,
+              13.753291130065918,
+              466.6030578613281,
+              203.87881469726562,
+              156.83700561523438,
+              204.8707275390625
+            ],
+            [
+              467.32135009765625,
+              14.619121551513672,
+              932.9219360351562,
+              14.816141128540039,
+              928.930419921875,
+              207.7949676513672,
+              461.7154541015625,
+              210.15591430664062
+            ],
+            [
+              891.126953125,
+              33.08207702636719,
+              1090.849609375,
+              34.14509582519531,
+              1085.090576171875,
+              190.40711975097656,
+              882.2930908203125,
+              187.60655212402344
+            ],
+            [
+              1133.304443359375,
+              27.308311462402344,
+              1459.359375,
+              28.716815948486328,
+              1458.519775390625,
+              198.69935607910156,
+              1122.2008056640625,
+              193.0092315673828
+            ],
+            [
+              8.892619132995605,
+              184.6302490234375,
+              138.06765747070312,
+              186.6436309814453,
+              137.49012756347656,
+              405.92633056640625,
+              8.611542701721191,
+              399.8222351074219
+            ],
+            [
+              159.4212188720703,
+              194.50234985351562,
+              462.05462646484375,
+              200.36721801757812,
+              453.6863098144531,
+              388.86431884765625,
+              155.00051879882812,
+              378.0923156738281
+            ],
+            [
+              480.7354736328125,
+              201.8589630126953,
+              924.7424926757812,
+              204.95094299316406,
+              919.1650390625,
+              391.3771667480469,
+              472.34783935546875,
+              385.7016296386719
+            ],
+            [
+              881.9418334960938,
+              219.58888244628906,
+              1142.1422119140625,
+              220.90101623535156,
+              1139.8984375,
+              387.4476318359375,
+              878.041015625,
+              385.82611083984375
+            ],
+            [
+              1122.1226806640625,
+              213.7038116455078,
+              1460.527587890625,
+              217.0861358642578,
+              1459.904052734375,
+              357.5691833496094,
+              1114.6785888671875,
+              351.9663391113281
+            ],
+            [
+              5.362509727478027,
+              351.0116271972656,
+              1446.7188720703125,
+              369.6647033691406,
+              1446.72509765625,
+              525.4448852539062,
+              5.365774631500244,
+              503.2738952636719
+            ],
+            [
+              5.145609378814697,
+              459.5980529785156,
+              931.2376708984375,
+              458.1794128417969,
+              932.3607788085938,
+              564.6675415039062,
+              5.089385032653809,
+              563.0967407226562
+            ],
+            [
+              650.8182983398438,
+              488.6072998046875,
+              1380.85302734375,
+              485.43756103515625,
+              1381.0352783203125,
+              577.7301635742188,
+              645.17626953125,
+              581.8106689453125
+            ],
+            [
+              8.119012832641602,
+              516.3869018554688,
+              796.7831420898438,
+              520.7697143554688,
+              798.3584594726562,
+              605.8392944335938,
+              8.063887596130371,
+              600.3331298828125
+            ],
+            [
+              624.6258544921875,
+              543.7726440429688,
+              1387.44287109375,
+              540.7862548828125,
+              1387.19677734375,
+              617.1670532226562,
+              620.0206298828125,
+              622.0073852539062
+            ],
+            [
+              9.645951271057129,
+              585.2835693359375,
+              816.93017578125,
+              588.6952514648438,
+              817.1859130859375,
+              662.8141479492188,
+              9.583083152770996,
+              658.68896484375
+            ],
+            [
+              659.9130859375,
+              601.801513671875,
+              1409.8841552734375,
+              600.85546875,
+              1409.5389404296875,
+              671.3427124023438,
+              657.29931640625,
+              674.3176879882812
+            ],
+            [
+              8.54495906829834,
+              643.381591796875,
+              849.57568359375,
+              648.0963134765625,
+              847.9450073242188,
+              722.0870971679688,
+              8.442037582397461,
+              717.0848999023438
+            ],
+            [
+              690.0910034179688,
+              647.1321411132812,
+              1453.978515625,
+              648.548828125,
+              1453.8310546875,
+              725.487548828125,
+              688.2335815429688,
+              724.6495971679688
+            ],
+            [
+              7.507922172546387,
+              703.68017578125,
+              792.5232543945312,
+              709.935546875,
+              791.0755004882812,
+              790.513916015625,
+              7.41691780090332,
+              783.5169677734375
+            ],
+            [
+              683.127197265625,
+              697.1781616210938,
+              1463.568115234375,
+              697.4490356445312,
+              1463.4541015625,
+              776.4743041992188,
+              680.1627807617188,
+              775.19384765625
+            ],
+            [
+              8.100349426269531,
+              763.2298583984375,
+              731.0670776367188,
+              769.213134765625,
+              729.7611694335938,
+              856.2615356445312,
+              8.032064437866211,
+              848.5421142578125
+            ],
+            [
+              659.7575073242188,
+              756.15966796875,
+              1465.945556640625,
+              756.8667602539062,
+              1465.80322265625,
+              834.5321044921875,
+              655.1898803710938,
+              832.487060546875
+            ],
+            [
+              7.782266616821289,
+              820.8904418945312,
+              661.2223510742188,
+              827.7357177734375,
+              659.57666015625,
+              917.0720825195312,
+              7.714384078979492,
+              908.1812744140625
+            ],
+            [
+              654.4296264648438,
+              819.300048828125,
+              1466.9326171875,
+              821.34765625,
+              1466.79296875,
+              903.5686645507812,
+              649.771484375,
+              900.3080444335938
+            ],
+            [
+              8.219202995300293,
+              880.564453125,
+              669.6388549804688,
+              888.1288452148438,
+              667.25537109375,
+              977.1812133789062,
+              8.1021089553833,
+              967.5103149414062
+            ],
+            [
+              646.1580200195312,
+              887.7941284179688,
+              1465.88330078125,
+              889.8223876953125,
+              1465.7811279296875,
+              972.0867309570312,
+              643.0383911132812,
+              969.2245483398438
+            ],
+            [
+              9.041483879089355,
+              947.994384765625,
+              657.1764526367188,
+              956.9020385742188,
+              653.0276489257812,
+              1035.376708984375,
+              8.842967987060547,
+              1024.913818359375
+            ],
+            [
+              632.4361572265625,
+              955.597900390625,
+              1464.8671875,
+              958.3843383789062,
+              1464.8089599609375,
+              1036.218505859375,
+              630.8406372070312,
+              1032.8538818359375
+            ],
+            [
+              10.76912784576416,
+              1015.0662231445312,
+              618.4021606445312,
+              1024.67724609375,
+              613.9255981445312,
+              1097.93701171875,
+              10.50568962097168,
+              1087.09814453125
+            ],
+            [
+              622.7461547851562,
+              1023.5431518554688,
+              1464.2369384765625,
+              1026.7218017578125,
+              1464.1876220703125,
+              1102.478271484375,
+              621.0155029296875,
+              1099.041259765625
+            ],
+            [
+              8.759363174438477,
+              1082.2666015625,
+              571.7567749023438,
+              1092.70751953125,
+              567.0567016601562,
+              1164.4886474609375,
+              8.547070503234863,
+              1153.0128173828125
+            ],
+            [
+              638.4141235351562,
+              1086.946533203125,
+              1464.60400390625,
+              1089.656005859375,
+              1464.5345458984375,
+              1167.791748046875,
+              636.2889404296875,
+              1164.1524658203125
+            ],
+            [
+              9.154552459716797,
+              1147.993408203125,
+              617.1798095703125,
+              1159.1151123046875,
+              612.4346313476562,
+              1233.205322265625,
+              8.941932678222656,
+              1221.387451171875
+            ],
+            [
+              649.6078491210938,
+              1153.096923828125,
+              1464.7071533203125,
+              1155.827392578125,
+              1464.68212890625,
+              1239.3818359375,
+              649.0025634765625,
+              1235.96875
+            ],
+            [
+              8.947345733642578,
+              1218.581787109375,
+              613.2731323242188,
+              1229.7255859375,
+              608.71044921875,
+              1311.4366455078125,
+              8.730578422546387,
+              1300.8953857421875
+            ],
+            [
+              651.7274169921875,
+              1229.754638671875,
+              1464.2628173828125,
+              1233.046142578125,
+              1464.2794189453125,
+              1317.005859375,
+              652.3462524414062,
+              1313.7403564453125
+            ],
+            [
+              8.305109024047852,
+              1301.1640625,
+              744.4403076171875,
+              1314.295654296875,
+              740.3947143554688,
+              1417.147705078125,
+              8.11330795288086,
+              1407.0859375
+            ],
+            [
+              640.6002197265625,
+              1328.3450927734375,
+              1462.744140625,
+              1332.9027099609375,
+              1462.7762451171875,
+              1409.210205078125,
+              641.0953979492188,
+              1405.7767333984375
+            ],
+            [
+              7.339714050292969,
+              1420.9715576171875,
+              1440.7216796875,
+              1432.831787109375,
+              1440.5357666015625,
+              1572.5238037109375,
+              7.3864641189575195,
+              1571.474609375
+            ]
+          ],
+          "html": "<html><body><table><tbody><tr><td>S.No./5. .</td><td>Consignee Reporting/officer/ /R 3</td><td colspan=\"2\"> Address/I</td><td>Quantity/π</td><td>Delivery Days/dla 司</td></tr><tr><td>1</td><td>Girish Chander</td><td colspan=\"2\">122051,INTERNATIONAL CENTREFORAUTOMOTIVE TECHNOLGY Plot No 26, Sector 3, HSIIDC, IMT-Manesar, Gurgaon 122050</td><td>240 45</td><td></td></tr><tr><td colspan=\"6\">Buyback Detail</td></tr><tr><td colspan=\"3\">Item Name</td><td colspan=\"3\">Buy Back Batteries</td></tr><tr><td colspan=\"3\">Item Description</td><td colspan=\"3\">12V 200Ah Buy Back Battery Make NED Energy and Amron Quanta</td></tr><tr><td colspan=\"3\"> Serial No.</td><td colspan=\"3\">Not Available</td></tr><tr><td colspan=\"3\">Model</td><td colspan=\"3\">12AL200N SMF VRLA & MAX PRO 200-12</td></tr><tr><td colspan=\"3\">Brand</td><td colspan=\"3\">NED Energy (160 Nos) and Amaron Quanta (80 Nos.)</td></tr><tr><td colspan=\"3\">Year of Manufacturing</td><td colspan=\"3\">2021</td></tr><tr><td colspan=\"3\">Purchase On</td><td colspan=\"3\">2022-11-30</td></tr><tr><td colspan=\"3\">Age</td><td colspan=\"3\"></td></tr><tr><td colspan=\"3\">Size</td><td colspan=\"3\"></td></tr><tr><td colspan=\"3\">Rating</td><td colspan=\"3\"></td></tr><tr><td colspan=\"3\">Quantity</td><td colspan=\"3\">240 Nos</td></tr><tr><td colspan=\"3\">Unit </td><td colspan=\"3\">Bidders are encouraged to visit the ICAT site to inspect the</td></tr><tr><td colspan=\"3\">Remark</td><td colspan=\"3\">location where the Batteries are installed.</td></tr><tr><td colspan=\"3\">Uploaded Image</td><td colspan=\"3\">View Uploaded Image</td></tr><tr><td colspan=\"6\">Disclaimer/3aQUT The vendor will be responsible for the un-installation of Buyback items.</td></tr></tbody></table></body></html>"
+        }
+      },
+      {
+        "region_id": "reg_0002",
+        "region_type": "table_caption",
+        "bounding_box": {
+          "x1": 113,
+          "y1": 222,
+          "x2": 1113,
+          "y2": 250
+        },
+        "page_number": 4,
+        "contained_block_ids": [
+          "blk_0001"
+        ],
+        "reading_order_index": 2,
+        "text_content": "Consignees/Reporting Officer/qfat/Rulfer 3rfgcRt and/ ar Quantity/Hrar",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0003",
+        "region_type": "footer",
+        "bounding_box": {
+          "x1": 1534,
+          "y1": 2260,
+          "x2": 1574,
+          "y2": 2277
+        },
+        "page_number": 4,
+        "contained_block_ids": [
+          "blk_0051"
+        ],
+        "reading_order_index": 3,
+        "text_content": "4/8",
+        "confidence": null,
+        "table_structure": null
+      }
+    ],
+    "5": [
+      {
+        "region_id": "reg_0001",
+        "region_type": "text",
+        "bounding_box": {
+          "x1": 182,
+          "y1": 1177,
+          "x2": 1533,
+          "y2": 1487
+        },
+        "page_number": 5,
+        "contained_block_ids": [
+          "blk_0027",
+          "blk_0028",
+          "blk_0029",
+          "blk_0030",
+          "blk_0031",
+          "blk_0032",
+          "blk_0033",
+          "blk_0034",
+          "blk_0035"
+        ],
+        "reading_order_index": 1,
+        "text_content": "OPTiON CLAusE: The Purchaser reserves the right to increase or decrease the quantity to be ordered up to\n25 percent of bid quantity at the time of placement of contract. The purchaser also reserves the right to\nthe contracted rates. The delivery period of quantity shall commence from the last date of original delivery\norder and in cases where option clause is exercised during the extended delivery period the additional time\nshall commence from the last date of extended delivery period. The additional delivery time shall be.\n(Increased quantity + Original quantity) x Original delivery period (in days), subject to minimum of 30 days.\nIf the original delivery period is less than 30 days, the additional time equals the original delivery period. The\nPurchaser may extend this calculated delivery duration up to the original delivery period while exercising\nthe option clause. Bidders must comply with these terms.",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0002",
+        "region_type": "text",
+        "bounding_box": {
+          "x1": 184,
+          "y1": 2089,
+          "x2": 906,
+          "y2": 2115
+        },
+        "page_number": 5,
+        "contained_block_ids": [
+          "blk_0045"
+        ],
+        "reading_order_index": 2,
+        "text_content": "Buyer uploaded ATC document Click here to view the file.",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0003",
+        "region_type": "text",
+        "bounding_box": {
+          "x1": 98,
+          "y1": 1019,
+          "x2": 389,
+          "y2": 1048
+        },
+        "page_number": 5,
+        "contained_block_ids": [
+          "blk_0024"
+        ],
+        "reading_order_index": 3,
+        "text_content": "HIt hl&R L SeJ $Ie IF",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0004",
+        "region_type": "text",
+        "bounding_box": {
+          "x1": 175,
+          "y1": 1764,
+          "x2": 1530,
+          "y2": 1978
+        },
+        "page_number": 5,
+        "contained_block_ids": [
+          "blk_0039",
+          "blk_0040",
+          "blk_0041",
+          "blk_0042",
+          "blk_0043"
+        ],
+        "reading_order_index": 4,
+        "text_content": "Warranty period of the supplied products shall be 2 years from the date of final acceptance of goods or after.\ncompletion of installation, commissioning & testing of goods (if included in the scope of supply), at\nconsignee location. OEM Warranty certificates must be submitted by Successful Bidder at the time of.\n delivery of Goods. The seller should guarantee the rectification of goods in case of any break down during\nTroubleshooting and Maintenance Service group in INDiA for attending the after sales service. Details of",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0005",
+        "region_type": "text",
+        "bounding_box": {
+          "x1": 221,
+          "y1": 1598,
+          "x2": 1432,
+          "y2": 1664
+        },
+        "page_number": 5,
+        "contained_block_ids": [
+          "blk_0037"
+        ],
+        "reading_order_index": 5,
+        "text_content": "of Goods",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0006",
+        "region_type": "text",
+        "bounding_box": {
+          "x1": 132,
+          "y1": 804,
+          "x2": 1503,
+          "y2": 869
+        },
+        "page_number": 5,
+        "contained_block_ids": [
+          "blk_0022"
+        ],
+        "reading_order_index": 6,
+        "text_content": "1. Battery serial number list to be furnished by the seller along with the supply of the battery to the buyer..",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0007",
+        "region_type": "title",
+        "bounding_box": {
+          "x1": 126,
+          "y1": 1524,
+          "x2": 484,
+          "y2": 1557
+        },
+        "page_number": 5,
+        "contained_block_ids": [
+          "blk_0036"
+        ],
+        "reading_order_index": 7,
+        "text_content": "2. Scope of Supply.",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0008",
+        "region_type": "title",
+        "bounding_box": {
+          "x1": 127,
+          "y1": 1695,
+          "x2": 358,
+          "y2": 1722
+        },
+        "page_number": 5,
+        "contained_block_ids": [
+          "blk_0038"
+        ],
+        "reading_order_index": 8,
+        "text_content": "3. Warranty",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0009",
+        "region_type": "title",
+        "bounding_box": {
+          "x1": 97,
+          "y1": 638,
+          "x2": 1453,
+          "y2": 742
+        },
+        "page_number": 5,
+        "contained_block_ids": [
+          "blk_0019",
+          "blk_0020",
+          "blk_0021"
+        ],
+        "reading_order_index": 9,
+        "text_content": "Special terms and conditions-Version:1 effective from 19-08-2024 for\ncategory Stationary Valve Regulated Lead Acid Batteries (V2) as per IS.\n15549",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0010",
+        "region_type": "title",
+        "bounding_box": {
+          "x1": 128,
+          "y1": 1105,
+          "x2": 327,
+          "y2": 1132
+        },
+        "page_number": 5,
+        "contained_block_ids": [
+          "blk_0026",
+          "blk_0025"
+        ],
+        "reading_order_index": 10,
+        "text_content": "Generic\n1.",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0011",
+        "region_type": "title",
+        "bounding_box": {
+          "x1": 126,
+          "y1": 2018,
+          "x2": 672,
+          "y2": 2050
+        },
+        "page_number": 5,
+        "contained_block_ids": [
+          "blk_0044"
+        ],
+        "reading_order_index": 11,
+        "text_content": "4. Buyer Added Bid Specific ATC",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0012",
+        "region_type": "title",
+        "bounding_box": {
+          "x1": 101,
+          "y1": 1020,
+          "x2": 389,
+          "y2": 1047
+        },
+        "page_number": 5,
+        "contained_block_ids": [
+          "blk_0024"
+        ],
+        "reading_order_index": 12,
+        "text_content": "HIt hl&R L SeJ $Ie IF",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0013",
+        "region_type": "title",
+        "bounding_box": {
+          "x1": 134,
+          "y1": 945,
+          "x2": 1344,
+          "y2": 993
+        },
+        "page_number": 5,
+        "contained_block_ids": [
+          "blk_0023"
+        ],
+        "reading_order_index": 13,
+        "text_content": "Buyer Added Bid Specific Terms and Conditions/ha aR",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0014",
+        "region_type": "table",
+        "bounding_box": {
+          "x1": 89,
+          "y1": 153,
+          "x2": 1546,
+          "y2": 488
+        },
+        "page_number": 5,
+        "contained_block_ids": [
+          "blk_0001",
+          "blk_0002",
+          "blk_0005",
+          "blk_0003",
+          "blk_0004",
+          "blk_0006",
+          "blk_0007",
+          "blk_0008",
+          "blk_0010",
+          "blk_0009",
+          "blk_0013",
+          "blk_0012",
+          "blk_0011",
+          "blk_0014",
+          "blk_0015"
+        ],
+        "reading_order_index": 14,
+        "text_content": "Applicable/Ra art \nDocument\n3gHR sHET i.r.o.\nS.No..H.\nDescription\nTitle\nItems\n Detailed Technical\nStationary Valve Regulated Lead.\nRequirement\nAcid Batteries (V2) As Per IS\nTechnical Specification\n1\nView\n15549(240)",
+        "confidence": null,
+        "table_structure": {
+          "cell_bbox": [
+            [
+              10.28512954711914,
+              8.330143928527832,
+              197.17288208007812,
+              8.812088966369629,
+              196.160888671875,
+              146.95602416992188,
+              9.635239601135254,
+              146.40292358398438
+            ],
+            [
+              206.03515625,
+              9.882269859313965,
+              531.5252685546875,
+              10.256353378295898,
+              533.7672729492188,
+              155.10626220703125,
+              204.3229522705078,
+              154.77415466308594
+            ],
+            [
+              508.6736145019531,
+              11.46182632446289,
+              1014.8162841796875,
+              11.78123950958252,
+              1012.11865234375,
+              140.50515747070312,
+              506.5347595214844,
+              140.03895568847656
+            ],
+            [
+              982.8184204101562,
+              7.896401405334473,
+              1443.700927734375,
+              8.347723007202148,
+              1443.35693359375,
+              166.79908752441406,
+              980.0269775390625,
+              166.0374755859375
+            ],
+            [
+              5.166779041290283,
+              137.003173828125,
+              149.87933349609375,
+              139.6388702392578,
+              149.71249389648438,
+              327.1861877441406,
+              5.112884521484375,
+              326.8434143066406
+            ],
+            [
+              186.0550537109375,
+              142.8597412109375,
+              478.1041259765625,
+              145.3238525390625,
+              474.98260498046875,
+              326.5248718261719,
+              183.28228759765625,
+              326.15350341796875
+            ],
+            [
+              500.3121032714844,
+              149.51087951660156,
+              1011.9985961914062,
+              151.44476318359375,
+              1005.584716796875,
+              325.9879455566406,
+              494.16912841796875,
+              325.70684814453125
+            ],
+            [
+              1006.5448608398438,
+              148.3018798828125,
+              1447.7423095703125,
+              150.9132537841797,
+              1447.3570556640625,
+              327.0311279296875,
+              1001.3622436523438,
+              326.7359924316406
+            ]
+          ],
+          "html": "<html><body><table><tr><td>S.No.T.H.</td><td>Document Title</td><td>Description</td><td>Applicable/Ra gHT市 3H suae i.r.o. Items</td></tr><tr><td>1</td><td>Detailed Technical Requirement View</td><td>Technical Specification</td><td>Stationary Valve Regulated Lead Acid Batteries (V2) As Per IS 15549(240)</td></tr></table></body></html>"
+        }
+      },
+      {
+        "region_id": "reg_0015",
+        "region_type": "footer",
+        "bounding_box": {
+          "x1": 1534,
+          "y1": 2260,
+          "x2": 1574,
+          "y2": 2277
+        },
+        "page_number": 5,
+        "contained_block_ids": [
+          "blk_0046"
+        ],
+        "reading_order_index": 15,
+        "text_content": "5/8",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0016",
+        "region_type": "reference",
+        "bounding_box": {
+          "x1": 178,
+          "y1": 1764,
+          "x2": 1541,
+          "y2": 1975
+        },
+        "page_number": 5,
+        "contained_block_ids": [
+          "blk_0039",
+          "blk_0040",
+          "blk_0041",
+          "blk_0042",
+          "blk_0043"
+        ],
+        "reading_order_index": 16,
+        "text_content": "Warranty period of the supplied products shall be 2 years from the date of final acceptance of goods or after.\ncompletion of installation, commissioning & testing of goods (if included in the scope of supply), at\nconsignee location. OEM Warranty certificates must be submitted by Successful Bidder at the time of.\n delivery of Goods. The seller should guarantee the rectification of goods in case of any break down during\nTroubleshooting and Maintenance Service group in INDiA for attending the after sales service. Details of",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0017",
+        "region_type": "reference",
+        "bounding_box": {
+          "x1": 306,
+          "y1": 512,
+          "x2": 1519,
+          "y2": 589
+        },
+        "page_number": 5,
+        "contained_block_ids": [
+          "blk_0016",
+          "blk_0017",
+          "blk_0018"
+        ],
+        "reading_order_index": 17,
+        "text_content": "The uploaded document only contains Buyer specific Additional Scope of Work and / or Drawings for the bid items added\nwith due approval of Buyer's competent authority. Buyer has certified that these additional scope and drawings are.\n generalized and would not lead to any restrictive bidding.",
+        "confidence": null,
+        "table_structure": null
+      }
+    ],
+    "6": [
+      {
+        "region_id": "reg_0001",
+        "region_type": "text",
+        "bounding_box": {
+          "x1": 194,
+          "y1": 571,
+          "x2": 1536,
+          "y2": 1274
+        },
+        "page_number": 6,
+        "contained_block_ids": [
+          "blk_0010",
+          "blk_0011",
+          "blk_0012",
+          "blk_0013",
+          "blk_0014",
+          "blk_0015",
+          "blk_0016",
+          "blk_0017",
+          "blk_0018",
+          "blk_0019",
+          "blk_0020",
+          "blk_0021",
+          "blk_0022",
+          "blk_0023",
+          "blk_0024",
+          "blk_0025",
+          "blk_0026",
+          "blk_0027"
+        ],
+        "reading_order_index": 1,
+        "text_content": "i. In case of foreign bidder, certificate from the statutory auditor or cost auditor\nof their own office or subsidiary in India giving the percentage of local\ncontent is also acceptable. In case office or subsidiary in India does not exist\nor Indian office/subsidiary is not required to appoint statutory auditor or cost.\nauditor, certificate from practicing cost accountant or practicing chartered\naccountant giving the percentage of Iocal content is also acceptable.\nil. Along with Each Invoice: The local content certificate (issued by statutory.\nauditor on behalf of procuring company) shall be submitted along with each\ninvoice raised. However, the % of local content may vary with each invoice\nwhile maintaining the overall % of local content for the total work/purchase\nof the pro-rata local content requirement. In case, it is not satisfied\ncumulatively in the invoices raised up to that stage, the supplier shall\nindicate how the local content requirement would be met in the subsequent.\nstages.\nili. The bidder shall submit an undertaking from the authorized signatory of\nbidder having the Power of Attorney along with the bid stating the bidder\nmeets the mandatory minimum LC requirement and such undertaking shall\nbecome a part of the contract.",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0002",
+        "region_type": "text",
+        "bounding_box": {
+          "x1": 181,
+          "y1": 1382,
+          "x2": 1542,
+          "y2": 1597
+        },
+        "page_number": 6,
+        "contained_block_ids": [
+          "blk_0029",
+          "blk_0030",
+          "blk_0031",
+          "blk_0032",
+          "blk_0033"
+        ],
+        "reading_order_index": 2,
+        "text_content": "validated online through Udyog Aadhaar/URc for that product/service category. If the bidder wants to avail\nof goods. Traders are excluded from the purview of Public Procurement Policy for Micro and Small\nEnterprises. In respect of bid for Services, the bidder must be the Service provider of the offered Service.\nRelevant documentary evidence in this regard shall be uploaded along with the bid in respect of the offered.\nproduct or service.",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0003",
+        "region_type": "text",
+        "bounding_box": {
+          "x1": 178,
+          "y1": 321,
+          "x2": 1552,
+          "y2": 535
+        },
+        "page_number": 6,
+        "contained_block_ids": [
+          "blk_0003",
+          "blk_0004",
+          "blk_0005",
+          "blk_0006",
+          "blk_0007",
+          "blk_0008",
+          "blk_0009"
+        ],
+        "reading_order_index": 3,
+        "text_content": "The bid clause regarding \"Preference to Make In India products\" stands modified in this bid and shall be\ngoverned by the PPLC Policy No. FP-20013/2/2017-FP-PNG dated 17.11.2020 issued by MoP&NG as amended\nup to date. Accordingly, bidders with Local Content less than or equal to 20% will be treated as \"Non Local\nSupplier\". The prescribed LC shall be applicable on the date of Bid opening. Sanctions on the bidders for false.\n/ wrong declaration or not fulfilling the Local Content requirement shall be as per the PPLC policy. Further.\nfollowing additional provisions are added in the certification and verification of local content provision of the\nPreference to Make in India clause:",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0004",
+        "region_type": "text",
+        "bounding_box": {
+          "x1": 99,
+          "y1": 1808,
+          "x2": 1544,
+          "y2": 2023
+        },
+        "page_number": 6,
+        "contained_block_ids": [
+          "blk_0035",
+          "blk_0036",
+          "blk_0037",
+          "blk_0038",
+          "blk_0039",
+          "blk_0040",
+          "blk_0041"
+        ],
+        "reading_order_index": 4,
+        "text_content": "The additional terms and conditions have been incorporated by the Buyer after approval of the Competent\nAuthority in Buyer Organization, whereby Buyer organization is solely responsible for the impact of these clauses\non the bidding process, its outcome, and consequences thereof including any eccentricity / restriction arising in the\nbidding process due to these ATCs and due to modification of technical specifications and / or terms and conditions.\ngoverning the bid. If any clause(s) is / are incorporated by the Buyer regarding following, the bid and resultant.\ncontracts shall be treated as null and void and such bids may be cancelled by GeM at any stage of bidding process\nwithout any notice:-",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0005",
+        "region_type": "text",
+        "bounding_box": {
+          "x1": 184,
+          "y1": 270,
+          "x2": 951,
+          "y2": 295
+        },
+        "page_number": 6,
+        "contained_block_ids": [
+          "blk_0002"
+        ],
+        "reading_order_index": 5,
+        "text_content": "Purchase Preference linked with Local Content (PP-LC) Policy:",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0006",
+        "region_type": "text",
+        "bounding_box": {
+          "x1": 307,
+          "y1": 2072,
+          "x2": 1480,
+          "y2": 2144
+        },
+        "page_number": 6,
+        "contained_block_ids": [
+          "blk_0042",
+          "blk_0043"
+        ],
+        "reading_order_index": 6,
+        "text_content": "1. Definition of Class I and Class II suppliers in the bid not in line with the extant\nOrder / Office Memorandum issued by DPilT in this regard.",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0007",
+        "region_type": "title",
+        "bounding_box": {
+          "x1": 97,
+          "y1": 1711,
+          "x2": 516,
+          "y2": 1753
+        },
+        "page_number": 6,
+        "contained_block_ids": [
+          "blk_0034"
+        ],
+        "reading_order_index": 7,
+        "text_content": "Disclaimer/3rdnu",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0008",
+        "region_type": "title",
+        "bounding_box": {
+          "x1": 126,
+          "y1": 1312,
+          "x2": 716,
+          "y2": 1340
+        },
+        "page_number": 6,
+        "contained_block_ids": [
+          "blk_0028"
+        ],
+        "reading_order_index": 8,
+        "text_content": "6. Purchase Preference (Centre)",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0009",
+        "region_type": "footer",
+        "bounding_box": {
+          "x1": 1534,
+          "y1": 2260,
+          "x2": 1574,
+          "y2": 2277
+        },
+        "page_number": 6,
+        "contained_block_ids": [
+          "blk_0044"
+        ],
+        "reading_order_index": 9,
+        "text_content": "6/8",
+        "confidence": null,
+        "table_structure": null
+      }
+    ],
+    "7": [
+      {
+        "region_id": "reg_0001",
+        "region_type": "text",
+        "bounding_box": {
+          "x1": 99,
+          "y1": 1258,
+          "x2": 1544,
+          "y2": 1484
+        },
+        "page_number": 7,
+        "contained_block_ids": [
+          "blk_0027",
+          "blk_0028",
+          "blk_0029",
+          "blk_0030",
+          "blk_0031",
+          "blk_0032"
+        ],
+        "reading_order_index": 1,
+        "text_content": "Further, if any seller has any objection/grievance against these additional clauses or\notherwise on any aspect of this bid, they can raise their representation against the\nsame by using the Representation window provided in the bid details field in Seller\ndashboard after logging in as a seller within 4 days of bid publication on GeM. Buyer is.\nduty bound to reply to all such representations and would not be allowed to open bids.\nif he fails to reply to such representations.",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0002",
+        "region_type": "text",
+        "bounding_box": {
+          "x1": 93,
+          "y1": 1849,
+          "x2": 1556,
+          "y2": 2132
+        },
+        "page_number": 7,
+        "contained_block_ids": [
+          "blk_0039",
+          "blk_0040",
+          "blk_0041",
+          "blk_0042",
+          "blk_0043",
+          "blk_0044"
+        ],
+        "reading_order_index": 2,
+        "text_content": "In terms of GeM GTc clause 26 regarding Restrictions on procurement from a bidder of a country which shares a land border with India, any bidder from a country which\naccordance with the laws./d a HHlay af  5 26  gaf  aa   a  HI a a r  fas  qa q\n9RAqq a iqq  aRa  H2 af AHr H$T c<d aa GT cT c$ aft fas 3H fARcr  fs 3t a fc aaft qT3 alJ 3q\nTe fas 3t aTdl H8TH grfgcRT $ qTy qsAqd atIfas # HTJT d HHy fast at 3Hc 3guId ahdI 3\\JT 3i a\\$ aft JIdd\nq|qu fhy 3I a 3HcT 34Idq a n{d q 3qqq aT achIa HHIH ch{d 3iR aIq h 3IqHT 3TJ] aT cIaT T{q$ cT 3TGTT\nI lel?",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0003",
+        "region_type": "title",
+        "bounding_box": {
+          "x1": 219,
+          "y1": 1580,
+          "x2": 1431,
+          "y2": 1732
+        },
+        "page_number": 7,
+        "contained_block_ids": [
+          "blk_0033",
+          "blk_0034",
+          "blk_0035",
+          "blk_0036",
+          "blk_0037"
+        ],
+        "reading_order_index": 3,
+        "text_content": "All GeM Sellers / Service Providers are mandated to ensure compliance with all the applicable Iaws /\nacts / rules including but not limited to all Labour Laws such as The Minimum Wages Act, 1948, The\nPayment of Wages Act, 1936, The Payment of Bonus Act, 1965, The Equal Remuneration Act, 1976,\nThe Payment of Gratuity Act, 1972 etc. Any non-compliance will be treated as breach of contract and.\nBuyer may take suitable actions as per GeM Contract.",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0004",
+        "region_type": "footer",
+        "bounding_box": {
+          "x1": 1535,
+          "y1": 2260,
+          "x2": 1574,
+          "y2": 2277
+        },
+        "page_number": 7,
+        "contained_block_ids": [
+          "blk_0045"
+        ],
+        "reading_order_index": 4,
+        "text_content": "7/8",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0005",
+        "region_type": "reference",
+        "bounding_box": {
+          "x1": 120,
+          "y1": 163,
+          "x2": 1552,
+          "y2": 1208
+        },
+        "page_number": 7,
+        "contained_block_ids": [
+          "blk_0001",
+          "blk_0002",
+          "blk_0003",
+          "blk_0004",
+          "blk_0005",
+          "blk_0007",
+          "blk_0006",
+          "blk_0009",
+          "blk_0008",
+          "blk_0010",
+          "blk_0011",
+          "blk_0012",
+          "blk_0013",
+          "blk_0014",
+          "blk_0015",
+          "blk_0016",
+          "blk_0017",
+          "blk_0018",
+          "blk_0019",
+          "blk_0020",
+          "blk_0021",
+          "blk_0022",
+          "blk_0023",
+          "blk_0024",
+          "blk_0025",
+          "blk_0026"
+        ],
+        "reading_order_index": 5,
+        "text_content": "2. Seeking EmD submission from bidder(s), including via Additional Terms &\nConditions, in contravention to exemption provided to such sellers under GeM\nGtc.\n Publishing Custom / BOQ bids for items for which regular GeM categories are\navailable without any Category item bunched with it.\nCreating BoQ bid for single item.\n4.\n Mentioning specific Brand or Make or Model or Manufacturer or Dealer name.\n5.\n Mandating submission of documents in physical form as a pre-requisite to qualify\nbidders.\n7. Floating / creation of work contracts as Custom Bids in Services\n8. Seeking sample with bid or approval of samples during bid evaluation process\n(However, in bids for attached categories, trials are allowed as per approved\nprocurement policy of the buyer nodal Ministries)\n9. Mandating foreign / international certifications even in case of existence of Indian\nStandards without specifying equivalent Indian Certification / standards.\n10. Seeking experience from specific organization / department / institute only or\nfrom foreign / export experience.\n11. Creating bid for items from irrelevant categories.\n12. Incorporating any clause against the MsME policy and Preference to Make in India\nPolicy.\n13. Reference of conditions published on any external site or reference to external\ndocuments/clauses.\n14. Asking for any Tender fee / Bid Participation fee / Auction fee in case of Bids /\nForward Auction, as the case may be.",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0006",
+        "region_type": "reference",
+        "bounding_box": {
+          "x1": 109,
+          "y1": 1580,
+          "x2": 1538,
+          "y2": 1737
+        },
+        "page_number": 7,
+        "contained_block_ids": [
+          "blk_0033",
+          "blk_0034",
+          "blk_0035",
+          "blk_0036",
+          "blk_0037"
+        ],
+        "reading_order_index": 6,
+        "text_content": "All GeM Sellers / Service Providers are mandated to ensure compliance with all the applicable Iaws /\nacts / rules including but not limited to all Labour Laws such as The Minimum Wages Act, 1948, The\nPayment of Wages Act, 1936, The Payment of Bonus Act, 1965, The Equal Remuneration Act, 1976,\nThe Payment of Gratuity Act, 1972 etc. Any non-compliance will be treated as breach of contract and.\nBuyer may take suitable actions as per GeM Contract.",
+        "confidence": null,
+        "table_structure": null
+      }
+    ],
+    "8": [
+      {
+        "region_id": "reg_0001",
+        "region_type": "header",
+        "bounding_box": {
+          "x1": 707,
+          "y1": 166,
+          "x2": 1010,
+          "y2": 199
+        },
+        "page_number": 8,
+        "contained_block_ids": [
+          "blk_0001"
+        ],
+        "reading_order_index": 1,
+        "text_content": "---Thank You/grua--",
+        "confidence": null,
+        "table_structure": null
+      },
+      {
+        "region_id": "reg_0002",
+        "region_type": "footer",
+        "bounding_box": {
+          "x1": 1534,
+          "y1": 2260,
+          "x2": 1574,
+          "y2": 2277
+        },
+        "page_number": 8,
+        "contained_block_ids": [
+          "blk_0002"
+        ],
+        "reading_order_index": 2,
+        "text_content": "8/8",
+        "confidence": null,
+        "table_structure": null
+      }
+    ]
+  }
+}

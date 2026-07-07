@@ -1,0 +1,944 @@
+{
+  "job_id": "ca7844ef-c2c3-4206-b125-b14de5448865",
+  "page_number": 2,
+  "image_path": "/app/backend/app/storage/jobs/ca7844ef-c2c3-4206-b125-b14de5448865/pages/page_0002.png",
+  "image_width_px": 1653,
+  "image_height_px": 2339,
+  "processing_time_seconds": 9.845319509506226,
+  "text_blocks": [
+    {
+      "block_id": "blk_0001",
+      "text": "Bid Details/fas faaru",
+      "confidence": 0.9319,
+      "bounding_box": {
+        "x1": 684,
+        "y1": 175,
+        "x2": 972,
+        "y2": 207
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0002",
+      "text": "Type of Bid/s ar yqR",
+      "confidence": 0.866,
+      "bounding_box": {
+        "x1": 120,
+        "y1": 236,
+        "x2": 436,
+        "y2": 273
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0003",
+      "text": "Two Packet Bid",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 241,
+        "x2": 962,
+        "y2": 273
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0004",
+      "text": "Time allowed for Technical Clarifications",
+      "confidence": 0.9994,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 300,
+        "x2": 701,
+        "y2": 331
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0005",
+      "text": "aRIa aqdT FqgIqq0r %g 3gHd HH4",
+      "confidence": 0.5481,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 378,
+        "x2": 588,
+        "y2": 409
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0006",
+      "text": "Inspection Required (By Empanelled.",
+      "confidence": 0.9826,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 439,
+        "x2": 640,
+        "y2": 470
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0007",
+      "text": "Inspection Authority I Agencies pre-.",
+      "confidence": 0.9823,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 470,
+        "x2": 637,
+        "y2": 502
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0008",
+      "text": "No",
+      "confidence": 0.9851,
+      "bounding_box": {
+        "x1": 756,
+        "y1": 464,
+        "x2": 806,
+        "y2": 503
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0009",
+      "text": "registered with GeM)",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 502,
+        "x2": 428,
+        "y2": 534
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0010",
+      "text": "Estimated Bid Value/3gaIfaa fas ay",
+      "confidence": 0.8729,
+      "bounding_box": {
+        "x1": 120,
+        "y1": 553,
+        "x2": 635,
+        "y2": 592
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0011",
+      "text": "3149760",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 556,
+        "x2": 883,
+        "y2": 590
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0012",
+      "text": "Evaluation Method/edih ygl",
+      "confidence": 0.8549,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 624,
+        "x2": 561,
+        "y2": 655
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0013",
+      "text": "Total value wise evaluation",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 624,
+        "x2": 1112,
+        "y2": 655
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0014",
+      "text": "EMD Detail/$ast faaqur",
+      "confidence": 0.8804,
+      "bounding_box": {
+        "x1": 108,
+        "y1": 716,
+        "x2": 428,
+        "y2": 753
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0015",
+      "text": "Advisory Bank/gsdr$sRt dc",
+      "confidence": 0.8204,
+      "bounding_box": {
+        "x1": 120,
+        "y1": 809,
+        "x2": 470,
+        "y2": 846
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0016",
+      "text": "HDFC Bank",
+      "confidence": 0.9993,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 806,
+        "x2": 915,
+        "y2": 846
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0017",
+      "text": "EMD Amount/$vast rfRT",
+      "confidence": 0.8859,
+      "bounding_box": {
+        "x1": 125,
+        "y1": 882,
+        "x2": 428,
+        "y2": 914
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0018",
+      "text": "63000",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 765,
+        "y1": 880,
+        "x2": 851,
+        "y2": 914
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0019",
+      "text": "ePBG Detail/$qdsit fqRu",
+      "confidence": 0.8518,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1004,
+        "x2": 458,
+        "y2": 1035
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0020",
+      "text": "Advisory Bank/sdl$sR dc",
+      "confidence": 0.8807,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 1096,
+        "x2": 470,
+        "y2": 1128
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0021",
+      "text": "HDFC Bank",
+      "confidence": 0.9998,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 1094,
+        "x2": 913,
+        "y2": 1128
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0022",
+      "text": "ePBG Percentage(%)/$udsi afaR (%)",
+      "confidence": 0.865,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 1165,
+        "x2": 627,
+        "y2": 1199
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0023",
+      "text": "5.00",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 757,
+        "y1": 1159,
+        "x2": 832,
+        "y2": 1200
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0024",
+      "text": "Duration of ePBG required (Months)/$udsit a",
+      "confidence": 0.936,
+      "bounding_box": {
+        "x1": 125,
+        "y1": 1233,
+        "x2": 708,
+        "y2": 1265
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0025",
+      "text": "26",
+      "confidence": 0.9998,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 1252,
+        "x2": 804,
+        "y2": 1284
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0026",
+      "text": "(PG) BJbE PJhE",
+      "confidence": 0.5444,
+      "bounding_box": {
+        "x1": 125,
+        "y1": 1277,
+        "x2": 374,
+        "y2": 1308
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0027",
+      "text": "(a). EMD EXEMPTION: The bidder seeking EMD exemption, must submit the valid supporting document for the",
+      "confidence": 0.9927,
+      "bounding_box": {
+        "x1": 116,
+        "y1": 1423,
+        "x2": 1493,
+        "y2": 1447
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0028",
+      "text": "relevant category as per GeM GTC with the bid. Under MSE category, only manufacturers for goods and Service",
+      "confidence": 0.9925,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1452,
+        "x2": 1515,
+        "y2": 1484
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0029",
+      "text": "Providers for Services are eligible for exemption from EmD. Traders are excluded from the purview of this",
+      "confidence": 0.9918,
+      "bounding_box": {
+        "x1": 108,
+        "y1": 1479,
+        "x2": 1439,
+        "y2": 1513
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0030",
+      "text": "Policy./3H cT RIaf h 3gHR $vHST c h $cgch fast ct Hqfa hCJT g fac fas h HT2T ?g HAfa 3FdIdgr 9Fgd cn<$1",
+      "confidence": 0.6142,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1513,
+        "x2": 1478,
+        "y2": 1545
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0031",
+      "text": "QHVH$ ghCJRT $ 3iaia hda aFg3if  fc fafafaT a2T AT3f $ fav AqT acIaI $vHsT  gc $ qT3$1 cyIqrRqf at $H aA ",
+      "confidence": 0.5918,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1545,
+        "x2": 1523,
+        "y2": 1576
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0032",
+      "text": "I3 Ihle Ib}Sb H \\h2",
+      "confidence": 0.5027,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1579,
+        "x2": 371,
+        "y2": 1603
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0033",
+      "text": "(b). EmD & Performance security should be in favour of Beneficiary, wherever it is applicable./$vast 3it iuraa",
+      "confidence": 0.9702,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1635,
+        "x2": 1483,
+        "y2": 1671
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0034",
+      "text": "IdJIl lPl e Hh 4 J?eI'$ lPl IeIR 3h ! 'ltJI PDIP",
+      "confidence": 0.5527,
+      "bounding_box": {
+        "x1": 106,
+        "y1": 1666,
+        "x2": 777,
+        "y2": 1703
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0035",
+      "text": "Beneficiary/araraif :",
+      "confidence": 0.887,
+      "bounding_box": {
+        "x1": 108,
+        "y1": 1727,
+        "x2": 381,
+        "y2": 1764
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0036",
+      "text": "International Centre For Automotive Technology",
+      "confidence": 0.9987,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1766,
+        "x2": 721,
+        "y2": 1803
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0037",
+      "text": "Unit - National Automotive Board, Plot No. 26, Sector - 3, Near HsliDc Office, IMT Manesar, Gurugram - 122051",
+      "confidence": 0.9851,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1798,
+        "x2": 1503,
+        "y2": 1830
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0038",
+      "text": "(International Centre For Automotive Technology)",
+      "confidence": 0.9943,
+      "bounding_box": {
+        "x1": 108,
+        "y1": 1830,
+        "x2": 738,
+        "y2": 1866
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0039",
+      "text": "1. If the bidder is a Micro or Small Enterprise as per latest definitions under MsME rules, the bidder shall be",
+      "confidence": 0.9872,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1981,
+        "x2": 1459,
+        "y2": 2013
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0040",
+      "text": "\"OEm Average Turnover\" criteria also subject to meeting of quality and technical specifications. In case any",
+      "confidence": 0.9864,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 2071,
+        "x2": 1466,
+        "y2": 2108
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0041",
+      "text": "for exemption must be uploaded for evaluation by the buyer.",
+      "confidence": 0.9845,
+      "bounding_box": {
+        "x1": 108,
+        "y1": 2137,
+        "x2": 881,
+        "y2": 2168
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0042",
+      "text": "2/8",
+      "confidence": 0.9635,
+      "bounding_box": {
+        "x1": 1530,
+        "y1": 2256,
+        "x2": 1579,
+        "y2": 2283
+      },
+      "language_hint": "en"
+    }
+  ],
+  "layout_regions": [
+    {
+      "region_id": "reg_0001",
+      "region_type": "text",
+      "bounding_box": {
+        "x1": 107,
+        "y1": 1419,
+        "x2": 1517,
+        "y2": 1868
+      },
+      "contained_block_ids": [
+        "blk_0027",
+        "blk_0028",
+        "blk_0029",
+        "blk_0030",
+        "blk_0031",
+        "blk_0032",
+        "blk_0033",
+        "blk_0034",
+        "blk_0035",
+        "blk_0036",
+        "blk_0037",
+        "blk_0038"
+      ],
+      "table_structure": null,
+      "reading_order_index": 1,
+      "text_content": "(a). EMD EXEMPTION: The bidder seeking EMD exemption, must submit the valid supporting document for the\nrelevant category as per GeM GTC with the bid. Under MSE category, only manufacturers for goods and Service\nProviders for Services are eligible for exemption from EmD. Traders are excluded from the purview of this\nPolicy./3H cT RIaf h 3gHR $vHST c h $cgch fast ct Hqfa hCJT g fac fas h HT2T ?g HAfa 3FdIdgr 9Fgd cn<$1\nQHVH$ ghCJRT $ 3iaia hda aFg3if  fc fafafaT a2T AT3f $ fav AqT acIaI $vHsT  gc $ qT3$1 cyIqrRqf at $H aA \nI3 Ihle Ib}Sb H \\h2\n(b). EmD & Performance security should be in favour of Beneficiary, wherever it is applicable./$vast 3it iuraa\nIdJIl lPl e Hh 4 J?eI'$ lPl IeIR 3h ! 'ltJI PDIP\nBeneficiary/araraif :\nInternational Centre For Automotive Technology\nUnit - National Automotive Board, Plot No. 26, Sector - 3, Near HsliDc Office, IMT Manesar, Gurugram - 122051\n(International Centre For Automotive Technology)",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0002",
+      "region_type": "text",
+      "bounding_box": {
+        "x1": 104,
+        "y1": 1980,
+        "x2": 1532,
+        "y2": 2167
+      },
+      "contained_block_ids": [
+        "blk_0039",
+        "blk_0040",
+        "blk_0041"
+      ],
+      "table_structure": null,
+      "reading_order_index": 2,
+      "text_content": "1. If the bidder is a Micro or Small Enterprise as per latest definitions under MsME rules, the bidder shall be\n\"OEm Average Turnover\" criteria also subject to meeting of quality and technical specifications. In case any\nfor exemption must be uploaded for evaluation by the buyer.",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0003",
+      "region_type": "title",
+      "bounding_box": {
+        "x1": 106,
+        "y1": 1006,
+        "x2": 461,
+        "y2": 1032
+      },
+      "contained_block_ids": [
+        "blk_0019"
+      ],
+      "table_structure": null,
+      "reading_order_index": 3,
+      "text_content": "ePBG Detail/$qdsit fqRu",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0004",
+      "region_type": "table",
+      "bounding_box": {
+        "x1": 101,
+        "y1": 1067,
+        "x2": 1561,
+        "y2": 1337
+      },
+      "contained_block_ids": [
+        "blk_0021",
+        "blk_0020",
+        "blk_0023",
+        "blk_0022",
+        "blk_0024",
+        "blk_0025",
+        "blk_0026"
+      ],
+      "table_structure": {
+        "cell_bbox": [
+          [
+            27.935361862182617,
+            11.456786155700684,
+            611.9532470703125,
+            12.384754180908203,
+            598.7286376953125,
+            78.77854919433594,
+            25.525562286376953,
+            76.15174865722656
+          ],
+          [
+            665.7180786132812,
+            10.256070137023926,
+            1226.60498046875,
+            10.771924018859863,
+            1209.3792724609375,
+            69.16251373291016,
+            631.237060546875,
+            67.72258758544922
+          ],
+          [
+            32.16967010498047,
+            86.03119659423828,
+            648.7401123046875,
+            90.56440734863281,
+            630.6426391601562,
+            139.9220428466797,
+            29.82496452331543,
+            135.55442810058594
+          ],
+          [
+            700.3615112304688,
+            82.4451904296875,
+            1228.2440185546875,
+            85.6650390625,
+            1202.09130859375,
+            134.5702667236328,
+            648.9231567382812,
+            131.5302276611328
+          ],
+          [
+            20.310028076171875,
+            156.76388549804688,
+            654.3555908203125,
+            160.36270141601562,
+            639.5260620117188,
+            251.90245056152344,
+            19.209575653076172,
+            250.97088623046875
+          ],
+          [
+            683.19189453125,
+            154.05484008789062,
+            1401.077880859375,
+            156.3533935546875,
+            1395.5272216796875,
+            245.384521484375,
+            649.0903930664062,
+            244.5143280029297
+          ]
+        ],
+        "html": "<html><body><table><tr><td>Advisory Bank/sag 5</td><td>HDFC Bank</td></tr><tr><td>ePBG Percentage(%)/$ut aR (%)</td><td>5.00</td></tr><tr><td>Duration of ePBG required (Months)/udlGtt f fa a ().</td><td>26</td></tr></table></body></html>"
+      },
+      "reading_order_index": 4,
+      "text_content": "HDFC Bank\nAdvisory Bank/sdl$sR dc\n5.00\nePBG Percentage(%)/$udsi afaR (%)\nDuration of ePBG required (Months)/$udsit a\n26\n(PG) BJbE PJhE",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0005",
+      "region_type": "table",
+      "bounding_box": {
+        "x1": 89,
+        "y1": 200,
+        "x2": 1570,
+        "y2": 1215
+      },
+      "contained_block_ids": [
+        "blk_0002",
+        "blk_0003",
+        "blk_0004",
+        "blk_0005",
+        "blk_0006",
+        "blk_0008",
+        "blk_0007",
+        "blk_0009",
+        "blk_0010",
+        "blk_0011",
+        "blk_0012",
+        "blk_0013",
+        "blk_0014",
+        "blk_0016",
+        "blk_0015",
+        "blk_0018",
+        "blk_0017",
+        "blk_0019",
+        "blk_0021",
+        "blk_0020",
+        "blk_0023",
+        "blk_0022"
+      ],
+      "table_structure": {
+        "cell_bbox": [
+          [
+            29.70052719116211,
+            7.6060285568237305,
+            656.7157592773438,
+            7.934685230255127,
+            652.4490966796875,
+            94.42903900146484,
+            28.823341369628906,
+            92.81584930419922
+          ],
+          [
+            637.78759765625,
+            8.911314010620117,
+            1383.74560546875,
+            9.017269134521484,
+            1380.9759521484375,
+            76.58353424072266,
+            628.9056396484375,
+            77.35736083984375
+          ],
+          [
+            41.97478103637695,
+            81.33539581298828,
+            639.4469604492188,
+            80.93472290039062,
+            633.9899291992188,
+            197.01393127441406,
+            41.18085479736328,
+            197.286376953125
+          ],
+          [
+            631.1651000976562,
+            74.96785736083984,
+            1462.5130615234375,
+            76.33646392822266,
+            1461.7349853515625,
+            207.17137145996094,
+            620.131591796875,
+            204.77671813964844
+          ],
+          [
+            18.818422317504883,
+            211.58267211914062,
+            629.5249633789062,
+            213.5979766845703,
+            625.1904296875,
+            333.44281005859375,
+            18.452417373657227,
+            330.484130859375
+          ],
+          [
+            631.7230834960938,
+            211.54010009765625,
+            1466.5892333984375,
+            216.42140197753906,
+            1466.242919921875,
+            324.4599304199219,
+            625.6799926757812,
+            318.83404541015625
+          ],
+          [
+            18.280593872070312,
+            316.2162170410156,
+            609.470458984375,
+            321.28558349609375,
+            604.702880859375,
+            404.1715087890625,
+            17.867708206176758,
+            399.0234680175781
+          ],
+          [
+            638.1058959960938,
+            310.82073974609375,
+            1461.3465576171875,
+            317.6791687011719,
+            1461.115478515625,
+            395.9107666015625,
+            635.6648559570312,
+            389.7213439941406
+          ],
+          [
+            27.18295669555664,
+            391.6756896972656,
+            599.2512817382812,
+            397.74859619140625,
+            591.9837646484375,
+            476.3792724609375,
+            26.39260482788086,
+            471.056640625
+          ],
+          [
+            625.1766967773438,
+            381.0392150878906,
+            1414.5728759765625,
+            387.9671630859375,
+            1413.201171875,
+            457.259033203125,
+            619.0424194335938,
+            451.5967102050781
+          ],
+          [
+            18.10453987121582,
+            445.0729064941406,
+            809.0426025390625,
+            453.0769348144531,
+            797.8843383789062,
+            555.1358032226562,
+            17.473604202270508,
+            547.8953857421875
+          ],
+          [
+            18.3272705078125,
+            577.8793334960938,
+            578.75390625,
+            585.0477905273438,
+            568.8875122070312,
+            662.5584106445312,
+            17.638242721557617,
+            657.1409912109375
+          ],
+          [
+            616.8016967773438,
+            574.2993774414062,
+            1452.1524658203125,
+            581.940673828125,
+            1451.7513427734375,
+            672.5422973632812,
+            613.48046875,
+            667.217529296875
+          ],
+          [
+            40.84159469604492,
+            659.1032104492188,
+            621.221435546875,
+            663.909423828125,
+            618.0768432617188,
+            739.7957763671875,
+            40.22580337524414,
+            735.626953125
+          ],
+          [
+            640.0972900390625,
+            654.6992797851562,
+            1448.000732421875,
+            658.6231079101562,
+            1447.3009033203125,
+            734.9852905273438,
+            636.3660888671875,
+            732.55419921875
+          ],
+          [
+            19.381742477416992,
+            734.0919189453125,
+            1452.881103515625,
+            744.3836669921875,
+            1452.2529296875,
+            862.625732421875,
+            18.919260025024414,
+            856.0208740234375
+          ],
+          [
+            37.39222717285156,
+            893.6853637695312,
+            608.9800415039062,
+            897.1582641601562,
+            603.3857421875,
+            976.6409912109375,
+            36.685977935791016,
+            975.3201293945312
+          ],
+          [
+            609.5938720703125,
+            886.7764282226562,
+            1396.617431640625,
+            886.7496337890625,
+            1395.503662109375,
+            995.3095703125,
+            602.2537231445312,
+            995.3276977539062
+          ],
+          [
+            40.75798416137695,
+            958.1103515625,
+            651.313720703125,
+            959.4644165039062,
+            650.2578125,
+            1012.568359375,
+            40.61609649658203,
+            1012.4530029296875
+          ],
+          [
+            638.568603515625,
+            957.3067626953125,
+            1456.7083740234375,
+            957.2620239257812,
+            1456.10888671875,
+            1012.350830078125,
+            633.3995971679688,
+            1012.3178100585938
+          ]
+        ],
+        "html": "<html><body><table><tbody><tr><td>Type of Bid/s  T</td><td>Two Packet Bid</td></tr><tr><td>Time allowed for Technical Clarifications during technical evaluation/f Hi    </td><td>5 5 Days</td></tr><tr><td>Inspection Required (By Empanelled Inspection Authority / Agencies pre- registered with GeM)</td><td>No</td></tr><tr><td>Estimated Bid Value/3gHa  </td><td>3149760</td></tr><tr><td>Evaluation Method/ic </td><td>Total value wise evaluation</td></tr><tr><td colspan=\"2\">EMD Detail/asfaaRu</td></tr><tr><td>Advisory Bank/sG </td><td>HDFC Bank</td></tr><tr><td>EMD Amount/H TfT</td><td>63000</td></tr><tr><td colspan=\"2\">ePBG Detail/$uft faaQT</td></tr><tr><td>Advisory Bank/sgf </td><td>HDFC Bank</td></tr><tr><td>ePBG Percentage(%)/udft aR (%)</td><td>5.00</td></tr></tbody></table></body></html>"
+      },
+      "reading_order_index": 5,
+      "text_content": "Type of Bid/s ar yqR\nTwo Packet Bid\nTime allowed for Technical Clarifications\naRIa aqdT FqgIqq0r %g 3gHd HH4\nInspection Required (By Empanelled.\nNo\nInspection Authority I Agencies pre-.\nregistered with GeM)\nEstimated Bid Value/3gaIfaa fas ay\n3149760\nEvaluation Method/edih ygl\nTotal value wise evaluation\nEMD Detail/$ast faaqur\nHDFC Bank\nAdvisory Bank/gsdr$sRt dc\n63000\nEMD Amount/$vast rfRT\nePBG Detail/$qdsit fqRu\nHDFC Bank\nAdvisory Bank/sdl$sR dc\n5.00\nePBG Percentage(%)/$udsi afaR (%)",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0006",
+      "region_type": "table_caption",
+      "bounding_box": {
+        "x1": 686,
+        "y1": 178,
+        "x2": 966,
+        "y2": 202
+      },
+      "contained_block_ids": [
+        "blk_0001"
+      ],
+      "table_structure": null,
+      "reading_order_index": 6,
+      "text_content": "Bid Details/fas faaru",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0007",
+      "region_type": "footer",
+      "bounding_box": {
+        "x1": 1534,
+        "y1": 2260,
+        "x2": 1574,
+        "y2": 2277
+      },
+      "contained_block_ids": [
+        "blk_0042"
+      ],
+      "table_structure": null,
+      "reading_order_index": 7,
+      "text_content": "2/8",
+      "confidence": null
+    }
+  ],
+  "warnings": []
+}

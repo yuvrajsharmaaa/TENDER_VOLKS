@@ -63,6 +63,7 @@ async def lifespan(app: FastAPI):
         from backend.app.db.session import engine, Base
         from backend.app.models.tender_project import TenderProject
         from backend.app.models.document import Document
+        from backend.app.models.tender_information import TenderInformation
         Base.metadata.create_all(bind=engine)
         logger.info("SQLAlchemy database tables initialized")
     except Exception as e:

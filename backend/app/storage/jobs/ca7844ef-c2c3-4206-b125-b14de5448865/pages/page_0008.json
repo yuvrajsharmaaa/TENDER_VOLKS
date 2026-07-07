@@ -1,0 +1,71 @@
+{
+  "job_id": "ca7844ef-c2c3-4206-b125-b14de5448865",
+  "page_number": 8,
+  "image_path": "/app/backend/app/storage/jobs/ca7844ef-c2c3-4206-b125-b14de5448865/pages/page_0008.png",
+  "image_width_px": 1653,
+  "image_height_px": 2339,
+  "processing_time_seconds": 0.5526809692382812,
+  "text_blocks": [
+    {
+      "block_id": "blk_0001",
+      "text": "---Thank You/grua--",
+      "confidence": 0.8661,
+      "bounding_box": {
+        "x1": 612,
+        "y1": 161,
+        "x2": 1021,
+        "y2": 202
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0002",
+      "text": "8/8",
+      "confidence": 0.9932,
+      "bounding_box": {
+        "x1": 1535,
+        "y1": 2256,
+        "x2": 1579,
+        "y2": 2283
+      },
+      "language_hint": "en"
+    }
+  ],
+  "layout_regions": [
+    {
+      "region_id": "reg_0001",
+      "region_type": "header",
+      "bounding_box": {
+        "x1": 707,
+        "y1": 166,
+        "x2": 1010,
+        "y2": 199
+      },
+      "contained_block_ids": [
+        "blk_0001"
+      ],
+      "table_structure": null,
+      "reading_order_index": 1,
+      "text_content": "---Thank You/grua--",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0002",
+      "region_type": "footer",
+      "bounding_box": {
+        "x1": 1534,
+        "y1": 2260,
+        "x2": 1574,
+        "y2": 2277
+      },
+      "contained_block_ids": [
+        "blk_0002"
+      ],
+      "table_structure": null,
+      "reading_order_index": 2,
+      "text_content": "8/8",
+      "confidence": null
+    }
+  ],
+  "warnings": []
+}

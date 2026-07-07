@@ -9,31 +9,46 @@ router = APIRouter()
 
 @router.get("/api/jobs")
 async def list_jobs():
-    jobs_dir = STORAGE_ROOT / "jobs"
-    if not jobs_dir.exists():
-        return []
-        
+    from backend.app.repositories.job_store import get_all_jobs
+    from backend.app.core.constants import PROJECT_ROOT
+    db_jobs = get_all_jobs()
+    
     jobs = []
-    for entry in jobs_dir.iterdir():
-        if entry.is_dir():
-            result_file = entry / "ocr_result.json"
-            if result_file.exists():
+    for job in db_jobs:
+        result_path = job.get("result_path")
+        page_count = job.get("page_count") or 0
+        total_processing_time = 0.0
+        total_text_blocks = 0
+        total_layout_regions = 0
+        
+        if result_path:
+            p = Path(result_path)
+            if not p.exists() and "backend/app/" in result_path:
+                relative_part = result_path.split("backend/app/", 1)[1]
+                p = PROJECT_ROOT / relative_part
+                
+            if p.exists():
                 try:
-                    with open(result_file, "r", encoding="utf-8") as f:
+                    with open(p, "r", encoding="utf-8") as f:
                         data = json.load(f)
-                    jobs.append({
-                        "job_id": entry.name,
-                        "original_filename": data.get("original_filename", "unknown"),
-                        "status": data.get("status", "completed"),
-                        "page_count": data.get("page_count", 0),
-                        "total_processing_time_seconds": data.get("total_processing_time_seconds", 0),
-                        "total_text_blocks": data.get("summary", {}).get("total_text_blocks", 0),
-                        "total_layout_regions": data.get("summary", {}).get("total_layout_regions", 0)
-                    })
-                except Exception as e:
-                    # Skip malformed JSON files
+                    page_count = data.get("page_count", page_count)
+                    total_processing_time = data.get("total_processing_time_seconds", 0.0)
+                    total_text_blocks = data.get("summary", {}).get("total_text_blocks", 0)
+                    total_layout_regions = data.get("summary", {}).get("total_layout_regions", 0)
+                except Exception:
                     pass
+                    
+        jobs.append({
+            "job_id": job["job_id"],
+            "original_filename": job["original_filename"],
+            "status": job["status"],
+            "page_count": page_count,
+            "total_processing_time_seconds": total_processing_time,
+            "total_text_blocks": total_text_blocks,
+            "total_layout_regions": total_layout_regions
+        })
     return jobs
+
 
 @router.get("/visualizer")
 @router.get("/")

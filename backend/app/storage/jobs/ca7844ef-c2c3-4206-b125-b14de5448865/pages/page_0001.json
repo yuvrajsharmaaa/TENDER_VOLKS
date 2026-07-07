@@ -1,0 +1,1186 @@
+{
+  "job_id": "ca7844ef-c2c3-4206-b125-b14de5448865",
+  "page_number": 1,
+  "image_path": "/app/backend/app/storage/jobs/ca7844ef-c2c3-4206-b125-b14de5448865/pages/page_0001.png",
+  "image_width_px": 1653,
+  "image_height_px": 2339,
+  "processing_time_seconds": 9.991788625717163,
+  "text_blocks": [
+    {
+      "block_id": "blk_0001",
+      "text": "Bid Number/aldt aHia (fas ycyr):",
+      "confidence": 0.8061,
+      "bounding_box": {
+        "x1": 1092,
+        "y1": 187,
+        "x2": 1528,
+        "y2": 227
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0002",
+      "text": "GeM",
+      "confidence": 0.9948,
+      "bounding_box": {
+        "x1": 273,
+        "y1": 205,
+        "x2": 411,
+        "y2": 256
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0003",
+      "text": "GEM/2025/B/6147291",
+      "confidence": 0.9913,
+      "bounding_box": {
+        "x1": 1250,
+        "y1": 231,
+        "x2": 1530,
+        "y2": 263
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0004",
+      "text": "Government",
+      "confidence": 0.9896,
+      "bounding_box": {
+        "x1": 273,
+        "y1": 256,
+        "x2": 411,
+        "y2": 280
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0005",
+      "text": "Azadi Ka",
+      "confidence": 0.9566,
+      "bounding_box": {
+        "x1": 462,
+        "y1": 251,
+        "x2": 586,
+        "y2": 280
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0006",
+      "text": "Amrit Mahotsav",
+      "confidence": 0.9961,
+      "bounding_box": {
+        "x1": 445,
+        "y1": 268,
+        "x2": 674,
+        "y2": 307
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0007",
+      "text": "Dated/faic : 17-04-2025",
+      "confidence": 0.9723,
+      "bounding_box": {
+        "x1": 1207,
+        "y1": 263,
+        "x2": 1530,
+        "y2": 305
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0008",
+      "text": "e Marketplace",
+      "confidence": 0.9602,
+      "bounding_box": {
+        "x1": 261,
+        "y1": 278,
+        "x2": 421,
+        "y2": 307
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0009",
+      "text": "Bid Document/ fs atdld",
+      "confidence": 0.9238,
+      "bounding_box": {
+        "x1": 632,
+        "y1": 375,
+        "x2": 1021,
+        "y2": 407
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0010",
+      "text": "Bid Details/fas faaqur",
+      "confidence": 0.9152,
+      "bounding_box": {
+        "x1": 681,
+        "y1": 482,
+        "x2": 969,
+        "y2": 514
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0011",
+      "text": "Bid End Date/Time/is ag d  arg/Hay",
+      "confidence": 0.8764,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 551,
+        "x2": 706,
+        "y2": 575
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0012",
+      "text": " 08-05-2025 16:00:00",
+      "confidence": 0.9819,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 548,
+        "x2": 1036,
+        "y2": 580
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0013",
+      "text": "Bid Opening Date/Time/fas gd T",
+      "confidence": 0.9247,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 614,
+        "x2": 608,
+        "y2": 646
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0014",
+      "text": "08-05-2025 16:30:00",
+      "confidence": 0.9996,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 633,
+        "x2": 1036,
+        "y2": 665
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0015",
+      "text": "hHH/DP",
+      "confidence": 0.5646,
+      "bounding_box": {
+        "x1": 115,
+        "y1": 653,
+        "x2": 264,
+        "y2": 690
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0016",
+      "text": "Bid Offer Validity (From End Date)/fas trT",
+      "confidence": 0.9457,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 721,
+        "x2": 740,
+        "y2": 753
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0017",
+      "text": "180 (Days)",
+      "confidence": 0.9994,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 738,
+        "x2": 908,
+        "y2": 778
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0018",
+      "text": "(H D(P Iy F 2p) JPBR",
+      "confidence": 0.5872,
+      "bounding_box": {
+        "x1": 116,
+        "y1": 760,
+        "x2": 440,
+        "y2": 797
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0019",
+      "text": "Ministry/State Name/aldR/y  aI",
+      "confidence": 0.9018,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 828,
+        "x2": 659,
+        "y2": 860
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0020",
+      "text": " Ministry Of Heavy Industries And Public Enterprises",
+      "confidence": 0.9853,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 828,
+        "x2": 1412,
+        "y2": 863
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0021",
+      "text": "Department Name/faaa ar aI",
+      "confidence": 0.8525,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 894,
+        "x2": 556,
+        "y2": 926
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0022",
+      "text": "Department Of Heavy Industry",
+      "confidence": 0.9998,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 892,
+        "x2": 1154,
+        "y2": 928
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0023",
+      "text": "Organisation Name/lot qt a",
+      "confidence": 0.927,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 962,
+        "x2": 568,
+        "y2": 987
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0024",
+      "text": "N/a",
+      "confidence": 0.9992,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 960,
+        "x2": 812,
+        "y2": 989
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0025",
+      "text": "Office Name/nrafary aT aH",
+      "confidence": 0.8035,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 1023,
+        "x2": 482,
+        "y2": 1055
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0026",
+      "text": " National Automotive Board",
+      "confidence": 0.9893,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 1023,
+        "x2": 1107,
+        "y2": 1055
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0027",
+      "text": "tdl $A/Buyer Email",
+      "confidence": 0.8698,
+      "bounding_box": {
+        "x1": 116,
+        "y1": 1084,
+        "x2": 421,
+        "y2": 1121
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0028",
+      "text": "buyer1.dhi.hr@gembuyer.in",
+      "confidence": 0.9989,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 1089,
+        "x2": 1122,
+        "y2": 1121
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0029",
+      "text": "Total Quantity/ge ar",
+      "confidence": 0.8978,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 1152,
+        "x2": 435,
+        "y2": 1184
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0030",
+      "text": "240",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 1152,
+        "x2": 817,
+        "y2": 1182
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0031",
+      "text": "Stationary Valve Regulated Lead Acid Batteries (V2) as per",
+      "confidence": 0.9972,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 1211,
+        "x2": 1508,
+        "y2": 1243
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0032",
+      "text": "Item Category/ eR",
+      "confidence": 0.9772,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 1226,
+        "x2": 453,
+        "y2": 1257
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0033",
+      "text": "IS 15549 (Q3)",
+      "confidence": 0.992,
+      "bounding_box": {
+        "x1": 762,
+        "y1": 1237,
+        "x2": 942,
+        "y2": 1277
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0034",
+      "text": "MSE Exemption for Years Of",
+      "confidence": 0.9851,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 1294,
+        "x2": 526,
+        "y2": 1325
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0035",
+      "text": "Experience/3rgag $ aqf  aua$ c/ and",
+      "confidence": 0.8665,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 1330,
+        "x2": 691,
+        "y2": 1364
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0036",
+      "text": "Yes",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 1340,
+        "x2": 814,
+        "y2": 1369
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0037",
+      "text": "Startup Exemption for Years Of",
+      "confidence": 0.9995,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 1435,
+        "x2": 571,
+        "y2": 1467
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0038",
+      "text": "Experience/3gag  auf  Fcrc3ry c/ and",
+      "confidence": 0.8647,
+      "bounding_box": {
+        "x1": 120,
+        "y1": 1469,
+        "x2": 696,
+        "y2": 1506
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0039",
+      "text": "Yes",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 1479,
+        "x2": 812,
+        "y2": 1508
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0040",
+      "text": "Turnover/ ca3ia  f Fcrc3y at c y ?",
+      "confidence": 0.759,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 1513,
+        "x2": 708,
+        "y2": 1545
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0041",
+      "text": "Experience Criteria,Past Performance,Bidder",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 765,
+        "y1": 1574,
+        "x2": 1326,
+        "y2": 1606
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0042",
+      "text": "Turnover,Certificate (Requested in ATC),OEM Authorization",
+      "confidence": 0.9909,
+      "bounding_box": {
+        "x1": 765,
+        "y1": 1608,
+        "x2": 1508,
+        "y2": 1632
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0043",
+      "text": "Certificate,Additional Doc 1 (Requested in ATC),Additional",
+      "confidence": 0.9908,
+      "bounding_box": {
+        "x1": 765,
+        "y1": 1640,
+        "x2": 1496,
+        "y2": 1664
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0044",
+      "text": "Doc 2 (Requested in ATC),Additional Doc 3 (Requested in",
+      "confidence": 0.9809,
+      "bounding_box": {
+        "x1": 767,
+        "y1": 1671,
+        "x2": 1486,
+        "y2": 1696
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0045",
+      "text": "Document required from seller/fdhar  aig)",
+      "confidence": 0.9058,
+      "bounding_box": {
+        "x1": 120,
+        "y1": 1688,
+        "x2": 721,
+        "y2": 1725
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0046",
+      "text": "ATC),Additional Doc 4 (Requested in ATC),Compliance of",
+      "confidence": 0.9918,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 1698,
+        "x2": 1481,
+        "y2": 1730
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0047",
+      "text": "FpIP>2 dIe",
+      "confidence": 0.7259,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 1737,
+        "x2": 258,
+        "y2": 1764
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0048",
+      "text": "BoQ specification and supporting document",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 765,
+        "y1": 1735,
+        "x2": 1318,
+        "y2": 1759
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0049",
+      "text": "*In case any bidder is seeking exemption from Experience /",
+      "confidence": 0.9889,
+      "bounding_box": {
+        "x1": 765,
+        "y1": 1762,
+        "x2": 1520,
+        "y2": 1793
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0050",
+      "text": "Turnover Criteria, the supporting documents to prove his",
+      "confidence": 0.9971,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 1791,
+        "x2": 1488,
+        "y2": 1825
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0051",
+      "text": "eligibility for exemption must be uploaded for evaluation by",
+      "confidence": 0.9947,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 1825,
+        "x2": 1520,
+        "y2": 1857
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0052",
+      "text": "the buyer",
+      "confidence": 0.9996,
+      "bounding_box": {
+        "x1": 757,
+        "y1": 1851,
+        "x2": 891,
+        "y2": 1891
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0053",
+      "text": "Do you want to show documents uploaded",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 1908,
+        "x2": 723,
+        "y2": 1939
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0054",
+      "text": "by bidders to all bidders participated in",
+      "confidence": 0.9791,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 1939,
+        "x2": 689,
+        "y2": 1971
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0055",
+      "text": "Yes",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 1947,
+        "x2": 814,
+        "y2": 1976
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0056",
+      "text": "bid?/",
+      "confidence": 0.9938,
+      "bounding_box": {
+        "x1": 118,
+        "y1": 1974,
+        "x2": 199,
+        "y2": 2008
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0057",
+      "text": "Past Performance/iadd ygdi",
+      "confidence": 0.8777,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 2044,
+        "x2": 521,
+        "y2": 2069
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0058",
+      "text": "40 %",
+      "confidence": 0.998,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 2039,
+        "x2": 836,
+        "y2": 2073
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0059",
+      "text": "Bid to RA enabled/fas  Ra aarat afhy fhyr",
+      "confidence": 0.8337,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 2105,
+        "x2": 753,
+        "y2": 2137
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0060",
+      "text": "No",
+      "confidence": 0.994,
+      "bounding_box": {
+        "x1": 750,
+        "y1": 2108,
+        "x2": 802,
+        "y2": 2134
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0061",
+      "text": "1/8",
+      "confidence": 0.9981,
+      "bounding_box": {
+        "x1": 1530,
+        "y1": 2256,
+        "x2": 1579,
+        "y2": 2283
+      },
+      "language_hint": "en"
+    }
+  ],
+  "layout_regions": [
+    {
+      "region_id": "reg_0001",
+      "region_type": "figure_caption",
+      "bounding_box": {
+        "x1": 632,
+        "y1": 379,
+        "x2": 1020,
+        "y2": 403
+      },
+      "contained_block_ids": [
+        "blk_0009"
+      ],
+      "table_structure": null,
+      "reading_order_index": 1,
+      "text_content": "Bid Document/ fs atdld",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0002",
+      "region_type": "table",
+      "bounding_box": {
+        "x1": 91,
+        "y1": 526,
+        "x2": 1567,
+        "y2": 2166
+      },
+      "contained_block_ids": [
+        "blk_0012",
+        "blk_0011",
+        "blk_0013",
+        "blk_0014",
+        "blk_0015",
+        "blk_0016",
+        "blk_0017",
+        "blk_0018",
+        "blk_0019",
+        "blk_0020",
+        "blk_0022",
+        "blk_0021",
+        "blk_0024",
+        "blk_0023",
+        "blk_0025",
+        "blk_0026",
+        "blk_0027",
+        "blk_0028",
+        "blk_0029",
+        "blk_0030",
+        "blk_0031",
+        "blk_0032",
+        "blk_0033",
+        "blk_0034",
+        "blk_0035",
+        "blk_0036",
+        "blk_0037",
+        "blk_0038",
+        "blk_0039",
+        "blk_0040",
+        "blk_0041",
+        "blk_0042",
+        "blk_0043",
+        "blk_0044",
+        "blk_0045",
+        "blk_0046",
+        "blk_0048",
+        "blk_0047",
+        "blk_0049",
+        "blk_0050",
+        "blk_0051",
+        "blk_0052",
+        "blk_0053",
+        "blk_0054",
+        "blk_0055",
+        "blk_0056",
+        "blk_0058",
+        "blk_0057",
+        "blk_0059",
+        "blk_0060"
+      ],
+      "table_structure": {
+        "cell_bbox": [
+          [
+            75.698486328125,
+            9.60341739654541,
+            567.50634765625,
+            9.884444236755371,
+            564.5799560546875,
+            58.44483184814453,
+            73.90989685058594,
+            58.24221420288086
+          ],
+          [
+            687.8513793945312,
+            11.440266609191895,
+            1152.9569091796875,
+            11.514556884765625,
+            1146.0880126953125,
+            56.16547775268555,
+            681.5087280273438,
+            57.14113998413086
+          ],
+          [
+            51.60811996459961,
+            88.01078033447266,
+            526.7722778320312,
+            86.66654968261719,
+            528.7368774414062,
+            152.8238525390625,
+            51.512271881103516,
+            154.44703674316406
+          ],
+          [
+            680.8750610351562,
+            84.97105407714844,
+            1277.5362548828125,
+            84.86329650878906,
+            1273.3197021484375,
+            146.82008361816406,
+            671.9439697265625,
+            147.03921508789062
+          ],
+          [
+            52.81825256347656,
+            183.86865234375,
+            579.3357543945312,
+            183.27395629882812,
+            577.733642578125,
+            279.57061767578125,
+            52.74531555175781,
+            278.158935546875
+          ],
+          [
+            680.3951416015625,
+            189.90374755859375,
+            1172.06884765625,
+            189.9558868408203,
+            1166.2108154296875,
+            268.1503601074219,
+            671.6915283203125,
+            267.57440185546875
+          ],
+          [
+            48.42103576660156,
+            298.1694641113281,
+            582.25830078125,
+            300.603271484375,
+            580.6951293945312,
+            356.7648620605469,
+            48.252891540527344,
+            353.1983947753906
+          ],
+          [
+            676.9398803710938,
+            302.8640441894531,
+            1364.9666748046875,
+            304.9822998046875,
+            1363.463623046875,
+            358.0075378417969,
+            670.8818969726562,
+            356.3412170410156
+          ],
+          [
+            49.73412322998047,
+            365.5212707519531,
+            548.9971923828125,
+            366.9066467285156,
+            548.5186157226562,
+            410.1683349609375,
+            49.72772216796875,
+            408.7025146484375
+          ],
+          [
+            692.0009155273438,
+            365.9469299316406,
+            1256.5042724609375,
+            368.3076477050781,
+            1253.7154541015625,
+            414.56842041015625,
+            685.749755859375,
+            413.15460205078125
+          ],
+          [
+            56.32731246948242,
+            429.74444580078125,
+            557.6716918945312,
+            430.11907958984375,
+            555.7144775390625,
+            471.0852355957031,
+            56.1125602722168,
+            470.353271484375
+          ],
+          [
+            671.842529296875,
+            426.0820007324219,
+            1174.4302978515625,
+            428.4483642578125,
+            1170.7880859375,
+            473.48980712890625,
+            665.3287963867188,
+            472.46630859375
+          ],
+          [
+            46.31708526611328,
+            490.91961669921875,
+            539.3167114257812,
+            492.11639404296875,
+            537.9130249023438,
+            532.2432250976562,
+            46.11524963378906,
+            530.9528198242188
+          ],
+          [
+            679.3435668945312,
+            485.29864501953125,
+            1189.1092529296875,
+            488.3111267089844,
+            1185.879638671875,
+            530.4642333984375,
+            672.5917358398438,
+            528.9474487304688
+          ],
+          [
+            44.13695526123047,
+            549.9166259765625,
+            514.1279907226562,
+            551.1727905273438,
+            513.470703125,
+            592.9381713867188,
+            43.99315643310547,
+            591.75732421875
+          ],
+          [
+            682.7059326171875,
+            545.1475830078125,
+            1179.6697998046875,
+            547.979248046875,
+            1176.5823974609375,
+            591.1778564453125,
+            677.1537475585938,
+            589.7252197265625
+          ],
+          [
+            36.55092239379883,
+            608.4649658203125,
+            524.6419677734375,
+            609.1446533203125,
+            524.8004760742188,
+            657.56787109375,
+            36.434993743896484,
+            656.90185546875
+          ],
+          [
+            666.3359375,
+            606.00830078125,
+            1010.3900756835938,
+            609.1256713867188,
+            1006.8065185546875,
+            658.2626342773438,
+            661.8154296875,
+            656.480224609375
+          ],
+          [
+            43.252349853515625,
+            686.8202514648438,
+            557.8404541015625,
+            687.3131103515625,
+            556.992431640625,
+            744.1280517578125,
+            42.88026428222656,
+            743.4044189453125
+          ],
+          [
+            698.7657470703125,
+            673.9309692382812,
+            1417.5262451171875,
+            677.632568359375,
+            1416.19091796875,
+            740.485107421875,
+            691.369873046875,
+            736.9842529296875
+          ],
+          [
+            42.69482421875,
+            767.5285034179688,
+            575.8765258789062,
+            766.3167724609375,
+            575.6593017578125,
+            878.1166381835938,
+            42.54572677612305,
+            879.2896118164062
+          ],
+          [
+            702.2811889648438,
+            760.37060546875,
+            1343.6842041015625,
+            761.2739868164062,
+            1340.5042724609375,
+            857.1470947265625,
+            692.1544799804688,
+            856.7791137695312
+          ],
+          [
+            60.73884582519531,
+            904.1638793945312,
+            560.0994873046875,
+            903.6913452148438,
+            562.0082397460938,
+            1009.819091796875,
+            60.75324630737305,
+            1010.6021728515625
+          ],
+          [
+            693.170166015625,
+            905.342529296875,
+            1374.236083984375,
+            906.435302734375,
+            1371.904052734375,
+            996.7677001953125,
+            683.4419555664062,
+            996.4763793945312
+          ],
+          [
+            43.31554412841797,
+            1073.733642578125,
+            603.598876953125,
+            1078.2032470703125,
+            608.505859375,
+            1281.2359619140625,
+            43.32196044921875,
+            1275.55615234375
+          ],
+          [
+            707.6136474609375,
+            1043.0811767578125,
+            1428.800048828125,
+            1045.5899658203125,
+            1426.4903564453125,
+            1359.4566650390625,
+            690.0571899414062,
+            1355.700927734375
+          ],
+          [
+            27.877666473388672,
+            1400.423583984375,
+            570.8377075195312,
+            1399.5372314453125,
+            573.11328125,
+            1490.658447265625,
+            28.07965660095215,
+            1491.03125
+          ],
+          [
+            735.2847900390625,
+            1407.4234619140625,
+            1358.3189697265625,
+            1405.85888671875,
+            1357.888671875,
+            1474.08837890625,
+            735.0330810546875,
+            1475.6260986328125
+          ],
+          [
+            45.73347854614258,
+            1501.41162109375,
+            527.4801025390625,
+            1500.7666015625,
+            528.4295043945312,
+            1554.0091552734375,
+            46.23208236694336,
+            1554.4716796875
+          ],
+          [
+            759.983642578125,
+            1502.72412109375,
+            1311.1295166015625,
+            1501.9189453125,
+            1311.827880859375,
+            1550.625244140625,
+            761.9509887695312,
+            1551.7215576171875
+          ],
+          [
+            29.811946868896484,
+            1573.6046142578125,
+            591.6338500976562,
+            1575.8558349609375,
+            587.303466796875,
+            1626.8697509765625,
+            29.673757553100586,
+            1626.239013671875
+          ],
+          [
+            740.3998413085938,
+            1577.24658203125,
+            1221.2442626953125,
+            1578.7139892578125,
+            1217.4161376953125,
+            1627.6624755859375,
+            735.9656372070312,
+            1627.3525390625
+          ]
+        ],
+        "html": "<html><body><table><thead><tr><td>Bid End Date/Time/  /H</td><td>08-05-2025 16:00:00</td></tr></thead><tbody><tr><td>Bid Opening Date/Time/s ge f /</td><td>08-05-2025 16:30:00</td></tr><tr><td>Bid Offer Validity (From End Date)s t33I ( )</td><td>180 (Days)</td></tr><tr><td>Ministry/State Name//T  H</td><td>Ministry Of Heavy Industries And Public Enterprises</td></tr><tr><td>Department Name/可 T H</td><td> Department Of Heavy Industry</td></tr><tr><td>Organisation Name/o 可 H</td><td>N/a</td></tr><tr><td>Office Name/f  </td><td>National Automotive Board</td></tr><tr><td> $a/Buyer Email</td><td>buyerl.dhi.hr@gembuyer.in</td></tr><tr><td>Total Quantity/ </td><td>240</td></tr><tr><td>Item Category/ </td><td>Stationary Valve Regulated Lead Acid Batteries (V2) as per IS 15549 (Q3)</td></tr><tr><td>MSE Exemption for Years Of Experience/3 市 af  T / and Turnover/3      H </td><td>Yes</td></tr><tr><td>Startup Exemption for Years Of Experience/3  a  F3 / and Turnover/    F   </td><td>Yes</td></tr><tr><td>Document required from seller/ada  i </td><td>Experience Criteria,Past Performance,Bidder Turnover,Certificate (Requested in ATC),OEM Authorization Certificate,Additional Doc 1 (Requested in ATC),Additional Doc 2 (Requested in ATC),Additional Doc 3 (Requested in ATC),Additional Doc 4 (Requested in ATC),Compliance of BoQ specification and supporting document *In case any bidder is seeking exemption from Experience / Turnover Criteria, the supporting documents to prove his eligibility for exemption must be uploaded for evaluation by the buyer</td></tr><tr><td>Do you want to show documents uploaded by bidders to all bidders participated in bid?/</td><td>Yes</td></tr><tr><td>Past Performance/@ </td><td>40 % </td></tr><tr><td>Bid to RA enabled/  Ra   </td><td>No</td></tr></tbody></table></body></html>"
+      },
+      "reading_order_index": 2,
+      "text_content": " 08-05-2025 16:00:00\nBid End Date/Time/is ag d  arg/Hay\nBid Opening Date/Time/fas gd T\n08-05-2025 16:30:00\nhHH/DP\nBid Offer Validity (From End Date)/fas trT\n180 (Days)\n(H D(P Iy F 2p) JPBR\nMinistry/State Name/aldR/y  aI\n Ministry Of Heavy Industries And Public Enterprises\nDepartment Of Heavy Industry\nDepartment Name/faaa ar aI\nN/a\nOrganisation Name/lot qt a\nOffice Name/nrafary aT aH\n National Automotive Board\ntdl $A/Buyer Email\nbuyer1.dhi.hr@gembuyer.in\nTotal Quantity/ge ar\n240\nStationary Valve Regulated Lead Acid Batteries (V2) as per\nItem Category/ eR\nIS 15549 (Q3)\nMSE Exemption for Years Of\nExperience/3rgag $ aqf  aua$ c/ and\nYes\nStartup Exemption for Years Of\nExperience/3gag  auf  Fcrc3ry c/ and\nYes\nTurnover/ ca3ia  f Fcrc3y at c y ?\nExperience Criteria,Past Performance,Bidder\nTurnover,Certificate (Requested in ATC),OEM Authorization\nCertificate,Additional Doc 1 (Requested in ATC),Additional\nDoc 2 (Requested in ATC),Additional Doc 3 (Requested in\nDocument required from seller/fdhar  aig)\nATC),Additional Doc 4 (Requested in ATC),Compliance of\nBoQ specification and supporting document\nFpIP>2 dIe\n*In case any bidder is seeking exemption from Experience /\nTurnover Criteria, the supporting documents to prove his\neligibility for exemption must be uploaded for evaluation by\nthe buyer\nDo you want to show documents uploaded\nby bidders to all bidders participated in\nYes\nbid?/\n40 %\nPast Performance/iadd ygdi\nBid to RA enabled/fas  Ra aarat afhy fhyr\nNo",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0003",
+      "region_type": "table_caption",
+      "bounding_box": {
+        "x1": 684,
+        "y1": 486,
+        "x2": 967,
+        "y2": 509
+      },
+      "contained_block_ids": [
+        "blk_0010"
+      ],
+      "table_structure": null,
+      "reading_order_index": 3,
+      "text_content": "Bid Details/fas faaqur",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0004",
+      "region_type": "footer",
+      "bounding_box": {
+        "x1": 1535,
+        "y1": 2260,
+        "x2": 1574,
+        "y2": 2277
+      },
+      "contained_block_ids": [
+        "blk_0061"
+      ],
+      "table_structure": null,
+      "reading_order_index": 4,
+      "text_content": "1/8",
+      "confidence": null
+    }
+  ],
+  "warnings": []
+}

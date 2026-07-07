@@ -1,6 +1,7 @@
 import uuid
 import logging
 from typing import List, Optional
+from pydantic import BaseModel
 from fastapi import APIRouter, File, UploadFile, HTTPException, Depends, Form, BackgroundTasks
 from sqlalchemy.orm import Session
 
@@ -10,6 +11,11 @@ from backend.app.core.logging import get_logger
 from backend.app.db.session import get_db
 from backend.app.models.tender_project import TenderProject
 from backend.app.models.document import Document
+from backend.app.models.tender_information import TenderInformation
+from backend.app.services.mapping import map_extracted_fields_to_tender_info
+from backend.app.services.export import export_tender_info_to_csv, CSV_COLUMNS
+from backend.app.services.email_service import send_tender_csv_email
+from backend.app.core.constants import STORAGE_ROOT
 from backend.app.schemas.tender_project import (
     TenderProjectCreate,
     TenderProjectResponse,
@@ -595,6 +601,244 @@ async def process_tender_document(
         "processing_status": "processing",
         "message": "OCR processing task has been started in the background"
     }
+
+
+class ProcessCompleteRequest(BaseModel):
+    tender_id: str
+    file_id: str
+    email: str
+
+
+@router.post("/process-complete")
+async def process_complete(
+    payload: ProcessCompleteRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
+    """
+    Day 4 MVP endpoint: Loads OCR results, maps to tender_information schema,
+    persists in PostgreSQL, exports to CSV, and sends CSV via email background task.
+    """
+    import json
+    from datetime import datetime, timezone
+    
+    # 1. Validate project and document presence
+    project = db.query(TenderProject).filter(TenderProject.id == payload.tender_id).first()
+    if not project:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "error": "not_found",
+                "message": f"Tender Project with ID {payload.tender_id} not found"
+            }
+        )
+        
+    doc = db.query(Document).filter(
+        Document.id == payload.file_id,
+        Document.tender_project_id == payload.tender_id
+    ).first()
+    if not doc:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "error": "not_found",
+                "message": f"Document with ID {payload.file_id} not found for Tender Project {payload.tender_id}"
+            }
+        )
+        
+    # 2. Check for extracted_fields.json existence
+    extracted_fields_path = STORAGE_ROOT / "jobs" / payload.file_id / "extracted_fields.json"
+    if not extracted_fields_path.exists():
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "ocr_not_completed",
+                "message": "OCR extraction results not found. Please trigger document processing first."
+            }
+        )
+        
+    try:
+        with open(extracted_fields_path, "r", encoding="utf-8") as f:
+            extracted_data = json.load(f)
+    except Exception as e:
+        logger.error(f"Failed to read extracted fields file for document {payload.file_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "read_error",
+                "message": "Failed to read OCR extraction output"
+            }
+        )
+        
+    # 3. Map fields to TenderInformation shape
+    mapped_info = map_extracted_fields_to_tender_info(
+        tender_project_id=payload.tender_id,
+        document_id=payload.file_id,
+        extracted_data=extracted_data,
+        tender_name=project.tender_name
+    )
+    
+    # 4. Upsert row in PostgreSQL (TenderInformation table)
+    db_info = db.query(TenderInformation).filter(
+        TenderInformation.tender_project_id == payload.tender_id,
+        TenderInformation.document_id == payload.file_id
+    ).first()
+    
+    if db_info:
+        for col in CSV_COLUMNS:
+            setattr(db_info, col, getattr(mapped_info, col))
+        db_info.updated_at = datetime.now(timezone.utc)
+        final_info = db_info
+    else:
+        db.add(mapped_info)
+        final_info = mapped_info
+        
+    try:
+        db.commit()
+        db.refresh(final_info)
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Failed to persist tender information: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "database_error",
+                "message": "Failed to persist tender information mapping results"
+            }
+        )
+        
+    # 5. Export saved row to CSV
+    csv_filename = "tender_information.csv"
+    csv_path = STORAGE_ROOT / "jobs" / payload.file_id / csv_filename
+    try:
+        export_tender_info_to_csv(final_info, csv_path)
+    except Exception as e:
+        logger.error(f"Failed to export tender information to CSV: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "export_error",
+                "message": "Failed to export tender information to CSV"
+            }
+        )
+        
+    # 6. Send email automatically in BackgroundTasks
+    background_tasks.add_task(send_tender_csv_email, payload.email, csv_path, payload.tender_id)
+    
+    logger.info(
+        "tender_processing_completed",
+        extra={
+            "custom_fields": {
+                "event": "tender_processing_completed",
+                "tender_project_id": payload.tender_id,
+                "document_id": payload.file_id,
+                "tender_information_id": final_info.id,
+                "recipient_email": payload.email,
+                "csv_path": str(csv_path)
+            }
+        }
+    )
+    
+    # 7. Return success response
+    return {
+        "tender_information_id": final_info.id,
+        "tender_project_id": final_info.tender_project_id,
+        "document_id": final_info.document_id,
+        "csv_filename": csv_filename,
+        "csv_url": f"/storage/jobs/{payload.file_id}/{csv_filename}",
+        "message": "Tender mapping results successfully persisted, exported to CSV, and queued for email delivery."
+    }
+
+
+class ProcessRequest(BaseModel):
+    tender_id: int
+    file_id: str
+    email: str
+
+
+@router.post("/process")
+async def process_tender(
+    payload: ProcessRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
+    """
+    Day 4/5 MVP endpoint: Connects OCR output, maps to tender_information structure,
+    saves in PostgreSQL, exports to CSV, and emails via background task.
+    """
+    import json
+    
+    # 1. Load raw extraction JSON using file_id
+    extracted_fields_path = STORAGE_ROOT / "jobs" / payload.file_id / "extracted_fields.json"
+    if not extracted_fields_path.exists():
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "ocr_not_completed",
+                "message": f"OCR results not found for file_id: {payload.file_id}. Please run OCR first."
+            }
+        )
+        
+    try:
+        with open(extracted_fields_path, "r", encoding="utf-8") as f:
+            raw_extraction = json.load(f)
+    except Exception as e:
+        logger.error(f"Failed to read OCR result: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to read raw OCR extraction output"
+        )
+        
+    # 2. Map extraction data
+    from backend.app.services.tender_mapper import map_extraction_to_tender_information
+    mapped_payload = map_extraction_to_tender_information(raw_extraction, payload.tender_id)
+    
+    # 3. Save payload to PostgreSQL using raw SQL connection
+    from backend.app.services.tender_repository import save_tender_information
+    try:
+        saved_row = save_tender_information(db, mapped_payload)
+        db.commit()
+    except Exception as e:
+        logger.error(f"Repository save failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database save operation failed: {str(e)}"
+        )
+        
+    # 4. Export CSV
+    from backend.app.services.export_service import export_tender_information_csv
+    try:
+        job_dir = STORAGE_ROOT / "jobs" / payload.file_id
+        csv_filepath = export_tender_information_csv(saved_row, str(job_dir))
+    except Exception as e:
+        logger.error(f"CSV export failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail="CSV generation failed"
+        )
+        
+    # 5. Enqueue background email dispatch task
+    from backend.app.services.email_service import send_email_with_attachment
+    subject = f"MVP Mapped Tender Sheet - ID: {payload.tender_id}"
+    body = f"Hello,\n\nPlease find attached the exported CSV for Tender ID: {payload.tender_id}.\n"
+    background_tasks.add_task(
+        send_email_with_attachment,
+        payload.email,
+        subject,
+        body,
+        csv_filepath
+    )
+    
+    # 6. Return success response
+    return {
+        "status": "success",
+        "tender_information_id": saved_row.get("id"),
+        "tender_id": payload.tender_id,
+        "csv_file": f"/storage/jobs/{payload.file_id}/tender_{payload.tender_id}_export.csv",
+        "email_queued": True
+    }
+
+
 
 
 

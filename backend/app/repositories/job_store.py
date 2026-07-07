@@ -2,7 +2,7 @@ import sqlite3
 from pathlib import Path
 from datetime import datetime, timezone
 import time
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from backend.app.core.constants import DB_PATH, JobStatus
 
 def create_job(job_id: str, filename: str, pdf_path: str, db_path: Path = DB_PATH) -> None:
@@ -67,3 +67,11 @@ def update_status(job_id: str, status: JobStatus, error_message: str = None, res
 
 def update_result(job_id: str, result_path: str, page_count: int, db_path: Path = DB_PATH) -> None:
     update_status(job_id, JobStatus.COMPLETED, result_path=result_path, page_count=page_count, db_path=db_path)
+
+def get_all_jobs(db_path: Path = DB_PATH) -> List[Dict[str, Any]]:
+    with sqlite3.connect(db_path) as conn:
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.row_factory = sqlite3.Row
+        cur = conn.execute("SELECT * FROM jobs ORDER BY created_at DESC")
+        return [dict(row) for row in cur.fetchall()]
+

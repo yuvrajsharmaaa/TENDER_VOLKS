@@ -1,0 +1,846 @@
+{
+  "job_id": "4fd7d48d-b043-4ea5-804b-51be16d3bfe8",
+  "page_number": 7,
+  "image_path": "/app/backend/app/storage/jobs/4fd7d48d-b043-4ea5-804b-51be16d3bfe8/pages/page_0007.png",
+  "image_width_px": 1653,
+  "image_height_px": 2339,
+  "processing_time_seconds": 13.249993085861206,
+  "text_blocks": [
+    {
+      "block_id": "blk_0001",
+      "text": "for Service Support.",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 194,
+        "y1": 156,
+        "x2": 448,
+        "y2": 188
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0002",
+      "text": "11. Service & Support",
+      "confidence": 0.9963,
+      "bounding_box": {
+        "x1": 140,
+        "y1": 224,
+        "x2": 460,
+        "y2": 256
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0003",
+      "text": "AVAILABILITY OF OFFICE OF SERVICE PROVIDER: An office of the Service Provider must be located in the",
+      "confidence": 0.9889,
+      "bounding_box": {
+        "x1": 197,
+        "y1": 288,
+        "x2": 1510,
+        "y2": 319
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0004",
+      "text": "state of Consignee. DOCUMENTARY EVIDENCE TO BE SUBMITTED.",
+      "confidence": 0.9872,
+      "bounding_box": {
+        "x1": 199,
+        "y1": 324,
+        "x2": 1033,
+        "y2": 348
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0005",
+      "text": "12. Past Project Experience",
+      "confidence": 0.9942,
+      "bounding_box": {
+        "x1": 138,
+        "y1": 385,
+        "x2": 539,
+        "y2": 417
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0006",
+      "text": "Proof for Past Experience and Project Experience clause: For fulfilling the experience criteria any",
+      "confidence": 0.9935,
+      "bounding_box": {
+        "x1": 199,
+        "y1": 446,
+        "x2": 1500,
+        "y2": 478
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0007",
+      "text": "one of the following documents may be considered as valid proof for meeting the experience criteria:a.",
+      "confidence": 0.9956,
+      "bounding_box": {
+        "x1": 199,
+        "y1": 480,
+        "x2": 1496,
+        "y2": 512
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0008",
+      "text": "invoices have been executed.b. Execution certificate by client with contract value.c. Any other document.",
+      "confidence": 0.9948,
+      "bounding_box": {
+        "x1": 199,
+        "y1": 548,
+        "x2": 1523,
+        "y2": 573
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0009",
+      "text": "considered as valid proof for meeting the experience criteria:a. Contract copy along with Invoice(s) with",
+      "confidence": 0.9907,
+      "bounding_box": {
+        "x1": 199,
+        "y1": 633,
+        "x2": 1505,
+        "y2": 665
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0010",
+      "text": "self-certification by the bidder that service/supplies against the invoices have been executed.b. Execution.",
+      "confidence": 0.9834,
+      "bounding_box": {
+        "x1": 202,
+        "y1": 672,
+        "x2": 1530,
+        "y2": 697
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0011",
+      "text": "Party Inspection release note, etc..",
+      "confidence": 0.9781,
+      "bounding_box": {
+        "x1": 197,
+        "y1": 728,
+        "x2": 630,
+        "y2": 763
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0012",
+      "text": "Disclaimer/3rdnu",
+      "confidence": 0.8853,
+      "bounding_box": {
+        "x1": 110,
+        "y1": 838,
+        "x2": 458,
+        "y2": 885
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0013",
+      "text": "The additional terms and conditions have been incorporated by the Buyer after approval of the Competent",
+      "confidence": 0.9922,
+      "bounding_box": {
+        "x1": 116,
+        "y1": 921,
+        "x2": 1459,
+        "y2": 953
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0014",
+      "text": "Authority in Buyer Organization, whereby Buyer organization is solely responsible for the impact of these clauses",
+      "confidence": 0.9943,
+      "bounding_box": {
+        "x1": 116,
+        "y1": 958,
+        "x2": 1537,
+        "y2": 982
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0015",
+      "text": "on the bidding process, its outcome, and consequences thereof including any eccentricity / restriction arising in",
+      "confidence": 0.9858,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 982,
+        "x2": 1520,
+        "y2": 1018
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0016",
+      "text": "the bidding process due to these ATCs and due to modification of technical specifications and / or terms and.",
+      "confidence": 0.9855,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1016,
+        "x2": 1478,
+        "y2": 1048
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0017",
+      "text": "bidding process without any notice:-.",
+      "confidence": 0.9915,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1109,
+        "x2": 578,
+        "y2": 1140
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0018",
+      "text": " Definition of Class I and Class Il suppliers in the bid not in line with the extant Order / Office Memorandum",
+      "confidence": 0.9782,
+      "bounding_box": {
+        "x1": 192,
+        "y1": 1174,
+        "x2": 1530,
+        "y2": 1206
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0019",
+      "text": "I.",
+      "confidence": 0.938,
+      "bounding_box": {
+        "x1": 157,
+        "y1": 1184,
+        "x2": 180,
+        "y2": 1199
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0020",
+      "text": "issued by DPllT in this regard..",
+      "confidence": 0.9566,
+      "bounding_box": {
+        "x1": 197,
+        "y1": 1206,
+        "x2": 573,
+        "y2": 1235
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0021",
+      "text": "2.",
+      "confidence": 0.9987,
+      "bounding_box": {
+        "x1": 150,
+        "y1": 1247,
+        "x2": 197,
+        "y2": 1274
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0022",
+      "text": "Seeking EmD submission from bidder(s), including via Additional Terms & Conditions, in contravention to",
+      "confidence": 0.9932,
+      "bounding_box": {
+        "x1": 194,
+        "y1": 1243,
+        "x2": 1515,
+        "y2": 1274
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0023",
+      "text": "exemption provided to such sellers under GeM GTC.",
+      "confidence": 0.9825,
+      "bounding_box": {
+        "x1": 202,
+        "y1": 1282,
+        "x2": 851,
+        "y2": 1306
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0024",
+      "text": "3.",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 153,
+        "y1": 1321,
+        "x2": 184,
+        "y2": 1342
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0025",
+      "text": " Publishing Custom / BOQ bids for items for which regular GeM categories are available without any",
+      "confidence": 0.9817,
+      "bounding_box": {
+        "x1": 194,
+        "y1": 1316,
+        "x2": 1441,
+        "y2": 1347
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0026",
+      "text": "Category item bunched with it.",
+      "confidence": 0.9759,
+      "bounding_box": {
+        "x1": 197,
+        "y1": 1345,
+        "x2": 593,
+        "y2": 1377
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0027",
+      "text": "4.",
+      "confidence": 0.9821,
+      "bounding_box": {
+        "x1": 153,
+        "y1": 1391,
+        "x2": 199,
+        "y2": 1411
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0028",
+      "text": " Creating BoQ bid for single item.",
+      "confidence": 0.9769,
+      "bounding_box": {
+        "x1": 189,
+        "y1": 1386,
+        "x2": 610,
+        "y2": 1418
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0029",
+      "text": "5. Mentioning specific Brand or Make or Model or Manufacturer or Dealer name.",
+      "confidence": 0.9876,
+      "bounding_box": {
+        "x1": 148,
+        "y1": 1425,
+        "x2": 1166,
+        "y2": 1457
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0030",
+      "text": "6. Mandating submission of documents in physical form as a pre-requisite to qualify bidders.",
+      "confidence": 0.9973,
+      "bounding_box": {
+        "x1": 150,
+        "y1": 1467,
+        "x2": 1328,
+        "y2": 1498
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0031",
+      "text": "7. Floating / creation of work contracts as Custom Bids in Services.",
+      "confidence": 0.9881,
+      "bounding_box": {
+        "x1": 150,
+        "y1": 1506,
+        "x2": 1004,
+        "y2": 1537
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0032",
+      "text": "8.",
+      "confidence": 0.9998,
+      "bounding_box": {
+        "x1": 153,
+        "y1": 1550,
+        "x2": 180,
+        "y2": 1569
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0033",
+      "text": "Seeking sample with bid or approval of samples during bid evaluation process. (However, in bids for",
+      "confidence": 0.9941,
+      "bounding_box": {
+        "x1": 194,
+        "y1": 1545,
+        "x2": 1459,
+        "y2": 1576
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0034",
+      "text": " Mandating foreign / international certifications even in case of existence of Indian Standards without",
+      "confidence": 0.9926,
+      "bounding_box": {
+        "x1": 189,
+        "y1": 1615,
+        "x2": 1464,
+        "y2": 1647
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0035",
+      "text": "specifying equivalent Indian Certification / standards.",
+      "confidence": 0.9983,
+      "bounding_box": {
+        "x1": 199,
+        "y1": 1652,
+        "x2": 871,
+        "y2": 1676
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0036",
+      "text": "10.",
+      "confidence": 0.9978,
+      "bounding_box": {
+        "x1": 140,
+        "y1": 1691,
+        "x2": 184,
+        "y2": 1710
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0037",
+      "text": "Seeking experience from specific organization / department / institute only or from foreign / export.",
+      "confidence": 0.9844,
+      "bounding_box": {
+        "x1": 194,
+        "y1": 1686,
+        "x2": 1446,
+        "y2": 1718
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0038",
+      "text": "experience",
+      "confidence": 0.9994,
+      "bounding_box": {
+        "x1": 199,
+        "y1": 1723,
+        "x2": 342,
+        "y2": 1747
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0039",
+      "text": "11.",
+      "confidence": 0.9468,
+      "bounding_box": {
+        "x1": 143,
+        "y1": 1762,
+        "x2": 194,
+        "y2": 1781
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0040",
+      "text": " Creating bid for items from irrelevant categories..",
+      "confidence": 0.9848,
+      "bounding_box": {
+        "x1": 189,
+        "y1": 1754,
+        "x2": 814,
+        "y2": 1786
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0041",
+      "text": " Incorporating any clause against the MsmE policy and Preference to Make in India Policy.",
+      "confidence": 0.9861,
+      "bounding_box": {
+        "x1": 182,
+        "y1": 1793,
+        "x2": 1316,
+        "y2": 1830
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0042",
+      "text": "12.",
+      "confidence": 0.9951,
+      "bounding_box": {
+        "x1": 143,
+        "y1": 1803,
+        "x2": 194,
+        "y2": 1822
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0043",
+      "text": "13. Reference of conditions published on any external site or reference to external documents/clauses.",
+      "confidence": 0.9818,
+      "bounding_box": {
+        "x1": 135,
+        "y1": 1835,
+        "x2": 1444,
+        "y2": 1869
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0044",
+      "text": "14. Asking for any Tender fee / Bid Participation fee / Auction fee in case of Bids / Forward Auction, as the",
+      "confidence": 0.9935,
+      "bounding_box": {
+        "x1": 135,
+        "y1": 1876,
+        "x2": 1478,
+        "y2": 1908
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0045",
+      "text": "case may be.",
+      "confidence": 0.984,
+      "bounding_box": {
+        "x1": 202,
+        "y1": 1913,
+        "x2": 367,
+        "y2": 1937
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0046",
+      "text": "15.",
+      "confidence": 0.9821,
+      "bounding_box": {
+        "x1": 143,
+        "y1": 1952,
+        "x2": 199,
+        "y2": 1971
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0047",
+      "text": " Any ATC clause in contravention with GeM GTC Clause 4 (xili)(h) will be invalid. In case of multiple L1",
+      "confidence": 0.9904,
+      "bounding_box": {
+        "x1": 189,
+        "y1": 1947,
+        "x2": 1471,
+        "y2": 1978
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0048",
+      "text": "bidders against a service bid, the buyer shall place the Contract by selection of a bidder amongst the L-1",
+      "confidence": 0.9921,
+      "bounding_box": {
+        "x1": 197,
+        "y1": 1978,
+        "x2": 1518,
+        "y2": 2010
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0049",
+      "text": "bidders through a Random Algorithm executed by GeM system..",
+      "confidence": 0.9898,
+      "bounding_box": {
+        "x1": 197,
+        "y1": 2010,
+        "x2": 999,
+        "y2": 2042
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0050",
+      "text": "Further, if any seller has any objection/grievance against these additional clauses or otherwise on any aspect of",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 2071,
+        "x2": 1520,
+        "y2": 2103
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0051",
+      "text": "this bid, they can raise their representation against the same by using the Representation window provided in",
+      "confidence": 0.9951,
+      "bounding_box": {
+        "x1": 108,
+        "y1": 2098,
+        "x2": 1503,
+        "y2": 2134
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0052",
+      "text": "the bid details field in Seller dashboard after logging in as a seller within 4 days of bid publication on GeM. Buyer",
+      "confidence": 0.9972,
+      "bounding_box": {
+        "x1": 108,
+        "y1": 2134,
+        "x2": 1530,
+        "y2": 2166
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0053",
+      "text": "7/8",
+      "confidence": 0.9582,
+      "bounding_box": {
+        "x1": 1532,
+        "y1": 2256,
+        "x2": 1579,
+        "y2": 2283
+      },
+      "language_hint": "en"
+    }
+  ],
+  "layout_regions": [
+    {
+      "region_id": "reg_0001",
+      "region_type": "text",
+      "bounding_box": {
+        "x1": 187,
+        "y1": 454,
+        "x2": 1529,
+        "y2": 759
+      },
+      "contained_block_ids": [
+        "blk_0006",
+        "blk_0007",
+        "blk_0008",
+        "blk_0009",
+        "blk_0010",
+        "blk_0011"
+      ],
+      "table_structure": null,
+      "reading_order_index": 1,
+      "text_content": "Proof for Past Experience and Project Experience clause: For fulfilling the experience criteria any\none of the following documents may be considered as valid proof for meeting the experience criteria:a.\ninvoices have been executed.b. Execution certificate by client with contract value.c. Any other document.\nconsidered as valid proof for meeting the experience criteria:a. Contract copy along with Invoice(s) with\nself-certification by the bidder that service/supplies against the invoices have been executed.b. Execution.\nParty Inspection release note, etc..",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0002",
+      "region_type": "text",
+      "bounding_box": {
+        "x1": 116,
+        "y1": 926,
+        "x2": 1527,
+        "y2": 1137
+      },
+      "contained_block_ids": [
+        "blk_0013",
+        "blk_0014",
+        "blk_0015",
+        "blk_0016",
+        "blk_0017"
+      ],
+      "table_structure": null,
+      "reading_order_index": 2,
+      "text_content": "The additional terms and conditions have been incorporated by the Buyer after approval of the Competent\nAuthority in Buyer Organization, whereby Buyer organization is solely responsible for the impact of these clauses\non the bidding process, its outcome, and consequences thereof including any eccentricity / restriction arising in\nthe bidding process due to these ATCs and due to modification of technical specifications and / or terms and.\nbidding process without any notice:-.",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0003",
+      "region_type": "text",
+      "bounding_box": {
+        "x1": 221,
+        "y1": 292,
+        "x2": 1432,
+        "y2": 348
+      },
+      "contained_block_ids": [
+        "blk_0003",
+        "blk_0004"
+      ],
+      "table_structure": null,
+      "reading_order_index": 3,
+      "text_content": "AVAILABILITY OF OFFICE OF SERVICE PROVIDER: An office of the Service Provider must be located in the\nstate of Consignee. DOCUMENTARY EVIDENCE TO BE SUBMITTED.",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0004",
+      "region_type": "title",
+      "bounding_box": {
+        "x1": 139,
+        "y1": 388,
+        "x2": 534,
+        "y2": 412
+      },
+      "contained_block_ids": [
+        "blk_0005"
+      ],
+      "table_structure": null,
+      "reading_order_index": 4,
+      "text_content": "12. Past Project Experience",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0005",
+      "region_type": "title",
+      "bounding_box": {
+        "x1": 110,
+        "y1": 847,
+        "x2": 454,
+        "y2": 879
+      },
+      "contained_block_ids": [
+        "blk_0012"
+      ],
+      "table_structure": null,
+      "reading_order_index": 5,
+      "text_content": "Disclaimer/3rdnu",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0006",
+      "region_type": "title",
+      "bounding_box": {
+        "x1": 141,
+        "y1": 162,
+        "x2": 455,
+        "y2": 253
+      },
+      "contained_block_ids": [
+        "blk_0001",
+        "blk_0002"
+      ],
+      "table_structure": null,
+      "reading_order_index": 6,
+      "text_content": "for Service Support.\n11. Service & Support",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0007",
+      "region_type": "footer",
+      "bounding_box": {
+        "x1": 1535,
+        "y1": 2260,
+        "x2": 1574,
+        "y2": 2277
+      },
+      "contained_block_ids": [
+        "blk_0053"
+      ],
+      "table_structure": null,
+      "reading_order_index": 7,
+      "text_content": "7/8",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0008",
+      "region_type": "reference",
+      "bounding_box": {
+        "x1": 151,
+        "y1": 1176,
+        "x2": 1518,
+        "y2": 2047
+      },
+      "contained_block_ids": [
+        "blk_0018",
+        "blk_0019",
+        "blk_0020",
+        "blk_0022",
+        "blk_0021",
+        "blk_0023",
+        "blk_0025",
+        "blk_0024",
+        "blk_0026",
+        "blk_0028",
+        "blk_0027",
+        "blk_0029",
+        "blk_0030",
+        "blk_0031",
+        "blk_0033",
+        "blk_0032",
+        "blk_0034",
+        "blk_0035",
+        "blk_0037",
+        "blk_0036",
+        "blk_0038",
+        "blk_0040",
+        "blk_0039",
+        "blk_0041",
+        "blk_0042",
+        "blk_0043",
+        "blk_0044",
+        "blk_0045",
+        "blk_0047",
+        "blk_0046",
+        "blk_0048",
+        "blk_0049"
+      ],
+      "table_structure": null,
+      "reading_order_index": 8,
+      "text_content": " Definition of Class I and Class Il suppliers in the bid not in line with the extant Order / Office Memorandum\nI.\nissued by DPllT in this regard..\nSeeking EmD submission from bidder(s), including via Additional Terms & Conditions, in contravention to\n2.\nexemption provided to such sellers under GeM GTC.\n Publishing Custom / BOQ bids for items for which regular GeM categories are available without any\n3.\nCategory item bunched with it.\n Creating BoQ bid for single item.\n4.\n5. Mentioning specific Brand or Make or Model or Manufacturer or Dealer name.\n6. Mandating submission of documents in physical form as a pre-requisite to qualify bidders.\n7. Floating / creation of work contracts as Custom Bids in Services.\nSeeking sample with bid or approval of samples during bid evaluation process. (However, in bids for\n8.\n Mandating foreign / international certifications even in case of existence of Indian Standards without\nspecifying equivalent Indian Certification / standards.\nSeeking experience from specific organization / department / institute only or from foreign / export.\n10.\nexperience\n Creating bid for items from irrelevant categories..\n11.\n Incorporating any clause against the MsmE policy and Preference to Make in India Policy.\n12.\n13. Reference of conditions published on any external site or reference to external documents/clauses.\n14. Asking for any Tender fee / Bid Participation fee / Auction fee in case of Bids / Forward Auction, as the\ncase may be.\n Any ATC clause in contravention with GeM GTC Clause 4 (xili)(h) will be invalid. In case of multiple L1\n15.\nbidders against a service bid, the buyer shall place the Contract by selection of a bidder amongst the L-1\nbidders through a Random Algorithm executed by GeM system..",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0009",
+      "region_type": "reference",
+      "bounding_box": {
+        "x1": 117,
+        "y1": 2076,
+        "x2": 1518,
+        "y2": 2175
+      },
+      "contained_block_ids": [
+        "blk_0050",
+        "blk_0051",
+        "blk_0052"
+      ],
+      "table_structure": null,
+      "reading_order_index": 9,
+      "text_content": "Further, if any seller has any objection/grievance against these additional clauses or otherwise on any aspect of\nthis bid, they can raise their representation against the same by using the Representation window provided in\nthe bid details field in Seller dashboard after logging in as a seller within 4 days of bid publication on GeM. Buyer",
+      "confidence": null
+    }
+  ],
+  "warnings": []
+}
