@@ -1,0 +1,1246 @@
+{
+  "job_id": "22f42d6c-ae6d-48be-9ea5-acbde7182ab3",
+  "page_number": 1,
+  "image_path": "/app/backend/app/storage/jobs/22f42d6c-ae6d-48be-9ea5-acbde7182ab3/pages/page_0001.png",
+  "image_width_px": 1653,
+  "image_height_px": 2339,
+  "processing_time_seconds": 8.74416470527649,
+  "text_blocks": [
+    {
+      "block_id": "blk_0001",
+      "text": "Bid Number/aldt aaia (fas cyr):",
+      "confidence": 0.8138,
+      "bounding_box": {
+        "x1": 1092,
+        "y1": 187,
+        "x2": 1528,
+        "y2": 227
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0002",
+      "text": "GeM",
+      "confidence": 0.9948,
+      "bounding_box": {
+        "x1": 273,
+        "y1": 205,
+        "x2": 411,
+        "y2": 256
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0003",
+      "text": "GEM/2025/B/6210450",
+      "confidence": 0.999,
+      "bounding_box": {
+        "x1": 1250,
+        "y1": 231,
+        "x2": 1530,
+        "y2": 263
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0004",
+      "text": "Azadi Ka",
+      "confidence": 0.9647,
+      "bounding_box": {
+        "x1": 462,
+        "y1": 246,
+        "x2": 586,
+        "y2": 283
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0005",
+      "text": "Government",
+      "confidence": 0.9549,
+      "bounding_box": {
+        "x1": 273,
+        "y1": 256,
+        "x2": 411,
+        "y2": 280
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0006",
+      "text": "Dated/faic : 09-05-2025",
+      "confidence": 0.9696,
+      "bounding_box": {
+        "x1": 1202,
+        "y1": 260,
+        "x2": 1530,
+        "y2": 305
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0007",
+      "text": "e Marketplace",
+      "confidence": 0.961,
+      "bounding_box": {
+        "x1": 261,
+        "y1": 278,
+        "x2": 421,
+        "y2": 307
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0008",
+      "text": "Amrit Mahotsav",
+      "confidence": 0.9697,
+      "bounding_box": {
+        "x1": 447,
+        "y1": 270,
+        "x2": 672,
+        "y2": 302
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0009",
+      "text": "Bid Document/ fs atdld",
+      "confidence": 0.9237,
+      "bounding_box": {
+        "x1": 632,
+        "y1": 375,
+        "x2": 1021,
+        "y2": 407
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0010",
+      "text": "Bid Details/fas faaqur",
+      "confidence": 0.895,
+      "bounding_box": {
+        "x1": 681,
+        "y1": 482,
+        "x2": 969,
+        "y2": 514
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0011",
+      "text": "Bid End Date/Time/fs a at at ar/Hy",
+      "confidence": 0.8905,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 548,
+        "x2": 708,
+        "y2": 580
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0012",
+      "text": " 06-06-2025 20:00:00",
+      "confidence": 0.9807,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 548,
+        "x2": 1036,
+        "y2": 580
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0013",
+      "text": "Bid Opening Date/Time/fas gd T",
+      "confidence": 0.9241,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 614,
+        "x2": 608,
+        "y2": 646
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0014",
+      "text": "06-06-2025 20:30:00",
+      "confidence": 0.9996,
+      "bounding_box": {
+        "x1": 765,
+        "y1": 636,
+        "x2": 1033,
+        "y2": 660
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0015",
+      "text": "hHH/DP",
+      "confidence": 0.5646,
+      "bounding_box": {
+        "x1": 115,
+        "y1": 653,
+        "x2": 264,
+        "y2": 690
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0016",
+      "text": "Bid Offer Validity (From End Date)/fas trT",
+      "confidence": 0.9458,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 721,
+        "x2": 740,
+        "y2": 753
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0017",
+      "text": "180 (Days)",
+      "confidence": 0.9546,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 741,
+        "x2": 908,
+        "y2": 775
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0018",
+      "text": "(H D( Iy F 2p) JPBR",
+      "confidence": 0.6187,
+      "bounding_box": {
+        "x1": 116,
+        "y1": 760,
+        "x2": 440,
+        "y2": 797
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0019",
+      "text": "Ministry/State Name/dR/y  aIH",
+      "confidence": 0.9043,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 828,
+        "x2": 659,
+        "y2": 860
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0020",
+      "text": " Ministry Of Defence",
+      "confidence": 0.9808,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 826,
+        "x2": 1019,
+        "y2": 863
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0021",
+      "text": "Department Name/faarg  a",
+      "confidence": 0.9305,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 894,
+        "x2": 556,
+        "y2": 926
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0022",
+      "text": "Department Of Defence Production.",
+      "confidence": 0.9793,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 894,
+        "x2": 1213,
+        "y2": 926
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0023",
+      "text": "Organisation Name/lot qt al",
+      "confidence": 0.8982,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 962,
+        "x2": 568,
+        "y2": 987
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0024",
+      "text": "Hindustan Aeronautics Limited (hal)",
+      "confidence": 0.9869,
+      "bounding_box": {
+        "x1": 765,
+        "y1": 962,
+        "x2": 1218,
+        "y2": 987
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0025",
+      "text": "Office Name/rafary aT aH",
+      "confidence": 0.8275,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 1023,
+        "x2": 485,
+        "y2": 1055
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0026",
+      "text": "***********",
+      "confidence": 0.9992,
+      "bounding_box": {
+        "x1": 762,
+        "y1": 1016,
+        "x2": 906,
+        "y2": 1048
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0027",
+      "text": "ar $Aa/Buyer Email",
+      "confidence": 0.8769,
+      "bounding_box": {
+        "x1": 116,
+        "y1": 1084,
+        "x2": 423,
+        "y2": 1121
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0028",
+      "text": "buyer159.halh.up@gembuyer.in",
+      "confidence": 0.9985,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 1087,
+        "x2": 1173,
+        "y2": 1121
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0029",
+      "text": "Total Quantity/ge ar",
+      "confidence": 0.9177,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 1152,
+        "x2": 435,
+        "y2": 1184
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0030",
+      "text": "82",
+      "confidence": 0.9998,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 1152,
+        "x2": 802,
+        "y2": 1182
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0031",
+      "text": "Split Air Conditioner Including Green AC, Wall Mount Type",
+      "confidence": 0.9992,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 1211,
+        "x2": 1493,
+        "y2": 1243
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0032",
+      "text": "Item Category/ eR",
+      "confidence": 0.9766,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 1226,
+        "x2": 453,
+        "y2": 1257
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0033",
+      "text": "(V2) (Q2)",
+      "confidence": 0.9487,
+      "bounding_box": {
+        "x1": 765,
+        "y1": 1245,
+        "x2": 883,
+        "y2": 1272
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0034",
+      "text": " MSE Exemption for Years of Experience and",
+      "confidence": 0.9708,
+      "bounding_box": {
+        "x1": 118,
+        "y1": 1291,
+        "x2": 745,
+        "y2": 1328
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0035",
+      "text": "No",
+      "confidence": 0.9995,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 1316,
+        "x2": 804,
+        "y2": 1347
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0036",
+      "text": "Turnover/ 3gag  ayf # yava$ c",
+      "confidence": 0.7745,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 1330,
+        "x2": 595,
+        "y2": 1364
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0037",
+      "text": "Startup Exemption for Years of Experience",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 1391,
+        "x2": 728,
+        "y2": 1423
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0038",
+      "text": "No",
+      "confidence": 0.9996,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 1411,
+        "x2": 804,
+        "y2": 1440
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0039",
+      "text": "OEM Authorization Certificate.",
+      "confidence": 0.9826,
+      "bounding_box": {
+        "x1": 765,
+        "y1": 1489,
+        "x2": 1136,
+        "y2": 1513
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0040",
+      "text": "Document required from seller/fahdl  aig",
+      "confidence": 0.9545,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 1525,
+        "x2": 723,
+        "y2": 1557
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0041",
+      "text": "*In case any bidder is seeking exemption from Experience /",
+      "confidence": 0.9802,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 1518,
+        "x2": 1520,
+        "y2": 1550
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0042",
+      "text": "Turnover Criteria, the supporting documents to prove his",
+      "confidence": 0.991,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 1547,
+        "x2": 1486,
+        "y2": 1581
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0043",
+      "text": "FRJP>2 dIe",
+      "confidence": 0.7599,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 1572,
+        "x2": 258,
+        "y2": 1598
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0044",
+      "text": "eligibility for exemption must be uploaded for evaluation by",
+      "confidence": 0.9915,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 1576,
+        "x2": 1520,
+        "y2": 1613
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0045",
+      "text": "the buyer",
+      "confidence": 0.9891,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 1608,
+        "x2": 891,
+        "y2": 1645
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0046",
+      "text": "Do you want to show documents uploaded",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 1662,
+        "x2": 723,
+        "y2": 1693
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0047",
+      "text": "by bidders to all bidders participated in",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 1693,
+        "x2": 686,
+        "y2": 1725
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0048",
+      "text": " No",
+      "confidence": 0.8556,
+      "bounding_box": {
+        "x1": 760,
+        "y1": 1703,
+        "x2": 804,
+        "y2": 1730
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0049",
+      "text": "bid?/",
+      "confidence": 0.9961,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 1730,
+        "x2": 199,
+        "y2": 1764
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0050",
+      "text": "Bid to RA enabled/fs  Ra aaat afy fhyr",
+      "confidence": 0.8817,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 1796,
+        "x2": 748,
+        "y2": 1827
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0051",
+      "text": "Yes",
+      "confidence": 0.998,
+      "bounding_box": {
+        "x1": 754,
+        "y1": 1795,
+        "x2": 815,
+        "y2": 1828
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0052",
+      "text": "RA Qualification Rule",
+      "confidence": 0.9782,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 1854,
+        "x2": 426,
+        "y2": 1886
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0053",
+      "text": "H1-Highest Priced Bid Elimination",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 1854,
+        "x2": 1191,
+        "y2": 1886
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0054",
+      "text": "ITC available to buyer/hdr  fa 3yacg",
+      "confidence": 0.8965,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 1913,
+        "x2": 662,
+        "y2": 1944
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0055",
+      "text": "Yes",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 1935,
+        "x2": 814,
+        "y2": 1964
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0056",
+      "text": "JG$uE",
+      "confidence": 0.5038,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 1954,
+        "x2": 216,
+        "y2": 1988
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0057",
+      "text": "RCM Applicable/dI 3RH",
+      "confidence": 0.9427,
+      "bounding_box": {
+        "x1": 121,
+        "y1": 2022,
+        "x2": 507,
+        "y2": 2054
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0058",
+      "text": "Yes",
+      "confidence": 0.9988,
+      "bounding_box": {
+        "x1": 759,
+        "y1": 2014,
+        "x2": 815,
+        "y2": 2055
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0059",
+      "text": "Type of Bid/fas qt ycI",
+      "confidence": 0.8196,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 2086,
+        "x2": 435,
+        "y2": 2117
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0060",
+      "text": "Two Packet Bid",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 2086,
+        "x2": 962,
+        "y2": 2117
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0061",
+      "text": "1/7",
+      "confidence": 0.9977,
+      "bounding_box": {
+        "x1": 1530,
+        "y1": 2256,
+        "x2": 1579,
+        "y2": 2283
+      },
+      "language_hint": "en"
+    }
+  ],
+  "layout_regions": [
+    {
+      "region_id": "reg_0001",
+      "region_type": "figure_caption",
+      "bounding_box": {
+        "x1": 632,
+        "y1": 379,
+        "x2": 1020,
+        "y2": 403
+      },
+      "contained_block_ids": [
+        "blk_0009"
+      ],
+      "table_structure": null,
+      "reading_order_index": 1,
+      "text_content": "Bid Document/ fs atdld",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0002",
+      "region_type": "table",
+      "bounding_box": {
+        "x1": 92,
+        "y1": 529,
+        "x2": 1566,
+        "y2": 2148
+      },
+      "contained_block_ids": [
+        "blk_0011",
+        "blk_0012",
+        "blk_0013",
+        "blk_0014",
+        "blk_0015",
+        "blk_0016",
+        "blk_0017",
+        "blk_0018",
+        "blk_0020",
+        "blk_0019",
+        "blk_0021",
+        "blk_0022",
+        "blk_0023",
+        "blk_0024",
+        "blk_0026",
+        "blk_0025",
+        "blk_0027",
+        "blk_0028",
+        "blk_0029",
+        "blk_0030",
+        "blk_0031",
+        "blk_0032",
+        "blk_0033",
+        "blk_0034",
+        "blk_0035",
+        "blk_0036",
+        "blk_0037",
+        "blk_0038",
+        "blk_0039",
+        "blk_0041",
+        "blk_0040",
+        "blk_0042",
+        "blk_0043",
+        "blk_0044",
+        "blk_0045",
+        "blk_0046",
+        "blk_0047",
+        "blk_0048",
+        "blk_0049",
+        "blk_0051",
+        "blk_0050",
+        "blk_0052",
+        "blk_0053",
+        "blk_0054",
+        "blk_0055",
+        "blk_0056",
+        "blk_0058",
+        "blk_0057",
+        "blk_0059",
+        "blk_0060"
+      ],
+      "table_structure": {
+        "cell_bbox": [
+          [
+            65.06889343261719,
+            8.726470947265625,
+            560.7015380859375,
+            8.92581844329834,
+            559.3582763671875,
+            52.46636199951172,
+            63.765316009521484,
+            52.612552642822266
+          ],
+          [
+            677.1577758789062,
+            10.526801109313965,
+            1100.10693359375,
+            10.540569305419922,
+            1094.17626953125,
+            54.55579376220703,
+            673.0697631835938,
+            55.780601501464844
+          ],
+          [
+            47.76102828979492,
+            81.33612823486328,
+            519.787109375,
+            79.81336975097656,
+            521.0459594726562,
+            149.7225341796875,
+            47.60425567626953,
+            151.94607543945312
+          ],
+          [
+            681.0275268554688,
+            79.81913757324219,
+            1117.319580078125,
+            79.37702941894531,
+            1112.165771484375,
+            142.55682373046875,
+            673.4617919921875,
+            143.25439453125
+          ],
+          [
+            54.846473693847656,
+            173.90155029296875,
+            578.09423828125,
+            173.31536865234375,
+            575.6500244140625,
+            262.3696594238281,
+            54.72452163696289,
+            260.96319580078125
+          ],
+          [
+            686.8206787109375,
+            182.34056091308594,
+            1188.41845703125,
+            182.42117309570312,
+            1183.168212890625,
+            256.29571533203125,
+            679.06298828125,
+            255.55670166015625
+          ],
+          [
+            44.657527923583984,
+            285.46044921875,
+            569.7393798828125,
+            287.3650817871094,
+            568.4816284179688,
+            346.63592529296875,
+            44.546165466308594,
+            343.5449523925781
+          ],
+          [
+            658.3463134765625,
+            294.6116638183594,
+            1013.516357421875,
+            296.4913635253906,
+            1010.9390869140625,
+            343.83465576171875,
+            654.4916381835938,
+            342.3354187011719
+          ],
+          [
+            46.30544662475586,
+            352.7962951660156,
+            527.3662109375,
+            353.9798889160156,
+            527.4244384765625,
+            397.19122314453125,
+            46.262298583984375,
+            396.2771301269531
+          ],
+          [
+            677.28515625,
+            359.4373474121094,
+            1150.6083984375,
+            361.0217590332031,
+            1148.4312744140625,
+            401.9765319824219,
+            672.7060546875,
+            401.3564147949219
+          ],
+          [
+            55.12321090698242,
+            415.3319396972656,
+            523.5567626953125,
+            415.3505554199219,
+            522.8563232421875,
+            454.9377136230469,
+            54.974212646484375,
+            455.2254333496094
+          ],
+          [
+            691.5665283203125,
+            416.8782958984375,
+            1144.157958984375,
+            418.4344482421875,
+            1141.7432861328125,
+            459.9076232910156,
+            687.0584106445312,
+            459.53271484375
+          ],
+          [
+            49.959842681884766,
+            478.6038513183594,
+            515.9744873046875,
+            478.4778137207031,
+            515.384765625,
+            518.974365234375,
+            49.824119567871094,
+            519.4028930664062
+          ],
+          [
+            698.5231323242188,
+            478.3122863769531,
+            1093.5938720703125,
+            480.71002197265625,
+            1090.2247314453125,
+            523.968505859375,
+            692.9961547851562,
+            522.6635131835938
+          ],
+          [
+            52.345924377441406,
+            543.4821166992188,
+            486.8756103515625,
+            543.5465698242188,
+            486.2786560058594,
+            584.0350952148438,
+            52.15140914916992,
+            584.185791015625
+          ],
+          [
+            692.6439208984375,
+            542.5018920898438,
+            1109.802001953125,
+            544.7736206054688,
+            1105.92138671875,
+            586.6665649414062,
+            686.7178344726562,
+            585.3585205078125
+          ],
+          [
+            39.34675979614258,
+            609.66845703125,
+            484.9379577636719,
+            610.1849365234375,
+            484.56732177734375,
+            650.4241943359375,
+            39.10711669921875,
+            650.0635375976562
+          ],
+          [
+            681.3740844726562,
+            610.195556640625,
+            1072.9443359375,
+            612.5093383789062,
+            1069.056396484375,
+            654.5065307617188,
+            675.5283203125,
+            653.0602416992188
+          ],
+          [
+            40.84625244140625,
+            679.6797485351562,
+            534.3701782226562,
+            679.99365234375,
+            533.58447265625,
+            730.0150146484375,
+            40.52679443359375,
+            729.56298828125
+          ],
+          [
+            707.5709228515625,
+            668.9682006835938,
+            1410.1158447265625,
+            672.8906860351562,
+            1408.899658203125,
+            739.4754638671875,
+            700.8775024414062,
+            735.7940063476562
+          ],
+          [
+            41.62214660644531,
+            760.70703125,
+            619.6911010742188,
+            759.0635986328125,
+            619.1665649414062,
+            830.4440307617188,
+            41.423797607421875,
+            831.3930053710938
+          ],
+          [
+            697.3182373046875,
+            754.9796142578125,
+            1360.7169189453125,
+            756.5098266601562,
+            1358.7982177734375,
+            822.3181762695312,
+            690.148193359375,
+            820.9251098632812
+          ],
+          [
+            58.189022064208984,
+            855.7814331054688,
+            591.6961669921875,
+            853.8731689453125,
+            592.1182250976562,
+            930.4176635742188,
+            58.03950881958008,
+            931.787109375
+          ],
+          [
+            708.0672607421875,
+            849.30322265625,
+            1312.1690673828125,
+            849.6904907226562,
+            1308.9110107421875,
+            927.9610595703125,
+            699.2398071289062,
+            927.2913818359375
+          ],
+          [
+            48.702823638916016,
+            964.1715087890625,
+            586.4405517578125,
+            962.8795776367188,
+            589.271484375,
+            1080.7188720703125,
+            48.65838623046875,
+            1080.654296875
+          ],
+          [
+            686.1055908203125,
+            944.1553344726562,
+            1425.96875,
+            947.9161987304688,
+            1424.4114990234375,
+            1120.2935791015625,
+            674.8897094726562,
+            1115.6282958984375
+          ],
+          [
+            33.28833770751953,
+            1138.919921875,
+            605.3380126953125,
+            1139.255126953125,
+            607.8106079101562,
+            1242.20361328125,
+            33.38203430175781,
+            1241.4072265625
+          ],
+          [
+            707.3770141601562,
+            1147.9697265625,
+            1290.9259033203125,
+            1148.013916015625,
+            1289.5050048828125,
+            1211.3760986328125,
+            703.1761474609375,
+            1211.3685302734375
+          ],
+          [
+            38.78556823730469,
+            1262.179931640625,
+            601.819091796875,
+            1262.0550537109375,
+            602.229736328125,
+            1306.0260009765625,
+            38.749454498291016,
+            1305.7724609375
+          ],
+          [
+            697.5364990234375,
+            1262.956298828125,
+            1139.948486328125,
+            1261.7606201171875,
+            1140.0184326171875,
+            1302.8077392578125,
+            696.2029418945312,
+            1304.410400390625
+          ],
+          [
+            36.27730178833008,
+            1323.1136474609375,
+            487.44329833984375,
+            1321.4813232421875,
+            487.2559509277344,
+            1372.560302734375,
+            36.1957893371582,
+            1374.1510009765625
+          ],
+          [
+            695.6830444335938,
+            1324.1917724609375,
+            1135.6619873046875,
+            1322.2471923828125,
+            1134.7412109375,
+            1372.39306640625,
+            692.7932739257812,
+            1374.1495361328125
+          ],
+          [
+            44.64885330200195,
+            1392.41455078125,
+            579.3143920898438,
+            1391.1011962890625,
+            580.3057250976562,
+            1449.2750244140625,
+            44.731353759765625,
+            1450.0867919921875
+          ],
+          [
+            731.1268920898438,
+            1393.02490234375,
+            1140.5072021484375,
+            1391.9417724609375,
+            1138.9056396484375,
+            1441.6900634765625,
+            727.5030517578125,
+            1442.8671875
+          ],
+          [
+            45.14226531982422,
+            1474.20654296875,
+            522.6052856445312,
+            1474.5596923828125,
+            521.4264526367188,
+            1533.69140625,
+            45.13296127319336,
+            1533.387939453125
+          ],
+          [
+            736.6680297851562,
+            1478.7705078125,
+            1199.62890625,
+            1478.728759765625,
+            1199.054931640625,
+            1526.4852294921875,
+            735.5223388671875,
+            1526.8216552734375
+          ],
+          [
+            46.94684982299805,
+            1550.3406982421875,
+            366.5619201660156,
+            1552.1741943359375,
+            363.8889465332031,
+            1608.3895263671875,
+            47.02605056762695,
+            1607.9649658203125
+          ],
+          [
+            718.4508666992188,
+            1557.4993896484375,
+            967.977783203125,
+            1558.903564453125,
+            965.2506713867188,
+            1607.3148193359375,
+            716.4990844726562,
+            1607.0482177734375
+          ]
+        ],
+        "html": "<html><body><table><thead><tr><td>Bid EndDate/Time/  /H</td><td>06-06-2025 20:00:00</td></tr></thead><tbody><tr><td>Bid Opening Date/Time/s ge </td><td>06-06-2025 20:30:00</td></tr><tr><td>Bid Offer Validity (From End Date)/g tRI ()</td><td>180 (Days)</td></tr><tr><td>Ministry/State Name/R/T  </td><td>Ministry Of Defence</td></tr><tr><td>Department Name/可 可 H</td><td>Department Of Defence Production</td></tr><tr><td>Organisation Name/o  H</td><td>Hindustan Aeronautics Limited (hal)</td></tr><tr><td>Office Name/  </td><td>***********</td></tr><tr><td> $a/Buyer Email</td><td>buyer159.halh.up@gembuyer.in</td></tr><tr><td>Total Quantity/ </td><td>82</td></tr><tr><td>Item Category/ </td><td>Split Air Conditioner Including Green AC, Wall Mount Type (V2) (Q2)</td></tr><tr><td>MSE Exemption for Years of Experience and Turnover/   a  </td><td>No</td></tr><tr><td>Startup Exemption for Years of Experience and Turnover/ 3H  a  F3 </td><td>No</td></tr><tr><td>Document required from seller/ada  i </td><td>OEM Authorization Certificate *In case any bidder is seeking exemption from Experience / Turnover Criteria, the supporting documents to prove his eligibility for exemption must be uploaded for evaluation by the buyer</td></tr><tr><td>Do you want to show documents uploaded by bidders to all bidders participated in bid?/</td><td>No</td></tr><tr><td>Bid to RA enabled/  Ra   </td><td>Yes</td></tr><tr><td>RA Qualification Rule</td><td>H1-Highest Priced Bid Elimination</td></tr><tr><td>ITC available to buyer 市  3q </td><td>Yes</td></tr><tr><td> RCM Applicable/T 3R</td><td></td></tr><tr><td>Type of Bid/  </td><td>Yes Two Packet Bid</td></tr></tbody></table></body></html>"
+      },
+      "reading_order_index": 2,
+      "text_content": "Bid End Date/Time/fs a at at ar/Hy\n 06-06-2025 20:00:00\nBid Opening Date/Time/fas gd T\n06-06-2025 20:30:00\nhHH/DP\nBid Offer Validity (From End Date)/fas trT\n180 (Days)\n(H D( Iy F 2p) JPBR\n Ministry Of Defence\nMinistry/State Name/dR/y  aIH\nDepartment Name/faarg  a\nDepartment Of Defence Production.\nOrganisation Name/lot qt al\nHindustan Aeronautics Limited (hal)\n***********\nOffice Name/rafary aT aH\nar $Aa/Buyer Email\nbuyer159.halh.up@gembuyer.in\nTotal Quantity/ge ar\n82\nSplit Air Conditioner Including Green AC, Wall Mount Type\nItem Category/ eR\n(V2) (Q2)\n MSE Exemption for Years of Experience and\nNo\nTurnover/ 3gag  ayf # yava$ c\nStartup Exemption for Years of Experience\nNo\nOEM Authorization Certificate.\n*In case any bidder is seeking exemption from Experience /\nDocument required from seller/fahdl  aig\nTurnover Criteria, the supporting documents to prove his\nFRJP>2 dIe\neligibility for exemption must be uploaded for evaluation by\nthe buyer\nDo you want to show documents uploaded\nby bidders to all bidders participated in\n No\nbid?/\nYes\nBid to RA enabled/fs  Ra aaat afy fhyr\nRA Qualification Rule\nH1-Highest Priced Bid Elimination\nITC available to buyer/hdr  fa 3yacg\nYes\nJG$uE\nYes\nRCM Applicable/dI 3RH\nType of Bid/fas qt ycI\nTwo Packet Bid",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0003",
+      "region_type": "table_caption",
+      "bounding_box": {
+        "x1": 686,
+        "y1": 485,
+        "x2": 968,
+        "y2": 509
+      },
+      "contained_block_ids": [
+        "blk_0010"
+      ],
+      "table_structure": null,
+      "reading_order_index": 3,
+      "text_content": "Bid Details/fas faaqur",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0004",
+      "region_type": "footer",
+      "bounding_box": {
+        "x1": 1535,
+        "y1": 2260,
+        "x2": 1573,
+        "y2": 2277
+      },
+      "contained_block_ids": [
+        "blk_0061"
+      ],
+      "table_structure": null,
+      "reading_order_index": 4,
+      "text_content": "1/7",
+      "confidence": null
+    }
+  ],
+  "warnings": []
+}

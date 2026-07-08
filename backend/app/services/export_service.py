@@ -1,8 +1,8 @@
 import csv
 import os
 from pathlib import Path
-from typing import Dict, Any, List
-from backend.app.services.csv_schema import CSV_COLUMNS
+from typing import Dict, Any, List, Tuple
+from backend.app.services.csv_schema import CSV_COLUMNS, EVIDENCE_COLUMNS
 
 # Use ordered schema for export
 TENDER_INFORMATION_COLUMNS = CSV_COLUMNS
@@ -41,3 +41,46 @@ def export_tender_information_csv(row: Dict[str, Any], output_dir: str = "output
         writer.writerow(clean_row)
         
     return str(filepath)
+
+def export_tender_evidence_csv(rows: List[Dict[str, Any]], tender_id: Any, output_dir: str = "output") -> str:
+    """
+    Exports all extracted field occurrences (audit evidence) for a tender into an occurrences CSV sheet file.
+    """
+    out_path = Path(output_dir)
+    out_path.mkdir(parents=True, exist_ok=True)
+    
+    filename = f"tender_{tender_id}_evidence.csv"
+    filepath = out_path / filename
+    
+    # Clean and prepare evidence rows
+    clean_rows = []
+    for r in rows:
+        clean_row = {}
+        for col in EVIDENCE_COLUMNS:
+            val = r.get(col, None)
+            if val is None:
+                clean_row[col] = ""
+            else:
+                clean_row[col] = str(val)
+        clean_rows.append(clean_row)
+        
+    # Write CSV file
+    with open(filepath, mode="w", newline="", encoding="utf-8-sig") as f:
+        writer = csv.DictWriter(f, fieldnames=EVIDENCE_COLUMNS)
+        writer.writeheader()
+        writer.writerows(clean_rows)
+        
+    return str(filepath)
+
+def export_page_aware_tender_sheets(
+    summary_row: Dict[str, Any], 
+    evidence_rows: List[Dict[str, Any]], 
+    output_dir: str = "output"
+) -> Tuple[str, str]:
+    """
+    Generates both the row-level summary sheet and the evidence-level occurrence log sheets simultaneously.
+    """
+    summary_path = export_tender_information_csv(summary_row, output_dir)
+    tender_id = summary_row.get("tender_id", "unknown")
+    evidence_path = export_tender_evidence_csv(evidence_rows, tender_id, output_dir)
+    return summary_path, evidence_path

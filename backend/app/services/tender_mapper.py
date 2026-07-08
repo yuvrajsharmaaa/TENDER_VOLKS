@@ -1,10 +1,12 @@
 import logging
-from typing import Dict, Any, Optional, List
+from datetime import datetime
+from typing import Dict, Any, Optional, List, Tuple
 from backend.app.services.normalizer import (
     parse_money,
     parse_int,
     parse_float,
     parse_yes_no,
+    parse_bool,
     parse_datetime,
     normalize_text,
     split_multi_value_field,
@@ -12,46 +14,115 @@ from backend.app.services.normalizer import (
     derive_presence_flag,
     detect_tender_type
 )
-from backend.app.services.csv_schema import CSV_COLUMNS
+from backend.app.services.csv_schema import CSV_COLUMNS, EVIDENCE_COLUMNS
+from backend.app.services.evidence_collector import resolve_best_value, compile_evidence_log
 
 logger = logging.getLogger(__name__)
 
+# Field category mappings for the page scorer
+FIELD_CATEGORIES = {
+    "tender_id": "identity",
+    "tender_value": "identity",
+    "bid_validity_days": "identity",
+    "physical_docs_deadline": "timing",
+    "emd_amount": "emd",
+    "emd_mode": "emd",
+    "tender_fee_amount": "fee",
+    "tender_fee_mode": "fee",
+    "processing_fee_amount": "fee",
+    "processing_fee_mode": "fee",
+    "pbg_percentage": "guarantees",
+    "pbg_duration": "guarantees",
+    "sd_percentage": "guarantees",
+    "sd_duration": "guarantees",
+    "maf_required": "eligibility",
+    "avg_annual_turnover_value": "eligibility",
+    "technical_eligibility_age": "eligibility",
+    "order_value_1": "eligibility",
+    "order_value_2": "eligibility",
+    "order_value_3": "eligibility",
+    "delivery_time_supply": "delivery",
+    "courier_address": "courier",
+    "courier_name": "courier",
+    "courier_phone": "courier"
+}
+
 def map_extraction_to_internal_schema(extracted: dict) -> dict:
     """
-    Standardizes OCR/LLM raw extraction keys into a normalized schema dictionary.
-    Safe and null-friendly.
+    Step 7A: Standardizes OCR/LLM raw extraction dict or page-aware occurrences
+    into a normalized internal schema dictionary.
     """
     normalized = {}
+    occurrences = extracted.get("occurrences", [])
+    total_pages = extracted.get("total_pages", 16)
     
-    # Handle list format from some OCR output models
+    # 1. Page-Aware Occurrences Resolution Logic
+    if occurrences:
+        # Group raw occurrences by field name
+        by_field = {}
+        for occ in occurrences:
+            fn = occ.get("field_name")
+            if fn:
+                by_field.setdefault(fn, []).append(occ)
+                
+        resolved_vals = {}
+        evidence_summaries = []
+        normalized_occs = []
+        
+        for field_name, field_occs in by_field.items():
+            field_type = FIELD_CATEGORIES.get(field_name, "general")
+            best_occ = resolve_best_value(field_occs, field_type, total_pages)
+            
+            if best_occ:
+                raw_val = best_occ.get("value_raw")
+                # Parse raw value into standard type
+                if field_name in ["tender_value", "emd_amount", "tender_fee_amount", "processing_fee_amount", "order_value_1", "order_value_2", "order_value_3", "avg_annual_turnover_value"]:
+                    norm_val = parse_money(raw_val)
+                elif field_name in ["bid_validity_days", "technical_eligibility_age", "pbg_duration", "sd_duration", "delivery_time_supply", "delivery_time_installation_days"]:
+                    norm_val = parse_int(raw_val)
+                elif field_name in ["pbg_percentage", "sd_percentage", "ld_percentage_per_week", "max_ld_percentage"]:
+                    norm_val = parse_float(raw_val)
+                elif field_name in ["physical_docs_deadline"]:
+                    norm_val = parse_datetime(raw_val)
+                elif field_name in ["delivery_time_installation_inclusive"]:
+                    norm_val = parse_bool(raw_val)
+                else:
+                    norm_val = raw_val
+                    
+                resolved_vals[field_name] = norm_val
+                evidence_summaries.append(f"{field_name}:p{best_occ.get('page', 1)}")
+                
+                # Attach normalized value for the Layer 2 log
+                for occ in field_occs:
+                    occ["normalized_value"] = norm_val
+                    normalized_occs.append(occ)
+                    
+        # Update raw values with resolved normalized values
+        extracted = {**extracted, **resolved_vals}
+        normalized["occurrences"] = normalized_occs
+        normalized["source_page_evidence_summary"] = "|".join(evidence_summaries)
+    else:
+        # Fallback to key-value maps
+        normalized["occurrences"] = []
+        normalized["source_page_evidence_summary"] = ""
+
+    # 2. Key Mapping & Normalization
+    # Alternate list formats
     if "extracted_fields" in extracted and isinstance(extracted["extracted_fields"], list):
         flat_data = {}
         for field in extracted["extracted_fields"]:
             if isinstance(field, dict) and "field_name" in field and "value" in field:
                 flat_data[field["field_name"]] = field["value"]
-                
-        # Proactively map common alternate list keys to expected names
-        if "EMD" in flat_data:
-            flat_data["emd_amount"] = flat_data["EMD"]
-        if "Tender Fee" in flat_data:
-            flat_data["tender_fee_amount"] = flat_data["Tender Fee"]
-        if "Tender Value" in flat_data:
-            flat_data["tender_value"] = flat_data["Tender Value"]
-        if "Bid Submission End Date" in flat_data:
-            flat_data["physical_docs_deadline"] = flat_data["Bid Submission End Date"]
-        if "bid_end_datetime" in flat_data:
-            flat_data["physical_docs_deadline"] = flat_data["bid_end_datetime"]
-        if "Organisation" in flat_data:
-            flat_data["authority_name"] = flat_data["Organisation"]
-            
+        if "EMD" in flat_data: flat_data["emd_amount"] = flat_data["EMD"]
+        if "Tender Fee" in flat_data: flat_data["tender_fee_amount"] = flat_data["Tender Fee"]
+        if "Tender Value" in flat_data: flat_data["tender_value"] = flat_data["Tender Value"]
+        if "Bid Submission End Date" in flat_data: flat_data["physical_docs_deadline"] = flat_data["Bid Submission End Date"]
         extracted = {**extracted, **flat_data}
 
     # Standardize values
     normalized["bid_number"] = extracted.get("bid_number") or extracted.get("tender_id")
     normalized["tender_value"] = parse_money(extracted.get("tender_value") or extracted.get("estimated_value"))
     normalized["bid_validity_days"] = parse_int(extracted.get("bid_validity_days"))
-    
-    # Deadline mapping
     normalized["deadline_dt"] = parse_datetime(
         extracted.get("physical_docs_deadline") or 
         extracted.get("bid_end_datetime") or 
@@ -105,7 +176,7 @@ def map_extraction_to_internal_schema(extracted: dict) -> dict:
     # Delivery Details
     normalized["delivery_time_supply"] = parse_int(extracted.get("delivery_time_supply"))
     normalized["delivery_time_installation_days"] = parse_int(extracted.get("delivery_time_installation_days"))
-    normalized["delivery_time_installation_inclusive"] = extracted.get("delivery_time_installation_inclusive")
+    normalized["delivery_time_installation_inclusive"] = parse_bool(extracted.get("delivery_time_installation_inclusive"))
     normalized["payment_terms_supply"] = parse_money(extracted.get("payment_terms_supply"))
     normalized["payment_terms_installation"] = parse_money(extracted.get("payment_terms_installation"))
     
@@ -120,10 +191,8 @@ def map_extraction_to_internal_schema(extracted: dict) -> dict:
 
 def map_internal_to_db_payload(data: dict, tender_id: int) -> dict:
     """
-    Maps normalized internal fields dictionary into a database-ready payload
-    matching database table columns exactly. Applies all derivation rules.
+    Step 7B: Maps internal schema fields dict into a database-ready payload.
     """
-    # Derive required flags
     emd_req = "Yes" if data.get("emd_amount") and data.get("emd_amount") > 0 else derive_presence_flag(data.get("emd_amount"))
     fee_req = "Yes" if data.get("fee_amount") and data.get("fee_amount") > 0 else derive_presence_flag(data.get("fee_amount"))
     proc_req = "Yes" if data.get("processing_fee_amount") and data.get("processing_fee_amount") > 0 else derive_presence_flag(data.get("processing_fee_amount"))
@@ -132,10 +201,9 @@ def map_internal_to_db_payload(data: dict, tender_id: int) -> dict:
     sd_req = "Yes" if data.get("sd_pct") and data.get("sd_pct") > 0 else derive_presence_flag(data.get("sd_pct"))
     ld_req = "Yes" if data.get("max_ld_pct") and data.get("max_ld_pct") > 0 else derive_presence_flag(data.get("max_ld_pct"))
     
-    # Derived eligibility checks
     maf_req = parse_yes_no(data.get("custom_rules"), ["OEM authorization", "maf", "manufacturer authorization"]) if data.get("custom_rules") else "No"
     if data.get("maf_req_raw"):
-        maf_req = parse_yes_no(str(data.get("maf_req_raw")), ["yes", "required", "y"])
+        maf_req = parse_yes_no(str(data.get("maf_req_raw")), ["yes", "required", "true", "req"])
         
     addr1, addr2, pin = parse_address_components(data.get("courier_address"))
     
@@ -157,11 +225,11 @@ def map_internal_to_db_payload(data: dict, tender_id: int) -> dict:
         
         # Security Deposit & Performance Guarantee
         "pbg_required": pbg_req,
-        "pbg_percentage": data.get("pbg_percentage") or data.get("pbg_pct"),
+        "pbg_percentage": data.get("pbg_pct"),
         "pbg_duration": data.get("pbg_dur"),
         "pbg_mode": data.get("pbg_mode"),
         "sd_required": sd_req,
-        "sd_percentage": data.get("sd_percentage") or data.get("sd_pct"),
+        "sd_percentage": data.get("sd_pct"),
         "sd_duration": data.get("sd_dur"),
         "sd_mode": data.get("sd_mode"),
         
@@ -221,12 +289,14 @@ def map_internal_to_db_payload(data: dict, tender_id: int) -> dict:
         "physical_doc_type": None,
         "physical_docs_type": None,
         "courier_city": None,
-        "courier_state": None
+        "courier_state": None,
+        
+        "source_page_evidence_summary": data.get("source_page_evidence_summary")
     }
     
     return db_payload
 
-def map_internal_to_csv_row(data: dict) -> dict:
+def map_internal_to_summary_csv_row(data: dict) -> dict:
     """
     Step 7C: Serializes DB payload values into flat string mappings matching
     the exact ordered fields CSV_COLUMNS list.
@@ -242,10 +312,37 @@ def map_internal_to_csv_row(data: dict) -> dict:
             csv_row[col] = str(val)
     return csv_row
 
+def map_internal_to_evidence_rows(data: dict) -> List[dict]:
+    """
+    Step 7D: Converts occurrences logged inside the internal dictionary
+    into Layer 2 evidence rows list formatted for DictWriter.
+    """
+    raw_occurrences = data.get("occurrences", [])
+    tender_id = data.get("bid_number") or data.get("tender_id") or "unknown"
+    return compile_evidence_log(raw_occurrences, tender_id)
+
+def map_occurrences_to_tender_payloads(
+    occurrences: List[Dict[str, Any]], 
+    tender_id: int, 
+    total_pages: int = 16
+) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
+    """
+    Groups raw occurrences by field_name, resolves the best weighted occurrence,
+    and returns db_payload and evidence rows.
+    """
+    extracted_data = {
+        "occurrences": occurrences,
+        "total_pages": total_pages,
+        "tender_id": tender_id
+    }
+    internal = map_extraction_to_internal_schema(extracted_data)
+    db_payload = map_internal_to_db_payload(internal, tender_id)
+    evidence_rows = map_internal_to_evidence_rows(internal)
+    return db_payload, evidence_rows
+
 def map_extraction_to_tender_information(extracted: dict, tender_id: int) -> dict:
     """
     Combined old entry point for backward compatibility.
-    Maps raw extraction to database dictionary.
     """
     normalized = map_extraction_to_internal_schema(extracted)
     return map_internal_to_db_payload(normalized, tender_id)

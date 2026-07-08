@@ -1,0 +1,771 @@
+{
+  "job_id": "f03ff3ba-4064-454a-8c08-d844b7efd437",
+  "page_number": 3,
+  "image_path": "/app/backend/app/storage/jobs/f03ff3ba-4064-454a-8c08-d844b7efd437/pages/page_0003.png",
+  "image_width_px": 1653,
+  "image_height_px": 2339,
+  "processing_time_seconds": 10.90057897567749,
+  "text_blocks": [
+    {
+      "block_id": "blk_0001",
+      "text": "as defined in public procurement (Preference to Make in India), Order 2017 as amended from time to time and its.",
+      "confidence": 0.9923,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 222,
+        "x2": 1542,
+        "y2": 253
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0002",
+      "text": "Iocal content to qualify as a Class 1 local supplier is denoted in the bid document. If the bidder wants to avail the",
+      "confidence": 0.9877,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 288,
+        "x2": 1530,
+        "y2": 312
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0003",
+      "text": "Purchase preference, the bidder must upload a certificate from the OEM regarding the percentage of the local",
+      "confidence": 0.9947,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 317,
+        "x2": 1498,
+        "y2": 348
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0004",
+      "text": "content and the details of locations at which the local value addition is made along with their bid, failing which",
+      "confidence": 0.9899,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 346,
+        "x2": 1503,
+        "y2": 378
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0005",
+      "text": "and by a practicing cost accountant or a chartered accountant for OEMs other than companies as per the Public",
+      "confidence": 0.989,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 441,
+        "x2": 1520,
+        "y2": 473
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0006",
+      "text": "Procurement (preference to Make-in -India) order 2017 dated 04.06.2020. Only Class-I and Class-II Local suppliers.",
+      "confidence": 0.9688,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 473,
+        "x2": 1542,
+        "y2": 504
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0007",
+      "text": "as per Mll order dated 4.6.2020 will be eligible to bid. Non - Local suppliers as per Mll order dated 04.06.2020 are",
+      "confidence": 0.9897,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 507,
+        "x2": 1537,
+        "y2": 531
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0008",
+      "text": "not eligible to participate. However, eligible micro and small enterprises will be allowed to participate .The.",
+      "confidence": 0.994,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 538,
+        "x2": 1449,
+        "y2": 563
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0009",
+      "text": "buyers are advised to refer the OM No.F.1/4/2021-PPD dated 18.05.2023.",
+      "confidence": 0.987,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 565,
+        "x2": 1028,
+        "y2": 595
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0010",
+      "text": "OM_No.1_4_2021_PPD_dated_18.05.2023 for compliance of Concurrent application of Public Procurement Policy",
+      "confidence": 0.9894,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 597,
+        "x2": 1515,
+        "y2": 629
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0011",
+      "text": "for Micro and Small Enterprises Order, 2012 and Public Procurement (Preference to Make in India) Order, 2017.",
+      "confidence": 0.9937,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 629,
+        "x2": 1508,
+        "y2": 660
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0012",
+      "text": "2. Purchase preference will be given to MsEs having valid Udyam Registration and whose credentials are.",
+      "confidence": 0.9896,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 692,
+        "x2": 1434,
+        "y2": 724
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0013",
+      "text": "Enterprises (MsEs) Order. 2012 dated 23.03.2012 issued by Ministry of Micro. Small and Medium Enterprises and",
+      "confidence": 0.9891,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 753,
+        "x2": 1528,
+        "y2": 777
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0014",
+      "text": "its subsequent Orders/Notifications issued by concerned Ministry. If the bidder wants to avail themselves of the",
+      "confidence": 0.9954,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 785,
+        "x2": 1513,
+        "y2": 816
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0015",
+      "text": "Purchase preference, the bidder must be the manufacturer / OEM of the offered product on GeM. Traders are",
+      "confidence": 0.9904,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 816,
+        "x2": 1483,
+        "y2": 848
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0016",
+      "text": "excluded from the purview of Public Procurement Policy for Micro and Small Enterprises and hence resellers",
+      "confidence": 0.9897,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 845,
+        "x2": 1466,
+        "y2": 877
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0017",
+      "text": "offering products manufactured by some other OEM are not eligible for any purchase preference. In respect of bid",
+      "confidence": 0.9893,
+      "bounding_box": {
+        "x1": 108,
+        "y1": 875,
+        "x2": 1545,
+        "y2": 909
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0018",
+      "text": "for Services, the bidder must be the Service provider of the offered Service. Relevant documentary evidence in",
+      "confidence": 0.9954,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 906,
+        "x2": 1510,
+        "y2": 938
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0019",
+      "text": "this regard shall be uploaded along with the bid in respect of the offered product or service and Buyer will decide",
+      "confidence": 0.9909,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 940,
+        "x2": 1535,
+        "y2": 972
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0020",
+      "text": "eligibility for purchase preference based on documentary evidence submitted, while evaluating the bid. If L-1 is",
+      "confidence": 0.9912,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 972,
+        "x2": 1515,
+        "y2": 1004
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0021",
+      "text": "not an MSE and MSE Seller (s) has / have quoted price within L-1+ 15% (Selected by Buyer) of margin of",
+      "confidence": 0.9905,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1004,
+        "x2": 1427,
+        "y2": 1035
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0022",
+      "text": "L-1 price and contract will be awarded for 25% (selected by Buyer) percentage of total quantity. The buyers are",
+      "confidence": 0.9928,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1067,
+        "x2": 1520,
+        "y2": 1099
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0023",
+      "text": "advised to refer the OM No. F.1/4/2021-PPD dated 18.05.2023 OM_No.1",
+      "confidence": 0.9896,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1096,
+        "x2": 1011,
+        "y2": 1128
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0024",
+      "text": "compliance of Concurrent application of Public Procurement Policy for Micro and Small Enterprises Order, 2012",
+      "confidence": 0.9921,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1128,
+        "x2": 1505,
+        "y2": 1160
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0025",
+      "text": "and Public Procurement (Preference to Make in India) Order, 2017. Benefits of MSE will be allowed only if seller is",
+      "confidence": 0.9893,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1157,
+        "x2": 1535,
+        "y2": 1191
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0026",
+      "text": "submitted.",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1226,
+        "x2": 251,
+        "y2": 1250
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0027",
+      "text": "3. Reverse Auction would be conducted amongst all the technically qualified bidders except the Highest quoting",
+      "confidence": 0.9894,
+      "bounding_box": {
+        "x1": 108,
+        "y1": 1274,
+        "x2": 1520,
+        "y2": 1311
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0028",
+      "text": "bidder. The technically qualified Highest Quoting bidder will not be allowed to participate in RA. However, H-1",
+      "confidence": 0.9907,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1308,
+        "x2": 1491,
+        "y2": 1340
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0029",
+      "text": "will also be allowed to participate in RA in following cases:",
+      "confidence": 0.9902,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1345,
+        "x2": 844,
+        "y2": 1369
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0030",
+      "text": "i. If number of technically qualified bidders are only 2 or 3.",
+      "confidence": 0.9896,
+      "bounding_box": {
+        "x1": 160,
+        "y1": 1396,
+        "x2": 908,
+        "y2": 1428
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0031",
+      "text": "ii. If Buyer has chosen to split the bid amongst N sellers, and H1 bid is coming within N..",
+      "confidence": 0.9882,
+      "bounding_box": {
+        "x1": 150,
+        "y1": 1428,
+        "x2": 1262,
+        "y2": 1459
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0032",
+      "text": "ili. In case Primary product of only one OEM is left in contention for participation in RA on elimination of H-1.",
+      "confidence": 0.9899,
+      "bounding_box": {
+        "x1": 145,
+        "y1": 1459,
+        "x2": 1513,
+        "y2": 1491
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0033",
+      "text": "iv. If L-1 is non-MSE and H-1 is eligible MSE and H-1 price is coming within price band of 15% of Non-MSE L-1",
+      "confidence": 0.9974,
+      "bounding_box": {
+        "x1": 145,
+        "y1": 1491,
+        "x2": 1520,
+        "y2": 1523
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0034",
+      "text": "v. If L-1 is non-MIIl and H-1 is eligible MIl and H-1 price is coming within price band of 20% of Non-MII L-1",
+      "confidence": 0.9687,
+      "bounding_box": {
+        "x1": 153,
+        "y1": 1520,
+        "x2": 1469,
+        "y2": 1552
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0035",
+      "text": "Section 9(3) Of GST/sact at qRr 9(3)I",
+      "confidence": 0.8624,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1586,
+        "x2": 645,
+        "y2": 1623
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0036",
+      "text": "Where ever RCM is applicable, sellers (Regular GST registered seller who opted out of FCM , unregistered seller,",
+      "confidence": 0.9935,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1659,
+        "x2": 1518,
+        "y2": 1691
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0037",
+      "text": "have liability of paying the GST and GST cess to the government on the specified rate mentioned by them in this",
+      "confidence": 0.973,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1723,
+        "x2": 1530,
+        "y2": 1754
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0038",
+      "text": "Bid.",
+      "confidence": 0.9991,
+      "bounding_box": {
+        "x1": 108,
+        "y1": 1754,
+        "x2": 162,
+        "y2": 1783
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0039",
+      "text": "If the buyer has mentioned MsE purchase preference in ATc then service provider is required to upload",
+      "confidence": 0.9805,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1808,
+        "x2": 1414,
+        "y2": 1840
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0040",
+      "text": "necessary documents for MsE purchase preference for verification by the buyer during evaluation..",
+      "confidence": 0.9907,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1842,
+        "x2": 1355,
+        "y2": 1874
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0041",
+      "text": "Split Air Conditioner Including Green AC, Wall Mount Type (V2) ( 82 pieces ).",
+      "confidence": 0.9864,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1898,
+        "x2": 1363,
+        "y2": 1935
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0042",
+      "text": "(Minimum 50% and 20% Local Content required for qualifying as Class 1 and Class 2 Local Supplier",
+      "confidence": 0.9912,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1956,
+        "x2": 1510,
+        "y2": 1993
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0043",
+      "text": "respectively/hHRT: aot 1 3iR soit 2  Fara 3nqfcdf  ay a 3=dI uIy qa  fa 3q?4c)",
+      "confidence": 0.7422,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 1993,
+        "x2": 1250,
+        "y2": 2025
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0044",
+      "text": "Bis Required",
+      "confidence": 0.9489,
+      "bounding_box": {
+        "x1": 115,
+        "y1": 2061,
+        "x2": 288,
+        "y2": 2101
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0045",
+      "text": "Yes",
+      "confidence": 0.9956,
+      "bounding_box": {
+        "x1": 1163,
+        "y1": 2066,
+        "x2": 1215,
+        "y2": 2095
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0046",
+      "text": "Technical Specifications/dhdchr faRifeai",
+      "confidence": 0.8849,
+      "bounding_box": {
+        "x1": 106,
+        "y1": 2137,
+        "x2": 657,
+        "y2": 2173
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0047",
+      "text": "3/7",
+      "confidence": 0.9863,
+      "bounding_box": {
+        "x1": 1532,
+        "y1": 2256,
+        "x2": 1579,
+        "y2": 2283
+      },
+      "language_hint": "en"
+    }
+  ],
+  "layout_regions": [
+    {
+      "region_id": "reg_0001",
+      "region_type": "text",
+      "bounding_box": {
+        "x1": 101,
+        "y1": 190,
+        "x2": 1528,
+        "y2": 1365
+      },
+      "contained_block_ids": [
+        "blk_0001",
+        "blk_0002",
+        "blk_0003",
+        "blk_0004",
+        "blk_0005",
+        "blk_0006",
+        "blk_0007",
+        "blk_0008",
+        "blk_0009",
+        "blk_0010",
+        "blk_0011",
+        "blk_0012",
+        "blk_0013",
+        "blk_0014",
+        "blk_0015",
+        "blk_0016",
+        "blk_0017",
+        "blk_0018",
+        "blk_0019",
+        "blk_0020",
+        "blk_0021",
+        "blk_0022",
+        "blk_0023",
+        "blk_0024",
+        "blk_0025",
+        "blk_0026",
+        "blk_0027",
+        "blk_0028",
+        "blk_0029"
+      ],
+      "table_structure": null,
+      "reading_order_index": 1,
+      "text_content": "as defined in public procurement (Preference to Make in India), Order 2017 as amended from time to time and its.\nIocal content to qualify as a Class 1 local supplier is denoted in the bid document. If the bidder wants to avail the\nPurchase preference, the bidder must upload a certificate from the OEM regarding the percentage of the local\ncontent and the details of locations at which the local value addition is made along with their bid, failing which\nand by a practicing cost accountant or a chartered accountant for OEMs other than companies as per the Public\nProcurement (preference to Make-in -India) order 2017 dated 04.06.2020. Only Class-I and Class-II Local suppliers.\nas per Mll order dated 4.6.2020 will be eligible to bid. Non - Local suppliers as per Mll order dated 04.06.2020 are\nnot eligible to participate. However, eligible micro and small enterprises will be allowed to participate .The.\nbuyers are advised to refer the OM No.F.1/4/2021-PPD dated 18.05.2023.\nOM_No.1_4_2021_PPD_dated_18.05.2023 for compliance of Concurrent application of Public Procurement Policy\nfor Micro and Small Enterprises Order, 2012 and Public Procurement (Preference to Make in India) Order, 2017.\n2. Purchase preference will be given to MsEs having valid Udyam Registration and whose credentials are.\nEnterprises (MsEs) Order. 2012 dated 23.03.2012 issued by Ministry of Micro. Small and Medium Enterprises and\nits subsequent Orders/Notifications issued by concerned Ministry. If the bidder wants to avail themselves of the\nPurchase preference, the bidder must be the manufacturer / OEM of the offered product on GeM. Traders are\nexcluded from the purview of Public Procurement Policy for Micro and Small Enterprises and hence resellers\noffering products manufactured by some other OEM are not eligible for any purchase preference. In respect of bid\nfor Services, the bidder must be the Service provider of the offered Service. Relevant documentary evidence in\nthis regard shall be uploaded along with the bid in respect of the offered product or service and Buyer will decide\neligibility for purchase preference based on documentary evidence submitted, while evaluating the bid. If L-1 is\nnot an MSE and MSE Seller (s) has / have quoted price within L-1+ 15% (Selected by Buyer) of margin of\nL-1 price and contract will be awarded for 25% (selected by Buyer) percentage of total quantity. The buyers are\nadvised to refer the OM No. F.1/4/2021-PPD dated 18.05.2023 OM_No.1\ncompliance of Concurrent application of Public Procurement Policy for Micro and Small Enterprises Order, 2012\nand Public Procurement (Preference to Make in India) Order, 2017. Benefits of MSE will be allowed only if seller is\nsubmitted.\n3. Reverse Auction would be conducted amongst all the technically qualified bidders except the Highest quoting\nbidder. The technically qualified Highest Quoting bidder will not be allowed to participate in RA. However, H-1\nwill also be allowed to participate in RA in following cases:",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0002",
+      "region_type": "text",
+      "bounding_box": {
+        "x1": 118,
+        "y1": 2143,
+        "x2": 657,
+        "y2": 2168
+      },
+      "contained_block_ids": [
+        "blk_0046"
+      ],
+      "table_structure": null,
+      "reading_order_index": 2,
+      "text_content": "Technical Specifications/dhdchr faRifeai",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0003",
+      "region_type": "text",
+      "bounding_box": {
+        "x1": 108,
+        "y1": 1662,
+        "x2": 1523,
+        "y2": 1895
+      },
+      "contained_block_ids": [
+        "blk_0036",
+        "blk_0037",
+        "blk_0038",
+        "blk_0039",
+        "blk_0040"
+      ],
+      "table_structure": null,
+      "reading_order_index": 3,
+      "text_content": "Where ever RCM is applicable, sellers (Regular GST registered seller who opted out of FCM , unregistered seller,\nhave liability of paying the GST and GST cess to the government on the specified rate mentioned by them in this\nBid.\nIf the buyer has mentioned MsE purchase preference in ATc then service provider is required to upload\nnecessary documents for MsE purchase preference for verification by the buyer during evaluation..",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0004",
+      "region_type": "text",
+      "bounding_box": {
+        "x1": 220,
+        "y1": 1400,
+        "x2": 1433,
+        "y2": 1603
+      },
+      "contained_block_ids": [
+        "blk_0030",
+        "blk_0031",
+        "blk_0032",
+        "blk_0033",
+        "blk_0034"
+      ],
+      "table_structure": null,
+      "reading_order_index": 4,
+      "text_content": "i. If number of technically qualified bidders are only 2 or 3.\nii. If Buyer has chosen to split the bid amongst N sellers, and H1 bid is coming within N..\nili. In case Primary product of only one OEM is left in contention for participation in RA on elimination of H-1.\niv. If L-1 is non-MSE and H-1 is eligible MSE and H-1 price is coming within price band of 15% of Non-MSE L-1\nv. If L-1 is non-MIIl and H-1 is eligible MIl and H-1 price is coming within price band of 20% of Non-MII L-1",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0005",
+      "region_type": "text",
+      "bounding_box": {
+        "x1": 122,
+        "y1": 2070,
+        "x2": 280,
+        "y2": 2097
+      },
+      "contained_block_ids": [
+        "blk_0044"
+      ],
+      "table_structure": null,
+      "reading_order_index": 5,
+      "text_content": "Bis Required",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0006",
+      "region_type": "title",
+      "bounding_box": {
+        "x1": 220,
+        "y1": 1904,
+        "x2": 1425,
+        "y2": 1933
+      },
+      "contained_block_ids": [
+        "blk_0041"
+      ],
+      "table_structure": null,
+      "reading_order_index": 6,
+      "text_content": "Split Air Conditioner Including Green AC, Wall Mount Type (V2) ( 82 pieces ).",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0007",
+      "region_type": "title",
+      "bounding_box": {
+        "x1": 110,
+        "y1": 1961,
+        "x2": 1507,
+        "y2": 2022
+      },
+      "contained_block_ids": [
+        "blk_0042",
+        "blk_0043"
+      ],
+      "table_structure": null,
+      "reading_order_index": 7,
+      "text_content": "(Minimum 50% and 20% Local Content required for qualifying as Class 1 and Class 2 Local Supplier\nrespectively/hHRT: aot 1 3iR soit 2  Fara 3nqfcdf  ay a 3=dI uIy qa  fa 3q?4c)",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0008",
+      "region_type": "footer",
+      "bounding_box": {
+        "x1": 1535,
+        "y1": 2260,
+        "x2": 1573,
+        "y2": 2277
+      },
+      "contained_block_ids": [
+        "blk_0047"
+      ],
+      "table_structure": null,
+      "reading_order_index": 8,
+      "text_content": "3/7",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0009",
+      "region_type": "reference",
+      "bounding_box": {
+        "x1": 114,
+        "y1": 1400,
+        "x2": 1524,
+        "y2": 1597
+      },
+      "contained_block_ids": [
+        "blk_0030",
+        "blk_0031",
+        "blk_0032",
+        "blk_0033",
+        "blk_0034"
+      ],
+      "table_structure": null,
+      "reading_order_index": 9,
+      "text_content": "i. If number of technically qualified bidders are only 2 or 3.\nii. If Buyer has chosen to split the bid amongst N sellers, and H1 bid is coming within N..\nili. In case Primary product of only one OEM is left in contention for participation in RA on elimination of H-1.\niv. If L-1 is non-MSE and H-1 is eligible MSE and H-1 price is coming within price band of 15% of Non-MSE L-1\nv. If L-1 is non-MIIl and H-1 is eligible MIl and H-1 price is coming within price band of 20% of Non-MII L-1",
+      "confidence": null
+    }
+  ],
+  "warnings": []
+}

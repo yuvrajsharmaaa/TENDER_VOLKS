@@ -16,11 +16,6 @@ def parse_money(val: Any) -> Optional[float]:
     """
     Cleans currency strings (e.g. Rs. 1,50,000/-) and extracts float value.
     Handles Lakh / Crore multipliers commonly found in Indian tenders.
-    
-    Usage Examples:
-        >>> parse_money("Rs. 1,50,000/-") -> 150000.0
-        >>> parse_money("Rs 2.5 Lakh") -> 250000.0
-        >>> parse_money("Not Found") -> None
     """
     if val is None or val == "Not Found" or val == "":
         return None
@@ -56,10 +51,6 @@ def parse_money(val: Any) -> Optional[float]:
 def parse_int(val: Any) -> Optional[int]:
     """
     Extracts the first valid integer from a string value.
-    
-    Usage Examples:
-        >>> parse_int("60 Days") -> 60
-        >>> parse_int("No value") -> None
     """
     if val is None or val == "Not Found" or val == "":
         return None
@@ -75,10 +66,6 @@ def parse_int(val: Any) -> Optional[int]:
 def parse_float(val: Any) -> Optional[float]:
     """
     Extracts the first valid float from a string value.
-    
-    Usage Examples:
-        >>> parse_float("5.5 percent") -> 5.5
-        >>> parse_float("12") -> 12.0
     """
     if val is None or val == "Not Found" or val == "":
         return None
@@ -94,9 +81,6 @@ def parse_float(val: Any) -> Optional[float]:
 def parse_yes_no(val: Optional[str], keywords: List[str]) -> str:
     """
     Returns 'Yes' if any of the keywords are present in the text value, else 'No'.
-    
-    Usage Examples:
-        >>> parse_yes_no("OEM authorization is required", ["oem", "maf"]) -> "Yes"
     """
     if not val:
         return "No"
@@ -105,12 +89,22 @@ def parse_yes_no(val: Optional[str], keywords: List[str]) -> str:
         return "Yes"
     return "No"
 
+def parse_bool(val: Any) -> Optional[bool]:
+    """
+    Parses boolean inputs safely, converting Yes/No/True/False to Python bool.
+    """
+    if val is None or val == "" or val == "Not Found":
+        return None
+    val_str = str(val).lower().strip()
+    if val_str in ["yes", "true", "1", "y", "inclusive"]:
+        return True
+    if val_str in ["no", "false", "0", "n", "exclusive"]:
+        return False
+    return None
+
 def parse_datetime(val: Any) -> Optional[datetime]:
     """
     Parses date or datetime strings into ISO-standard Python datetime objects.
-    
-    Usage Examples:
-        >>> parse_datetime("12-04-2025 14:00:00") -> datetime(2025, 4, 12, 14, 0, 0)
     """
     if val is None or val == "Not Found" or val == "":
         return None
@@ -120,6 +114,8 @@ def parse_datetime(val: Any) -> Optional[datetime]:
         "%d/%m/%Y %I:%M %p",
         "%d-%m-%Y %H:%M:%S",
         "%d/%m/%Y %H:%M:%S",
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d",
         "%d-%m-%Y",
         "%d/%m/%Y",
         "%Y-%m-%dT%H:%M:%S"
@@ -144,22 +140,15 @@ def parse_datetime(val: Any) -> Optional[datetime]:
 def normalize_text(val: Any) -> Optional[str]:
     """
     Cleans up redundant whitespaces, tab indents, and newlines from OCR text block.
-    
-    Usage Examples:
-        >>> normalize_text(" Line1 \n Line2 ") -> "Line1 Line2"
     """
     if val is None or val == "Not Found" or val == "":
         return None
     val_str = str(val).strip()
-    # Replace multiple spaces/newlines/tabs with a single space
     return re.sub(r'\s+', ' ', val_str)
 
 def split_multi_value_field(val: Optional[str], known_modes: Optional[List[str]] = None) -> Optional[List[str]]:
     """
     Splits transactional sentences or comma-separated lists into an array of normalized uppercase modes.
-    
-    Usage Examples:
-        >>> split_multi_value_field("Demand Draft or BG") -> ["DD", "BG"]
     """
     if not val or val == "Not Found":
         return None
@@ -171,7 +160,9 @@ def split_multi_value_field(val: Optional[str], known_modes: Optional[List[str]]
     found_modes = []
     
     for mode in known_modes:
-        if mode.lower() in val_lower:
+        # Match using word boundaries where applicable to prevent partial substring hits
+        pattern = rf"\b{re.escape(mode.lower())}\b"
+        if re.search(pattern, val_lower):
             normalized_mode = mode.upper()
             if normalized_mode == "DEMAND DRAFT":
                 normalized_mode = "DD"
@@ -185,9 +176,6 @@ def split_multi_value_field(val: Optional[str], known_modes: Optional[List[str]]
 def parse_address_components(address: Optional[str]) -> Tuple[Optional[str], Optional[str], Optional[str]]:
     """
     Splits a full address string into line 1, line 2, and extracts the pincode.
-    
-    Usage Examples:
-        >>> parse_address_components("Procurement Cell, New Delhi, 110001") -> ("Procurement Cell", "New Delhi", "110001")
     """
     if not address or address == "Not Found":
         return None, None, None

@@ -5,25 +5,25 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
-from typing import Any
+from typing import Any, List
 from backend.app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
-def send_email_with_attachment(to_email: str, subject: str, body: str, file_path: str) -> None:
+def send_email_with_attachments(to_email: str, subject: str, body: str, file_paths: List[str]) -> None:
     """
-    Sends an email with the specified CSV file attachment.
+    Sends an email with multiple file attachments.
     If SMTP variables are not configured in the environment, it logs the mock
     sending process to the console.
     """
     smtp_host = os.getenv("SMTP_HOST", "")
-    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    smtp_port = int(os.getenv("SMTP_PORT", "1025")) # Default to 1025 for MailHog local testing
     smtp_user = os.getenv("SMTP_USER", "")
     smtp_password = os.getenv("SMTP_PASSWORD", "")
     smtp_from = os.getenv("SMTP_FROM", "tender-alerts@volksenergies.com")
     
-    # 1. Fallback to mock log if SMTP details are missing (perfect for local development MVP)
-    if not smtp_host or not smtp_user or not smtp_password:
+    # 1. Fallback to mock log if SMTP details are missing and host is not localhost
+    if not smtp_host and not smtp_user:
         logger.info(
             "email_mock_dispatch",
             extra={
@@ -31,7 +31,7 @@ def send_email_with_attachment(to_email: str, subject: str, body: str, file_path
                     "event": "email_mock_dispatch",
                     "recipient": to_email,
                     "subject": subject,
-                    "attachment": file_path,
+                    "attachments": file_paths,
                     "reason": "SMTP host/credentials not configured. Mocking dispatch success."
                 }
             }
@@ -46,25 +46,27 @@ def send_email_with_attachment(to_email: str, subject: str, body: str, file_path
         
         msg.attach(MIMEText(body, "plain"))
         
-        # 2. Attach File
-        attachment_path = Path(file_path)
-        if attachment_path.exists():
-            part = MIMEBase("application", "octet-stream")
-            with open(attachment_path, "rb") as attachment_file:
-                part.set_payload(attachment_file.read())
-            encoders.encode_base64(part)
-            part.add_header(
-                "Content-Disposition",
-                f"attachment; filename={attachment_path.name}",
-            )
-            msg.attach(part)
-        else:
-            logger.warning(f"Attachment file not found at path: {file_path}. Sending email without attachment.")
-            
+        # 2. Attach Files
+        for file_path in file_paths:
+            attachment_path = Path(file_path)
+            if attachment_path.exists():
+                part = MIMEBase("application", "octet-stream")
+                with open(attachment_path, "rb") as attachment_file:
+                    part.set_payload(attachment_file.read())
+                encoders.encode_base64(part)
+                part.add_header(
+                    "Content-Disposition",
+                    f"attachment; filename={attachment_path.name}",
+                )
+                msg.attach(part)
+            else:
+                logger.warning(f"Attachment file not found at path: {file_path}. Skipping.")
+                
         # 3. SMTP Session Dispatch
         with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
-            server.starttls()
-            server.login(smtp_user, smtp_password)
+            if smtp_user and smtp_password:
+                server.starttls()
+                server.login(smtp_user, smtp_password)
             server.send_message(msg)
             
         logger.info(
@@ -74,7 +76,7 @@ def send_email_with_attachment(to_email: str, subject: str, body: str, file_path
                     "event": "email_dispatch_success",
                     "recipient": to_email,
                     "subject": subject,
-                    "attachment": file_path
+                    "attachments": file_paths
                 }
             }
         )
@@ -93,7 +95,10 @@ def send_email_with_attachment(to_email: str, subject: str, body: str, file_path
         )
         raise e
 
-def send_tender_csv_email(recipient_email: str, csv_path: Any, tender_id: str) -> None:
-    """Compatibility wrapper for legacy routes."""
-    return send_email_with_attachment(recipient_email, f"Processed Tender - {tender_id}", "Please see attached.", str(csv_path))
+def send_email_with_attachment(to_email: str, subject: str, body: str, file_path: str) -> None:
+    """Legacy compatibility wrapper for single attachments."""
+    return send_email_with_attachments(to_email, subject, body, [file_path])
 
+def send_tender_csv_email(recipient_email: str, csv_path: Any, tender_id: str) -> None:
+    """Legacy compatibility wrapper for single CSV routes."""
+    return send_email_with_attachments(recipient_email, f"Processed Tender - {tender_id}", "Please see attached.", [str(csv_path)])

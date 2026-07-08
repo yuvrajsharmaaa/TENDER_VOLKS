@@ -1,0 +1,1698 @@
+{
+  "job_id": "f03ff3ba-4064-454a-8c08-d844b7efd437",
+  "page_number": 4,
+  "image_path": "/app/backend/app/storage/jobs/f03ff3ba-4064-454a-8c08-d844b7efd437/pages/page_0004.png",
+  "image_width_px": 1653,
+  "image_height_px": 2339,
+  "processing_time_seconds": 11.138700246810913,
+  "text_blocks": [
+    {
+      "block_id": "blk_0001",
+      "text": "* 3 hcRt fafaife  3Ht / As per GeM Category Specification",
+      "confidence": 0.9158,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 163,
+        "x2": 949,
+        "y2": 195
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0002",
+      "text": "Specification Name/faffg q",
+      "confidence": 0.9187,
+      "bounding_box": {
+        "x1": 418,
+        "y1": 249,
+        "x2": 814,
+        "y2": 280
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0003",
+      "text": "Bid Requirement/fas  fa 3nq?u (Allowed",
+      "confidence": 0.9065,
+      "bounding_box": {
+        "x1": 873,
+        "y1": 246,
+        "x2": 1486,
+        "y2": 283
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0004",
+      "text": "Specification",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 170,
+        "y1": 275,
+        "x2": 352,
+        "y2": 302
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0005",
+      "text": "Values)/3gdd Hy",
+      "confidence": 0.8489,
+      "bounding_box": {
+        "x1": 1053,
+        "y1": 295,
+        "x2": 1309,
+        "y2": 326
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0006",
+      "text": "Generic",
+      "confidence": 0.9995,
+      "bounding_box": {
+        "x1": 120,
+        "y1": 355,
+        "x2": 232,
+        "y2": 395
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0007",
+      "text": "Classification By Function",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 413,
+        "y1": 361,
+        "x2": 785,
+        "y2": 392
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0008",
+      "text": "Cooling Only",
+      "confidence": 0.9994,
+      "bounding_box": {
+        "x1": 833,
+        "y1": 355,
+        "x2": 1004,
+        "y2": 395
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0009",
+      "text": "Nominal Marketing Cooling",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 411,
+        "y1": 414,
+        "x2": 800,
+        "y2": 451
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0010",
+      "text": "1.5 Ton",
+      "confidence": 0.9986,
+      "bounding_box": {
+        "x1": 833,
+        "y1": 411,
+        "x2": 943,
+        "y2": 451
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0011",
+      "text": "Capacity (in Ton) {Hint: 1",
+      "confidence": 0.9984,
+      "bounding_box": {
+        "x1": 413,
+        "y1": 448,
+        "x2": 780,
+        "y2": 480
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0012",
+      "text": "Ton= 3000 Kcal/Hr,",
+      "confidence": 0.956,
+      "bounding_box": {
+        "x1": 413,
+        "y1": 480,
+        "x2": 691,
+        "y2": 512
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0013",
+      "text": "Tolerance +/-10%}",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 413,
+        "y1": 512,
+        "x2": 684,
+        "y2": 543
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0014",
+      "text": "Star Rating (ISEER value",
+      "confidence": 0.9973,
+      "bounding_box": {
+        "x1": 413,
+        "y1": 568,
+        "x2": 765,
+        "y2": 599
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0015",
+      "text": "1 Star (ISEER value from 3.3 to 3.49), 5 Star (ISEER",
+      "confidence": 0.9727,
+      "bounding_box": {
+        "x1": 839,
+        "y1": 570,
+        "x2": 1481,
+        "y2": 594
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0016",
+      "text": "range)",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 416,
+        "y1": 602,
+        "x2": 514,
+        "y2": 629
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0017",
+      "text": "value from >=5 to <=5.5)",
+      "confidence": 0.9971,
+      "bounding_box": {
+        "x1": 836,
+        "y1": 599,
+        "x2": 1178,
+        "y2": 631
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0018",
+      "text": "Compressor Type as per BEE",
+      "confidence": 0.9993,
+      "bounding_box": {
+        "x1": 413,
+        "y1": 655,
+        "x2": 782,
+        "y2": 687
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0019",
+      "text": "Inverter AC - Variable Speed",
+      "confidence": 0.9962,
+      "bounding_box": {
+        "x1": 839,
+        "y1": 655,
+        "x2": 1200,
+        "y2": 687
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0020",
+      "text": "Star Rating Label",
+      "confidence": 0.9995,
+      "bounding_box": {
+        "x1": 413,
+        "y1": 685,
+        "x2": 637,
+        "y2": 716
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0021",
+      "text": "Refrigerants",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 125,
+        "y1": 746,
+        "x2": 285,
+        "y2": 772
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0022",
+      "text": "Eco-friendly Refrigerant",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 411,
+        "y1": 738,
+        "x2": 760,
+        "y2": 775
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0023",
+      "text": "Yes",
+      "confidence": 0.9996,
+      "bounding_box": {
+        "x1": 834,
+        "y1": 743,
+        "x2": 890,
+        "y2": 772
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0024",
+      "text": "Refrigerant Ozone",
+      "confidence": 0.9944,
+      "bounding_box": {
+        "x1": 413,
+        "y1": 799,
+        "x2": 681,
+        "y2": 831
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0025",
+      "text": "Yes",
+      "confidence": 0.9998,
+      "bounding_box": {
+        "x1": 836,
+        "y1": 802,
+        "x2": 888,
+        "y2": 831
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0026",
+      "text": "Depletion Potential is Zero",
+      "confidence": 0.9998,
+      "bounding_box": {
+        "x1": 413,
+        "y1": 828,
+        "x2": 797,
+        "y2": 860
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0027",
+      "text": "Green AC Related",
+      "confidence": 0.9983,
+      "bounding_box": {
+        "x1": 128,
+        "y1": 887,
+        "x2": 349,
+        "y2": 911
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0028",
+      "text": "Compliance to Green AC",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 416,
+        "y1": 887,
+        "x2": 760,
+        "y2": 919
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0029",
+      "text": " No",
+      "confidence": 0.8956,
+      "bounding_box": {
+        "x1": 834,
+        "y1": 887,
+        "x2": 878,
+        "y2": 916
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0030",
+      "text": "Environment",
+      "confidence": 0.9998,
+      "bounding_box": {
+        "x1": 120,
+        "y1": 913,
+        "x2": 296,
+        "y2": 953
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0031",
+      "text": "related environmental",
+      "confidence": 0.9996,
+      "bounding_box": {
+        "x1": 413,
+        "y1": 919,
+        "x2": 735,
+        "y2": 950
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0032",
+      "text": "Friendly",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 122,
+        "y1": 945,
+        "x2": 234,
+        "y2": 985
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0033",
+      "text": "friendly features complied",
+      "confidence": 0.9891,
+      "bounding_box": {
+        "x1": 411,
+        "y1": 948,
+        "x2": 792,
+        "y2": 979
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0034",
+      "text": "Requirement",
+      "confidence": 0.9998,
+      "bounding_box": {
+        "x1": 125,
+        "y1": 982,
+        "x2": 295,
+        "y2": 1009
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0035",
+      "text": "Warranty/Service",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 1033,
+        "x2": 349,
+        "y2": 1067
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0036",
+      "text": "Comprehensive Warranty",
+      "confidence": 0.9961,
+      "bounding_box": {
+        "x1": 413,
+        "y1": 1033,
+        "x2": 775,
+        "y2": 1067
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0037",
+      "text": "on Air Conditioner/Machine",
+      "confidence": 0.9909,
+      "bounding_box": {
+        "x1": 413,
+        "y1": 1067,
+        "x2": 804,
+        "y2": 1099
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0038",
+      "text": "(in years)",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 413,
+        "y1": 1099,
+        "x2": 556,
+        "y2": 1133
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0039",
+      "text": "Warranty on Compressor (in.",
+      "confidence": 0.9754,
+      "bounding_box": {
+        "x1": 413,
+        "y1": 1155,
+        "x2": 822,
+        "y2": 1187
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0040",
+      "text": "5, 10 Or higher",
+      "confidence": 0.9813,
+      "bounding_box": {
+        "x1": 831,
+        "y1": 1150,
+        "x2": 1036,
+        "y2": 1187
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0041",
+      "text": "years)",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 413,
+        "y1": 1189,
+        "x2": 509,
+        "y2": 1216
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0042",
+      "text": "Installation/Commissioning",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 411,
+        "y1": 1240,
+        "x2": 802,
+        "y2": 1277
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0043",
+      "text": "With Free Standard Installation Commissioning Or",
+      "confidence": 0.9752,
+      "bounding_box": {
+        "x1": 836,
+        "y1": 1240,
+        "x2": 1466,
+        "y2": 1274
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0044",
+      "text": "higher",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 836,
+        "y1": 1277,
+        "x2": 925,
+        "y2": 1304
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0045",
+      "text": "Number of free services",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 411,
+        "y1": 1325,
+        "x2": 760,
+        "y2": 1362
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0046",
+      "text": "2 services per year, 4 services per year Or higher",
+      "confidence": 0.9965,
+      "bounding_box": {
+        "x1": 834,
+        "y1": 1328,
+        "x2": 1464,
+        "y2": 1362
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0047",
+      "text": "during the Comprehensive",
+      "confidence": 0.989,
+      "bounding_box": {
+        "x1": 411,
+        "y1": 1357,
+        "x2": 795,
+        "y2": 1396
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0048",
+      "text": "Warranty on Air",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 413,
+        "y1": 1394,
+        "x2": 647,
+        "y2": 1425
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0049",
+      "text": "Conditioner/Machine",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 413,
+        "y1": 1423,
+        "x2": 711,
+        "y2": 1455
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0050",
+      "text": "Certifications",
+      "confidence": 1.0,
+      "bounding_box": {
+        "x1": 125,
+        "y1": 1481,
+        "x2": 295,
+        "y2": 1508
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0051",
+      "text": "Mandatory compliance /",
+      "confidence": 0.9995,
+      "bounding_box": {
+        "x1": 411,
+        "y1": 1476,
+        "x2": 763,
+        "y2": 1513
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0052",
+      "text": "As per IS 1391 (Part 2)-Latest and as per Gazette",
+      "confidence": 0.9987,
+      "bounding_box": {
+        "x1": 831,
+        "y1": 1476,
+        "x2": 1461,
+        "y2": 1508
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0053",
+      "text": "conformity to relevant iss.",
+      "confidence": 0.9636,
+      "bounding_box": {
+        "x1": 413,
+        "y1": 1513,
+        "x2": 785,
+        "y2": 1537
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0054",
+      "text": "Notification no. S.O. 3897(E) dated,29th October 2019",
+      "confidence": 0.9939,
+      "bounding_box": {
+        "x1": 839,
+        "y1": 1511,
+        "x2": 1525,
+        "y2": 1542
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0055",
+      "text": " and as per BEE Notification dated 19th April 2022",
+      "confidence": 0.9903,
+      "bounding_box": {
+        "x1": 834,
+        "y1": 1540,
+        "x2": 1464,
+        "y2": 1572
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0056",
+      "text": "Input Tax Credit(ITC)/$ayc n f3c(3n$ct) and/ ar Reverse Charge(RcM)/Ra Hr (3lRda) Details",
+      "confidence": 0.9131,
+      "bounding_box": {
+        "x1": 113,
+        "y1": 1796,
+        "x2": 1505,
+        "y2": 1827
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0057",
+      "text": "ITC on",
+      "confidence": 0.9973,
+      "bounding_box": {
+        "x1": 167,
+        "y1": 1874,
+        "x2": 263,
+        "y2": 1908
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0058",
+      "text": "ITC on GST",
+      "confidence": 0.9775,
+      "bounding_box": {
+        "x1": 332,
+        "y1": 1890,
+        "x2": 495,
+        "y2": 1930
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0059",
+      "text": "RCM",
+      "confidence": 0.8351,
+      "bounding_box": {
+        "x1": 566,
+        "y1": 1883,
+        "x2": 635,
+        "y2": 1910
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0060",
+      "text": "GST as per",
+      "confidence": 0.9709,
+      "bounding_box": {
+        "x1": 713,
+        "y1": 1893,
+        "x2": 874,
+        "y2": 1930
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0061",
+      "text": "gst Cess 1 as per",
+      "confidence": 0.9319,
+      "bounding_box": {
+        "x1": 932,
+        "y1": 1893,
+        "x2": 1191,
+        "y2": 1930
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0062",
+      "text": "gst",
+      "confidence": 0.5548,
+      "bounding_box": {
+        "x1": 1255,
+        "y1": 1896,
+        "x2": 1316,
+        "y2": 1925
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0063",
+      "text": "Optional",
+      "confidence": 0.9996,
+      "bounding_box": {
+        "x1": 1380,
+        "y1": 1896,
+        "x2": 1510,
+        "y2": 1930
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0064",
+      "text": "GST/SAH",
+      "confidence": 0.7307,
+      "bounding_box": {
+        "x1": 140,
+        "y1": 1915,
+        "x2": 288,
+        "y2": 1942
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0065",
+      "text": "Applicabl",
+      "confidence": 0.9984,
+      "bounding_box": {
+        "x1": 534,
+        "y1": 1917,
+        "x2": 664,
+        "y2": 1944
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0066",
+      "text": "RCM/Ra aT",
+      "confidence": 0.8176,
+      "bounding_box": {
+        "x1": 693,
+        "y1": 1930,
+        "x2": 893,
+        "y2": 1966
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0067",
+      "text": "Cess 2",
+      "confidence": 0.9998,
+      "bounding_box": {
+        "x1": 1232,
+        "y1": 1922,
+        "x2": 1336,
+        "y2": 1962
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0068",
+      "text": "Cess/saet",
+      "confidence": 0.7881,
+      "bounding_box": {
+        "x1": 329,
+        "y1": 1929,
+        "x2": 497,
+        "y2": 1969
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0069",
+      "text": "RCM/Ra aa ",
+      "confidence": 0.7952,
+      "bounding_box": {
+        "x1": 947,
+        "y1": 1932,
+        "x2": 1181,
+        "y2": 1964
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0070",
+      "text": "RCM/dcT?y",
+      "confidence": 0.6693,
+      "bounding_box": {
+        "x1": 1368,
+        "y1": 1932,
+        "x2": 1523,
+        "y2": 1966
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0071",
+      "text": "e/d",
+      "confidence": 0.7408,
+      "bounding_box": {
+        "x1": 555,
+        "y1": 1943,
+        "x2": 643,
+        "y2": 1989
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0072",
+      "text": "N4 2hp$ zh",
+      "confidence": 0.6897,
+      "bounding_box": {
+        "x1": 135,
+        "y1": 1956,
+        "x2": 290,
+        "y2": 1991
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0073",
+      "text": "as per",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 1240,
+        "y1": 1961,
+        "x2": 1331,
+        "y2": 1988
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0074",
+      "text": "34q{ h f3c",
+      "confidence": 0.7064,
+      "bounding_box": {
+        "x1": 319,
+        "y1": 1973,
+        "x2": 505,
+        "y2": 2013
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0075",
+      "text": "3 3HR 3NHCT",
+      "confidence": 0.5645,
+      "bounding_box": {
+        "x1": 689,
+        "y1": 1976,
+        "x2": 895,
+        "y2": 2010
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0076",
+      "text": "l JhE Hdf lHFE",
+      "confidence": 0.5466,
+      "bounding_box": {
+        "x1": 922,
+        "y1": 1978,
+        "x2": 1198,
+        "y2": 2010
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0077",
+      "text": "g Ra tHT",
+      "confidence": 0.5938,
+      "bounding_box": {
+        "x1": 1363,
+        "y1": 1976,
+        "x2": 1523,
+        "y2": 2010
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0078",
+      "text": "df3c",
+      "confidence": 0.5814,
+      "bounding_box": {
+        "x1": 180,
+        "y1": 2000,
+        "x2": 244,
+        "y2": 2030
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0079",
+      "text": "3R",
+      "confidence": 0.9851,
+      "bounding_box": {
+        "x1": 546,
+        "y1": 1993,
+        "x2": 652,
+        "y2": 2027
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0080",
+      "text": "RCM",
+      "confidence": 0.9862,
+      "bounding_box": {
+        "x1": 1250,
+        "y1": 1991,
+        "x2": 1318,
+        "y2": 2017
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0081",
+      "text": "100%",
+      "confidence": 0.9998,
+      "bounding_box": {
+        "x1": 175,
+        "y1": 2066,
+        "x2": 253,
+        "y2": 2100
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0082",
+      "text": "100%",
+      "confidence": 1.0,
+      "bounding_box": {
+        "x1": 374,
+        "y1": 2066,
+        "x2": 455,
+        "y2": 2100
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0083",
+      "text": "Yes",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 573,
+        "y1": 2069,
+        "x2": 625,
+        "y2": 2098
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0084",
+      "text": "18%",
+      "confidence": 0.8692,
+      "bounding_box": {
+        "x1": 763,
+        "y1": 2069,
+        "x2": 824,
+        "y2": 2098
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0085",
+      "text": "NA",
+      "confidence": 0.9951,
+      "bounding_box": {
+        "x1": 1041,
+        "y1": 2069,
+        "x2": 1085,
+        "y2": 2098
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0086",
+      "text": "NA",
+      "confidence": 0.9891,
+      "bounding_box": {
+        "x1": 1264,
+        "y1": 2069,
+        "x2": 1309,
+        "y2": 2098
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0087",
+      "text": "No",
+      "confidence": 0.9995,
+      "bounding_box": {
+        "x1": 1422,
+        "y1": 2069,
+        "x2": 1469,
+        "y2": 2098
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0088",
+      "text": "4/7",
+      "confidence": 0.9526,
+      "bounding_box": {
+        "x1": 1530,
+        "y1": 2256,
+        "x2": 1579,
+        "y2": 2283
+      },
+      "language_hint": "en"
+    }
+  ],
+  "layout_regions": [
+    {
+      "region_id": "reg_0001",
+      "region_type": "table",
+      "bounding_box": {
+        "x1": 92,
+        "y1": 221,
+        "x2": 1564,
+        "y2": 1603
+      },
+      "contained_block_ids": [
+        "blk_0003",
+        "blk_0002",
+        "blk_0004",
+        "blk_0005",
+        "blk_0006",
+        "blk_0008",
+        "blk_0007",
+        "blk_0010",
+        "blk_0009",
+        "blk_0011",
+        "blk_0012",
+        "blk_0013",
+        "blk_0014",
+        "blk_0015",
+        "blk_0017",
+        "blk_0016",
+        "blk_0018",
+        "blk_0019",
+        "blk_0020",
+        "blk_0022",
+        "blk_0023",
+        "blk_0021",
+        "blk_0024",
+        "blk_0025",
+        "blk_0026",
+        "blk_0027",
+        "blk_0028",
+        "blk_0029",
+        "blk_0030",
+        "blk_0031",
+        "blk_0032",
+        "blk_0033",
+        "blk_0034",
+        "blk_0035",
+        "blk_0036",
+        "blk_0037",
+        "blk_0038",
+        "blk_0040",
+        "blk_0039",
+        "blk_0041",
+        "blk_0042",
+        "blk_0043",
+        "blk_0044",
+        "blk_0045",
+        "blk_0046",
+        "blk_0047",
+        "blk_0048",
+        "blk_0049",
+        "blk_0051",
+        "blk_0052",
+        "blk_0050",
+        "blk_0054",
+        "blk_0053",
+        "blk_0055"
+      ],
+      "table_structure": {
+        "cell_bbox": [
+          [
+            41.69195556640625,
+            23.13077735900879,
+            218.2685089111328,
+            23.462820053100586,
+            216.8113250732422,
+            92.13041687011719,
+            40.187713623046875,
+            91.81481170654297
+          ],
+          [
+            337.66351318359375,
+            23.44622802734375,
+            683.4068603515625,
+            23.58917808532715,
+            685.2012329101562,
+            95.19873809814453,
+            338.10858154296875,
+            95.21006774902344
+          ],
+          [
+            770.937255859375,
+            18.673940658569336,
+            1431.428466796875,
+            19.186843872070312,
+            1429.8316650390625,
+            96.11121368408203,
+            761.8251953125,
+            95.0744857788086
+          ],
+          [
+            14.030856132507324,
+            128.51968383789062,
+            244.57203674316406,
+            128.7489776611328,
+            243.58444213867188,
+            290.21429443359375,
+            13.701672554016113,
+            288.25732421875
+          ],
+          [
+            334.6760559082031,
+            109.621826171875,
+            668.8489379882812,
+            110.7237548828125,
+            665.9188232421875,
+            179.7543487548828,
+            331.1712341308594,
+            177.54315185546875
+          ],
+          [
+            754.7717895507812,
+            112.06095886230469,
+            1277.7027587890625,
+            115.71558380126953,
+            1271.283447265625,
+            183.34153747558594,
+            744.525146484375,
+            178.1360626220703
+          ],
+          [
+            335.6899108886719,
+            189.00169372558594,
+            694.1610717773438,
+            189.14524841308594,
+            693.2606201171875,
+            287.0293273925781,
+            338.57574462890625,
+            286.7973937988281
+          ],
+          [
+            807.548583984375,
+            196.4880828857422,
+            1341.16796875,
+            200.26495361328125,
+            1335.4710693359375,
+            268.7422790527344,
+            792.69482421875,
+            264.4895935058594
+          ],
+          [
+            352.2528991699219,
+            344.5527038574219,
+            684.904541015625,
+            346.0810241699219,
+            681.845947265625,
+            414.8038024902344,
+            352.0455322265625,
+            412.542724609375
+          ],
+          [
+            739.28515625,
+            338.8972473144531,
+            1431.0220947265625,
+            344.3595275878906,
+            1429.98828125,
+            418.76165771484375,
+            730.5675048828125,
+            413.03253173828125
+          ],
+          [
+            358.53375244140625,
+            423.7991638183594,
+            651.4461059570312,
+            427.4139709472656,
+            648.6629638671875,
+            480.02642822265625,
+            358.0757751464844,
+            475.044677734375
+          ],
+          [
+            760.4676513671875,
+            415.3564147949219,
+            1339.5657958984375,
+            418.8580627441406,
+            1336.570068359375,
+            477.9801330566406,
+            751.6873779296875,
+            474.482666015625
+          ],
+          [
+            14.131866455078125,
+            506.7328186035156,
+            254.61532592773438,
+            504.0780029296875,
+            255.48809814453125,
+            587.2112426757812,
+            14.027833938598633,
+            591.2730712890625
+          ],
+          [
+            342.7866516113281,
+            492.3547058105469,
+            686.9457397460938,
+            488.4087219238281,
+            691.5616455078125,
+            540.3631591796875,
+            343.5380859375,
+            544.1730346679688
+          ],
+          [
+            773.3756103515625,
+            484.1406555175781,
+            1320.5526123046875,
+            485.18048095703125,
+            1318.389892578125,
+            547.574462890625,
+            765.82275390625,
+            547.2927856445312
+          ],
+          [
+            351.03375244140625,
+            567.4610595703125,
+            680.1119384765625,
+            569.18359375,
+            680.4884033203125,
+            630.9144897460938,
+            351.2268371582031,
+            628.98974609375
+          ],
+          [
+            773.3499755859375,
+            563.672607421875,
+            1377.5494384765625,
+            564.9918212890625,
+            1374.7457275390625,
+            636.3204956054688,
+            762.0233764648438,
+            635.541015625
+          ],
+          [
+            27.79789161682129,
+            653.9251708984375,
+            252.81149291992188,
+            652.0065307617188,
+            251.60877990722656,
+            789.597900390625,
+            27.387765884399414,
+            790.8124389648438
+          ],
+          [
+            330.0442810058594,
+            649.0389404296875,
+            676.273193359375,
+            648.2255859375,
+            669.5489501953125,
+            762.9725341796875,
+            324.5853576660156,
+            764.0708618164062
+          ],
+          [
+            786.5518798828125,
+            651.94775390625,
+            1418.454345703125,
+            653.768310546875,
+            1417.006591796875,
+            767.2090454101562,
+            779.6951293945312,
+            765.889404296875
+          ],
+          [
+            16.2122745513916,
+            822.5746459960938,
+            234.6588897705078,
+            819.7947998046875,
+            233.93763732910156,
+            986.5997924804688,
+            15.903393745422363,
+            989.431640625
+          ],
+          [
+            325.88714599609375,
+            800.7799682617188,
+            669.8575439453125,
+            793.875244140625,
+            678.5933227539062,
+            891.4977416992188,
+            329.4751281738281,
+            897.989013671875
+          ],
+          [
+            793.0726928710938,
+            794.060791015625,
+            1387.743408203125,
+            794.8504028320312,
+            1386.7681884765625,
+            882.4261474609375,
+            789.2565307617188,
+            882.818115234375
+          ],
+          [
+            316.5663146972656,
+            926.4312744140625,
+            694.0037231445312,
+            923.917236328125,
+            701.475341796875,
+            991.3557739257812,
+            323.02685546875,
+            995.145751953125
+          ],
+          [
+            783.8091430664062,
+            924.7965698242188,
+            1362.045166015625,
+            927.2041015625,
+            1361.0640869140625,
+            986.3111572265625,
+            781.0337524414062,
+            986.3858642578125
+          ],
+          [
+            352.030029296875,
+            1013.366943359375,
+            687.9650268554688,
+            1011.919189453125,
+            693.2877807617188,
+            1075.1583251953125,
+            357.7099304199219,
+            1078.009765625
+          ],
+          [
+            792.271728515625,
+            1010.3406372070312,
+            1420.861572265625,
+            1012.0571899414062,
+            1420.1981201171875,
+            1089.799072265625,
+            789.048095703125,
+            1089.933349609375
+          ],
+          [
+            359.1055908203125,
+            1093.085205078125,
+            716.8563232421875,
+            1093.767333984375,
+            716.3145751953125,
+            1224.30712890625,
+            359.7838134765625,
+            1223.975830078125
+          ],
+          [
+            767.35302734375,
+            1082.329345703125,
+            1437.73095703125,
+            1084.3050537109375,
+            1436.516845703125,
+            1200.3697509765625,
+            757.2671508789062,
+            1199.5660400390625
+          ],
+          [
+            185.416259765625,
+            1241.605224609375,
+            481.46875,
+            1243.058837890625,
+            491.8502197265625,
+            1316.044677734375,
+            191.59034729003906,
+            1314.7244873046875
+          ],
+          [
+            654.4369506835938,
+            1240.8126220703125,
+            1278.9820556640625,
+            1241.1341552734375,
+            1278.45263671875,
+            1320.709716796875,
+            655.2229614257812,
+            1320.4447021484375
+          ]
+        ],
+        "html": "<html><body><table><thead><tr><td>Specification</td><td>Specification Name/faRfg </td><td>Bid Requirement/fs  @ 3HqR (Allowed Values)/H H</td></tr></thead><tbody><tr><td rowspan=\"4\">Generic</td><td>Classification By Function</td><td>Cooling Only</td></tr><tr><td>Nominal Marketing Cooling Capacity (in Ton) {Hint: 1 Ton= 3000 Kcal/Hr,</td><td>1.5 Ton</td></tr><tr><td>Tolerance +/-10%} Star Rating (ISEER value range)</td><td>1 Star (ISEER value from 3.3 to 3.49), 5 Star (ISEER value from >=5 to <=5.5)</td></tr><tr><td>Compressor Type as per BEE Star Rating Label</td><td>Inverter AC - Variable Speed</td></tr><tr><td rowspan=\"2\"> Refrigerants</td><td>Eco-friendly Refrigerant</td><td>Yes</td></tr><tr><td>Refrigerant Ozone Depletion Potential is Zero</td><td>Yes</td></tr><tr><td>Green AC Related Environment Friendly Requirement</td><td>Compliance to Green AC related environmental friendly features complied</td><td>No</td></tr><tr><td rowspan=\"5\">Warranty/Service</td><td>Comprehensive Warranty 1 on Air Conditioner/Machine (in years)</td><td></td></tr><tr><td>Warranty on Compressor (in years)</td><td>5, 10 Or higher</td></tr><tr><td>Installation/Commissioning</td><td>With Free Standard Installation Commissioning Or higher</td></tr><tr><td>Number of free services during the Comprehensive Warranty on Air Conditioner/Machine</td><td> 2 services per year, 4 services per year Or higher</td></tr><tr><td>Certifications Mandatory compliance / conformity to relevant IsS</td><td>As per IS 1391 (Part 2)-Latest and as per Gazette Notification no.S.O. 3897(E) dated,29th October 2019 and as per BEE Notification dated 19th April 2022</td></tr></tbody></table></body></html>"
+      },
+      "reading_order_index": 1,
+      "text_content": "Bid Requirement/fas  fa 3nq?u (Allowed\nSpecification Name/faffg q\nSpecification\nValues)/3gdd Hy\nGeneric\nCooling Only\nClassification By Function\n1.5 Ton\nNominal Marketing Cooling\nCapacity (in Ton) {Hint: 1\nTon= 3000 Kcal/Hr,\nTolerance +/-10%}\nStar Rating (ISEER value\n1 Star (ISEER value from 3.3 to 3.49), 5 Star (ISEER\nvalue from >=5 to <=5.5)\nrange)\nCompressor Type as per BEE\nInverter AC - Variable Speed\nStar Rating Label\nEco-friendly Refrigerant\nYes\nRefrigerants\nRefrigerant Ozone\nYes\nDepletion Potential is Zero\nGreen AC Related\nCompliance to Green AC\n No\nEnvironment\nrelated environmental\nFriendly\nfriendly features complied\nRequirement\nWarranty/Service\nComprehensive Warranty\non Air Conditioner/Machine\n(in years)\n5, 10 Or higher\nWarranty on Compressor (in.\nyears)\nInstallation/Commissioning\nWith Free Standard Installation Commissioning Or\nhigher\nNumber of free services\n2 services per year, 4 services per year Or higher\nduring the Comprehensive\nWarranty on Air\nConditioner/Machine\nMandatory compliance /\nAs per IS 1391 (Part 2)-Latest and as per Gazette\nCertifications\nNotification no. S.O. 3897(E) dated,29th October 2019\nconformity to relevant iss.\n and as per BEE Notification dated 19th April 2022",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0002",
+      "region_type": "table",
+      "bounding_box": {
+        "x1": 97,
+        "y1": 1849,
+        "x2": 1557,
+        "y2": 2129
+      },
+      "contained_block_ids": [
+        "blk_0057",
+        "blk_0059",
+        "blk_0058",
+        "blk_0060",
+        "blk_0061",
+        "blk_0062",
+        "blk_0063",
+        "blk_0064",
+        "blk_0065",
+        "blk_0067",
+        "blk_0068",
+        "blk_0066",
+        "blk_0069",
+        "blk_0070",
+        "blk_0071",
+        "blk_0072",
+        "blk_0073",
+        "blk_0074",
+        "blk_0075",
+        "blk_0077",
+        "blk_0076",
+        "blk_0080",
+        "blk_0079",
+        "blk_0078",
+        "blk_0081",
+        "blk_0082",
+        "blk_0083",
+        "blk_0084",
+        "blk_0085",
+        "blk_0086",
+        "blk_0087"
+      ],
+      "table_structure": {
+        "cell_bbox": [
+          [
+            14.759819984436035,
+            10.505305290222168,
+            196.17970275878906,
+            11.35399055480957,
+            193.0824737548828,
+            239.5004119873047,
+            13.571163177490234,
+            238.79197692871094
+          ],
+          [
+            167.73287963867188,
+            25.363191604614258,
+            382.656494140625,
+            25.851999282836914,
+            380.25152587890625,
+            233.2304229736328,
+            163.9864959716797,
+            232.96774291992188
+          ],
+          [
+            357.27227783203125,
+            21.24076271057129,
+            524.1911010742188,
+            21.620285034179688,
+            522.0162353515625,
+            211.4666290283203,
+            354.53192138671875,
+            211.73556518554688
+          ],
+          [
+            559.4201049804688,
+            18.394596099853516,
+            742.9519653320312,
+            18.971420288085938,
+            738.7911376953125,
+            205.11070251464844,
+            554.450439453125,
+            205.65426635742188
+          ],
+          [
+            723.1843872070312,
+            13.784244537353516,
+            971.43359375,
+            14.468010902404785,
+            964.9534912109375,
+            207.6923828125,
+            715.1968383789062,
+            208.06100463867188
+          ],
+          [
+            977.875,
+            14.380270957946777,
+            1173.2669677734375,
+            15.270753860473633,
+            1168.188232421875,
+            209.61148071289062,
+            971.1512451171875,
+            209.56967163085938
+          ],
+          [
+            1200.918701171875,
+            16.163381576538086,
+            1354.6844482421875,
+            17.40948486328125,
+            1351.6904296875,
+            215.56106567382812,
+            1196.3369140625,
+            214.85638427734375
+          ],
+          [
+            1299.8004150390625,
+            27.07582664489746,
+            1439.772705078125,
+            29.349063873291016,
+            1438.971923828125,
+            214.04359436035156,
+            1296.71240234375,
+            211.97744750976562
+          ],
+          [
+            20.423744201660156,
+            201.31639099121094,
+            132.7708282470703,
+            203.92324829101562,
+            126.78324890136719,
+            272.94195556640625,
+            19.44191551208496,
+            272.5167236328125
+          ],
+          [
+            164.65042114257812,
+            203.5078887939453,
+            329.4830627441406,
+            205.37063598632812,
+            321.2692565917969,
+            273.17120361328125,
+            159.6044921875,
+            272.9015197753906
+          ],
+          [
+            300.8231506347656,
+            205.74783325195312,
+            488.67529296875,
+            207.0771484375,
+            479.2554626464844,
+            270.5533447265625,
+            292.6449890136719,
+            270.3167724609375
+          ],
+          [
+            527.0800170898438,
+            204.198486328125,
+            676.8419189453125,
+            205.32821655273438,
+            670.5166625976562,
+            268.2275390625,
+            520.05078125,
+            268.03204345703125
+          ],
+          [
+            672.3182373046875,
+            203.9384307861328,
+            855.9129028320312,
+            205.08233642578125,
+            848.97998046875,
+            266.2532958984375,
+            664.1862182617188,
+            266.0584411621094
+          ],
+          [
+            913.0343017578125,
+            206.7363739013672,
+            1110.093994140625,
+            207.73574829101562,
+            1105.21142578125,
+            264.5275573730469,
+            906.3274536132812,
+            264.3948059082031
+          ],
+          [
+            1151.7467041015625,
+            209.9636993408203,
+            1279.8046875,
+            210.89346313476562,
+            1277.39453125,
+            266.00689697265625,
+            1149.45703125,
+            265.88946533203125
+          ],
+          [
+            1313.285400390625,
+            214.99986267089844,
+            1428.2601318359375,
+            216.11477661132812,
+            1427.8922119140625,
+            269.0303649902344,
+            1313.8466796875,
+            268.8441467285156
+          ]
+        ],
+        "html": "<html><body><table><tr><td>ITC on GST/ </td><td>ITC on GST Cess/H </td><td>RCM Applicabl e/T可 </td><td>GST as per RCM/R H 市  </td><td></td><td>GST Cess 1 as per RCM/R H   1</td><td>GST Cess 2 as per RCM</td><td>Optional RCM/lasu </td></tr><tr><td>100%</td><td></td><td>100% Yes</td><td></td><td>18%</td><td>NA</td><td>NA</td><td>No</td></tr></table></body></html>"
+      },
+      "reading_order_index": 2,
+      "text_content": "ITC on\nRCM\nITC on GST\nGST as per\ngst Cess 1 as per\ngst\nOptional\nGST/SAH\nApplicabl\nCess 2\nCess/saet\nRCM/Ra aT\nRCM/Ra aa \nRCM/dcT?y\ne/d\nN4 2hp$ zh\nas per\n34q{ h f3c\n3 3HR 3NHCT\ng Ra tHT\nl JhE Hdf lHFE\nRCM\n3R\ndf3c\n100%\n100%\nYes\n18%\nNA\nNA\nNo",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0003",
+      "region_type": "table_caption",
+      "bounding_box": {
+        "x1": 220,
+        "y1": 1798,
+        "x2": 1433,
+        "y2": 1826
+      },
+      "contained_block_ids": [
+        "blk_0056"
+      ],
+      "table_structure": null,
+      "reading_order_index": 3,
+      "text_content": "Input Tax Credit(ITC)/$ayc n f3c(3n$ct) and/ ar Reverse Charge(RcM)/Ra Hr (3lRda) Details",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0004",
+      "region_type": "footer",
+      "bounding_box": {
+        "x1": 1534,
+        "y1": 2260,
+        "x2": 1574,
+        "y2": 2277
+      },
+      "contained_block_ids": [
+        "blk_0088"
+      ],
+      "table_structure": null,
+      "reading_order_index": 4,
+      "text_content": "4/7",
+      "confidence": null
+    }
+  ],
+  "warnings": []
+}

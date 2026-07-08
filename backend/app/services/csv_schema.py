@@ -166,3 +166,17 @@ MINIMAL_MVP_CSV_COLUMNS = [
     "te_rejection_remarks",
     "te_final_remark"
 ]
+
+# Evidence Sheet header schema (Layer 2)
+EVIDENCE_COLUMNS = [
+    "tender_id",
+    "field_name",
+    "extracted_value_raw",
+    "normalized_value",
+    "page_number",
+    "confidence",
+    "text_snippet",
+    "extraction_timestamp"
+]
+
+

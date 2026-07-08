@@ -64,6 +64,7 @@ async def lifespan(app: FastAPI):
         from backend.app.models.tender_project import TenderProject
         from backend.app.models.document import Document
         from backend.app.models.tender_information import TenderInformation
+        from backend.app.models.job import Job
         Base.metadata.create_all(bind=engine)
         logger.info("SQLAlchemy database tables initialized")
     except Exception as e:
@@ -110,5 +111,3 @@ app.include_router(health_router)
 app.include_router(upload.router)
 app.include_router(jobs.router)
 app.include_router(visualizer.router)
-from backend.app.api.routes.tenders import router as tenders_router
-app.include_router(tenders_router)

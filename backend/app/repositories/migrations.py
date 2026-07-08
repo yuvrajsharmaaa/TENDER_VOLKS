@@ -17,8 +17,20 @@ def init_db(db_path=DB_PATH):
                 created_at      TEXT NOT NULL,
                 started_at      TEXT,
                 completed_at    TEXT,
-                retry_count     INTEGER NOT NULL DEFAULT 0
+                retry_count     INTEGER NOT NULL DEFAULT 0,
+                email_recipient TEXT,
+                tender_id       INTEGER
             )
         """)
         conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_created_at ON jobs(created_at)")
+        
+        # Safe migration alterations for existing databases
+        try:
+            conn.execute("ALTER TABLE jobs ADD COLUMN email_recipient TEXT")
+        except sqlite3.OperationalError:
+            pass
+        try:
+            conn.execute("ALTER TABLE jobs ADD COLUMN tender_id INTEGER")
+        except sqlite3.OperationalError:
+            pass

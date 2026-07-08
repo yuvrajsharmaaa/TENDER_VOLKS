@@ -53,12 +53,24 @@ def update_status(job_id: str, status: JobStatus, error_message: str = None, res
     params.append(job_id)
     query = f"UPDATE jobs SET {', '.join(updates)} WHERE job_id = ?"
     
-    # Simple retry mechanism for WAL mode locks
     for i in range(3):
         try:
             with sqlite3.connect(db_path) as conn:
                 conn.execute("PRAGMA journal_mode=WAL")
                 conn.execute(query, tuple(params))
+                break
+        except sqlite3.OperationalError as e:
+            if i == 2:
+                raise e
+            time.sleep(1)
+
+def update_job_parameters(job_id: str, email_recipient: str, tender_id: int, db_path: Path = DB_PATH) -> None:
+    query = "UPDATE jobs SET email_recipient = ?, tender_id = ? WHERE job_id = ?"
+    for i in range(3):
+        try:
+            with sqlite3.connect(db_path) as conn:
+                conn.execute("PRAGMA journal_mode=WAL")
+                conn.execute(query, (email_recipient, tender_id, job_id))
                 break
         except sqlite3.OperationalError as e:
             if i == 2:
@@ -74,4 +86,3 @@ def get_all_jobs(db_path: Path = DB_PATH) -> List[Dict[str, Any]]:
         conn.row_factory = sqlite3.Row
         cur = conn.execute("SELECT * FROM jobs ORDER BY created_at DESC")
         return [dict(row) for row in cur.fetchall()]
-

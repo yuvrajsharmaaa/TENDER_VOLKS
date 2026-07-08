@@ -3,7 +3,8 @@ from datetime import datetime
 from backend.app.services.tender_mapper import (
     map_extraction_to_internal_schema,
     map_internal_to_db_payload,
-    map_internal_to_csv_row,
+    map_internal_to_summary_csv_row,
+    map_occurrences_to_tender_payloads,
     map_extraction_to_tender_information
 )
 
@@ -104,7 +105,7 @@ def test_map_internal_to_db_payload():
     assert payload["te_recommendation"] is None
     assert payload["te_rejection_reason"] is None
 
-def test_map_internal_to_csv_row():
+def test_map_internal_to_summary_csv_row():
     db_payload = {
         "tender_id": 99,
         "tender_value": 2500000.0,
@@ -112,13 +113,39 @@ def test_map_internal_to_csv_row():
         "emd_mode": ["DD", "BG"],
         "te_recommendation": None
     }
-    csv_row = map_internal_to_csv_row(db_payload)
+    csv_row = map_internal_to_summary_csv_row(db_payload)
     
     assert csv_row["tender_id"] == "99"
     assert csv_row["tender_value"] == "2500000.0"
     assert csv_row["emd_required"] == "Yes"
     assert csv_row["emd_mode"] == "DD|BG"
     assert csv_row["te_recommendation"] == ""  # None serialized to empty string
+
+def test_map_occurrences_to_tender_payloads():
+    occurrences = [
+        # Double tender value extraction (p1 outscores p14)
+        {"field_name": "tender_value", "value_raw": "Rs. 25 Lakh", "page": 1, "confidence": 0.9, "text_snippet": "NIT Cost: Rs. 25 Lakh"},
+        {"field_name": "tender_value", "value_raw": "2500000", "page": 14, "confidence": 0.95, "text_snippet": "Fee cost: 2500000"},
+        # EMD Details
+        {"field_name": "emd_amount", "value_raw": "1,00,000", "page": 2, "confidence": 0.9, "text_snippet": "EMD details: 1,00,000"}
+    ]
+    
+    db_payload, evidence_rows = map_occurrences_to_tender_payloads(occurrences, tender_id=123, total_pages=16)
+    
+    assert db_payload["tender_id"] == 123
+    assert db_payload["tender_value"] == 2500000.0  # 3 * 0.9 = 2.7 > 1 * 0.95 = 0.95
+    assert db_payload["emd_amount"] == 100000.0
+    assert db_payload["emd_required"] == "Yes"
+    
+    # Source summaries audit trail
+    assert "tender_value:p1" in db_payload["source_page_evidence_summary"]
+    assert "emd_amount:p2" in db_payload["source_page_evidence_summary"]
+    
+    # Evidence log
+    assert len(evidence_rows) == 3
+    assert evidence_rows[0]["tender_id"] == 123
+    assert evidence_rows[0]["normalized_value"] == 2500000.0
+    assert evidence_rows[0]["page_number"] == 1
 
 def test_map_extraction_to_tender_information():
     extracted = {

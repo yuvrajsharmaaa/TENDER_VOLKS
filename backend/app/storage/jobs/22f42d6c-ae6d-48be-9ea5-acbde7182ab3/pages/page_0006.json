@@ -1,0 +1,875 @@
+{
+  "job_id": "22f42d6c-ae6d-48be-9ea5-acbde7182ab3",
+  "page_number": 6,
+  "image_path": "/app/backend/app/storage/jobs/22f42d6c-ae6d-48be-9ea5-acbde7182ab3/pages/page_0006.png",
+  "image_width_px": 1653,
+  "image_height_px": 2339,
+  "processing_time_seconds": 9.407572269439697,
+  "text_blocks": [
+    {
+      "block_id": "blk_0001",
+      "text": "1) Please note that specifications as mentioned in attached Annexure-A will supersede GeM specifications.",
+      "confidence": 0.9977,
+      "bounding_box": {
+        "x1": 194,
+        "y1": 158,
+        "x2": 1530,
+        "y2": 190
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0002",
+      "text": "2) The bidder should submit line wise compliance of technical specification as mentioned in attached Anne",
+      "confidence": 0.9964,
+      "bounding_box": {
+        "x1": 192,
+        "y1": 212,
+        "x2": 1537,
+        "y2": 249
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0003",
+      "text": "xure-A.",
+      "confidence": 0.9995,
+      "bounding_box": {
+        "x1": 194,
+        "y1": 251,
+        "x2": 285,
+        "y2": 275
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0004",
+      "text": "3) The bidder should submit EMD as mentioned in attached Annexure-B. If the bidder submit EMD in form",
+      "confidence": 0.9834,
+      "bounding_box": {
+        "x1": 194,
+        "y1": 302,
+        "x2": 1535,
+        "y2": 334
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0005",
+      "text": "of bank guarantee, the format of EMD should be as per Annexure-C.",
+      "confidence": 0.9752,
+      "bounding_box": {
+        "x1": 194,
+        "y1": 336,
+        "x2": 1043,
+        "y2": 361
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0006",
+      "text": "3. Buyer Added Bid Specific ATC",
+      "confidence": 0.9933,
+      "bounding_box": {
+        "x1": 150,
+        "y1": 451,
+        "x2": 620,
+        "y2": 482
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0007",
+      "text": "Buyer uploaded ATC document Click here to view the file.",
+      "confidence": 0.9962,
+      "bounding_box": {
+        "x1": 199,
+        "y1": 517,
+        "x2": 925,
+        "y2": 548
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0008",
+      "text": "Disclaimer/3rdu",
+      "confidence": 0.9324,
+      "bounding_box": {
+        "x1": 110,
+        "y1": 624,
+        "x2": 458,
+        "y2": 668
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0009",
+      "text": "The additional terms and conditions have been incorporated by the Buyer after approval of the Competent",
+      "confidence": 0.9953,
+      "bounding_box": {
+        "x1": 116,
+        "y1": 704,
+        "x2": 1456,
+        "y2": 736
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0010",
+      "text": "Authority in Buyer Organization, whereby Buyer organization is solely responsible for the impact of these clauses",
+      "confidence": 0.9926,
+      "bounding_box": {
+        "x1": 116,
+        "y1": 743,
+        "x2": 1537,
+        "y2": 767
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0011",
+      "text": "on the bidding process, its outcome, and consequences thereof including any eccentricity / restriction arising in",
+      "confidence": 0.9984,
+      "bounding_box": {
+        "x1": 118,
+        "y1": 775,
+        "x2": 1518,
+        "y2": 799
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0012",
+      "text": "the bidding process due to these ATCs and due to modification of technical specifications and / or terms and",
+      "confidence": 0.9916,
+      "bounding_box": {
+        "x1": 116,
+        "y1": 802,
+        "x2": 1481,
+        "y2": 833
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0013",
+      "text": "resultant contracts shall be treated as null and void and such bids may be cancelled by GeM at any stage of.",
+      "confidence": 0.9888,
+      "bounding_box": {
+        "x1": 116,
+        "y1": 865,
+        "x2": 1476,
+        "y2": 897
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0014",
+      "text": "bidding process without any notice:-.",
+      "confidence": 0.9714,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 892,
+        "x2": 578,
+        "y2": 928
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0015",
+      "text": " Definition of Class I and Class II suppliers in the bid not in line with the extant Order / Office Memorandum.",
+      "confidence": 0.9809,
+      "bounding_box": {
+        "x1": 187,
+        "y1": 955,
+        "x2": 1530,
+        "y2": 992
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0016",
+      "text": "1.",
+      "confidence": 0.9803,
+      "bounding_box": {
+        "x1": 155,
+        "y1": 965,
+        "x2": 199,
+        "y2": 984
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0017",
+      "text": "issued by DPIIT in this regard..",
+      "confidence": 0.958,
+      "bounding_box": {
+        "x1": 197,
+        "y1": 992,
+        "x2": 578,
+        "y2": 1023
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0018",
+      "text": "2.",
+      "confidence": 0.9741,
+      "bounding_box": {
+        "x1": 153,
+        "y1": 1035,
+        "x2": 199,
+        "y2": 1055
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0019",
+      "text": "exemption provided to such sellers under GeM GTC.",
+      "confidence": 0.9978,
+      "bounding_box": {
+        "x1": 199,
+        "y1": 1065,
+        "x2": 851,
+        "y2": 1089
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0020",
+      "text": "3. Publishing Custom / BOQ bids for items for which regular GeM categories are available without any",
+      "confidence": 0.988,
+      "bounding_box": {
+        "x1": 150,
+        "y1": 1101,
+        "x2": 1441,
+        "y2": 1133
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0021",
+      "text": "Category item bunched with it..",
+      "confidence": 0.9757,
+      "bounding_box": {
+        "x1": 197,
+        "y1": 1133,
+        "x2": 590,
+        "y2": 1165
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0022",
+      "text": "4.",
+      "confidence": 0.9538,
+      "bounding_box": {
+        "x1": 155,
+        "y1": 1177,
+        "x2": 199,
+        "y2": 1196
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0023",
+      "text": "Creating BoQ bid for single item..",
+      "confidence": 0.9738,
+      "bounding_box": {
+        "x1": 189,
+        "y1": 1172,
+        "x2": 610,
+        "y2": 1204
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0024",
+      "text": "5. Mentioning specific Brand or Make or Model or Manufacturer or Dealer name.",
+      "confidence": 0.9878,
+      "bounding_box": {
+        "x1": 150,
+        "y1": 1211,
+        "x2": 1168,
+        "y2": 1243
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0025",
+      "text": "6.",
+      "confidence": 0.9736,
+      "bounding_box": {
+        "x1": 155,
+        "y1": 1257,
+        "x2": 194,
+        "y2": 1274
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0026",
+      "text": " Mandating submission of documents in physical form as a pre-requisite to qualify bidders..",
+      "confidence": 0.985,
+      "bounding_box": {
+        "x1": 184,
+        "y1": 1250,
+        "x2": 1328,
+        "y2": 1282
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0027",
+      "text": " Floating / creation of work contracts as Custom Bids in Services.",
+      "confidence": 0.9949,
+      "bounding_box": {
+        "x1": 189,
+        "y1": 1291,
+        "x2": 1009,
+        "y2": 1323
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0028",
+      "text": "8.",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 153,
+        "y1": 1335,
+        "x2": 180,
+        "y2": 1355
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0029",
+      "text": " Seeking sample with bid or approval of samples during bid evaluation process. (However, in bids for.",
+      "confidence": 0.9886,
+      "bounding_box": {
+        "x1": 192,
+        "y1": 1330,
+        "x2": 1459,
+        "y2": 1362
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0030",
+      "text": "9. Mandating foreign / international certifications even in case of existence of Indian Standards without",
+      "confidence": 0.9988,
+      "bounding_box": {
+        "x1": 148,
+        "y1": 1401,
+        "x2": 1464,
+        "y2": 1433
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0031",
+      "text": "specifying equivalent Indian Certification / standards.",
+      "confidence": 0.9964,
+      "bounding_box": {
+        "x1": 199,
+        "y1": 1438,
+        "x2": 871,
+        "y2": 1462
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0032",
+      "text": "10.",
+      "confidence": 0.9996,
+      "bounding_box": {
+        "x1": 138,
+        "y1": 1474,
+        "x2": 187,
+        "y2": 1501
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0033",
+      "text": " Seeking experience from specific organization / department / institute only or from foreign / export",
+      "confidence": 0.9865,
+      "bounding_box": {
+        "x1": 192,
+        "y1": 1472,
+        "x2": 1446,
+        "y2": 1503
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0034",
+      "text": "experience.",
+      "confidence": 0.9997,
+      "bounding_box": {
+        "x1": 199,
+        "y1": 1508,
+        "x2": 344,
+        "y2": 1533
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0035",
+      "text": "11.",
+      "confidence": 0.9963,
+      "bounding_box": {
+        "x1": 140,
+        "y1": 1550,
+        "x2": 184,
+        "y2": 1567
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0036",
+      "text": "Creating bid for items from irrelevant categories.",
+      "confidence": 0.9881,
+      "bounding_box": {
+        "x1": 194,
+        "y1": 1542,
+        "x2": 814,
+        "y2": 1574
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0037",
+      "text": "12.",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 140,
+        "y1": 1589,
+        "x2": 180,
+        "y2": 1606
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0038",
+      "text": " Incorporating any clause against the MsmE policy and Preference to Make in India Policy..",
+      "confidence": 0.9908,
+      "bounding_box": {
+        "x1": 189,
+        "y1": 1581,
+        "x2": 1314,
+        "y2": 1613
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0039",
+      "text": "13.",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 143,
+        "y1": 1628,
+        "x2": 180,
+        "y2": 1647
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0040",
+      "text": " Reference of conditions published on any external site or reference to external documents/clauses",
+      "confidence": 0.9962,
+      "bounding_box": {
+        "x1": 192,
+        "y1": 1620,
+        "x2": 1441,
+        "y2": 1652
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0041",
+      "text": "14.",
+      "confidence": 0.9999,
+      "bounding_box": {
+        "x1": 140,
+        "y1": 1667,
+        "x2": 184,
+        "y2": 1686
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0042",
+      "text": "case may be.",
+      "confidence": 0.9353,
+      "bounding_box": {
+        "x1": 199,
+        "y1": 1698,
+        "x2": 367,
+        "y2": 1723
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0043",
+      "text": "15.",
+      "confidence": 1.0,
+      "bounding_box": {
+        "x1": 140,
+        "y1": 1737,
+        "x2": 182,
+        "y2": 1757
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0044",
+      "text": " Buyer added ATc Clauses which are in contravention of clauses defined by buyer in system generated bid",
+      "confidence": 0.994,
+      "bounding_box": {
+        "x1": 194,
+        "y1": 1732,
+        "x2": 1532,
+        "y2": 1764
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0045",
+      "text": "template as indicated above in the Bid Details section, EMD Detail, ePBG Detail and Mll and MSE Purchase",
+      "confidence": 0.9864,
+      "bounding_box": {
+        "x1": 197,
+        "y1": 1764,
+        "x2": 1537,
+        "y2": 1796
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0046",
+      "text": "Preference sections of the bid, unless otherwise allowed by GeM GTC.",
+      "confidence": 0.9995,
+      "bounding_box": {
+        "x1": 197,
+        "y1": 1796,
+        "x2": 1077,
+        "y2": 1827
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0047",
+      "text": "16. In a category based bid, adding additional items, through buyer added additional scope of work/ additional",
+      "confidence": 0.998,
+      "bounding_box": {
+        "x1": 138,
+        "y1": 1835,
+        "x2": 1540,
+        "y2": 1866
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0048",
+      "text": "terms and conditions/or any other document. If buyer needs more items along with the main item, the",
+      "confidence": 0.9923,
+      "bounding_box": {
+        "x1": 202,
+        "y1": 1871,
+        "x2": 1486,
+        "y2": 1896
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0049",
+      "text": "same must be added through bunching category based items or by bunching custom catalogs or",
+      "confidence": 0.9987,
+      "bounding_box": {
+        "x1": 199,
+        "y1": 1898,
+        "x2": 1419,
+        "y2": 1930
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0050",
+      "text": "bunching a BoQ with the main category based item, the same must not be done through ATC or Scope of",
+      "confidence": 0.9927,
+      "bounding_box": {
+        "x1": 197,
+        "y1": 1930,
+        "x2": 1525,
+        "y2": 1961
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0051",
+      "text": "Work.",
+      "confidence": 1.0,
+      "bounding_box": {
+        "x1": 199,
+        "y1": 1961,
+        "x2": 273,
+        "y2": 1988
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0052",
+      "text": "the bid details field in Seller dashboard after logging in as a seller within 4 days of bid publication on GeM. Buyer",
+      "confidence": 0.9954,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 2083,
+        "x2": 1530,
+        "y2": 2115
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0053",
+      "text": "is duty bound to reply to all such representations and would not be allowed to open bids if he fails to reply to",
+      "confidence": 0.9921,
+      "bounding_box": {
+        "x1": 108,
+        "y1": 2112,
+        "x2": 1483,
+        "y2": 2147
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0054",
+      "text": "such representations.",
+      "confidence": 1.0,
+      "bounding_box": {
+        "x1": 106,
+        "y1": 2149,
+        "x2": 384,
+        "y2": 2173
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0055",
+      "text": "6/7",
+      "confidence": 0.9968,
+      "bounding_box": {
+        "x1": 1530,
+        "y1": 2256,
+        "x2": 1579,
+        "y2": 2283
+      },
+      "language_hint": "en"
+    }
+  ],
+  "layout_regions": [
+    {
+      "region_id": "reg_0001",
+      "region_type": "text",
+      "bounding_box": {
+        "x1": 186,
+        "y1": 163,
+        "x2": 1532,
+        "y2": 362
+      },
+      "contained_block_ids": [
+        "blk_0001",
+        "blk_0002",
+        "blk_0003",
+        "blk_0004",
+        "blk_0005"
+      ],
+      "table_structure": null,
+      "reading_order_index": 1,
+      "text_content": "1) Please note that specifications as mentioned in attached Annexure-A will supersede GeM specifications.\n2) The bidder should submit line wise compliance of technical specification as mentioned in attached Anne\nxure-A.\n3) The bidder should submit EMD as mentioned in attached Annexure-B. If the bidder submit EMD in form\nof bank guarantee, the format of EMD should be as per Annexure-C.",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0002",
+      "region_type": "text",
+      "bounding_box": {
+        "x1": 121,
+        "y1": 710,
+        "x2": 1532,
+        "y2": 925
+      },
+      "contained_block_ids": [
+        "blk_0009",
+        "blk_0010",
+        "blk_0011",
+        "blk_0012",
+        "blk_0013",
+        "blk_0014"
+      ],
+      "table_structure": null,
+      "reading_order_index": 2,
+      "text_content": "The additional terms and conditions have been incorporated by the Buyer after approval of the Competent\nAuthority in Buyer Organization, whereby Buyer organization is solely responsible for the impact of these clauses\non the bidding process, its outcome, and consequences thereof including any eccentricity / restriction arising in\nthe bidding process due to these ATCs and due to modification of technical specifications and / or terms and\nresultant contracts shall be treated as null and void and such bids may be cancelled by GeM at any stage of.\nbidding process without any notice:-.",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0003",
+      "region_type": "text",
+      "bounding_box": {
+        "x1": 327,
+        "y1": 520,
+        "x2": 923,
+        "y2": 544
+      },
+      "contained_block_ids": [
+        "blk_0007"
+      ],
+      "table_structure": null,
+      "reading_order_index": 3,
+      "text_content": "Buyer uploaded ATC document Click here to view the file.",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0004",
+      "region_type": "text",
+      "bounding_box": {
+        "x1": 219,
+        "y1": 2026,
+        "x2": 1433,
+        "y2": 2176
+      },
+      "contained_block_ids": [
+        "blk_0052",
+        "blk_0053",
+        "blk_0054"
+      ],
+      "table_structure": null,
+      "reading_order_index": 4,
+      "text_content": "the bid details field in Seller dashboard after logging in as a seller within 4 days of bid publication on GeM. Buyer\nis duty bound to reply to all such representations and would not be allowed to open bids if he fails to reply to\nsuch representations.",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0005",
+      "region_type": "title",
+      "bounding_box": {
+        "x1": 159,
+        "y1": 454,
+        "x2": 619,
+        "y2": 479
+      },
+      "contained_block_ids": [
+        "blk_0006"
+      ],
+      "table_structure": null,
+      "reading_order_index": 5,
+      "text_content": "3. Buyer Added Bid Specific ATC",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0006",
+      "region_type": "title",
+      "bounding_box": {
+        "x1": 121,
+        "y1": 633,
+        "x2": 461,
+        "y2": 662
+      },
+      "contained_block_ids": [
+        "blk_0008"
+      ],
+      "table_structure": null,
+      "reading_order_index": 6,
+      "text_content": "Disclaimer/3rdu",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0007",
+      "region_type": "footer",
+      "bounding_box": {
+        "x1": 1534,
+        "y1": 2260,
+        "x2": 1574,
+        "y2": 2277
+      },
+      "contained_block_ids": [
+        "blk_0055"
+      ],
+      "table_structure": null,
+      "reading_order_index": 7,
+      "text_content": "6/7",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0008",
+      "region_type": "reference",
+      "bounding_box": {
+        "x1": 143,
+        "y1": 937,
+        "x2": 1513,
+        "y2": 1988
+      },
+      "contained_block_ids": [
+        "blk_0015",
+        "blk_0016",
+        "blk_0017",
+        "blk_0018",
+        "blk_0019",
+        "blk_0020",
+        "blk_0021",
+        "blk_0023",
+        "blk_0022",
+        "blk_0024",
+        "blk_0026",
+        "blk_0025",
+        "blk_0027",
+        "blk_0029",
+        "blk_0028",
+        "blk_0030",
+        "blk_0031",
+        "blk_0033",
+        "blk_0032",
+        "blk_0034",
+        "blk_0036",
+        "blk_0035",
+        "blk_0038",
+        "blk_0037",
+        "blk_0040",
+        "blk_0039",
+        "blk_0041",
+        "blk_0042",
+        "blk_0044",
+        "blk_0043",
+        "blk_0045",
+        "blk_0046",
+        "blk_0047",
+        "blk_0048",
+        "blk_0049",
+        "blk_0050",
+        "blk_0051"
+      ],
+      "table_structure": null,
+      "reading_order_index": 8,
+      "text_content": " Definition of Class I and Class II suppliers in the bid not in line with the extant Order / Office Memorandum.\n1.\nissued by DPIIT in this regard..\n2.\nexemption provided to such sellers under GeM GTC.\n3. Publishing Custom / BOQ bids for items for which regular GeM categories are available without any\nCategory item bunched with it..\nCreating BoQ bid for single item..\n4.\n5. Mentioning specific Brand or Make or Model or Manufacturer or Dealer name.\n Mandating submission of documents in physical form as a pre-requisite to qualify bidders..\n6.\n Floating / creation of work contracts as Custom Bids in Services.\n Seeking sample with bid or approval of samples during bid evaluation process. (However, in bids for.\n8.\n9. Mandating foreign / international certifications even in case of existence of Indian Standards without\nspecifying equivalent Indian Certification / standards.\n Seeking experience from specific organization / department / institute only or from foreign / export\n10.\nexperience.\nCreating bid for items from irrelevant categories.\n11.\n Incorporating any clause against the MsmE policy and Preference to Make in India Policy..\n12.\n Reference of conditions published on any external site or reference to external documents/clauses\n13.\n14.\ncase may be.\n Buyer added ATc Clauses which are in contravention of clauses defined by buyer in system generated bid\n15.\ntemplate as indicated above in the Bid Details section, EMD Detail, ePBG Detail and Mll and MSE Purchase\nPreference sections of the bid, unless otherwise allowed by GeM GTC.\n16. In a category based bid, adding additional items, through buyer added additional scope of work/ additional\nterms and conditions/or any other document. If buyer needs more items along with the main item, the\nsame must be added through bunching category based items or by bunching custom catalogs or\nbunching a BoQ with the main category based item, the same must not be done through ATC or Scope of\nWork.",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0009",
+      "region_type": "reference",
+      "bounding_box": {
+        "x1": 107,
+        "y1": 2027,
+        "x2": 1518,
+        "y2": 2176
+      },
+      "contained_block_ids": [
+        "blk_0052",
+        "blk_0053",
+        "blk_0054"
+      ],
+      "table_structure": null,
+      "reading_order_index": 9,
+      "text_content": "the bid details field in Seller dashboard after logging in as a seller within 4 days of bid publication on GeM. Buyer\nis duty bound to reply to all such representations and would not be allowed to open bids if he fails to reply to\nsuch representations.",
+      "confidence": null
+    }
+  ],
+  "warnings": []
+}

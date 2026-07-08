@@ -1,0 +1,269 @@
+{
+  "job_id": "f03ff3ba-4064-454a-8c08-d844b7efd437",
+  "page_number": 7,
+  "image_path": "/app/backend/app/storage/jobs/f03ff3ba-4064-454a-8c08-d844b7efd437/pages/page_0007.png",
+  "image_width_px": 1653,
+  "image_height_px": 2339,
+  "processing_time_seconds": 3.668809652328491,
+  "text_blocks": [
+    {
+      "block_id": "blk_0001",
+      "text": "All GeM Sellers / Service Providers are mandated to ensure compliance with all the applicable laws /",
+      "confidence": 0.9891,
+      "bounding_box": {
+        "x1": 116,
+        "y1": 212,
+        "x2": 1535,
+        "y2": 249
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0002",
+      "text": "acts / rules including but not limited to all Labour Laws such as The Minimum Wages Act, 1948, The",
+      "confidence": 0.994,
+      "bounding_box": {
+        "x1": 118,
+        "y1": 246,
+        "x2": 1530,
+        "y2": 278
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0003",
+      "text": "Payment of Wages Act, 1936, The Payment of Bonus Act, 1965, The Equal Remuneration Act, 1976",
+      "confidence": 0.9891,
+      "bounding_box": {
+        "x1": 123,
+        "y1": 278,
+        "x2": 1520,
+        "y2": 309
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0004",
+      "text": "The Payment of Gratuity Act, 1972 etc. Any non-compliance will be treated as breach of contract",
+      "confidence": 0.9963,
+      "bounding_box": {
+        "x1": 138,
+        "y1": 309,
+        "x2": 1513,
+        "y2": 341
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0005",
+      "text": "and Buyer may take suitable actions as per GeM Contract.",
+      "confidence": 0.9963,
+      "bounding_box": {
+        "x1": 416,
+        "y1": 346,
+        "x2": 1237,
+        "y2": 370
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0006",
+      "text": "This Bid is also governed by the General Terms and Conditions/ as fs arargy araf  3iavia aft arRa ?",
+      "confidence": 0.922,
+      "bounding_box": {
+        "x1": 182,
+        "y1": 417,
+        "x2": 1466,
+        "y2": 448
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0007",
+      "text": "In terms of GeM GTC clause 26 regarding Restrictions on procurement from a bidder of a country which shares a land border with India, any bidder from a country which",
+      "confidence": 0.997,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 497,
+        "x2": 1537,
+        "y2": 521
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0008",
+      "text": "shares a land border with India will be eligible to bid in this tender only if the bidder is registered with the Competent Authority. While participating in bid, Bidder has to",
+      "confidence": 0.9962,
+      "bounding_box": {
+        "x1": 108,
+        "y1": 514,
+        "x2": 1537,
+        "y2": 541
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0009",
+      "text": "undertake compliance of this and any false declaration and non-compliance of this would be a ground for immediate termination of the contract and further legal action.",
+      "confidence": 0.9799,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 538,
+        "x2": 1540,
+        "y2": 563
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0010",
+      "text": "Plb H S  Id2 KI F>p I$IH I jIe hH  Dile e Je2H  9Z Sp  JPIt hleH Iy He/smelayn ym auepaoe u!",
+      "confidence": 0.5321,
+      "bounding_box": {
+        "x1": 108,
+        "y1": 568,
+        "x2": 1542,
+        "y2": 599
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0011",
+      "text": "q uRAqq a Hiqq  HRa 3 HT2 afA AlHT HI$T h aTa 3T aT a$ at fas< $H fRac a fas 3t a fu aat q3 3lJT",
+      "confidence": 0.5535,
+      "bounding_box": {
+        "x1": 108,
+        "y1": 609,
+        "x2": 1540,
+        "y2": 643
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0012",
+      "text": "le $l yfE le IP>4 PRhPE LH$ L 2SJ hHH FF lele Fe SeI poh HIh 4 l4hJK HHH IRI P2 SeJ 2n bP",
+      "confidence": 0.5201,
+      "bounding_box": {
+        "x1": 111,
+        "y1": 653,
+        "x2": 1537,
+        "y2": 685
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0013",
+      "text": "Jdd a\\qu fhy 3t a $HcI 3qUIdq a a q 3gqq qt AcchIa HHIH q{ 3iR aTa $ 3gHI 3TJf aT aadT qTdI$",
+      "confidence": 0.6162,
+      "bounding_box": {
+        "x1": 108,
+        "y1": 699,
+        "x2": 1542,
+        "y2": 731
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0014",
+      "text": "I e2 dBlE J",
+      "confidence": 0.5329,
+      "bounding_box": {
+        "x1": 108,
+        "y1": 746,
+        "x2": 280,
+        "y2": 772
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0015",
+      "text": "---Thank You/qr4dlg---",
+      "confidence": 0.8862,
+      "bounding_box": {
+        "x1": 652,
+        "y1": 821,
+        "x2": 991,
+        "y2": 860
+      },
+      "language_hint": "en"
+    },
+    {
+      "block_id": "blk_0016",
+      "text": "117",
+      "confidence": 0.7309,
+      "bounding_box": {
+        "x1": 1526,
+        "y1": 2250,
+        "x2": 1580,
+        "y2": 2286
+      },
+      "language_hint": "en"
+    }
+  ],
+  "layout_regions": [
+    {
+      "region_id": "reg_0001",
+      "region_type": "text",
+      "bounding_box": {
+        "x1": 110,
+        "y1": 391,
+        "x2": 1540,
+        "y2": 847
+      },
+      "contained_block_ids": [
+        "blk_0006",
+        "blk_0007",
+        "blk_0008",
+        "blk_0009",
+        "blk_0010",
+        "blk_0011",
+        "blk_0012",
+        "blk_0013",
+        "blk_0014",
+        "blk_0015"
+      ],
+      "table_structure": null,
+      "reading_order_index": 1,
+      "text_content": "This Bid is also governed by the General Terms and Conditions/ as fs arargy araf  3iavia aft arRa ?\nIn terms of GeM GTC clause 26 regarding Restrictions on procurement from a bidder of a country which shares a land border with India, any bidder from a country which\nshares a land border with India will be eligible to bid in this tender only if the bidder is registered with the Competent Authority. While participating in bid, Bidder has to\nundertake compliance of this and any false declaration and non-compliance of this would be a ground for immediate termination of the contract and further legal action.\nPlb H S  Id2 KI F>p I$IH I jIe hH  Dile e Je2H  9Z Sp  JPIt hleH Iy He/smelayn ym auepaoe u!\nq uRAqq a Hiqq  HRa 3 HT2 afA AlHT HI$T h aTa 3T aT a$ at fas< $H fRac a fas 3t a fu aat q3 3lJT\nle $l yfE le IP>4 PRhPE LH$ L 2SJ hHH FF lele Fe SeI poh HIh 4 l4hJK HHH IRI P2 SeJ 2n bP\nJdd a\\qu fhy 3t a $HcI 3qUIdq a a q 3gqq qt AcchIa HHIH q{ 3iR aTa $ 3gHI 3TJf aT aadT qTdI$\nI e2 dBlE J\n---Thank You/qr4dlg---",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0002",
+      "region_type": "text",
+      "bounding_box": {
+        "x1": 121,
+        "y1": 213,
+        "x2": 1536,
+        "y2": 373
+      },
+      "contained_block_ids": [
+        "blk_0001",
+        "blk_0002",
+        "blk_0003",
+        "blk_0004",
+        "blk_0005"
+      ],
+      "table_structure": null,
+      "reading_order_index": 2,
+      "text_content": "All GeM Sellers / Service Providers are mandated to ensure compliance with all the applicable laws /\nacts / rules including but not limited to all Labour Laws such as The Minimum Wages Act, 1948, The\nPayment of Wages Act, 1936, The Payment of Bonus Act, 1965, The Equal Remuneration Act, 1976\nThe Payment of Gratuity Act, 1972 etc. Any non-compliance will be treated as breach of contract\nand Buyer may take suitable actions as per GeM Contract.",
+      "confidence": null
+    },
+    {
+      "region_id": "reg_0003",
+      "region_type": "footer",
+      "bounding_box": {
+        "x1": 1535,
+        "y1": 2260,
+        "x2": 1573,
+        "y2": 2277
+      },
+      "contained_block_ids": [
+        "blk_0016"
+      ],
+      "table_structure": null,
+      "reading_order_index": 3,
+      "text_content": "117",
+      "confidence": null
+    }
+  ],
+  "warnings": []
+}

@@ -1,9 +1,53 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import FileResponse
 from backend.app.repositories.job_store import get_job
-import json
+from backend.app.core.constants import STORAGE_ROOT
 from pathlib import Path
+import json
 
 router = APIRouter()
+
+# ==============================================================================
+# Simplified Automated API Routes (New Flow)
+# ==============================================================================
+
+@router.get("/jobs/{job_id}")
+async def get_job_status_new(job_id: str):
+    """
+    Checks the status of an automated job task.
+    """
+    job = get_job(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return job
+
+@router.get("/jobs/{job_id}/download")
+async def download_job_results_new(job_id: str, format: str = "summary"):
+    """
+    Downloads generated Layer 1 summary CSV or Layer 2 occurrences evidence CSV.
+    """
+    job = get_job(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if job["status"] != "completed":
+        raise HTTPException(status_code=400, detail=f"Job status is {job['status']}")
+        
+    job_dir = STORAGE_ROOT / "jobs" / job_id
+    tender_id = job.get("tender_id", "unknown")
+    
+    if format == "evidence":
+        filepath = job_dir / f"tender_{tender_id}_evidence.csv"
+    else:
+        filepath = job_dir / f"tender_{tender_id}_export.csv"
+        
+    if not filepath.exists():
+        raise HTTPException(status_code=404, detail="Report file not found on disk")
+        
+    return FileResponse(filepath, media_type="text/csv", filename=filepath.name)
+
+# ==============================================================================
+# Legacy API Routes (Keep for Backward Compatibility)
+# ==============================================================================
 
 @router.get("/job/{job_id}/status")
 async def get_job_status(job_id: str):

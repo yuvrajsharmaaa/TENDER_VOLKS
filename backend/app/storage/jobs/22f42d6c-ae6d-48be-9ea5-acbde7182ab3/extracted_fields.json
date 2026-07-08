@@ -1,0 +1,566 @@
+{
+  "job_id": "22f42d6c-ae6d-48be-9ea5-acbde7182ab3",
+  "original_filename": "original.pdf",
+  "page_count": 7,
+  "extracted_fields": [
+    {
+      "field_name": "EMD",
+      "value": "40000",
+      "confidence": 0.95,
+      "source_page": 2,
+      "evidence": "Row match in table: 'EMD Amount/$vst rfRT' -> '40000'",
+      "source_blocks": [
+        {
+          "page_number": 2,
+          "block_id": "blk_0018",
+          "region_id": "reg_0001",
+          "text": "EMD Amount/$vst rfRT",
+          "bounding_box": {
+            "x1": 125,
+            "y1": 855,
+            "x2": 428,
+            "y2": 887
+          }
+        },
+        {
+          "page_number": 2,
+          "block_id": "blk_0019",
+          "region_id": "reg_0001",
+          "text": "40000",
+          "bounding_box": {
+            "x1": 765,
+            "y1": 855,
+            "x2": 854,
+            "y2": 889
+          }
+        }
+      ]
+    },
+    {
+      "field_name": "Tender Fee",
+      "value": "Not Found",
+      "confidence": 0.0,
+      "source_page": 1,
+      "evidence": "No matching anchors or value patterns found in document.",
+      "source_blocks": []
+    },
+    {
+      "field_name": "Bid Submission Start Date",
+      "value": "Not Found",
+      "confidence": 0.0,
+      "source_page": 1,
+      "evidence": "No matching anchors or value patterns found in document.",
+      "source_blocks": []
+    },
+    {
+      "field_name": "Bid Submission End Date",
+      "value": "Not Found",
+      "confidence": 0.0,
+      "source_page": 1,
+      "evidence": "No matching anchors or value patterns found in document.",
+      "source_blocks": []
+    },
+    {
+      "field_name": "Bid Opening Date",
+      "value": "06-06-2025 20:30:00",
+      "confidence": 0.85,
+      "source_page": 1,
+      "evidence": "Bid Opening Date/Time/fas gd T | 06-06-2025 20:30:00",
+      "source_blocks": [
+        {
+          "page_number": 1,
+          "block_id": "blk_0013",
+          "region_id": null,
+          "text": "Bid Opening Date/Time/fas gd T",
+          "bounding_box": {
+            "x1": 123,
+            "y1": 614,
+            "x2": 608,
+            "y2": 646
+          }
+        },
+        {
+          "page_number": 1,
+          "block_id": "blk_0014",
+          "region_id": null,
+          "text": "06-06-2025 20:30:00",
+          "bounding_box": {
+            "x1": 765,
+            "y1": 636,
+            "x2": 1033,
+            "y2": 660
+          }
+        }
+      ]
+    },
+    {
+      "field_name": "NIT No",
+      "value": "GEM/2025/B/6210450",
+      "confidence": 0.85,
+      "source_page": 1,
+      "evidence": "Bid Number/aldt aaia (fas cyr): -> GEM/2025/B/6210450",
+      "source_blocks": [
+        {
+          "page_number": 1,
+          "block_id": "blk_0001",
+          "region_id": null,
+          "text": "Bid Number/aldt aaia (fas cyr):",
+          "bounding_box": {
+            "x1": 1092,
+            "y1": 187,
+            "x2": 1528,
+            "y2": 227
+          }
+        },
+        {
+          "page_number": 1,
+          "block_id": "blk_0003",
+          "region_id": null,
+          "text": "GEM/2025/B/6210450",
+          "bounding_box": {
+            "x1": 1250,
+            "y1": 231,
+            "x2": 1530,
+            "y2": 263
+          }
+        }
+      ]
+    },
+    {
+      "field_name": "Tender Value",
+      "value": "Not Found",
+      "confidence": 0.0,
+      "source_page": 1,
+      "evidence": "No matching anchors or value patterns found in document.",
+      "source_blocks": []
+    },
+    {
+      "field_name": "Organisation",
+      "value": "Ministry Of Defence",
+      "confidence": 0.95,
+      "source_page": 1,
+      "evidence": "Row match in table: 'Ministry/State Name/dR/y  aIH' -> ' Ministry Of Defence'",
+      "source_blocks": [
+        {
+          "page_number": 1,
+          "block_id": "blk_0019",
+          "region_id": "reg_0002",
+          "text": "Ministry/State Name/dR/y  aIH",
+          "bounding_box": {
+            "x1": 121,
+            "y1": 828,
+            "x2": 659,
+            "y2": 860
+          }
+        },
+        {
+          "page_number": 1,
+          "block_id": "blk_0020",
+          "region_id": "reg_0002",
+          "text": " Ministry Of Defence",
+          "bounding_box": {
+            "x1": 760,
+            "y1": 826,
+            "x2": 1019,
+            "y2": 863
+          }
+        }
+      ]
+    },
+    {
+      "field_name": "Pre-Bid Meeting Date",
+      "value": "Not Found",
+      "confidence": 0.0,
+      "source_page": 1,
+      "evidence": "No matching anchors or value patterns found in document.",
+      "source_blocks": []
+    },
+    {
+      "field_name": "Bid Validity Period",
+      "value": "Not Found",
+      "confidence": 0.0,
+      "source_page": 1,
+      "evidence": "No matching anchors or value patterns found in document.",
+      "source_blocks": []
+    },
+    {
+      "field_name": "Period of Work",
+      "value": "30 days",
+      "confidence": 0.95,
+      "source_page": 5,
+      "evidence": "minimum of 30 days. If the original delivery period is less than 30 days, the additional time equals the",
+      "source_blocks": [
+        {
+          "page_number": 5,
+          "block_id": "blk_0044",
+          "region_id": null,
+          "text": "minimum of 30 days. If the original delivery period is less than 30 days, the additional time equals the",
+          "bounding_box": {
+            "x1": 197,
+            "y1": 1908,
+            "x2": 1486,
+            "y2": 1939
+          }
+        }
+      ]
+    },
+    {
+      "field_name": "bid_number",
+      "value": "GEM/2025/B/6210450",
+      "confidence": 0.85,
+      "source_page": 1,
+      "evidence": "Bid Number/aldt aaia (fas cyr): -> GEM/2025/B/6210450",
+      "source_blocks": [
+        {
+          "page_number": 1,
+          "block_id": "blk_0001",
+          "region_id": null,
+          "text": "Bid Number/aldt aaia (fas cyr):",
+          "bounding_box": {
+            "x1": 1092,
+            "y1": 187,
+            "x2": 1528,
+            "y2": 227
+          }
+        },
+        {
+          "page_number": 1,
+          "block_id": "blk_0003",
+          "region_id": null,
+          "text": "GEM/2025/B/6210450",
+          "bounding_box": {
+            "x1": 1250,
+            "y1": 231,
+            "x2": 1530,
+            "y2": 263
+          }
+        }
+      ]
+    },
+    {
+      "field_name": "tender_date",
+      "value": "Not Found",
+      "confidence": 0.0,
+      "source_page": 1,
+      "evidence": "No matching anchors or value patterns found in document.",
+      "source_blocks": []
+    },
+    {
+      "field_name": "bid_end_datetime",
+      "value": "06-06-2025 20:00:00",
+      "confidence": 0.95,
+      "source_page": 1,
+      "evidence": "Row match in table: 'Bid End Date/Time/fs a at at ar/Hy' -> ' 06-06-2025 20:00:00'",
+      "source_blocks": [
+        {
+          "page_number": 1,
+          "block_id": "blk_0011",
+          "region_id": "reg_0002",
+          "text": "Bid End Date/Time/fs a at at ar/Hy",
+          "bounding_box": {
+            "x1": 121,
+            "y1": 548,
+            "x2": 708,
+            "y2": 580
+          }
+        },
+        {
+          "page_number": 1,
+          "block_id": "blk_0012",
+          "region_id": "reg_0002",
+          "text": " 06-06-2025 20:00:00",
+          "bounding_box": {
+            "x1": 760,
+            "y1": 548,
+            "x2": 1036,
+            "y2": 580
+          }
+        }
+      ]
+    },
+    {
+      "field_name": "bid_open_datetime",
+      "value": "06-06-2025 20:30:00",
+      "confidence": 0.85,
+      "source_page": 1,
+      "evidence": "Bid Opening Date/Time/fas gd T | 06-06-2025 20:30:00",
+      "source_blocks": [
+        {
+          "page_number": 1,
+          "block_id": "blk_0013",
+          "region_id": null,
+          "text": "Bid Opening Date/Time/fas gd T",
+          "bounding_box": {
+            "x1": 123,
+            "y1": 614,
+            "x2": 608,
+            "y2": 646
+          }
+        },
+        {
+          "page_number": 1,
+          "block_id": "blk_0014",
+          "region_id": null,
+          "text": "06-06-2025 20:30:00",
+          "bounding_box": {
+            "x1": 765,
+            "y1": 636,
+            "x2": 1033,
+            "y2": 660
+          }
+        }
+      ]
+    },
+    {
+      "field_name": "ministry_name",
+      "value": "Ministry/State Name/dR/y  aIH",
+      "confidence": 0.95,
+      "source_page": 1,
+      "evidence": "Row match in table: ' Ministry Of Defence' -> 'Ministry/State Name/dR/y  aIH'",
+      "source_blocks": [
+        {
+          "page_number": 1,
+          "block_id": "blk_0020",
+          "region_id": "reg_0002",
+          "text": " Ministry Of Defence",
+          "bounding_box": {
+            "x1": 760,
+            "y1": 826,
+            "x2": 1019,
+            "y2": 863
+          }
+        },
+        {
+          "page_number": 1,
+          "block_id": "blk_0019",
+          "region_id": "reg_0002",
+          "text": "Ministry/State Name/dR/y  aIH",
+          "bounding_box": {
+            "x1": 121,
+            "y1": 828,
+            "x2": 659,
+            "y2": 860
+          }
+        }
+      ]
+    },
+    {
+      "field_name": "department_name",
+      "value": "Department Of Defence Production.",
+      "confidence": 0.95,
+      "source_page": 1,
+      "evidence": "Row match in table: 'Department Name/faarg  a' -> 'Department Of Defence Production.'",
+      "source_blocks": [
+        {
+          "page_number": 1,
+          "block_id": "blk_0021",
+          "region_id": "reg_0002",
+          "text": "Department Name/faarg  a",
+          "bounding_box": {
+            "x1": 121,
+            "y1": 894,
+            "x2": 556,
+            "y2": 926
+          }
+        },
+        {
+          "page_number": 1,
+          "block_id": "blk_0022",
+          "region_id": "reg_0002",
+          "text": "Department Of Defence Production.",
+          "bounding_box": {
+            "x1": 763,
+            "y1": 894,
+            "x2": 1213,
+            "y2": 926
+          }
+        }
+      ]
+    },
+    {
+      "field_name": "organisation_name",
+      "value": "Hindustan Aeronautics Limited (hal)",
+      "confidence": 0.95,
+      "source_page": 1,
+      "evidence": "Row match in table: 'Organisation Name/lot qt al' -> 'Hindustan Aeronautics Limited (hal)'",
+      "source_blocks": [
+        {
+          "page_number": 1,
+          "block_id": "blk_0023",
+          "region_id": "reg_0002",
+          "text": "Organisation Name/lot qt al",
+          "bounding_box": {
+            "x1": 123,
+            "y1": 962,
+            "x2": 568,
+            "y2": 987
+          }
+        },
+        {
+          "page_number": 1,
+          "block_id": "blk_0024",
+          "region_id": "reg_0002",
+          "text": "Hindustan Aeronautics Limited (hal)",
+          "bounding_box": {
+            "x1": 765,
+            "y1": 962,
+            "x2": 1218,
+            "y2": 987
+          }
+        }
+      ]
+    },
+    {
+      "field_name": "office_name",
+      "value": "***********",
+      "confidence": 0.95,
+      "source_page": 1,
+      "evidence": "Row match in table: 'Office Name/rafary aT aH' -> '***********'",
+      "source_blocks": [
+        {
+          "page_number": 1,
+          "block_id": "blk_0025",
+          "region_id": "reg_0002",
+          "text": "Office Name/rafary aT aH",
+          "bounding_box": {
+            "x1": 121,
+            "y1": 1023,
+            "x2": 485,
+            "y2": 1055
+          }
+        },
+        {
+          "page_number": 1,
+          "block_id": "blk_0026",
+          "region_id": "reg_0002",
+          "text": "***********",
+          "bounding_box": {
+            "x1": 762,
+            "y1": 1016,
+            "x2": 906,
+            "y2": 1048
+          }
+        }
+      ]
+    },
+    {
+      "field_name": "buyer_email",
+      "value": "buyer159.halh.up@gembuyer.in",
+      "confidence": 0.95,
+      "source_page": 1,
+      "evidence": "Row match in table: 'ar $Aa/Buyer Email' -> 'buyer159.halh.up@gembuyer.in'",
+      "source_blocks": [
+        {
+          "page_number": 1,
+          "block_id": "blk_0027",
+          "region_id": "reg_0002",
+          "text": "ar $Aa/Buyer Email",
+          "bounding_box": {
+            "x1": 116,
+            "y1": 1084,
+            "x2": 423,
+            "y2": 1121
+          }
+        },
+        {
+          "page_number": 1,
+          "block_id": "blk_0028",
+          "region_id": "reg_0002",
+          "text": "buyer159.halh.up@gembuyer.in",
+          "bounding_box": {
+            "x1": 760,
+            "y1": 1087,
+            "x2": 1173,
+            "y2": 1121
+          }
+        }
+      ]
+    },
+    {
+      "field_name": "item_category",
+      "value": "Split Air Conditioner Including Green AC, Wall Mount Type",
+      "confidence": 0.95,
+      "source_page": 1,
+      "evidence": "Row match in table: 'Item Category/ eR' -> 'Split Air Conditioner Including Green AC, Wall Mount Type'",
+      "source_blocks": [
+        {
+          "page_number": 1,
+          "block_id": "blk_0032",
+          "region_id": "reg_0002",
+          "text": "Item Category/ eR",
+          "bounding_box": {
+            "x1": 121,
+            "y1": 1226,
+            "x2": 453,
+            "y2": 1257
+          }
+        },
+        {
+          "page_number": 1,
+          "block_id": "blk_0031",
+          "region_id": "reg_0002",
+          "text": "Split Air Conditioner Including Green AC, Wall Mount Type",
+          "bounding_box": {
+            "x1": 763,
+            "y1": 1211,
+            "x2": 1493,
+            "y2": 1243
+          }
+        }
+      ]
+    },
+    {
+      "field_name": "similar_category",
+      "value": "Not Found",
+      "confidence": 0.0,
+      "source_page": 1,
+      "evidence": "No matching anchors or value patterns found in document.",
+      "source_blocks": []
+    },
+    {
+      "field_name": "contract_period",
+      "value": "30 days",
+      "confidence": 0.95,
+      "source_page": 5,
+      "evidence": "minimum of 30 days. If the original delivery period is less than 30 days, the additional time equals the",
+      "source_blocks": [
+        {
+          "page_number": 5,
+          "block_id": "blk_0044",
+          "region_id": null,
+          "text": "minimum of 30 days. If the original delivery period is less than 30 days, the additional time equals the",
+          "bounding_box": {
+            "x1": 197,
+            "y1": 1908,
+            "x2": 1486,
+            "y2": 1939
+          }
+        }
+      ]
+    },
+    {
+      "field_name": "minimum_average_annual_turnover",
+      "value": "Not Found",
+      "confidence": 0.0,
+      "source_page": 1,
+      "evidence": "No matching anchors or value patterns found in document.",
+      "source_blocks": []
+    },
+    {
+      "field_name": "years_of_past_experience",
+      "value": "Not Found",
+      "confidence": 0.0,
+      "source_page": 1,
+      "evidence": "No matching anchors or value patterns found in document.",
+      "source_blocks": []
+    },
+    {
+      "field_name": "past_experience_required",
+      "value": "Not Found",
+      "confidence": 0.0,
+      "source_page": 1,
+      "evidence": "No matching anchors or value patterns found in document.",
+      "source_blocks": []
+    }
+  ]
+}
