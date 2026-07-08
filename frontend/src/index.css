@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+@theme {
+  /* Surfaces */
+  --color-app-bg: #F4F2EC;
+  --color-card-bg: #FBFAF7;
+  --color-panel-bg: #FFFFFF;
+  --color-section-tint: #F1EEE7;
+  --color-divider: #E5E0D7;
+  --color-input-bg: #FCFBF8;
+
+  /* Typography Colors */
+  --color-text-primary: #26231E;
+  --color-text-secondary: #5E5A52;
+  --color-text-muted: #8A867D;
+  --color-text-disabled: #B7B2A8;
+
+  /* Accent Greens */
+  --color-success-green: #3E8E63;
+  --color-cta-green: #1FA36D;
+  --color-selected-green-bg: #E8F3EC;
+  --color-selected-green-border: #B9D8C3;
+
+  /* Commercial highlights */
+  --color-gold-fill: #E4C98A;
+  --color-gold-text: #6B5421;
+  --color-gold-bg: #F6E7B8;
+
+  /* Warnings & Alerts */
+  --color-warning-bg: #F4E7BF;
+  --color-warning-text: #7A5B17;
+  --color-alert-bg: #F7DFDF;
+  --color-alert-text: #8B4A4A;
+
+  /* Typography Fonts Override */
+  --font-sans: 'Outfit', 'Inter', 'Manrope', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+@layer base {
+  body {
+    @apply bg-app-bg text-text-primary font-sans antialiased;
+  }
+}
+
+/* Custom Scrollbar for B2B SaaS feel */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F4F2EC;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #E5E0D7;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #B7B2A8;
+}
+
+/* Pulsing outline for active elements */
+.pulse-glow-green {
+  animation: pulse-glow-green 2s infinite ease-in-out;
+}
+
+@keyframes pulse-glow-green {
+  0%, 100% {
+    box-shadow: 0 0 0 1px rgba(62, 142, 99, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgba(62, 142, 99, 0.6);
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.15s ease-out forwards;
+}
