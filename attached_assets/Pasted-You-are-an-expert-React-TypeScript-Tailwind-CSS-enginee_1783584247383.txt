@@ -1,0 +1,258 @@
+You are an expert React + TypeScript + Tailwind CSS engineer working inside an existing VolksEnergies Tender OCR frontend on Replit.
+
+Your job is NOT to scaffold a new project.
+
+Your job is to:
+
+1. Read and understand the existing codebase.
+2. Preserve the current visual design language that already exists.
+3. Refine and complete the Live Tenders frontend UI.
+4. Minimize unnecessary file changes and commands so Replit credits are not wasted.
+
+Do not reinstall dependencies.
+Do not run heavy commands more than necessary.
+Do not create a brand-new app — work inside what is already here.
+
+==================================================
+PROJECT CONTEXT
+==================================================
+
+This is a Tender OCR SaaS frontend. Users upload Indian government tender PDFs, OCR parses them, AI extracts fields, and they browse/review tenders.
+
+Stack (already set up in Replit):
+
+- React + TypeScript
+- Tailwind CSS
+- Existing custom design tokens (no need to replace with generic ones)
+- Lucide icons
+- Components under `src/components/workspace/`
+- Main app entry in `src/App.tsx`
+
+Do NOT change API endpoints or business logic.
+Your changes must be purely frontend: layout, styling, and UX behavior.
+
+==================================================
+DESIGN DIRECTION TO PRESERVE
+==================================================
+
+The current redesign uses a specific premium enterprise style that MUST be preserved:
+
+Existing semantic classes and tokens include:
+
+- Backgrounds: `bg-app-bg`, `bg-panel-bg`, `bg-card-bg`, `bg-input-bg`, `bg-section-tint`
+- Borders/dividers: `border-divider`, `border-divider/60`, `border-dashed border-divider`
+- Text: `text-text-primary`, `text-text-secondary`, `text-text-muted`, `text-text-disabled`
+- Success/green: `text-success-green`, `bg-selected-green-bg`, `border-selected-green-border`
+- Warning: `bg-warning-bg`, `text-warning-text`
+- Alert: `bg-alert-bg`, `text-alert-text`
+- Value/gold: `bg-gold-bg`, `text-gold-text`, `border-gold-fill/20`
+
+Card and panel structure already uses:
+
+- `rounded-2xl` cards and panels
+- Soft shadow stacks like:
+  `shadow-[0_1px_3px_rgba(0,0,0,0.02),0_4px_12px_rgba(0,0,0,0.03)]`
+- Hover lift and glow:
+  `hover:-translate-y-0.5`
+  `hover:border-success-green/40`
+  `hover:shadow-[0_8px_24px_rgba(62,142,99,0.06)]`
+
+You must keep this aesthetic and refine it.
+Do NOT replace it with generic Tailwind or shadcn defaults.
+Do NOT change the app to look like a template.
+
+==================================================
+FILES YOU MUST WORK WITH
+==================================================
+
+Focus on these files only, to avoid unnecessary resource usage:
+
+- `src/App.tsx`
+  - Main layout for the workspace.
+  - Contains the stats KPI row, results header, card grid, empty state, skeleton usage.
+
+- `src/components/workspace/WorkspaceHeader.tsx`
+  - Top navigation bar.
+  - Workspace header with brand (“Volks Tender OCR”).
+  - Search bar and filter controls.
+  - Quick view chips and advanced filters panel.
+
+- `src/components/workspace/TenderCard.tsx`
+  - Main tender card used in the live tender grid.
+  - Already shows:
+    - Status badge (Queued, Processing, Failed, Open, Closing Soon, Closed)
+    - Risk badge (Low/Med/High Risk based on `issues_count`)
+    - AI Match badge (percentage from `parse_confidence`)
+    - Title, Reference ID, authority, location, closing date, value, EMD, doc count.
+
+- `src/components/workspace/TenderCardSkeleton.tsx`
+  - Skeleton cards used while loading.
+  - Must match spacing and layout of `TenderCard`.
+
+- Global styles / Tailwind config (only if needed):
+  - `src/index.css` or equivalent file where tokens like `bg-app-bg`, `text-text-primary`, and `border-divider` are defined.
+  - You may refine tokens here, but do NOT wipe them.
+
+Do NOT touch other files unless absolutely required.
+
+==================================================
+DESIGN GOALS (KEEP SAME VISUAL STYLE)
+==================================================
+
+Goal: Make the Live Tenders UI feel like a polished enterprise product (Linear / Vercel / Stripe Dashboard), while keeping all visual decisions aligned with the existing green-led design.
+
+You are improving:
+
+1. Live Tenders layout
+   - Keep the `max-w-[1440px] mx-auto` container approach.
+   - Keep the responsive grid: `grid-cols-1 md:grid-cols-2 xl:grid-cols-3`.
+   - Ensure no excessive blank margins on large screens.
+   - Ensure clean stacking on tablets and mobile.
+
+2. Tender cards (same structure, tighter polish)
+   - Keep:
+     - Top badges row: status, risk, AI match.
+     - Title and reference.
+     - Metadata row: department / location / closing date.
+     - Commercial row: estimated value, EMD, doc count.
+     - Footer: last updated + “View Tender” action.
+   - Improve:
+     - Typography hierarchy (titles, labels, values).
+     - Spacing (vertical rhythm inside the card).
+     - Truncation (long titles and authority names).
+     - Hover and focus states.
+     - Keyboard accessibility (use semantic clickable element with focus ring).
+     - Overall scanability for procurement users who review many cards quickly.
+
+3. Stats KPI row (same idea, more refined)
+   - Keep existing cards:
+     - Live Tenders
+     - Ingesting / Processing
+     - Closing Soon
+     - High AI Match
+   - Improve:
+     - Labels (text size, uppercase, muted tone).
+     - Numbers (use `font-mono` and appropriate size).
+     - Icon containers (consistent shape, padding, and color usage).
+     - Card spacing and shadow consistency.
+     - Responsiveness: grid of 2 cols on small screens, 4 on large.
+
+4. Search & Filters (same components, more premium)
+   - Keep the current layout:
+     - Large search input with left Search icon.
+     - Right keyboard shortcut badge (e.g. “⌘K” style).
+     - Filter button with icon and active filter count bubble.
+     - Quick view chips (“All Tenders”, “Live”, “Completed”).
+     - Collapsible advanced filter panel for keywords, city, value/EMD ranges, deadline range, state, sector.
+   - Improve:
+     - Search placeholder MUST be exactly:
+       "Search by title, department, location, tender ID..."
+     - Internal spacing and padding for the search input.
+     - Focus state styling (border + ring consistent with green accent).
+     - Filter button state for open vs closed.
+     - Active filter count pill styling.
+     - Quick view chip selected vs non-selected states.
+     - Advanced filter panel grid layout (labels vs inputs).
+
+5. Results header and card view
+   - Keep:
+     - “Tender Results” heading.
+     - Count summary: “X tenders found”.
+     - Card view badge with `LayoutGrid` icon.
+   - Improve:
+     - Add or refine sort dropdown (e.g. sort by deadline / value / AI match).
+     - Optional view toggle (card vs list) if it can be done lightweight.
+     - Make this bar more obviously a toolbar for professionals.
+
+6. Empty state & loading state
+   - Keep the idea:
+     - Skeleton cards for loading.
+     - Empty state card with dashed border, icon, copy, and “Clear all filters” button.
+   - Improve:
+     - Typography balance.
+     - Icon scaling.
+     - Empty-state copy clarity (making it feel intentional and helpful).
+     - Buttons and spacing.
+
+==================================================
+ACCESSIBILITY / SEMANTICS
+==================================================
+
+You must upgrade the structure to be more accessible, without changing logic.
+
+- TenderCard:
+  - Avoid purely clickable `div` without semantic roles.
+  - Either:
+    - Wrap the card in a `<button>` with proper `type="button"`, OR
+    - Use `<article>` with internal `<button>` / `<a>` for “View Tender”.
+  - Ensure keyboard focus states are visible (using existing token colors).
+  - Ensure `onClick` still works for opening the detail pane.
+
+- Icon-only controls:
+  - Add `aria-label` describing their action (e.g., refresh, upload tenders).
+  - Keep tooltip usage minimal to save complexity, but if helpful, use an existing solution.
+
+- Form inputs:
+  - Each `input` should have a visible `<label>` and correct association.
+  - Advanced filter form should be navigable by keyboard and screen readers.
+
+- Respect `prefers-reduced-motion`:
+  - If you add motion (e.g., subtle fade-in or slide for cards), gate it behind reduced-motion checks.
+  - Keep animations subtle and professional.
+
+==================================================
+PERFORMANCE & REPLIT CREDITS
+==================================================
+
+You must work efficiently so that Replit credits/cycles are not wasted:
+
+- Do NOT run `npm install` or reinitialize the project.
+- Do NOT add heavy dependencies.
+- Do NOT run `npm run build` or `npm run dev` repeatedly.
+  - Run the dev server only if it is needed to visually verify layout.
+- Limit changes to:
+  - `App.tsx`
+  - `WorkspaceHeader.tsx`
+  - `TenderCard.tsx`
+  - `TenderCardSkeleton.tsx`
+  - And global CSS token file only if needed.
+- Do NOT create new top-level routes or pages.
+- Do NOT refactor all components; focus only on the Live Tenders layout.
+- Minimize file churn: prefer editing existing components instead of creating many new files.
+
+If you need to inspect the current design:
+- Read the listed files and adapt your changes to match the already established token names and styles instead of rewriting them.
+
+==================================================
+OUTPUT FORMAT
+==================================================
+
+Follow this structure in your response:
+
+1. **Short summary (2–3 sentences)**
+   - Confirm that you will preserve the existing design language and refine the current Live Tenders UI.
+
+2. **Targeted refinement plan**
+   - Bullet list of specific changes you will make to each file:
+     - `App.tsx`
+     - `WorkspaceHeader.tsx`
+     - `TenderCard.tsx`
+     - `TenderCardSkeleton.tsx`
+     - any global CSS tokens (if necessary)
+
+3. **File-by-file code edits**
+   - For each file you change:
+     - Show the full updated file content (no ellipses, no “…rest of file” placeholders).
+     - Clearly indicate:
+       `[FILE COMPLETE — next: <filename>]`
+       after each file.
+
+4. **Resource awareness**
+   - At the end, briefly confirm:
+     - You did not add new heavy dependencies.
+     - You did not restructure the entire app.
+     - You limited changes to the specified files.
+
+Do NOT re-scaffold the project.
+Do NOT output unrelated example code.
+Focus on refining the current frontend to the exact premium style described above, using the existing tokens and layout as your compass.
