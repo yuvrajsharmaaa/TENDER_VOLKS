@@ -53,7 +53,7 @@ async def list_jobs():
 @router.get("/visualizer")
 @router.get("/")
 async def get_visualizer():
-    static_file = Path(__file__).resolve().parent.parent.parent.parent / "frontend" / "index.html"
+    static_file = Path(__file__).resolve().parent.parent.parent.parent / "frontend_legacy" / "visualizer.html"
     if not static_file.exists():
         raise HTTPException(status_code=404, detail="Visualizer UI file not found")
     return FileResponse(static_file)

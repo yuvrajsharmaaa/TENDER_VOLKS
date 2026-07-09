@@ -114,13 +114,24 @@ async def get_job_layout(job_id: str):
 
 @router.get("/job/{job_id}/extracted-fields")
 async def get_job_extracted_fields(job_id: str):
+    """
+    Returns extracted_fields.json for a completed OCR run.
+
+    Supports both the legacy v1 job flow (SQLite job_store, upload.py) and the
+    v2 tender/document flow (backend/app/api/routes/tenders.py), since both
+    ultimately write their OCR output to the same
+    STORAGE_ROOT/jobs/<id>/extracted_fields.json path — for v1 the id is a
+    job_id, for v2 it's a document_id. If the id isn't a known v1 job, fall
+    back to reading the file directly under that id.
+    """
     job = get_job(job_id)
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-    if job["status"] != "completed":
-        raise HTTPException(status_code=409, detail=f"Job status is {job['status']}")
-    
-    file_path = Path(job["result_path"]).parent / "extracted_fields.json"
+    if job:
+        if job["status"] != "completed":
+            raise HTTPException(status_code=409, detail=f"Job status is {job['status']}")
+        file_path = Path(job["result_path"]).parent / "extracted_fields.json"
+    else:
+        file_path = STORAGE_ROOT / "jobs" / job_id / "extracted_fields.json"
+
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="extracted_fields.json not found")
     try:

@@ -1,0 +1,5 @@
+- [PaddleOCR blocked → Tesseract](paddleocr-tesseract-swap.md) — imgaug 0.4.0 permanently blocked in Replit package firewall; Tesseract is the replacement.
+- [LocalObjectStore path traversal guard](local-object-store-safety.md) — object keys must be validated with resolve()+relative_to() before any filesystem op.
+- [Router registration lesson](fastapi-router-registration.md) — always verify routers are actually include_router'd in main.py; missing registration is silent.
+- [Headless Chromium in Nix](chromium-nix-missing-libs.md) — Playwright headless Chromium fails with missing libglib-2.0.so.0; use curl E2E instead.
+- [Bootstrap lesson: verify boot before trusting docs](verify-boot-first.md) — always confirm the app actually boots before trusting the described architecture.

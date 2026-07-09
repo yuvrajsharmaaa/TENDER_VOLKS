@@ -13,6 +13,7 @@ def map_extracted_fields_to_tender_info(
     """
     fields_list = extracted_data.get("extracted_fields", [])
     fields_map = {f["field_name"]: f["value"] for f in fields_list}
+    confidence_map = {f["field_name"]: f.get("confidence", 0.0) for f in fields_list}
     
     # Helper to get field value if present and not "Not Found"
     def get_val(key: str) -> Optional[str]:
@@ -20,6 +21,22 @@ def map_extracted_fields_to_tender_info(
         if val == "Not Found":
             return None
         return val
+
+    def compute_parse_confidence() -> float:
+        """
+        Transparent fallback confidence: mean confidence across fields that
+        were actually found (value != "Not Found"), weighted by how many of
+        the total rule-based fields were successfully extracted. This avoids
+        a hardcoded constant while remaining simple enough for an MVP.
+        """
+        if not fields_list:
+            return 0.0
+        found = [f for f in fields_list if f.get("value") != "Not Found"]
+        if not found:
+            return 0.0
+        avg_conf = sum(f.get("confidence", 0.0) for f in found) / len(found)
+        coverage = len(found) / len(fields_list)
+        return round(avg_conf * coverage, 4)
 
     # 1. Directly extractable fields
     emd = get_val("EMD")
@@ -76,6 +93,7 @@ def map_extracted_fields_to_tender_info(
         document_id=document_id,
         tender_name=tender_name,
         tender_id=t_id,
+        parse_confidence=compute_parse_confidence(),
         nit_number=nit,
         client=client_name,
         department=dept,

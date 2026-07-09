@@ -606,7 +606,7 @@ async def process_tender_document(
 class ProcessCompleteRequest(BaseModel):
     tender_id: str
     file_id: str
-    email: str
+    email: Optional[str] = None
 
 
 @router.post("/process-complete")
@@ -722,8 +722,9 @@ async def process_complete(
             }
         )
         
-    # 6. Send email automatically in BackgroundTasks
-    background_tasks.add_task(send_tender_csv_email, payload.email, csv_path, payload.tender_id)
+    # 6. Send email automatically in BackgroundTasks (only if a recipient was given)
+    if payload.email:
+        background_tasks.add_task(send_tender_csv_email, payload.email, csv_path, payload.tender_id)
     
     logger.info(
         "tender_processing_completed",
@@ -746,7 +747,11 @@ async def process_complete(
         "document_id": final_info.document_id,
         "csv_filename": csv_filename,
         "csv_url": f"/storage/jobs/{payload.file_id}/{csv_filename}",
-        "message": "Tender mapping results successfully persisted, exported to CSV, and queued for email delivery."
+        "message": (
+            "Tender mapping results successfully persisted, exported to CSV, and queued for email delivery."
+            if payload.email
+            else "Tender mapping results successfully persisted and exported to CSV."
+        )
     }
 
 

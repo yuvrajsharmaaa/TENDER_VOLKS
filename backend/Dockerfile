@@ -12,10 +12,14 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install OpenCV dependencies (libgl1 and libglib2.0-0)
+# Install OpenCV dependencies (libgl1 and libglib2.0-0) and the Tesseract OCR
+# engine binary (required at runtime by pytesseract in ocr/ocr_engine.py and
+# ocr/layout/layout_detector.py — PaddleOCR was replaced with Tesseract
+# because paddleocr's imgaug dependency is unavailable in this project).
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 \
     libglib2.0-0 \
+    tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
 
 

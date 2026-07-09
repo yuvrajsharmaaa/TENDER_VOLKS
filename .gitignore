@@ -71,10 +71,20 @@ models/
 inference/
 whl/
 
-# Storage
+# Storage (local dev data — not for version control)
 storage/jobs/
 storage/logs/
+backend/app/storage/
 *.log
+
+# SQLite dev databases
+*.db
+*.db-shm
+*.db-wal
+
+# Frontend build artefacts
+frontend/tsconfig.tsbuildinfo
+frontend/dist/
 
 # IDE
 .vscode/
