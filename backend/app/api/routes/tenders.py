@@ -859,6 +859,12 @@ def _run_ingest_background(job_id: str, pdf_path: str, original_filename: str):
     from backend.app.services.pdf_parent_ingest import ingest_parent_tender_pdf
     from backend.app.repositories.job_store import update_status
     from backend.app.core.constants import JobStatus
+    from backend.app.db.session import SessionLocal
+    from backend.app.models.tender_project import TenderProject
+    from backend.app.models.document import Document
+    import os
+    import mimetypes
+    from pathlib import Path
 
     try:
         update_status(job_id, JobStatus.PROCESSING)
@@ -867,6 +873,80 @@ def _run_ingest_background(job_id: str, pdf_path: str, original_filename: str):
             pdf_path=Path(pdf_path),
             original_filename=original_filename
         )
+
+        # Store child files and parent document in PostgreSQL
+        db = SessionLocal()
+        try:
+            # 1. Ensure TenderProject exists in PostgreSQL
+            project = db.query(TenderProject).filter(TenderProject.id == job_id).first()
+            if not project:
+                project = TenderProject(
+                    id=job_id,
+                    project_id=job_id,
+                    tender_name=result.get("title") or original_filename.replace(".pdf", ""),
+                    source_label="Workspace Ingest"
+                )
+                db.add(project)
+                db.commit()
+                db.refresh(project)
+
+            # 2. Insert parent document metadata into PostgreSQL if not exists
+            parent_doc = db.query(Document).filter(
+                Document.tender_project_id == job_id,
+                Document.document_type == "parent"
+            ).first()
+            if not parent_doc:
+                parent_doc = Document(
+                    id=str(uuid.uuid4()),
+                    tender_project_id=job_id,
+                    original_filename=original_filename,
+                    storage_bucket="local-disk",
+                    storage_key=pdf_path,
+                    mime_type="application/pdf",
+                    size_bytes=os.path.getsize(pdf_path),
+                    upload_status="uploaded",
+                    processing_status="completed",
+                    document_type="parent"
+                )
+                db.add(parent_doc)
+                db.commit()
+
+            # 3. Iterate over the extracted Linked PDFs and register them
+            for l in result.get("documents", {}).get("extractedLinkedPdfs", []):
+                local_path = l.get("local_path")
+                if local_path and os.path.exists(local_path):
+                    # Generate a unique document UUID
+                    doc_uuid = str(uuid.uuid4())
+                    
+                    # Guess MIME type
+                    mime_type, _ = mimetypes.guess_type(local_path)
+                    mime_type = mime_type or "application/pdf"
+                    
+                    db_doc = Document(
+                        id=doc_uuid,
+                        tender_project_id=job_id,
+                        original_filename=l["name"],
+                        storage_bucket="local-disk",
+                        storage_key=local_path,
+                        mime_type=mime_type,
+                        size_bytes=os.path.getsize(local_path),
+                        upload_status="uploaded",
+                        processing_status="pending",
+                        document_type="child_document"
+                    )
+                    db.add(db_doc)
+                    db.commit()
+                    
+                    # Update API payload so the frontend accesses this document directly
+                    l["id"] = doc_uuid
+                    l["url"] = f"/tenders/documents/{doc_uuid}/download"
+
+        except Exception as db_err:
+            db.rollback()
+            logger.error(f"[ERROR] Postgres database storage mapping failed: {db_err}", exc_info=True)
+        finally:
+            db.close()
+
         # Persist the conforming payload as JSON so GET can serve it
         result_path = Path(pdf_path).parent / "tender_detail.json"
         with open(result_path, "w", encoding="utf-8") as f:
@@ -1090,4 +1170,30 @@ async def workspace_get_tender(job_id: str):
         "updated_at": job.get("created_at", ""),
         "department": ""
     }
+
+
+from fastapi.responses import FileResponse
+
+@router.get("/documents/{document_id}/download")
+async def download_extracted_document(document_id: str, db: Session = Depends(get_db)):
+    """
+    Downloads an extracted child document (or parent document) from local disk
+    by checking its path in the database.
+    """
+    from backend.app.models.document import Document
+    import os
+    
+    db_doc = db.query(Document).filter(Document.id == document_id).first()
+    if not db_doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+        
+    local_path = db_doc.storage_key
+    if not local_path or not os.path.exists(local_path):
+        raise HTTPException(status_code=404, detail="File not found on local disk")
+        
+    return FileResponse(
+        path=local_path,
+        media_type=db_doc.mime_type,
+        filename=db_doc.original_filename
+    )
 

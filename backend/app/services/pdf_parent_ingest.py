@@ -147,7 +147,8 @@ def ingest_parent_tender_pdf(
             "extractedFromDocumentId": f"src-{job_id}",
             "sourcePage": l["sourcePage"],
             "anchorText": l["anchorText"],
-            "extractionConfidence": l["extractionConfidence"]
+            "extractionConfidence": l["extractionConfidence"],
+            "local_path": l.get("local_path")
         })
 
     mentioned_docs = []

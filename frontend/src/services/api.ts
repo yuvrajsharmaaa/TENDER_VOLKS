@@ -695,6 +695,25 @@ export const apiService = {
           }
         ];
 
+        activeTender.documents.extractedLinkedPdfs = [
+          {
+            id: `link-mock-${Math.random().toString(36).substring(2, 6)}`,
+            name: "technical-specifications.pdf",
+            kind: "pdf",
+            origin: "linked",
+            url: "https://pwd.cg.gov.in/downloads/technical-specifications.pdf",
+            previewUrl: undefined,
+            downloadable: true,
+            openable: true,
+            createdAt: new Date().toISOString(),
+            reviewState: "default",
+            extractedFromDocumentId: activeTender.documents.sourceDocuments[0]?.id || "unknown",
+            sourcePage: 3,
+            anchorText: "All concrete mixing specifications are detailed in technical-specifications.pdf",
+            extractionConfidence: 96
+          }
+        ];
+
         const lowConfidence = activeTender.infoSheetSections.reduce((acc, sec) =>
           acc + sec.fields.filter(f => f.status === "extracted" && f.confidence && f.confidence < 70).length, 0);
         const unresolved = activeTender.documents.mentionedAttachments.filter(m => !m.resolved).length;

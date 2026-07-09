@@ -5,10 +5,19 @@ import time
 from typing import Optional, Dict, Any, List
 from backend.app.core.constants import DB_PATH, JobStatus
 
+def _set_journal_mode(conn) -> None:
+    try:
+        conn.execute("PRAGMA journal_mode=WAL")
+    except sqlite3.OperationalError:
+        try:
+            conn.execute("PRAGMA journal_mode=DELETE")
+        except sqlite3.OperationalError:
+            pass
+
 def create_job(job_id: str, filename: str, pdf_path: str, db_path: Path = DB_PATH) -> None:
     now = datetime.now(timezone.utc).isoformat()
     with sqlite3.connect(db_path) as conn:
-        conn.execute("PRAGMA journal_mode=WAL")
+        _set_journal_mode(conn)
         conn.execute(
             """INSERT INTO jobs (job_id, status, original_filename, pdf_path, created_at) 
                VALUES (?, ?, ?, ?, ?)""",
@@ -17,7 +26,7 @@ def create_job(job_id: str, filename: str, pdf_path: str, db_path: Path = DB_PAT
 
 def get_job(job_id: str, db_path: Path = DB_PATH) -> Optional[Dict[str, Any]]:
     with sqlite3.connect(db_path) as conn:
-        conn.execute("PRAGMA journal_mode=WAL")
+        _set_journal_mode(conn)
         conn.row_factory = sqlite3.Row
         cur = conn.execute("SELECT * FROM jobs WHERE job_id = ?", (job_id,))
         row = cur.fetchone()
@@ -56,7 +65,7 @@ def update_status(job_id: str, status: JobStatus, error_message: str = None, res
     for i in range(3):
         try:
             with sqlite3.connect(db_path) as conn:
-                conn.execute("PRAGMA journal_mode=WAL")
+                _set_journal_mode(conn)
                 conn.execute(query, tuple(params))
                 break
         except sqlite3.OperationalError as e:
@@ -69,7 +78,7 @@ def update_job_parameters(job_id: str, email_recipient: str, tender_id: int, db_
     for i in range(3):
         try:
             with sqlite3.connect(db_path) as conn:
-                conn.execute("PRAGMA journal_mode=WAL")
+                _set_journal_mode(conn)
                 conn.execute(query, (email_recipient, tender_id, job_id))
                 break
         except sqlite3.OperationalError as e:
@@ -82,7 +91,7 @@ def update_result(job_id: str, result_path: str, page_count: int, db_path: Path 
 
 def get_all_jobs(db_path: Path = DB_PATH) -> List[Dict[str, Any]]:
     with sqlite3.connect(db_path) as conn:
-        conn.execute("PRAGMA journal_mode=WAL")
+        _set_journal_mode(conn)
         conn.row_factory = sqlite3.Row
         cur = conn.execute("SELECT * FROM jobs ORDER BY created_at DESC")
         return [dict(row) for row in cur.fetchall()]

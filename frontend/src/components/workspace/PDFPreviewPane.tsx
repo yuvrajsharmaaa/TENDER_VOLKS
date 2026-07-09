@@ -98,20 +98,15 @@ export const PDFPreviewPane: React.FC<PDFPreviewPaneProps> = ({ activeDoc, title
         
         {/* Case 1: PDF Document sheet viewer */}
         {isPdf && (
-          <div
-            style={{ width: `${zoom}%`, maxWidth: "800px" }}
-            className="bg-panel-bg border border-divider rounded-md shadow-sm p-8 min-h-[700px] flex flex-col justify-between select-text transition-all relative font-sans text-text-secondary animate-fadeIn"
-          >
-            <div className="absolute top-0 left-0 right-0 h-1 bg-success-green/60"></div>
-            
-            <div className="space-y-5">
-              {/* Document Header */}
+          <div className="flex-1 flex flex-col h-full min-h-0 w-full max-w-4xl">
+            {/* Header info */}
+            <div className="bg-panel-bg border border-divider rounded-t-xl p-4 select-text font-sans text-text-secondary border-b-0 shadow-sm relative">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-success-green/60 rounded-t-xl"></div>
               <div className="border-b border-divider/60 pb-3">
                 <span className="text-[9px] font-mono tracking-widest text-text-muted uppercase">
                   {activeDoc.origin === "linked" ? `DISCOVERED LINK AT PAGE ${activeDoc.sourcePage} ` : "PRIMARY SOURCE DOC "} 
-                  | Page {page} of 12
                 </span>
-                <h2 className="text-sm font-bold text-text-primary mt-1 font-serif leading-snug">
+                <h2 className="text-sm font-bold text-text-primary mt-1 leading-snug">
                   {activeDoc.name.toUpperCase()}
                 </h2>
                 {activeDoc.anchorText && (
@@ -120,38 +115,14 @@ export const PDFPreviewPane: React.FC<PDFPreviewPaneProps> = ({ activeDoc, title
                   </p>
                 )}
               </div>
-
-              {/* Text pages content */}
-              <div className="space-y-4 text-xs leading-relaxed text-text-primary font-serif">
-                <p>
-                  <strong className="text-text-primary font-sans">1. INVITATION:</strong> This document represents the detailed specification sheets for Raipur-Bilaspur Expressway major bridge construction contract bindings. Bids must conform to Chhattisgarh PWD local guidelines and satisfy minimum average audit figures.
-                </p>
-                
-                {activeDoc.isPrimary && (
-                  <div className="bg-selected-green-bg/60 border border-selected-green-border rounded p-3.5 my-2 space-y-1 font-sans border-l-4 border-l-success-green">
-                    <span className="text-[9px] font-bold text-success-green uppercase tracking-wide">Extracted Coordinate Reference [Confidence 97%]</span>
-                    <p className="text-[11px] text-text-secondary leading-relaxed">
-                      Estimated Project Cost: <span className="bg-gold-bg text-gold-text font-mono font-bold px-1.5 py-0.5 rounded border border-gold-fill/20">
-                        {title.includes("Drainage") ? "INR 1.65 Crore" : "INR 2.44 Crores"}
-                      </span>.
-                    </p>
-                    <p className="text-[11px] text-text-secondary leading-relaxed">
-                      EMD Deposit requirement: <span className="bg-gold-bg text-gold-text font-mono font-bold px-1.5 py-0.5 rounded border border-gold-fill/20">
-                        {title.includes("Drainage") ? "INR 3,20,000/-" : "INR 4,88,000/-"}
-                      </span>. Exemption is allowed for registered MSE/NSIC companies upon validation.
-                    </p>
-                  </div>
-                )}
-
-                <p>
-                  <strong className="text-text-primary font-sans">2. SUBMISSIONS:</strong> Ensure compliance with all schedule dates. Checklists should be certified by competent authorities.
-                </p>
-              </div>
             </div>
-
-            <div className="border-t border-divider/60 pt-4 flex justify-between items-center text-[9px] font-mono text-text-muted">
-              <span>{activeDoc.name}</span>
-              <span>VERIFY CAREFULLY</span>
+            {/* Real PDF Viewport iframe */}
+            <div className="flex-1 bg-card-bg border border-divider rounded-b-xl p-1 min-h-[600px] shadow-sm">
+              <iframe
+                src={activeDoc.url}
+                className="w-full h-full min-h-[600px] border-0 rounded-b-xl"
+                title={activeDoc.name}
+              />
             </div>
           </div>
         )}
