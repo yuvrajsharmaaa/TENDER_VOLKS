@@ -94,6 +94,18 @@ function App() {
     }
   };
 
+  const handleDeleteTender = async (tenderId: string) => {
+    try {
+      await apiService.deleteTender(tenderId);
+      setTenders((prev) => prev.filter((t) => t.id !== tenderId));
+      if (selectedTenderId === tenderId) {
+        setSelectedTenderId(null);
+      }
+    } catch (err) {
+      alert("Error deleting tender");
+    }
+  };
+
   const handleUploadTender = async (file: File) => {
     try {
       const pendingTender = await apiService.uploadTender(file);
@@ -299,6 +311,7 @@ function App() {
             onMarkReviewed={handleMarkReviewed}
             onRetryParse={handleRetryParse}
             onLinkDocument={handleLinkDocument}
+            onDelete={() => handleDeleteTender(activeTender.id)}
           />
         ) : (
           <div className="flex-1 flex flex-col min-h-0 max-w-[1440px] mx-auto w-full">
@@ -419,6 +432,7 @@ function App() {
                     key={tender.id}
                     tender={tender}
                     onOpen={() => handleSelectTender(tender)}
+                    onDelete={() => handleDeleteTender(tender.id)}
                   />
                 ))}
               </div>

@@ -95,3 +95,16 @@ def get_all_jobs(db_path: Path = DB_PATH) -> List[Dict[str, Any]]:
         conn.row_factory = sqlite3.Row
         cur = conn.execute("SELECT * FROM jobs ORDER BY created_at DESC")
         return [dict(row) for row in cur.fetchall()]
+
+def delete_job(job_id: str, db_path: Path = DB_PATH) -> None:
+    for i in range(3):
+        try:
+            with sqlite3.connect(db_path) as conn:
+                _set_journal_mode(conn)
+                conn.execute("DELETE FROM jobs WHERE job_id = ?", (job_id,))
+                break
+        except sqlite3.OperationalError as e:
+            if i == 2:
+                raise e
+            time.sleep(1)
+

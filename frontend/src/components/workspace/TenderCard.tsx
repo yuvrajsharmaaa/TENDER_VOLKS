@@ -2,15 +2,16 @@ import React from "react";
 import type { TenderDetail } from "../../types/tender";
 import {
   MapPin, Building2, Calendar, FileText, ArrowRight,
-  ShieldCheck, ShieldAlert, Sparkles, Loader2, AlertCircle,
+  ShieldCheck, ShieldAlert, Sparkles, Loader2, AlertCircle, Trash2,
 } from "lucide-react";
 
 interface TenderCardProps {
   tender: TenderDetail;
   onOpen: () => void;
+  onDelete: () => void;
 }
 
-export const TenderCard: React.FC<TenderCardProps> = ({ tender, onOpen }) => {
+export const TenderCard: React.FC<TenderCardProps> = ({ tender, onOpen, onDelete }) => {
 
   /* ── Status badge ────────────────────────────────────────────── */
   const getStatusBadge = () => {
@@ -206,15 +207,31 @@ export const TenderCard: React.FC<TenderCardProps> = ({ tender, onOpen }) => {
         <span className="text-[10px] text-text-muted font-mono uppercase tracking-wider">
           {updatedTime}
         </span>
-        <button
-          type="button"
-          aria-label={`Open details for ${tender.title}`}
-          onClick={(e) => { e.stopPropagation(); onOpen(); }}
-          className="flex items-center gap-1 text-[11px] font-bold text-success-green hover:text-cta-green transition-colors"
-        >
-          View Tender
-          <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform duration-150" aria-hidden />
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            aria-label={`Delete tender: ${tender.title}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (confirm(`Are you sure you want to delete "${tender.title}"?`)) {
+                onDelete();
+              }
+            }}
+            className="flex items-center gap-1 text-[11px] font-bold text-red-500 hover:text-red-700 transition-colors cursor-pointer"
+          >
+            <Trash2 className="h-3.5 w-3.5" aria-hidden />
+            Delete
+          </button>
+          <button
+            type="button"
+            aria-label={`Open details for ${tender.title}`}
+            onClick={(e) => { e.stopPropagation(); onOpen(); }}
+            className="flex items-center gap-1 text-[11px] font-bold text-success-green hover:text-cta-green transition-colors"
+          >
+            View Tender
+            <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform duration-150" aria-hidden />
+          </button>
+        </div>
       </div>
     </article>
   );

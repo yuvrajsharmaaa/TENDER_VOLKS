@@ -13,7 +13,7 @@ import { PDFPreviewPane } from "./PDFPreviewPane";
 import { InfoSheetPanel } from "./InfoSheetPanel";
 import { DocumentsPanel } from "./DocumentsPanel";
 import { OCRPreviewPanel } from "./OCRPreviewPanel";
-import { ArrowLeft, Download, AlertTriangle, CheckCircle2, RefreshCw, Eye, Table } from "lucide-react";
+import { ArrowLeft, Download, AlertTriangle, CheckCircle2, RefreshCw, Eye, Table, Trash2 } from "lucide-react";
 
 interface TenderDetailPaneProps {
   tender: TenderDetail;
@@ -23,6 +23,7 @@ interface TenderDetailPaneProps {
   onMarkReviewed: () => void;
   onRetryParse: () => void;
   onLinkDocument: (docId: string, file: File) => void;
+  onDelete: () => void;
 }
 
 export const TenderDetailPane: React.FC<TenderDetailPaneProps> = ({
@@ -32,7 +33,8 @@ export const TenderDetailPane: React.FC<TenderDetailPaneProps> = ({
   onVerifyField,
   onMarkReviewed,
   onRetryParse,
-  onLinkDocument
+  onLinkDocument,
+  onDelete
 }) => {
   const [activeTab, setActiveTab] = useState<"summary" | "documents" | "info" | "ocr" | "review">("info");
   
@@ -152,6 +154,19 @@ export const TenderDetailPane: React.FC<TenderDetailPaneProps> = ({
 
         {/* Action Panel */}
         <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => {
+              if (confirm(`Are you sure you want to delete "${tender.title}"?`)) {
+                onDelete();
+              }
+            }}
+            disabled={isProcessing}
+            className="px-3 py-1.8 bg-input-bg border border-divider hover:bg-red-50 text-red-500 hover:text-red-700 disabled:opacity-50 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            <span>Delete</span>
+          </button>
+
           <button
             onClick={onRetryParse}
             disabled={isProcessing}

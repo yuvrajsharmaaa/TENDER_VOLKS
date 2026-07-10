@@ -797,5 +797,23 @@ export const apiService = {
     tenders[idx] = tender;
     saveStoredTenders(tenders);
     return tender;
+  },
+
+  /**
+   * Deletes a tender.
+   */
+  deleteTender: async (tenderId: string): Promise<void> => {
+    try {
+      if (await isBackendReachable()) {
+        await fetch(`${BACKEND_URL}/tenders/workspace/${tenderId}`, {
+          method: "DELETE",
+        });
+      }
+    } catch {
+      // fall through
+    }
+    const tenders = getStoredTenders();
+    const updated = tenders.filter((t) => t.id !== tenderId);
+    saveStoredTenders(updated);
   }
 };
