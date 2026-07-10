@@ -14,6 +14,7 @@ import { InfoSheetPanel } from "./InfoSheetPanel";
 import { DocumentsPanel } from "./DocumentsPanel";
 import { OCRPreviewPanel } from "./OCRPreviewPanel";
 import { ArrowLeft, Download, AlertTriangle, CheckCircle2, RefreshCw, Eye, Table, Trash2 } from "lucide-react";
+import { handleSecureDownload } from "../../services/api";
 
 interface TenderDetailPaneProps {
   tender: TenderDetail;
@@ -396,8 +397,16 @@ export const TenderDetailPane: React.FC<TenderDetailPaneProps> = ({
                             <span>Preview Sheet</span>
                           </button>
                           <button
-                            onClick={() => alert(`Downloading ${linkedInfoSheetFile.name}...`)}
-                            className="px-2.5 py-1.2 bg-success-green hover:bg-cta-green text-panel-bg text-[10px] font-bold rounded-lg transition-colors flex items-center gap-1 shadow-sm"
+                            onClick={async () => {
+                              if (linkedInfoSheetFile.url) {
+                                try {
+                                  await handleSecureDownload(linkedInfoSheetFile.url, linkedInfoSheetFile.name);
+                                } catch (err: any) {
+                                  alert(err.message || "Failed to download spreadsheet.");
+                                }
+                              }
+                            }}
+                            className="px-2.5 py-1.2 bg-success-green hover:bg-cta-green text-panel-bg text-[10px] font-bold rounded-lg transition-colors flex items-center gap-1 shadow-sm cursor-pointer"
                           >
                             <Download className="h-3 w-3" />
                             <span>Excel</span>

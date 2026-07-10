@@ -817,3 +817,33 @@ export const apiService = {
     saveStoredTenders(updated);
   }
 };
+
+/**
+ * Downloads a file from a URL using fetch and validates its headers before saving as blob
+ */
+export async function handleSecureDownload(url: string, filename: string): Promise<void> {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to download file. Server responded with status ${response.status}`);
+  }
+  
+  const contentType = response.headers.get("content-type") || "";
+  
+  // Validation check: if filename is .xlsx, ensure content-type is excel-related and not JSON/HTML/Text
+  if (filename.toLowerCase().endsWith(".xlsx")) {
+    if (contentType.includes("json") || contentType.includes("html") || contentType.includes("text")) {
+      throw new Error("Downloaded file is not a valid Excel spreadsheet (server returned text/json instead of workbook).");
+    }
+  }
+
+  const blob = await response.blob();
+  const blobUrl = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = blobUrl;
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(blobUrl);
+}
+

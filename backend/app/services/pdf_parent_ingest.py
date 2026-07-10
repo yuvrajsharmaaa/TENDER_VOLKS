@@ -86,10 +86,14 @@ def ingest_parent_tender_pdf(
     title_raw = original_filename.replace(".pdf", "").replace("_", " ").replace("-", " ")
     sections = extract_tender_fields(page_texts, title_raw)
 
-    # 4. Generate CSV Spreadsheet Info Sheet
+    # 4. Generate XLSX Spreadsheet Info Sheet
     csv_filename = f"{original_filename.replace('.pdf', '')}_InfoSheet.xlsx"
     csv_path = job_dir / csv_filename
-    generate_info_sheet_csv(sections, str(csv_path))
+    try:
+        generate_info_sheet_csv(sections, str(csv_path))
+    except Exception as e:
+        logger.error(f"Failed to generate info sheet workbook for job {job_id}: {e}", exc_info=True)
+        raise e
 
     # 5. Resolve top-level fields from extracted sections (NO hardcoded fallbacks)
     resolved = _resolve_top_level_fields(sections)

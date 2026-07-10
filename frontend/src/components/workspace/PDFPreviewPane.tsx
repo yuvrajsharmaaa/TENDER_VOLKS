@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { FileText, ExternalLink, AlertTriangle, Table, Download } from "lucide-react";
 import type { InfoSheetField } from "../../types/tender";
+import { handleSecureDownload } from "../../services/api";
 
 interface PDFPreviewPaneProps {
   activeDoc: any; // PreviewDocument
@@ -217,14 +218,19 @@ export const PDFPreviewPane: React.FC<PDFPreviewPaneProps> = ({ activeDoc, infoS
               Inline visual reviews are not supported for this file format ({activeDoc.kind}). You can download this document to inspect it locally.
             </p>
             {activeDoc.url && activeDoc.url !== "#" && (
-              <a
-                href={activeDoc.url}
-                onClick={() => alert(`Downloading ${activeDoc.name}...`)}
-                className="px-4 py-2 bg-success-green hover:bg-cta-green text-panel-bg text-xs font-bold rounded-lg transition-colors shadow-sm flex items-center gap-1.5"
+              <button
+                onClick={async () => {
+                  try {
+                    await handleSecureDownload(activeDoc.url, activeDoc.name);
+                  } catch (err: any) {
+                    alert(err.message || "Failed to download document.");
+                  }
+                }}
+                className="px-4 py-2 bg-success-green hover:bg-cta-green text-panel-bg text-xs font-bold rounded-lg transition-colors shadow-sm flex items-center gap-1.5 cursor-pointer"
               >
                 <Download className="h-3.5 w-3.5" />
                 <span>Download Document</span>
-              </a>
+              </button>
             )}
           </div>
         )}
