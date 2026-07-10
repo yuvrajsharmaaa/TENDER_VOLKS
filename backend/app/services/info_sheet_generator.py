@@ -1,7 +1,15 @@
+import re
 from typing import List, Dict, Any
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
+
+ILLEGAL_CHARACTERS_RE = re.compile(r'[\000-\010\013\014\016-\037]')
+
+def clean_val(v: Any) -> str:
+    if v is None:
+        return ""
+    return ILLEGAL_CHARACTERS_RE.sub("", str(v))
 
 def generate_info_sheet_csv(sections: List[Dict[str, Any]], output_path: str) -> None:
     """
@@ -33,12 +41,12 @@ def generate_info_sheet_csv(sections: List[Dict[str, Any]], output_path: str) ->
         for field in sec["fields"]:
             ws.append([
                 row_num,
-                sec["title"],
-                field["label"],
-                field["value"],
-                f"{field.get('confidence', 0)}%",
-                field.get("status", "extracted"),
-                field.get("sourceSnippet", "")
+                clean_val(sec["title"]),
+                clean_val(field["label"]),
+                clean_val(field["value"]),
+                clean_val(f"{field.get('confidence', 0)}%"),
+                clean_val(field.get("status", "extracted")),
+                clean_val(field.get("sourceSnippet", ""))
             ])
             row_num += 1
 

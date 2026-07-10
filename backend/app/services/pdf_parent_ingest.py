@@ -5,6 +5,9 @@ from backend.app.services.pdf_text_extractor import extract_pdf_text_hybrid
 from backend.app.services.pdf_link_extractor import extract_links_and_mentions
 from backend.app.services.field_extractor import extract_tender_fields
 from backend.app.services.info_sheet_generator import generate_info_sheet_csv
+from backend.app.core.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def _resolve_top_level_fields(sections: List[Dict[str, Any]]) -> Dict[str, str]:
