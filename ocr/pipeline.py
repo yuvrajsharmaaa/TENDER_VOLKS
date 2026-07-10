@@ -13,7 +13,7 @@ from backend.app.models.models import PageResult
 from backend.app.schemas.schemas import (
     RawOCRResponse, OCRBlockSchema, BoundingBox,
     LayoutResponse, LayoutRegionSchema,
-    ExtractedFieldsResponse
+    ExtractedFieldsResponse, ProductItemSchema
 )
 
 def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False) -> list[PageResult]:
@@ -85,10 +85,11 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False) -> list
     # Write aggregate json for existing visualizer compatibility
     write_aggregate_json(job_id, page_results, job_dir, pdf_path.name)
     
-    # 4. Deterministic Field Extraction
+    # 4. Deterministic Field Extraction + Product/Item extraction
     extractor = FieldExtractor()
     extracted_fields = extractor.extract_fields(page_results)
-    
+    extracted_products = extractor.extract_products(page_results)
+
     # 5. Build and serialize Pydantic response models
     # raw_ocr.json
     raw_ocr_pages = {}
@@ -139,17 +140,20 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False) -> list
         job_id=job_id,
         original_filename=pdf_path.name,
         page_count=len(page_results),
-        extracted_fields=extracted_fields
+        extracted_fields=extracted_fields,
+        extracted_products=[
+            ProductItemSchema(**p) for p in extracted_products
+        ]
     )
-    
+
     # Save files to disk
     with open(job_dir / "raw_ocr.json", "w", encoding="utf-8") as f:
         f.write(raw_ocr_resp.model_dump_json(indent=2))
-        
+
     with open(job_dir / "layout.json", "w", encoding="utf-8") as f:
         f.write(layout_resp.model_dump_json(indent=2))
-        
+
     with open(job_dir / "extracted_fields.json", "w", encoding="utf-8") as f:
         f.write(extracted_fields_resp.model_dump_json(indent=2))
-        
+
     return page_results

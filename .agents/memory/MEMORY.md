@@ -3,3 +3,4 @@
 - [Router registration lesson](fastapi-router-registration.md) — always verify routers are actually include_router'd in main.py; missing registration is silent.
 - [Headless Chromium in Nix](chromium-nix-missing-libs.md) — Playwright headless Chromium fails with missing libglib-2.0.so.0; use curl E2E instead.
 - [Bootstrap lesson: verify boot before trusting docs](verify-boot-first.md) — always confirm the app actually boots before trusting the described architecture.
+- [Vite CSS module types](vite-css-module-types.md) — missing `vite-env.d.ts` causes `tsc -b` to reject side-effect CSS imports.

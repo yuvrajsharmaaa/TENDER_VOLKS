@@ -57,8 +57,21 @@ class ExtractedFieldSchema(BaseModel):
     evidence: str
     source_blocks: List[SourceBlockRef]
 
+class ProductItemSchema(BaseModel):
+    product_name: str
+    normalized_category: str
+    raw_text: str
+    quantity: Optional[str] = None
+    unit: Optional[str] = None
+    technical_specification: Optional[str] = None
+    brand_or_oem_if_present: Optional[str] = None
+    page_number: int
+    confidence: float
+    evidence_text: str
+
 class ExtractedFieldsResponse(BaseModel):
     job_id: str
     original_filename: str
     page_count: int
     extracted_fields: List[ExtractedFieldSchema]
+    extracted_products: List[ProductItemSchema] = []
