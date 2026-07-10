@@ -4,11 +4,10 @@ import type { InfoSheetField } from "../../types/tender";
 
 interface PDFPreviewPaneProps {
   activeDoc: any; // PreviewDocument
-  title: string;
   infoSheetFields: InfoSheetField[];
 }
 
-export const PDFPreviewPane: React.FC<PDFPreviewPaneProps> = ({ activeDoc, title, infoSheetFields }) => {
+export const PDFPreviewPane: React.FC<PDFPreviewPaneProps> = ({ activeDoc, infoSheetFields }) => {
   const [zoom, setZoom] = useState(100);
   const [page, setPage] = useState(1);
 

@@ -448,7 +448,7 @@ export const TenderDetailPane: React.FC<TenderDetailPaneProps> = ({
 
         {/* Right Side: PDF Preview Pane docked */}
         <div className="min-h-0 h-full">
-          <PDFPreviewPane activeDoc={activeDoc} title={tender.title} infoSheetFields={tender.infoSheetSections.reduce((acc: InfoSheetField[], sec) => [...acc, ...sec.fields], [])} />
+          <PDFPreviewPane activeDoc={activeDoc} infoSheetFields={tender.infoSheetSections.reduce((acc: InfoSheetField[], sec) => [...acc, ...sec.fields], [])} />
         </div>
       </div>
     </div>
