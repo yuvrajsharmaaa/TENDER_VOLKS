@@ -146,7 +146,7 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                                         headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
                                     )
                                     context = ssl._create_unverified_context()
-                                    with urllib.request.urlopen(req, context=context, timeout=10) as response:
+                                    with urllib.request.urlopen(req, context=context, timeout=3) as response:
                                         file_bytes = response.read()
                                     out_path = output_dir / unique_filename
                                     with open(out_path, "wb") as f:

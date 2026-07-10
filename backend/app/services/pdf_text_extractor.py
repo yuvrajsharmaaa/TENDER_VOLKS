@@ -60,10 +60,12 @@ def extract_pdf_text_hybrid(pdf_path: str, pages_dir: Path) -> List[Dict[str, An
         word_count = len(words)
         
         is_digital = False
-        if len(stripped) > 120 and word_count > 15:
-            # Calculate average word length to detect scrambled font mappings
-            avg_word_len = len(stripped) / word_count
-            if 3.5 <= avg_word_len <= 14.0:
+        if len(stripped) > 5 and word_count > 0:
+            if word_count > 5:
+                avg_word_len = len(stripped) / word_count
+                if 3.0 <= avg_word_len <= 15.0:
+                    is_digital = True
+            else:
                 is_digital = True
                 
         if is_digital:
