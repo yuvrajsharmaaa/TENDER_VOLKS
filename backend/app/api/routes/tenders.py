@@ -866,13 +866,17 @@ def _run_ingest_background(job_id: str, pdf_path: str, original_filename: str):
     import mimetypes
     from pathlib import Path
 
+    logger.info(f"[OBSERVABILITY] status changed to ingestion for job {job_id}")
     try:
+        logger.info(f"[OBSERVABILITY] status changed to processing for job {job_id}")
         update_status(job_id, JobStatus.PROCESSING)
+        
         result = ingest_parent_tender_pdf(
             job_id=job_id,
             pdf_path=Path(pdf_path),
             original_filename=original_filename
         )
+        logger.info(f"[OBSERVABILITY] info sheet generated for job {job_id}")
 
         # Store child files and parent document in PostgreSQL
         db = SessionLocal()
@@ -940,6 +944,8 @@ def _run_ingest_background(job_id: str, pdf_path: str, original_filename: str):
                     # Update API payload so the frontend accesses this document directly
                     l["id"] = doc_uuid
                     l["url"] = f"/tenders/documents/{doc_uuid}/download"
+            
+            logger.info(f"[OBSERVABILITY] child docs extracted for job {job_id}")
 
         except Exception as db_err:
             db.rollback()
@@ -958,10 +964,14 @@ def _run_ingest_background(job_id: str, pdf_path: str, original_filename: str):
             result_path=str(result_path),
             page_count=len(result.get("rawTextPages", []))
         )
-        logger.info(f"Workspace ingest completed for job {job_id}")
+        logger.info(f"[OBSERVABILITY] final completion written for job {job_id}")
     except Exception as e:
         logger.error(f"Workspace ingest failed for job {job_id}: {e}", exc_info=True)
-        update_status(job_id, JobStatus.FAILED, error_message=str(e))
+        try:
+            update_status(job_id, JobStatus.FAILED, error_message=str(e))
+            logger.info(f"[OBSERVABILITY] failure written with error message for job {job_id}: {e}")
+        except Exception as write_err:
+            logger.error(f"Failed to write FAILED state to database for job {job_id}: {write_err}", exc_info=True)
 
 
 @router.post("/workspace/ingest", status_code=201)
@@ -974,6 +984,8 @@ async def workspace_ingest(
     enqueues background processing via the parent ingest pipeline.
     Returns a job_id the frontend can poll.
     """
+    logger.info(f"[OBSERVABILITY] upload accepted for file: {file.filename}")
+    
     # Validate
     if not file.filename:
         raise HTTPException(status_code=400, detail="A PDF file is required")
@@ -995,6 +1007,7 @@ async def workspace_ingest(
     # Register job in SQLite store
     from backend.app.repositories.job_store import create_job
     create_job(job_id=job_id, filename=file.filename, pdf_path=str(pdf_path))
+    logger.info(f"[OBSERVABILITY] job created with id {job_id}")
 
     # Enqueue background processing
     background_tasks.add_task(

@@ -7,12 +7,9 @@ from backend.app.core.constants import DB_PATH, JobStatus
 
 def _set_journal_mode(conn) -> None:
     try:
-        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA journal_mode=DELETE")
     except sqlite3.OperationalError:
-        try:
-            conn.execute("PRAGMA journal_mode=DELETE")
-        except sqlite3.OperationalError:
-            pass
+        pass
 
 def create_job(job_id: str, filename: str, pdf_path: str, db_path: Path = DB_PATH) -> None:
     now = datetime.now(timezone.utc).isoformat()
