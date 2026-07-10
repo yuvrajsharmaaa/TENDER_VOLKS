@@ -847,3 +847,82 @@ async def process_tender(
 
 
 
+
+from fastapi.responses import FileResponse
+
+@router.get("/documents/{document_id}/download")
+async def download_extracted_document(document_id: str, db: Session = Depends(get_db)):
+    """
+    Downloads an extracted child document (or parent document) from local disk
+    by checking its path in the database.
+    """
+    from backend.app.models.document import Document
+    import os
+    
+    db_doc = db.query(Document).filter(Document.id == document_id).first()
+    if not db_doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+        
+    local_path = db_doc.storage_key
+    if not local_path or not os.path.exists(local_path):
+        raise HTTPException(status_code=404, detail="File not found on local disk")
+        
+    return FileResponse(
+        path=local_path,
+        media_type=db_doc.mime_type,
+        filename=db_doc.original_filename
+    )
+
+
+@router.delete("/workspace/{job_id}", status_code=200)
+async def workspace_delete_tender(job_id: str, db: Session = Depends(get_db)):
+    """
+    Deletes a tender, including its job record in SQLite, its project and document
+    records in PostgreSQL, and its files on disk.
+    """
+    import shutil
+    from backend.app.repositories.job_store import get_job, delete_job
+    from backend.app.models.tender_project import TenderProject
+    
+    # 1. Check if job exists in SQLite
+    job = get_job(job_id)
+    if not job:
+        # Check if the TenderProject exists in Postgres anyway, in case SQLite job is missing
+        project = db.query(TenderProject).filter(TenderProject.id == job_id).first()
+        if not project:
+            raise HTTPException(status_code=404, detail="Tender not found")
+        else:
+            # Delete from Postgres
+            db.delete(project)
+            db.commit()
+            return {"status": "success", "message": "Tender project deleted from Postgres"}
+
+    # 2. Delete job directory from disk
+    job_dir = STORAGE_ROOT / "jobs" / job_id
+    if job_dir.exists():
+        try:
+            shutil.rmtree(job_dir)
+        except Exception as e:
+            logger.error(f"Failed to delete job directory {job_dir}: {e}", exc_info=True)
+
+    # 3. Delete from SQLite
+    try:
+        delete_job(job_id)
+    except Exception as e:
+        logger.error(f"Failed to delete job {job_id} from SQLite: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to delete job from SQLite")
+
+    # 4. Delete from PostgreSQL (TenderProject and cascaded Documents)
+    project = db.query(TenderProject).filter(TenderProject.id == job_id).first()
+    if project:
+        try:
+            db.delete(project)
+            db.commit()
+        except Exception as db_err:
+            db.rollback()
+            logger.error(f"Failed to delete project {job_id} from PostgreSQL: {db_err}", exc_info=True)
+    
+    logger.info(f"Workspace delete completed for job {job_id}")
+    return {"status": "success", "message": "Tender deleted successfully"}
+
+
