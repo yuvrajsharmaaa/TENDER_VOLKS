@@ -304,6 +304,13 @@ def map_internal_to_summary_csv_row(data: dict) -> dict:
     csv_row = {}
     for col in CSV_COLUMNS:
         val = data.get(col)
+        if isinstance(val, str) and val.startswith('[') and val.endswith(']'):
+            import ast
+            try:
+                val = ast.literal_eval(val)
+            except BaseException:
+                pass
+                
         if val is None:
             csv_row[col] = ""
         elif isinstance(val, list):
@@ -372,50 +379,70 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     def extract_regex(pattern, default="NA"):
         if not full_text:
             return default
+            
+        # Intercept legacy pattern and rewrite to robust tabular pattern
+        suffix = r"[:\-\s]+([^\n]+)"
+        if pattern.endswith(suffix):
+            label = pattern[:-len(suffix)]
+            # Match inline with colon/dash OR at most 2 spaces, stopping at large gaps
+            # If there's a colon/dash, we allow any character. If only spaces, the value must start with alphanumeric.
+            m1 = re.search(rf"{label}[ \t]*[:\-][ \t]*((?:(?!\s{{2,}})[^\n])+)", full_text, re.IGNORECASE)
+            if not m1:
+                m1 = re.search(rf"{label}[ \t]{{1,2}}([A-Za-z0-9₹Rs](?:(?!\s{{2,}})[^\n]){{0,24}})(?:\s{{2,}}|\n|$)", full_text, re.IGNORECASE)
+            if m1:
+                return m1.group(1).strip()
+            # Match next line ONLY if label is the only thing on the line
+            m2 = re.search(rf"^[ \t]*{label}[ \t]*\n[ \t]*((?:(?!\s{{2,}})[^\n])+)", full_text, re.IGNORECASE | re.MULTILINE)
+            if m2:
+                return m2.group(1).strip()
+            return default
+                
+        # Fallback to original
         m = re.search(pattern, full_text, re.IGNORECASE)
         if m:
             return m.group(1).strip()
         return default
 
+    def resolve_field(keys, regex_pattern, default="NA"):
+        if isinstance(keys, str):
+            keys = [keys]
+        for key in keys:
+            val = field_lookup.get(key)
+            if val and val != "NA" and val != "Not Found":
+                return val
+        return extract_regex(regex_pattern, default)
+
     # 1. Organization
-    organization = field_lookup.get("Authority Agency") or field_lookup.get("Organisation")
-    if not organization or organization == "NA":
-        organization = extract_regex(r"Organization[:\-\s]+([^\n]+)")
+    organization = resolve_field(["Authority Agency", "Organisation"], r"Organization[:\-\s]+([^\n]+)")
     if not organization or organization == "NA":
         organization = extract_regex(r"Organisation Name[:\-\s]+([^\n]+)")
 
     # 2. Tender Name
-    tender_name = field_lookup.get("Tender Name / Title")
-    if not tender_name or tender_name == "NA":
-        tender_name = extract_regex(r"Tender Name[:\-\s]+([^\n]+)")
+    tender_name = resolve_field("Tender Name / Title", r"Tender Name[:\-\s]+([^\n]+)")
 
     # 3. Tender ID
-    tender_id_display = field_lookup.get("Reference ID / NIT No")
-    if not tender_id_display or tender_id_display == "NA":
-        tender_id_display = extract_regex(r"Tender No[:\-\s]+([^\n]+)")
+    tender_id_display = resolve_field("Reference ID / NIT No", r"Tender No[:\-\s]+([^\n]+)")
 
     # 4. Website
-    website = extract_regex(r"Website[:\-\s]+([^\n]+)")
+    website = resolve_field("Website", r"Website[:\-\s]+([^\n]+)")
 
     # 5. Bid Due Date and Time
-    bid_due_date_time = field_lookup.get("Bid Submission Deadline")
-    if not bid_due_date_time or bid_due_date_time == "NA":
-        bid_due_date_time = extract_regex(r"Due Date & Time[:\-\s]+([^\n]+)")
+    bid_due_date_time = resolve_field("Bid Submission Deadline", r"Due Date & Time[:\-\s]+([^\n]+)")
 
     # 6. Recommendation by TE
-    te_recommendation_display = extract_regex(r"Recommendation[:\-\s]+([^\n]+)")
+    te_recommendation_display = resolve_field("Recommendation by TE", r"Recommendation[:\-\s]+([^\n]+)")
     if te_recommendation_display == "Yes — Recommended":
         te_recommendation_display = "YES"
     elif te_recommendation_display == "No — Rejected":
         te_recommendation_display = "NO"
 
     # 7. Reason
-    te_rejection_reason_display = extract_regex(r"Reason[:\-\s]+([^\n]+)")
+    te_rejection_reason_display = resolve_field("Reason", r"Reason[:\-\s]+([^\n]+)")
 
     # 8. Processing Fees
-    processing_fee_amount_display = extract_regex(r"Processing Fee Amount[:\-\s]+([^\n]+)")
+    processing_fee_amount_display = resolve_field("Processing Fee Amount", r"Processing Fee Amount[:\-\s]+([^\n]+)")
     # 9. Processing Fees (in form of)
-    processing_fee_mode_display = extract_regex(r"Processing Fee Mode[:\-\s]+([^\n]+)")
+    processing_fee_mode_display = resolve_field("Processing Fee Mode", r"Processing Fee Mode[:\-\s]+([^\n]+)")
 
     # 10. Tender Fees
     tender_fee_amount_display = field_lookup.get("Tender Fee")
@@ -423,9 +450,11 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         tender_fee_amount_display = extract_regex(r"Tender Fee Amount[:\-\s]+([^\n]+)")
     if not tender_fee_amount_display or tender_fee_amount_display == "NA":
         tender_fee_amount_display = extract_regex(r"Tender Fee[:\-\s]+([^\n]+)")
+    if tender_fee_amount_display != "NA" and not re.search(r"\d|no|nil|exempt", tender_fee_amount_display, re.IGNORECASE):
+        tender_fee_amount_display = "NA"
 
     # 11. Tender Fees (in form of)
-    tender_fee_mode_display = extract_regex(r"Tender Fee Mode[:\-\s]+([^\n]+)")
+    tender_fee_mode_display = resolve_field("Tender Fee Mode", r"Tender Fee Mode[:\-\s]+([^\n]+)")
 
     # 12. EMD
     emd_amount_display = field_lookup.get("EMD Amount")
@@ -433,75 +462,75 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         emd_amount_display = extract_regex(r"EMD Amount[:\-\s]+([^\n]+)")
     if not emd_amount_display or emd_amount_display == "NA":
         emd_amount_display = extract_regex(r"EMD[:\-\s]+([^\n]+)")
+    if emd_amount_display != "NA" and not re.search(r"\d|no|nil|exempt", emd_amount_display, re.IGNORECASE):
+        emd_amount_display = "NA"
 
     # 13. EMD required
-    emd_required_display = extract_regex(r"EMD Required[:\-\s]+([^\n]+)")
+    emd_required_display = resolve_field("EMD Required", r"EMD Required[:\-\s]+([^\n]+)")
 
     # 14. Tender Value (GST Inclusive)
-    tender_value_display = field_lookup.get("Estimated Tender Value")
-    if not tender_value_display or tender_value_display == "NA":
-        tender_value_display = extract_regex(r"Tender Value \(GST Inclusive\)[:\-\s]+([^\n]+)")
+    tender_value_display = resolve_field("Estimated Tender Value", r"Tender Value \(GST Inclusive\)[:\-\s]+([^\n]+)")
 
     # 15. EMD (in form of)
-    emd_mode_display = extract_regex(r"EMD Mode[:\-\s]+([^\n]+)")
+    emd_mode_display = resolve_field("EMD Mode", r"EMD Mode[:\-\s]+([^\n]+)")
 
     # 16. Bid Validity
-    bid_validity_days_display = extract_regex(r"Bid Validity \(Days\)[:\-\s]+([^\n]+)")
+    bid_validity_days_display = resolve_field("Bid Validity Period", r"Bid Validity \(Days\)[:\-\s]+([^\n]+)")
 
     # 17. Commercial Evaluation
-    commercial_evaluation_display = extract_regex(r"Commercial Evaluation Type[:\-\s]+([^\n]+)")
+    commercial_evaluation_display = resolve_field(["Commercial Evaluation", "Commercial Evaluation Type"], r"Commercial Evaluation Type[:\-\s]+([^\n]+)")
 
     # 18. RA Applicable
-    reverse_auction_applicable_display = extract_regex(r"Reverse Auction Applicable[:\-\s]+([^\n]+)")
+    reverse_auction_applicable_display = resolve_field("Reverse Auction Applicable", r"Reverse Auction Applicable[:\-\s]+([^\n]+)")
 
     # 19. MAF required
-    maf_required_display = extract_regex(r"MAF Required[:\-\s]+([^\n]+)")
+    maf_required_display = resolve_field("MAF Required", r"MAF Required[:\-\s]+([^\n]+)")
 
     # 20. Delivery Time (Supply/Total)
-    delivery_time_supply_display = extract_regex(r"Delivery Time Supply \(Days\)[:\-\s]+([^\n]+)")
+    delivery_time_supply_display = resolve_field(["Delivery Time Supply (Days)", "Period of Work"], r"Delivery Time Supply \(Days\)[:\-\s]+([^\n]+)")
 
     # 21. Delivery Time (Installation)
-    delivery_time_installation_display = extract_regex(r"Delivery Time Installation \(Days\)[:\-\s]+([^\n]+)")
+    delivery_time_installation_display = resolve_field("Delivery Time Installation (Days)", r"Delivery Time Installation \(Days\)[:\-\s]+([^\n]+)")
 
     # 22. PBG (in form of)
-    pbg_mode_display = extract_regex(r"PBG Mode[:\-\s]+([^\n]+)")
+    pbg_mode_display = resolve_field("PBG Mode", r"PBG Mode[:\-\s]+([^\n]+)")
 
     # 23. Payment Terms (Supply)
-    payment_terms_supply_display = extract_regex(r"Payment Terms Supply \((?:%|\w+)\)[:\-\s]+([^\n]+)")
+    payment_terms_supply_display = resolve_field("Payment Terms Supply", r"Payment Terms Supply \((?:%|\w+)\)[:\-\s]+([^\n]+)")
     if payment_terms_supply_display == "NA":
         payment_terms_supply_display = extract_regex(r"Payment Terms Supply[:\-\s]+([^\n]+)")
 
     # 24. Payment Terms (Installation)
-    payment_terms_installation_display = extract_regex(r"Payment Terms Installation \((?:%|\w+)\)[:\-\s]+([^\n]+)")
+    payment_terms_installation_display = resolve_field("Payment Terms Installation", r"Payment Terms Installation \((?:%|\w+)\)[:\-\s]+([^\n]+)")
     if payment_terms_installation_display == "NA":
         payment_terms_installation_display = extract_regex(r"Payment Terms Installation[:\-\s]+([^\n]+)")
 
     # 25. SD (in form of)
-    sd_mode_display = extract_regex(r"Security Deposit Mode[:\-\s]+([^\n]+)")
+    sd_mode_display = resolve_field("Security Deposit Mode", r"Security Deposit Mode[:\-\s]+([^\n]+)")
 
     # 26. LD/PRS %age (per week)
-    ld_percentage_display = extract_regex(r"LD Percentage Per Week[:\-\s]+([^\n]+)")
+    ld_percentage_display = resolve_field("LD Percentage Per Week", r"LD Percentage Per Week[:\-\s]+([^\n]+)")
 
     # 27. Max LD %age
-    max_ld_percentage_display = extract_regex(r"Max LD Percentage[:\-\s]+([^\n]+)")
+    max_ld_percentage_display = resolve_field("Max LD Percentage", r"Max LD Percentage[:\-\s]+([^\n]+)")
 
     # 28. PBG %age
-    pbg_percentage_display = extract_regex(r"PBG Percentage[:\-\s]+([^\n]+)")
+    pbg_percentage_display = resolve_field("PBG Percentage", r"PBG Percentage[:\-\s]+([^\n]+)")
 
     # 29. Security Deposit
-    sd_percentage_display = extract_regex(r"Security Deposit %[:\-\s]+([^\n]+)")
+    sd_percentage_display = resolve_field("Security Deposit %", r"Security Deposit %[:\-\s]+([^\n]+)")
 
     # 30. PBG Duration
-    pbg_duration_display = extract_regex(r"PBG Duration \(Months\)[:\-\s]+([^\n]+)")
+    pbg_duration_display = resolve_field("PBG Duration (Months)", r"PBG Duration \(Months\)[:\-\s]+([^\n]+)")
 
     # 31. SD Duration
-    sd_duration_display = extract_regex(r"SD Duration \(Months\)[:\-\s]+([^\n]+)")
+    sd_duration_display = resolve_field("SD Duration (Months)", r"SD Duration \(Months\)[:\-\s]+([^\n]+)")
 
     # 32. Physical Docs Submission Required
-    physical_docs_required_display = extract_regex(r"Physical Docs Required[:\-\s]+([^\n]+)")
+    physical_docs_required_display = resolve_field("Physical Docs Required", r"Physical Docs Required[:\-\s]+([^\n]+)")
 
     # 33. Physical Docs Submission Deadline
-    physical_docs_deadline_display = extract_regex(r"Physical Docs Deadline[:\-\s]+([^\n]+)")
+    physical_docs_deadline_display = resolve_field("Physical Docs Deadline", r"Physical Docs Deadline[:\-\s]+([^\n]+)")
 
     # 34. Age (in yrs)
     experience_years_val = field_lookup.get("Minimum Experience (Years)")
@@ -511,34 +540,34 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         age_in_yrs = extract_regex(r"Eligibility Criterion \(Years\)[:\-\s]+([^\n]+)")
 
     # 35. 3 Works Value
-    order_value_1_display = extract_regex(r"3 Works Value[:\-\s]+([^\n]+)")
+    order_value_1_display = resolve_field("3 Works Value", r"3 Works Value[:\-\s]+([^\n]+)")
 
     # 36. Annual Avg Turnover
-    avg_annual_turnover_type_display = extract_regex(r"Avg Annual Turnover Type[:\-\s]+([^\n]+)")
-    avg_annual_turnover_value_display = field_lookup.get("Annual Turnover Limit")
+    avg_annual_turnover_type_display = resolve_field("Avg Annual Turnover Type", r"Avg Annual Turnover Type[:\-\s]+([^\n]+)")
+    avg_annual_turnover_value_display = field_lookup.get("Annual Turnover Limit") or field_lookup.get("Annual Avg Turnover")
     if not avg_annual_turnover_value_display or avg_annual_turnover_value_display == "NA":
         avg_annual_turnover_value_display = extract_regex(r"Avg Annual Turnover Value[:\-\s]+([^\n]+)")
 
     # 37. 2 Works Value
-    order_value_2_display = extract_regex(r"2 Works Value[:\-\s]+([^\n]+)")
+    order_value_2_display = resolve_field("2 Works Value", r"2 Works Value[:\-\s]+([^\n]+)")
 
     # 38. Working Capital
-    working_capital_type_display = extract_regex(r"Working Capital Type[:\-\s]+([^\n]+)")
-    working_capital_value_display = extract_regex(r"Working Capital Value[:\-\s]+([^\n]+)")
+    working_capital_type_display = resolve_field("Working Capital Type", r"Working Capital Type[:\-\s]+([^\n]+)")
+    working_capital_value_display = resolve_field(["Working Capital Value", "Working Capital"], r"Working Capital Value[:\-\s]+([^\n]+)")
 
     # 39. 1 work Value
-    order_value_3_display = extract_regex(r"1 work Value[:\-\s]+([^\n]+)")
+    order_value_3_display = resolve_field("1 work Value", r"1 work Value[:\-\s]+([^\n]+)")
 
     # 40. Net Worth
-    net_worth_type_display = extract_regex(r"Net Worth Type[:\-\s]+([^\n]+)")
-    net_worth_value_display = extract_regex(r"Net Worth Value[:\-\s]+([^\n]+)")
+    net_worth_type_display = resolve_field("Net Worth Type", r"Net Worth Type[:\-\s]+([^\n]+)")
+    net_worth_value_display = resolve_field(["Net Worth Value", "Net Worth"], r"Net Worth Value[:\-\s]+([^\n]+)")
 
     # 41. PO selected for Technical Eligibility
-    po_selected_documents_display = extract_regex(r"PO selected for Technical Eligibility[:\-\s]+([^\n]+)")
+    po_selected_documents_display = resolve_field("PO selected for Technical Eligibility", r"PO selected for Technical Eligibility[:\-\s]+([^\n]+)")
 
     # 42. Solvency Certificate
-    solvency_certificate_type_display = extract_regex(r"Solvency Certificate Type[:\-\s]+([^\n]+)")
-    solvency_certificate_value_display = extract_regex(r"Solvency Certificate Value[:\-\s]+([^\n]+)")
+    solvency_certificate_type_display = resolve_field("Solvency Certificate Type", r"Solvency Certificate Type[:\-\s]+([^\n]+)")
+    solvency_certificate_value_display = resolve_field(["Solvency Certificate Value", "Solvency Certificate"], r"Solvency Certificate Value[:\-\s]+([^\n]+)")
 
     # Page 2
     # 43. PQC Documents

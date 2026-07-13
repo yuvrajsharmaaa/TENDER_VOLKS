@@ -27,6 +27,13 @@ def export_tender_information_csv(row: Dict[str, Any], output_dir: str = "output
     for col in TENDER_INFORMATION_COLUMNS:
         val = row.get(col, None)
         # Handle list/array fields cleanly for CSV format
+        if isinstance(val, str) and val.startswith('[') and val.endswith(']'):
+            import ast
+            try:
+                val = ast.literal_eval(val)
+            except BaseException:
+                pass
+                
         if isinstance(val, list):
             clean_row[col] = "|".join([str(item) for item in val if item])
         elif val is None:

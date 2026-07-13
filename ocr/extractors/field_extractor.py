@@ -343,15 +343,42 @@ class FieldExtractor:
             return m.group(0) if m else None
         elif field_type == "currency":
             m = self.currency_regex.search(text_clean)
+            val = None
             if m:
-                return m.group(0)
-            m = re.search(r'\b\d+(?:,\d+)*(?:\.\d+)?\s*(?:Lakh|Crore|Lacs|Cr|/-)?\b', text_clean, re.IGNORECASE)
-            return m.group(0) if m else None
+                val = m.group(0)
+            else:
+                m = re.search(r'\b\d+(?:,\d+)*(?:\.\d+)?\s*(?:Lakh|Crore|Lacs|Cr|/-)?\b', text_clean, re.IGNORECASE)
+                if m:
+                    val = m.group(0)
+            if val:
+                indicators = [r'\brs\b', r'₹', r'\blakh\b', r'\bcrore\b', r'\blac\b', r'\bcr\b', r'/-', r'\brupee\b']
+                has_currency_indicator = any(re.search(pat, text_clean, re.IGNORECASE) for pat in indicators)
+                if not has_currency_indicator:
+                    try:
+                        clean_num = re.sub(r'[^\d.]', '', val)
+                        if clean_num and float(clean_num) < 100:
+                            return None
+                    except ValueError:
+                        pass
+                return val
+            return None
         elif field_type == "fee":
             if any(w in text_clean.lower() for w in ["nil", "free", "exempted", "no fee", "निःशुल्क"]):
                 return "Nil / Exempted"
             m = self.currency_regex.search(text_clean)
-            return m.group(0) if m else None
+            val = m.group(0) if m else None
+            if val:
+                indicators = [r'\brs\b', r'₹', r'\blakh\b', r'\bcrore\b', r'\blac\b', r'\bcr\b', r'/-', r'\brupee\b']
+                has_currency_indicator = any(re.search(pat, text_clean, re.IGNORECASE) for pat in indicators)
+                if not has_currency_indicator:
+                    try:
+                        clean_num = re.sub(r'[^\d.]', '', val)
+                        if clean_num and float(clean_num) < 100:
+                            return None
+                    except ValueError:
+                        pass
+                return val
+            return None
         elif field_type == "nit":
             m = self.nit_regex.search(text_clean)
             if m:
@@ -586,6 +613,42 @@ class FieldExtractor:
                         # to extract the value that appears after the anchor; this
                         # handles GeM cells where OCR merges the label and value
                         # (e.g. "Item Category/Implementation of UPS...").
+                        is_org_preposition = False
+                        if rule["type"] in ("text", "org"):
+                            for anchor in (rule["anchors"] + rule["hindi"]):
+                                if anchor.lower() in ("ministry of", "department of", "office of", "organisation of", "organization of"):
+                                    if self._anchor_matches(anchor, block.text):
+                                        anchor_words = self._normalize_for_match(anchor).split()
+                                        parts = [re.escape(w) for w in anchor_words]
+                                        pattern = re.compile(r"(?:\W|\s)*".join(parts), re.IGNORECASE)
+                                        m = pattern.search(block.text)
+                                        if m:
+                                            suffix_part = block.text[m.end():]
+                                            if not re.match(r"^\s*[:\-/\n\t|]", suffix_part):
+                                                is_org_preposition = True
+                                                break
+
+                        if is_org_preposition:
+                            val = block.text.strip()
+                            print(f"  [FIELD_EXTRACTOR_DEBUG] Same-block match (org preposition): '{block.text}' -> '{val}'", flush=True)
+                            conf = anchor_score + 0.35 + 0.25
+                            conf = min(1.0, conf)
+                            candidates.append({
+                                "value": val,
+                                "confidence": round(conf, 2),
+                                "source_page": page_num,
+                                "evidence": block.text,
+                                "source_blocks": [
+                                    SourceBlockRef(
+                                        page_number=page_num,
+                                        block_id=block.block_id,
+                                        text=block.text,
+                                        bounding_box=BoundingBox(**block.bounding_box)
+                                    )
+                                ]
+                            })
+                            continue
+
                         val = self._match_value_pattern(block.text, rule["type"])
                         if val and val == block.text.strip() and rule["type"] in ("text", "org"):
                             suffix = self._extract_suffix_after_anchor(block.text, rule["anchors"] + rule["hindi"])
