@@ -346,3 +346,336 @@ def map_extraction_to_tender_information(extracted: dict, tender_id: int) -> dic
     """
     normalized = map_extraction_to_internal_schema(extracted)
     return map_internal_to_db_payload(normalized, tender_id)
+
+
+def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[str, Any]] = None) -> Dict[str, str]:
+    """
+    Flattens the extracted sections and runs regex match fallbacks on the raw page texts
+    to resolve all Visual Layout variables defined in INFOSHEET_DATA_KEYS.
+    """
+    field_lookup = {}
+    for sec in sections:
+        for f in sec.get("fields", []):
+            label = f.get("label", "").strip()
+            val = f.get("value", "")
+            status = f.get("status", "")
+            if status != "missing" and val is not None and val != "":
+                field_lookup[label] = str(val).strip()
+
+    # Get full text if page_texts is provided
+    full_text = ""
+    if page_texts:
+        full_text = "\n".join([p.get("text", "") for p in page_texts])
+
+    # Helper to extract using regex from full_text
+    import re
+    def extract_regex(pattern, default="NA"):
+        if not full_text:
+            return default
+        m = re.search(pattern, full_text, re.IGNORECASE)
+        if m:
+            return m.group(1).strip()
+        return default
+
+    # 1. Organization
+    organization = field_lookup.get("Authority Agency") or field_lookup.get("Organisation")
+    if not organization or organization == "NA":
+        organization = extract_regex(r"Organization\s*\n\s*([^\n]+)")
+    if not organization or organization == "NA":
+        organization = extract_regex(r"Organisation Name\s*\n\s*([^\n]+)")
+
+    # 2. Tender Name
+    tender_name = field_lookup.get("Tender Name / Title")
+    if not tender_name or tender_name == "NA":
+        tender_name = extract_regex(r"Tender Name\s*\n\s*([^\n]+)")
+
+    # 3. Tender ID
+    tender_id_display = field_lookup.get("Reference ID / NIT No")
+    if not tender_id_display or tender_id_display == "NA":
+        tender_id_display = extract_regex(r"Tender No\s*\n\s*([^\n]+)")
+
+    # 4. Website
+    website = extract_regex(r"Website\s*\n\s*([^\n]+)")
+
+    # 5. Bid Due Date and Time
+    bid_due_date_time = field_lookup.get("Bid Submission Deadline")
+    if not bid_due_date_time or bid_due_date_time == "NA":
+        bid_due_date_time = extract_regex(r"Due Date & Time\s*\n\s*([^\n]+)")
+
+    # 6. Recommendation by TE
+    te_recommendation_display = extract_regex(r"Recommendation\s*\n\s*([^\n]+)")
+    if te_recommendation_display == "Yes — Recommended":
+        te_recommendation_display = "YES"
+    elif te_recommendation_display == "No — Rejected":
+        te_recommendation_display = "NO"
+
+    # 7. Reason
+    te_rejection_reason_display = extract_regex(r"Reason\s*\n\s*([^\n]+)")
+
+    # 8. Processing Fees
+    processing_fee_amount_display = extract_regex(r"Processing Fee Amount\s*\n\s*([^\n]+)")
+    # 9. Processing Fees (in form of)
+    processing_fee_mode_display = extract_regex(r"Processing Fee Mode\s*\n\s*([^\n]+)")
+
+    # 10. Tender Fees
+    tender_fee_amount_display = field_lookup.get("Tender Fee")
+    if not tender_fee_amount_display or tender_fee_amount_display == "NA":
+        tender_fee_amount_display = extract_regex(r"Tender Fee Amount\s*\n\s*([^\n]+)")
+    if not tender_fee_amount_display or tender_fee_amount_display == "NA":
+        tender_fee_amount_display = extract_regex(r"Tender Fee\s*\n\s*([^\n]+)")
+
+    # 11. Tender Fees (in form of)
+    tender_fee_mode_display = extract_regex(r"Tender Fee Mode\s*\n\s*([^\n]+)")
+
+    # 12. EMD
+    emd_amount_display = field_lookup.get("EMD Amount")
+    if not emd_amount_display or emd_amount_display == "NA":
+        emd_amount_display = extract_regex(r"EMD Amount\s*\n\s*([^\n]+)")
+    if not emd_amount_display or emd_amount_display == "NA":
+        emd_amount_display = extract_regex(r"EMD\s*\n\s*([^\n]+)")
+
+    # 13. EMD required
+    emd_required_display = extract_regex(r"EMD Required\s*\n\s*([^\n]+)")
+
+    # 14. Tender Value (GST Inclusive)
+    tender_value_display = field_lookup.get("Estimated Tender Value")
+    if not tender_value_display or tender_value_display == "NA":
+        tender_value_display = extract_regex(r"Tender Value \(GST Inclusive\)\s*\n\s*([^\n]+)")
+
+    # 15. EMD (in form of)
+    emd_mode_display = extract_regex(r"EMD Mode\s*\n\s*([^\n]+)")
+
+    # 16. Bid Validity
+    bid_validity_days_display = extract_regex(r"Bid Validity \(Days\)\s*\n\s*([^\n]+)")
+
+    # 17. Commercial Evaluation
+    commercial_evaluation_display = extract_regex(r"Commercial Evaluation Type\s*\n\s*([^\n]+)")
+
+    # 18. RA Applicable
+    reverse_auction_applicable_display = extract_regex(r"Reverse Auction Applicable\s*\n\s*([^\n]+)")
+
+    # 19. MAF required
+    maf_required_display = extract_regex(r"MAF Required\s*\n\s*([^\n]+)")
+
+    # 20. Delivery Time (Supply/Total)
+    delivery_time_supply_display = extract_regex(r"Delivery Time Supply \(Days\)\s*\n\s*([^\n]+)")
+
+    # 21. Delivery Time (Installation)
+    delivery_time_installation_display = extract_regex(r"Delivery Time Installation \(Days\)\s*\n\s*([^\n]+)")
+
+    # 22. PBG (in form of)
+    pbg_mode_display = extract_regex(r"PBG Mode\s*\n\s*([^\n]+)")
+
+    # 23. Payment Terms (Supply)
+    payment_terms_supply_display = extract_regex(r"Payment Terms Supply \((?:%|\w+)\)\s*\n\s*([^\n]+)")
+    if payment_terms_supply_display == "NA":
+        payment_terms_supply_display = extract_regex(r"Payment Terms Supply\s*\n\s*([^\n]+)")
+
+    # 24. Payment Terms (Installation)
+    payment_terms_installation_display = extract_regex(r"Payment Terms Installation \((?:%|\w+)\)\s*\n\s*([^\n]+)")
+    if payment_terms_installation_display == "NA":
+        payment_terms_installation_display = extract_regex(r"Payment Terms Installation\s*\n\s*([^\n]+)")
+
+    # 25. SD (in form of)
+    sd_mode_display = extract_regex(r"Security Deposit Mode\s*\n\s*([^\n]+)")
+
+    # 26. LD/PRS %age (per week)
+    ld_percentage_display = extract_regex(r"LD Percentage Per Week\s*\n\s*([^\n]+)")
+
+    # 27. Max LD %age
+    max_ld_percentage_display = extract_regex(r"Max LD Percentage\s*\n\s*([^\n]+)")
+
+    # 28. PBG %age
+    pbg_percentage_display = extract_regex(r"PBG Percentage\s*\n\s*([^\n]+)")
+
+    # 29. Security Deposit
+    sd_percentage_display = extract_regex(r"Security Deposit %\s*\n\s*([^\n]+)")
+
+    # 30. PBG Duration
+    pbg_duration_display = extract_regex(r"PBG Duration \(Months\)\s*\n\s*([^\n]+)")
+
+    # 31. SD Duration
+    sd_duration_display = extract_regex(r"SD Duration \(Months\)\s*\n\s*([^\n]+)")
+
+    # 32. Physical Docs Submission Required
+    physical_docs_required_display = extract_regex(r"Physical Docs Required\s*\n\s*([^\n]+)")
+
+    # 33. Physical Docs Submission Deadline
+    physical_docs_deadline_display = extract_regex(r"Physical Docs Deadline\s*\n\s*([^\n]+)")
+
+    # 34. Age (in yrs)
+    experience_years_val = field_lookup.get("Minimum Experience (Years)")
+    if experience_years_val and experience_years_val != "NA":
+        age_in_yrs = experience_years_val
+    else:
+        age_in_yrs = extract_regex(r"Eligibility Criterion \(Years\)\s*\n\s*([^\n]+)")
+
+    # 35. 3 Works Value
+    order_value_1_display = extract_regex(r"3 Works Value\s*\n\s*([^\n]+)")
+
+    # 36. Annual Avg Turnover
+    avg_annual_turnover_type_display = extract_regex(r"Avg Annual Turnover Type\s*\n\s*([^\n]+)")
+    avg_annual_turnover_value_display = field_lookup.get("Annual Turnover Limit")
+    if not avg_annual_turnover_value_display or avg_annual_turnover_value_display == "NA":
+        avg_annual_turnover_value_display = extract_regex(r"Avg Annual Turnover Value\s*\n\s*([^\n]+)")
+
+    # 37. 2 Works Value
+    order_value_2_display = extract_regex(r"2 Works Value\s*\n\s*([^\n]+)")
+
+    # 38. Working Capital
+    working_capital_type_display = extract_regex(r"Working Capital Type\s*\n\s*([^\n]+)")
+    working_capital_value_display = extract_regex(r"Working Capital Value\s*\n\s*([^\n]+)")
+
+    # 39. 1 work Value
+    order_value_3_display = extract_regex(r"1 work Value\s*\n\s*([^\n]+)")
+
+    # 40. Net Worth
+    net_worth_type_display = extract_regex(r"Net Worth Type\s*\n\s*([^\n]+)")
+    net_worth_value_display = extract_regex(r"Net Worth Value\s*\n\s*([^\n]+)")
+
+    # 41. PO selected for Technical Eligibility
+    po_selected_documents_display = extract_regex(r"PO selected for Technical Eligibility\s*\n\s*([^\n]+)")
+
+    # 42. Solvency Certificate
+    solvency_certificate_type_display = extract_regex(r"Solvency Certificate Type\s*\n\s*([^\n]+)")
+    solvency_certificate_value_display = extract_regex(r"Solvency Certificate Value\s*\n\s*([^\n]+)")
+
+    # Page 2
+    # 43. PQC Documents
+    pqc_docs = extract_regex(r"PQR Selection\s*\n\s*([^\n]+)")
+    if pqc_docs == "—" or pqc_docs == "NA":
+        pqc_matches = []
+        for line in full_text.split("\n"):
+            if any(k in line.lower() for k in ["leoch", "ve turnover", "ve all generic"]):
+                pqc_matches.append(line.strip())
+        if pqc_matches:
+            pqc_docs = ", ".join(pqc_matches)
+    pqc_documents_display = pqc_docs
+
+    # 44. Documents for Commercial Eligibility
+    commercial_eligibility_documents_display = extract_regex(r"Documents for Commercial Eligibility\s*\n\s*([^\n]+)")
+
+    # 45. Client details
+    client_match = re.search(r"Requested Details\s*\n\s*([^\n]+)\s*\n\s*([^\n]+)\s*\n\s*([^\n]+)", full_text, re.IGNORECASE)
+    if client_match:
+        client_name_1_display = client_match.group(1).strip()
+        client_email_1_display = client_match.group(3).strip()
+        client_phone_1_display = client_match.group(2).strip()
+    else:
+        client_name_1_display = "NA"
+        client_email_1_display = "NA"
+        client_phone_1_display = "NA"
+
+    client_name_2_display = "NA"
+    client_email_2_display = "NA"
+    client_phone_2_display = "NA"
+    client_name_3_display = "NA"
+    client_email_3_display = "NA"
+    client_phone_3_display = "NA"
+
+    # 46. Docs Submitted
+    doc_1_display = "NA"
+    doc_2_display = "NA"
+    doc_3_display = "NA"
+    doc_4_display = "NA"
+    doc_5_display = "NA"
+    doc_6_display = "NA"
+    doc_7_display = "NA"
+    doc_8_display = "NA"
+    doc_9_display = "NA"
+
+    extra_docs_match = re.search(r"Extra Documents \(\d+\)\s*\n\s*([^\n]+)(?:\n\s*([^\n]+))?(?:\n\s*([^\n]+))?(?:\n\s*([^\n]+))?(?:\n\s*([^\n]+))?(?:\n\s*([^\n]+))?", full_text, re.IGNORECASE)
+    if extra_docs_match:
+        doc_1_display = extra_docs_match.group(1).strip() if extra_docs_match.group(1) else "NA"
+        doc_2_display = extra_docs_match.group(2).strip() if extra_docs_match.group(2) else "NA"
+        doc_3_display = extra_docs_match.group(3).strip() if extra_docs_match.group(3) else "NA"
+        doc_4_display = extra_docs_match.group(4).strip() if extra_docs_match.group(4) else "NA"
+        doc_5_display = extra_docs_match.group(5).strip() if extra_docs_match.group(5) else "NA"
+        doc_6_display = extra_docs_match.group(6).strip() if extra_docs_match.group(6) else "NA"
+
+    # Courier Delivery Address
+    courier_addr_match = re.search(r"Address \(Legacy\)\s*\n\s*([^\n]+(?:\n\s*[^\n]+)?)\s*\n\s*(?:Physical Docs Required|Physical Docs Submission)", full_text, re.IGNORECASE)
+    if courier_addr_match:
+        courier_address_display = courier_addr_match.group(1).strip().replace("\n", " ")
+    else:
+        courier_address_display = "NA"
+
+    courier_provider_display = "NA"
+    courier_docket_no_display = "NA"
+    courier_delivery_time_display = "NA"
+    docket_slip_upload_display = "NA"
+    physical_docs_uploaded_display = "NA"
+
+    return {
+        "organization": organization,
+        "tender_name": tender_name,
+        "tender_id_display": tender_id_display,
+        "website": website,
+        "bid_due_date_time": bid_due_date_time,
+        "te_recommendation_display": te_recommendation_display,
+        "te_rejection_reason_display": te_rejection_reason_display,
+        "processing_fee_amount_display": processing_fee_amount_display,
+        "processing_fee_mode_display": processing_fee_mode_display,
+        "tender_fee_amount_display": tender_fee_amount_display,
+        "tender_fee_mode_display": tender_fee_mode_display,
+        "emd_amount_display": emd_amount_display,
+        "emd_required_display": emd_required_display,
+        "tender_value_display": tender_value_display,
+        "emd_mode_display": emd_mode_display,
+        "bid_validity_days_display": bid_validity_days_display,
+        "commercial_evaluation_display": commercial_evaluation_display,
+        "reverse_auction_applicable_display": reverse_auction_applicable_display,
+        "maf_required_display": maf_required_display,
+        "delivery_time_supply_display": delivery_time_supply_display,
+        "delivery_time_installation_display": delivery_time_installation_display,
+        "pbg_mode_display": pbg_mode_display,
+        "payment_terms_supply_display": payment_terms_supply_display,
+        "payment_terms_installation_display": payment_terms_installation_display,
+        "sd_mode_display": sd_mode_display,
+        "ld_percentage_display": ld_percentage_display,
+        "max_ld_percentage_display": max_ld_percentage_display,
+        "pbg_percentage_display": pbg_percentage_display,
+        "sd_percentage_display": sd_percentage_display,
+        "pbg_duration_display": pbg_duration_display,
+        "sd_duration_display": sd_duration_display,
+        "physical_docs_required_display": physical_docs_required_display,
+        "physical_docs_deadline_display": physical_docs_deadline_display,
+        "order_value_1_display": order_value_1_display,
+        "avg_annual_turnover_type_display": avg_annual_turnover_type_display,
+        "avg_annual_turnover_value_display": avg_annual_turnover_value_display,
+        "order_value_2_display": order_value_2_display,
+        "working_capital_type_display": working_capital_type_display,
+        "working_capital_value_display": working_capital_value_display,
+        "order_value_3_display": order_value_3_display,
+        "net_worth_type_display": net_worth_type_display,
+        "net_worth_value_display": net_worth_value_display,
+        "po_selected_documents_display": po_selected_documents_display,
+        "solvency_certificate_type_display": solvency_certificate_type_display,
+        "solvency_certificate_value_display": solvency_certificate_value_display,
+        "commercial_eligibility_documents_display": commercial_eligibility_documents_display,
+        "client_name_1_display": client_name_1_display,
+        "client_email_1_display": client_email_1_display,
+        "client_phone_1_display": client_phone_1_display,
+        "client_name_2_display": client_name_2_display,
+        "client_email_2_display": client_email_2_display,
+        "client_phone_2_display": client_phone_2_display,
+        "client_name_3_display": client_name_3_display,
+        "client_email_3_display": client_email_3_display,
+        "client_phone_3_display": client_phone_3_display,
+        "doc_1_display": doc_1_display,
+        "doc_2_display": doc_2_display,
+        "doc_3_display": doc_3_display,
+        "doc_4_display": doc_4_display,
+        "doc_5_display": doc_5_display,
+        "doc_6_display": doc_6_display,
+        "doc_7_display": doc_7_display,
+        "doc_8_display": doc_8_display,
+        "doc_9_display": doc_9_display,
+        "courier_address_display": courier_address_display,
+        "courier_provider_display": courier_provider_display,
+        "courier_docket_no_display": courier_docket_no_display,
+        "courier_delivery_time_display": courier_delivery_time_display,
+        "docket_slip_upload_display": docket_slip_upload_display,
+        "physical_docs_uploaded_display": physical_docs_uploaded_display,
+    }
+

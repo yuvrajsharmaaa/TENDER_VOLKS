@@ -93,7 +93,9 @@ def ingest_parent_tender_pdf(
     csv_filename = f"{original_filename.replace('.pdf', '')}_InfoSheet.xlsx"
     csv_path = job_dir / csv_filename
     try:
-        generate_info_sheet_csv(sections, str(csv_path))
+        from backend.app.services.tender_mapper import build_infosheet_data
+        infosheet_data = build_infosheet_data(sections, page_texts)
+        generate_info_sheet_csv(infosheet_data, str(csv_path))
     except Exception as e:
         logger.error(f"Failed to generate info sheet workbook for job {job_id}: {e}", exc_info=True)
         raise e

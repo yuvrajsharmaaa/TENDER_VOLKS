@@ -11,88 +11,212 @@ def clean_val(v: Any) -> str:
         return ""
     return ILLEGAL_CHARACTERS_RE.sub("", str(v))
 
-def generate_info_sheet_csv(sections: List[Dict[str, Any]], output_path: str) -> None:
+from backend.app.services.csv_schema import (
+    INFOSHEET_PAGE1_LAYOUT,
+    INFOSHEET_PAGE2_LAYOUT,
+    INFOSHEET_COLUMN_WIDTHS,
+    INFOSHEET_DATA_KEYS,
+)
+
+def apply_cell_style(cell: Any, style_name: str, cell_def: Dict[str, Any]) -> None:
+    # Base font
+    font_name = "Segoe UI"
+    font_size = 10
+    font_color = "000000"
+    bold = cell_def.get("bold", False)
+    
+    # Fills
+    fill = None
+    if style_name == "section_header":
+        fill = PatternFill(start_color="34495E", end_color="34495E", fill_type="solid")
+        font_color = "FFFFFF"
+        font_size = 11
+        bold = True
+    elif style_name == "subsection_header":
+        fill = PatternFill(start_color="E5E8E8", end_color="E5E8E8", fill_type="solid")
+        font_color = "2C3E50"
+        bold = True
+    elif style_name == "label_pink":
+        fill = PatternFill(start_color="FFF0F2", end_color="FFF0F2", fill_type="solid")
+        font_color = "78281F"
+    elif style_name == "value_pink":
+        fill = PatternFill(start_color="FFF0F2", end_color="FFF0F2", fill_type="solid")
+        font_color = "000000"
+    elif style_name == "label_yellow":
+        fill = PatternFill(start_color="FFFDE7", end_color="FFFDE7", fill_type="solid")
+        font_color = "7D6608"
+    elif style_name == "value_yellow":
+        fill = PatternFill(start_color="FFFDE7", end_color="FFFDE7", fill_type="solid")
+        font_color = "000000"
+    elif style_name == "value_blue":
+        fill = PatternFill(start_color="E3F2FD", end_color="E3F2FD", fill_type="solid")
+        font_color = "1B4F72"
+    
+    cell.font = Font(name=font_name, size=font_size, bold=bold, color=font_color)
+    if fill:
+        cell.fill = fill
+        
+    # Alignments
+    horizontal_align = cell_def.get("align", "left")
+    if cell_def.get("kind") == "header":
+        horizontal_align = "center"
+    cell.alignment = Alignment(
+        horizontal=horizontal_align, 
+        vertical="center", 
+        wrap_text=cell_def.get("wrap", True)
+    )
+    
+    # Border
+    thin_side = Side(border_style="thin", color="CCCCCC")
+    cell.border = Border(left=thin_side, right=thin_side, top=thin_side, bottom=thin_side)
+
+
+def render_layout(ws: Any, layout: List[Dict[str, Any]], data: Dict[str, str], start_row: int = 1) -> int:
+    current_row = start_row
+    for row_def in layout:
+        ws.row_dimensions[current_row].height = row_def.get("height", 20)
+        c_idx = 1
+        for cell_def in row_def.get("cells", []):
+            colspan = cell_def.get("colspan", 1)
+            # Merge if colspan > 1
+            if colspan > 1:
+                ws.merge_cells(start_row=current_row, start_column=c_idx, end_row=current_row, end_column=c_idx + colspan - 1)
+            
+            # Resolve value
+            val = ""
+            if cell_def["kind"] in ("label", "header"):
+                val = cell_def.get("text") or ""
+            elif cell_def["kind"] == "value":
+                key = cell_def.get("key")
+                val = data.get(key) if key in data else "NA"
+                if val is None or val == "":
+                    val = "NA"
+            
+            # Write to top-left cell
+            ws.cell(row=current_row, column=c_idx, value=clean_val(val))
+            
+            # Apply styling to all cells in the merged range
+            for col in range(c_idx, c_idx + colspan):
+                cell = ws.cell(row=current_row, column=col)
+                style_name = cell_def.get("style", "plain")
+                apply_cell_style(cell, style_name, cell_def)
+                
+            c_idx += colspan
+        current_row += 1
+    return current_row
+
+
+def generate_info_sheet_csv(data: Any, output_path: str) -> None:
     """
     Writes extracted fields into a standard XLSX sheet format using openpyxl.
-    Loads natively in spreadsheet viewers like Microsoft Excel.
-    Includes status and source snippet columns for traceability.
+    Supports rendering a visual layout dict or a list-of-sections flat format.
     """
     wb = Workbook()
-    ws = wb.active
-    ws.title = "InfoSheet"
-    
-    # Enable grid lines visibility in Excel
-    ws.views.sheetView[0].showGridLines = True
-    
-    # Headers
-    headers = [
-        "Row Number",
-        "Field Section",
-        "Field Name (Column A)",
-        "Extracted Value (Column B)",
-        "Confidence (Column C)",
-        "Status",
-        "Source Snippet"
-    ]
-    ws.append(headers)
-    
-    row_num = 1
-    for sec in sections:
-        for field in sec["fields"]:
-            ws.append([
-                row_num,
-                clean_val(sec["title"]),
-                clean_val(field["label"]),
-                clean_val(field["value"]),
-                clean_val(f"{field.get('confidence', 0)}%"),
-                clean_val(field.get("status", "extracted")),
-                clean_val(field.get("sourceSnippet", ""))
-            ])
-            row_num += 1
+    # Remove default sheet
+    if "Sheet" in wb.sheetnames:
+        wb.remove(wb["Sheet"])
 
-    # Style definitions
-    header_fill = PatternFill(start_color="1B5E20", end_color="1B5E20", fill_type="solid")
-    header_font = Font(name="Segoe UI", size=11, bold=True, color="FFFFFF")
-    cell_font = Font(name="Segoe UI", size=10)
-    
-    thin_side = Side(border_style="thin", color="CCCCCC")
-    cell_border = Border(left=thin_side, right=thin_side, top=thin_side, bottom=thin_side)
-    
-    # Apply header formatting
-    for col_idx in range(1, len(headers) + 1):
-        cell = ws.cell(row=1, column=col_idx)
-        cell.fill = header_fill
-        cell.font = header_font
-        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
-        cell.border = cell_border
+    if isinstance(data, dict):
+        # 1:1 key mapping validation
+        data_copy = dict(data)
+        missing_keys = set(INFOSHEET_DATA_KEYS) - set(data_copy.keys())
+        extra_keys = set(data_copy.keys()) - set(INFOSHEET_DATA_KEYS)
         
-    # Apply cell formatting for data rows
-    for r_idx in range(2, row_num + 1):
+        for k in missing_keys:
+            data_copy[k] = "NA"
+        for k in extra_keys:
+            data_copy.pop(k, None)
+            
+        data = data_copy
+
+        ws = wb.create_sheet(title="InfoSheet")
+        ws.views.sheetView[0].showGridLines = True
+        # Set column widths
+        for col_idx, width in enumerate(INFOSHEET_COLUMN_WIDTHS, start=1):
+            col_letter = get_column_letter(col_idx)
+            ws.column_dimensions[col_letter].width = width
+            
+        next_row = render_layout(ws, INFOSHEET_PAGE1_LAYOUT, data, start_row=1)
+        
+        # Spacer row between pages
+        ws.row_dimensions[next_row].height = 15
+        next_row += 1
+        
+        render_layout(ws, INFOSHEET_PAGE2_LAYOUT, data, start_row=next_row)
+        
+    else:
+        # Fallback to the old list-of-sections flat format
+        ws = wb.create_sheet(title="InfoSheet")
+        ws.views.sheetView[0].showGridLines = True
+        
+        # Headers
+        headers = [
+            "Row Number",
+            "Field Section",
+            "Field Name (Column A)",
+            "Extracted Value (Column B)",
+            "Confidence (Column C)",
+            "Status",
+            "Source Snippet"
+        ]
+        ws.append(headers)
+        
+        row_num = 1
+        for sec in data:
+            for field in sec["fields"]:
+                ws.append([
+                    row_num,
+                    clean_val(sec["title"]),
+                    clean_val(field["label"]),
+                    clean_val(field["value"]),
+                    clean_val(f"{field.get('confidence', 0)}%"),
+                    clean_val(field.get("status", "extracted")),
+                    clean_val(field.get("sourceSnippet", ""))
+                ])
+                row_num += 1
+
+        # Style definitions
+        header_fill = PatternFill(start_color="1B5E20", end_color="1B5E20", fill_type="solid")
+        header_font = Font(name="Segoe UI", size=11, bold=True, color="FFFFFF")
+        cell_font = Font(name="Segoe UI", size=10)
+        
+        thin_side = Side(border_style="thin", color="CCCCCC")
+        cell_border = Border(left=thin_side, right=thin_side, top=thin_side, bottom=thin_side)
+        
+        # Apply header formatting
         for col_idx in range(1, len(headers) + 1):
-            cell = ws.cell(row=r_idx, column=col_idx)
-            cell.font = cell_font
+            cell = ws.cell(row=1, column=col_idx)
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
             cell.border = cell_border
             
-            # Alignments
-            if col_idx in (1, 5, 6): # Row Number, Confidence, Status
-                cell.alignment = Alignment(horizontal="center", vertical="center")
-            else:
-                cell.alignment = Alignment(horizontal="left", vertical="center")
+        # Apply cell formatting for data rows
+        for r_idx in range(2, row_num + 1):
+            for col_idx in range(1, len(headers) + 1):
+                cell = ws.cell(row=r_idx, column=col_idx)
+                cell.font = cell_font
+                cell.border = cell_border
+                
+                # Alignments
+                if col_idx in (1, 5, 6): # Row Number, Confidence, Status
+                    cell.alignment = Alignment(horizontal="center", vertical="center")
+                else:
+                    cell.alignment = Alignment(horizontal="left", vertical="center")
 
-    # Set row heights
-    ws.row_dimensions[1].height = 28
-    for r_idx in range(2, row_num + 1):
-        ws.row_dimensions[r_idx].height = 20
+        # Set row heights
+        ws.row_dimensions[1].height = 28
+        for r_idx in range(2, row_num + 1):
+            ws.row_dimensions[r_idx].height = 20
 
-    # Auto-adjust column widths with a margin
-    for col in ws.columns:
-        max_len = 0
-        col_letter = get_column_letter(col[0].column)
-        for cell in col:
-            val_str = str(cell.value or "")
-            if len(val_str) > max_len:
-                max_len = len(val_str)
-        # Apply width (capped at 50 to avoid excessively wide columns for snippets)
-        ws.column_dimensions[col_letter].width = min(max(max_len + 4, 12), 50)
-        
+        # Auto-adjust column widths with a margin
+        for col in ws.columns:
+            max_len = 0
+            col_letter = get_column_letter(col[0].column)
+            for cell in col:
+                val_str = str(cell.value or "")
+                if len(val_str) > max_len:
+                    max_len = len(val_str)
+            ws.column_dimensions[col_letter].width = min(max(max_len + 4, 12), 50)
+            
     wb.save(output_path)

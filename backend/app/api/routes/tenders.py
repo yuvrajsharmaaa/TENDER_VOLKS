@@ -844,8 +844,345 @@ async def process_tender(
     }
 
 
+# ==============================================================================
+# WORKSPACE API ENDPOINTS — Frontend-facing unified tender detail flow
+# ==============================================================================
+
+import json as _json
+import shutil as _shutil
+
+def _run_ingest_background(job_id: str, pdf_path: str, original_filename: str):
+    """
+    Background task: runs the parent tender ingest pipeline and persists
+    the conforming tender detail JSON to disk.
+    """
+    from backend.app.services.pdf_parent_ingest import ingest_parent_tender_pdf
+    from backend.app.repositories.job_store import update_status
+    from backend.app.core.constants import JobStatus
+    from backend.app.db.session import SessionLocal
+    from backend.app.models.tender_project import TenderProject
+    from backend.app.models.document import Document
+    import os
+    import mimetypes
+    from pathlib import Path
+
+    logger.info(f"[OBSERVABILITY] status changed to ingestion for job {job_id}")
+    try:
+        logger.info(f"[OBSERVABILITY] status changed to processing for job {job_id}")
+        update_status(job_id, JobStatus.PROCESSING)
+        
+        result = ingest_parent_tender_pdf(
+            job_id=job_id,
+            pdf_path=Path(pdf_path),
+            original_filename=original_filename
+        )
+        logger.info(f"[OBSERVABILITY] info sheet generated for job {job_id}")
+
+        # Store child files and parent document in PostgreSQL
+        db = SessionLocal()
+        try:
+            # 1. Ensure TenderProject exists in PostgreSQL
+            project = db.query(TenderProject).filter(TenderProject.id == job_id).first()
+            if not project:
+                project = TenderProject(
+                    id=job_id,
+                    project_id=job_id,
+                    tender_name=result.get("title") or original_filename.replace(".pdf", ""),
+                    source_label="Workspace Ingest"
+                )
+                db.add(project)
+                db.commit()
+                db.refresh(project)
+
+            # 2. Insert parent document metadata into PostgreSQL if not exists
+            parent_doc = db.query(Document).filter(
+                Document.tender_project_id == job_id,
+                Document.document_type == "parent"
+            ).first()
+            if not parent_doc:
+                parent_doc = Document(
+                    id=str(uuid.uuid4()),
+                    tender_project_id=job_id,
+                    original_filename=original_filename,
+                    storage_bucket="local-disk",
+                    storage_key=pdf_path,
+                    mime_type="application/pdf",
+                    size_bytes=os.path.getsize(pdf_path),
+                    upload_status="uploaded",
+                    processing_status="completed",
+                    document_type="parent"
+                )
+                db.add(parent_doc)
+                db.commit()
+
+            # 3. Iterate over the extracted Linked PDFs and register them
+            for l in result.get("documents", {}).get("extractedLinkedPdfs", []):
+                local_path = l.get("local_path")
+                if local_path and os.path.exists(local_path):
+                    # Generate a unique document UUID
+                    doc_uuid = str(uuid.uuid4())
+                    
+                    # Guess MIME type
+                    mime_type, _ = mimetypes.guess_type(local_path)
+                    mime_type = mime_type or "application/pdf"
+                    
+                    db_doc = Document(
+                        id=doc_uuid,
+                        tender_project_id=job_id,
+                        original_filename=l["name"],
+                        storage_bucket="local-disk",
+                        storage_key=local_path,
+                        mime_type=mime_type,
+                        size_bytes=os.path.getsize(local_path),
+                        upload_status="uploaded",
+                        processing_status="pending",
+                        document_type="child_document"
+                    )
+                    db.add(db_doc)
+                    db.commit()
+                    
+                    # Update API payload so the frontend accesses this document directly
+                    l["id"] = doc_uuid
+                    l["url"] = f"/tenders/documents/{doc_uuid}/download"
+            
+            logger.info(f"[OBSERVABILITY] child docs extracted for job {job_id}")
+
+        except Exception as db_err:
+            db.rollback()
+            logger.error(f"[ERROR] Postgres database storage mapping failed: {db_err}", exc_info=True)
+        finally:
+            db.close()
+
+        # Persist the conforming payload as JSON so GET can serve it
+        result_path = Path(pdf_path).parent / "tender_detail.json"
+        with open(result_path, "w", encoding="utf-8") as f:
+            _json.dump(result, f, ensure_ascii=False, indent=2)
+
+        update_status(
+            job_id,
+            JobStatus.COMPLETED,
+            result_path=str(result_path),
+            page_count=len(result.get("rawTextPages", []))
+        )
+        logger.info(f"[OBSERVABILITY] final completion written for job {job_id}")
+    except Exception as e:
+        logger.error(f"Workspace ingest failed for job {job_id}: {e}", exc_info=True)
+        try:
+            update_status(job_id, JobStatus.FAILED, error_message=str(e))
+            logger.info(f"[OBSERVABILITY] failure written with error message for job {job_id}: {e}")
+        except Exception as write_err:
+            logger.error(f"Failed to write FAILED state to database for job {job_id}: {write_err}", exc_info=True)
 
 
+@router.post("/workspace/ingest", status_code=201)
+async def workspace_ingest(
+    file: UploadFile = File(...),
+    background_tasks: BackgroundTasks = None
+):
+    """
+    Single-call endpoint: uploads a parent tender PDF and immediately
+    enqueues background processing via the parent ingest pipeline.
+    Returns a job_id the frontend can poll.
+    """
+    logger.info(f"[OBSERVABILITY] upload accepted for file: {file.filename}")
+    
+    # Validate
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="A PDF file is required")
+    if file.content_type != "application/pdf":
+        raise HTTPException(status_code=400, detail="Only PDF files are accepted")
+
+    file_bytes = await file.read()
+    if len(file_bytes) == 0:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty")
+
+    # Create job directory and save file
+    job_id = str(uuid.uuid4())
+    job_dir = STORAGE_ROOT / "jobs" / job_id
+    job_dir.mkdir(parents=True, exist_ok=True)
+    pdf_path = job_dir / file.filename
+    with open(pdf_path, "wb") as f:
+        f.write(file_bytes)
+
+    # Register job in SQLite store
+    from backend.app.repositories.job_store import create_job
+    create_job(job_id=job_id, filename=file.filename, pdf_path=str(pdf_path))
+    logger.info(f"[OBSERVABILITY] job created with id {job_id}")
+
+    # Enqueue background processing
+    background_tasks.add_task(
+        _run_ingest_background, job_id, str(pdf_path), file.filename
+    )
+
+    logger.info(f"Workspace ingest queued for job {job_id}, file: {file.filename}")
+
+    return {
+        "job_id": job_id,
+        "status": "pending",
+        "original_filename": file.filename
+    }
+
+
+@router.get("/workspace/list")
+async def workspace_list_tenders():
+    """
+    Returns all completed tender detail payloads as an array.
+    For pending/processing/failed jobs, returns skeleton entries.
+    """
+    from backend.app.repositories.job_store import get_all_jobs
+
+    all_jobs = get_all_jobs()
+    results = []
+
+    for job in all_jobs:
+        job_id = job["job_id"]
+        job_dir = STORAGE_ROOT / "jobs" / job_id
+        detail_path = job_dir / "tender_detail.json"
+
+        if job["status"] == "completed" and detail_path.exists():
+            try:
+                with open(detail_path, "r", encoding="utf-8") as f:
+                    payload = _json.load(f)
+                # Ensure frontend-required fields have defaults
+                payload.setdefault("reviewer_name", None)
+                payload.setdefault("location_city", "")
+                payload.setdefault("location_state", "")
+                payload.setdefault("sector", "Infrastructure")
+                payload.setdefault("snippet", "")
+                payload.setdefault("updated_at", job.get("completed_at", ""))
+                payload.setdefault("department", "")
+                # Derive snippet from raw text if empty
+                if not payload["snippet"] and payload.get("rawTextPages"):
+                    first_text = payload["rawTextPages"][0].get("text", "")
+                    payload["snippet"] = first_text[:200].replace("\n", " ").strip()
+                # Derive location components
+                loc = payload.get("location", "")
+                if loc and not payload["location_city"]:
+                    parts = [p.strip() for p in loc.split(",")]
+                    payload["location_city"] = parts[0] if parts else ""
+                    payload["location_state"] = parts[1] if len(parts) > 1 else ""
+
+                results.append(payload)
+            except Exception as e:
+                logger.error(f"Failed to read tender_detail.json for job {job_id}: {e}")
+        else:
+            # Return skeleton for pending/processing/failed jobs
+            filename = job.get("original_filename", "Unknown")
+            title = filename.replace(".pdf", "").replace("_", " ").replace("-", " ")
+            results.append({
+                "id": job_id,
+                "title": title,
+                "authorityName": "",
+                "deadline": "",
+                "tenderValue": "",
+                "emdAmount": "",
+                "tenderFee": "",
+                "location": "",
+                "documents": {
+                    "sourceDocuments": [{
+                        "id": f"src-{job_id}",
+                        "name": filename,
+                        "kind": "pdf",
+                        "origin": "source",
+                        "url": f"/storage/jobs/{job_id}/{filename}",
+                        "downloadable": True,
+                        "openable": True,
+                        "isPrimary": True,
+                        "uploadedBy": "System"
+                    }],
+                    "generatedOutputs": [],
+                    "extractedLinkedPdfs": [],
+                    "mentionedAttachments": []
+                },
+                "infoSheetSections": [],
+                "rawTextPages": [],
+                "parse_status": job["status"],  # pending / processing / failed
+                "parse_confidence": 0,
+                "review_status": "unreviewed",
+                "issues_count": 0,
+                "reviewer_name": None,
+                "location_city": "",
+                "location_state": "",
+                "sector": "Infrastructure",
+                "snippet": f"File uploaded: {filename}. Pipeline status: {job['status']}.",
+                "updated_at": job.get("created_at", ""),
+                "department": ""
+            })
+
+    return results
+
+
+@router.get("/workspace/{job_id}")
+async def workspace_get_tender(job_id: str):
+    """
+    Returns the full conforming tender detail for a single job.
+    """
+    from backend.app.repositories.job_store import get_job
+
+    job = get_job(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    job_dir = STORAGE_ROOT / "jobs" / job_id
+    detail_path = job_dir / "tender_detail.json"
+
+    if job["status"] == "completed" and detail_path.exists():
+        try:
+            with open(detail_path, "r", encoding="utf-8") as f:
+                payload = _json.load(f)
+            payload.setdefault("reviewer_name", None)
+            payload.setdefault("location_city", "")
+            payload.setdefault("location_state", "")
+            payload.setdefault("sector", "Infrastructure")
+            payload.setdefault("snippet", "")
+            payload.setdefault("updated_at", job.get("completed_at", ""))
+            payload.setdefault("department", "")
+            return payload
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to read result: {e}")
+
+    # Return skeleton for non-completed jobs
+    filename = job.get("original_filename", "Unknown")
+    title = filename.replace(".pdf", "").replace("_", " ").replace("-", " ")
+    return {
+        "id": job_id,
+        "title": title,
+        "authorityName": "",
+        "deadline": "",
+        "tenderValue": "",
+        "emdAmount": "",
+        "tenderFee": "",
+        "location": "",
+        "documents": {
+            "sourceDocuments": [{
+                "id": f"src-{job_id}",
+                "name": filename,
+                "kind": "pdf",
+                "origin": "source",
+                "url": f"/storage/jobs/{job_id}/{filename}",
+                "downloadable": True,
+                "openable": True,
+                "isPrimary": True,
+                "uploadedBy": "System"
+            }],
+            "generatedOutputs": [],
+            "extractedLinkedPdfs": [],
+            "mentionedAttachments": []
+        },
+        "infoSheetSections": [],
+        "rawTextPages": [],
+        "parse_status": job["status"],
+        "parse_confidence": 0,
+        "review_status": "unreviewed",
+        "issues_count": 0,
+        "reviewer_name": None,
+        "location_city": "",
+        "location_state": "",
+        "sector": "Infrastructure",
+        "snippet": f"File uploaded: {filename}. Pipeline status: {job['status']}.",
+        "updated_at": job.get("created_at", ""),
+        "department": ""
+    }
 
 
 from fastapi.responses import FileResponse
@@ -924,5 +1261,238 @@ async def workspace_delete_tender(job_id: str, db: Session = Depends(get_db)):
     
     logger.info(f"Workspace delete completed for job {job_id}")
     return {"status": "success", "message": "Tender deleted successfully"}
+
+
+class FieldUpdateRequest(BaseModel):
+    value: str
+
+
+@router.put("/workspace/{job_id}/fields/{field_id}")
+async def update_workspace_field(job_id: str, field_id: str, payload: FieldUpdateRequest):
+    job_dir = STORAGE_ROOT / "jobs" / job_id
+    detail_path = job_dir / "tender_detail.json"
+    if not detail_path.exists():
+        raise HTTPException(status_code=404, detail="Tender detail not found")
+        
+    try:
+        with open(detail_path, "r", encoding="utf-8") as f:
+            data = _json.load(f)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read tender details: {e}")
+        
+    # Find and update the field
+    found = False
+    for sec in data.get("infoSheetSections", []):
+        for f in sec.get("fields", []):
+            if f.get("id") == field_id:
+                f["value"] = payload.value
+                f["status"] = "edited"
+                found = True
+                break
+        if found:
+            break
+            
+    if not found:
+        raise HTTPException(status_code=404, detail=f"Field with ID {field_id} not found")
+        
+    # Recalculate issues_count
+    issues = 0
+    for sec in data.get("infoSheetSections", []):
+        for f in sec.get("fields", []):
+            if f.get("critical") and f.get("status") == "missing":
+                issues += 1
+            elif f.get("status") == "extracted" and f.get("confidence", 100) < 70:
+                issues += 1
+                
+    unresolved_mentions = 0
+    mentioned = data.get("documents", {}).get("mentionedAttachments", [])
+    for m in mentioned:
+        if not m.get("resolved", False):
+            unresolved_mentions += 1
+    issues += unresolved_mentions
+    data["issues_count"] = issues
+    
+    # Save tender_detail.json
+    try:
+        with open(detail_path, "w", encoding="utf-8") as f:
+            _json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save tender details: {e}")
+        
+    # Regenerate workbook
+    try:
+        from backend.app.services.tender_mapper import build_infosheet_data
+        from backend.app.services.info_sheet_generator import generate_info_sheet_csv
+        
+        sections = data.get("infoSheetSections", [])
+        page_texts = data.get("rawTextPages", [])
+        
+        source_docs = data.get("documents", {}).get("sourceDocuments", [])
+        original_filename = "original.pdf"
+        if source_docs:
+            primary_doc = next((d for d in source_docs if d.get("isPrimary")), source_docs[0])
+            original_filename = primary_doc.get("name", "original.pdf")
+            
+        csv_filename = f"{original_filename.replace('.pdf', '')}_InfoSheet.xlsx"
+        csv_path = job_dir / csv_filename
+        
+        infosheet_data = build_infosheet_data(sections, page_texts)
+        generate_info_sheet_csv(infosheet_data, str(csv_path))
+    except Exception as e:
+        logger.error(f"Failed to regenerate info sheet workbook for job {job_id}: {e}", exc_info=True)
+        
+    return data
+
+
+@router.post("/workspace/{job_id}/fields/{field_id}/verify")
+async def verify_workspace_field(job_id: str, field_id: str):
+    job_dir = STORAGE_ROOT / "jobs" / job_id
+    detail_path = job_dir / "tender_detail.json"
+    if not detail_path.exists():
+        raise HTTPException(status_code=404, detail="Tender detail not found")
+        
+    try:
+        with open(detail_path, "r", encoding="utf-8") as f:
+            data = _json.load(f)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read tender details: {e}")
+        
+    # Find and verify the field
+    found = False
+    for sec in data.get("infoSheetSections", []):
+        for f in sec.get("fields", []):
+            if f.get("id") == field_id:
+                f["status"] = "verified"
+                found = True
+                break
+        if found:
+            break
+            
+    if not found:
+        raise HTTPException(status_code=404, detail=f"Field with ID {field_id} not found")
+        
+    # Recalculate issues_count
+    issues = 0
+    for sec in data.get("infoSheetSections", []):
+        for f in sec.get("fields", []):
+            if f.get("critical") and f.get("status") == "missing":
+                issues += 1
+            elif f.get("status") == "extracted" and f.get("confidence", 100) < 70:
+                issues += 1
+                
+    unresolved_mentions = 0
+    mentioned = data.get("documents", {}).get("mentionedAttachments", [])
+    for m in mentioned:
+        if not m.get("resolved", False):
+            unresolved_mentions += 1
+    issues += unresolved_mentions
+    data["issues_count"] = issues
+    
+    # Save tender_detail.json
+    try:
+        with open(detail_path, "w", encoding="utf-8") as f:
+            _json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save tender details: {e}")
+        
+    # Regenerate workbook
+    try:
+        from backend.app.services.tender_mapper import build_infosheet_data
+        from backend.app.services.info_sheet_generator import generate_info_sheet_csv
+        
+        sections = data.get("infoSheetSections", [])
+        page_texts = data.get("rawTextPages", [])
+        
+        source_docs = data.get("documents", {}).get("sourceDocuments", [])
+        original_filename = "original.pdf"
+        if source_docs:
+            primary_doc = next((d for d in source_docs if d.get("isPrimary")), source_docs[0])
+            original_filename = primary_doc.get("name", "original.pdf")
+            
+        csv_filename = f"{original_filename.replace('.pdf', '')}_InfoSheet.xlsx"
+        csv_path = job_dir / csv_filename
+        
+        infosheet_data = build_infosheet_data(sections, page_texts)
+        generate_info_sheet_csv(infosheet_data, str(csv_path))
+    except Exception as e:
+        logger.error(f"Failed to regenerate info sheet workbook for job {job_id}: {e}", exc_info=True)
+        
+    return data
+
+
+class ReviewCompleteRequest(BaseModel):
+    reviewer_name: str
+
+
+@router.post("/workspace/{job_id}/review")
+async def review_workspace_tender(job_id: str, payload: ReviewCompleteRequest):
+    job_dir = STORAGE_ROOT / "jobs" / job_id
+    detail_path = job_dir / "tender_detail.json"
+    if not detail_path.exists():
+        raise HTTPException(status_code=404, detail="Tender detail not found")
+        
+    try:
+        with open(detail_path, "r", encoding="utf-8") as f:
+            data = _json.load(f)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read tender details: {e}")
+        
+    # Mark review completed
+    data["review_status"] = "completed"
+    data["reviewer_name"] = payload.reviewer_name
+    
+    # Mark all fields as verified
+    for sec in data.get("infoSheetSections", []):
+        for f in sec.get("fields", []):
+            if f.get("status") in ("extracted", "edited"):
+                f["status"] = "verified"
+                
+    # Recalculate issues_count
+    issues = 0
+    for sec in data.get("infoSheetSections", []):
+        for f in sec.get("fields", []):
+            if f.get("critical") and f.get("status") == "missing":
+                issues += 1
+            elif f.get("status") == "extracted" and f.get("confidence", 100) < 70:
+                issues += 1
+                
+    unresolved_mentions = 0
+    mentioned = data.get("documents", {}).get("mentionedAttachments", [])
+    for m in mentioned:
+        if not m.get("resolved", False):
+            unresolved_mentions += 1
+    issues += unresolved_mentions
+    data["issues_count"] = issues
+    
+    # Save tender_detail.json
+    try:
+        with open(detail_path, "w", encoding="utf-8") as f:
+            _json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save tender details: {e}")
+        
+    # Regenerate workbook
+    try:
+        from backend.app.services.tender_mapper import build_infosheet_data
+        from backend.app.services.info_sheet_generator import generate_info_sheet_csv
+        
+        sections = data.get("infoSheetSections", [])
+        page_texts = data.get("rawTextPages", [])
+        
+        source_docs = data.get("documents", {}).get("sourceDocuments", [])
+        original_filename = "original.pdf"
+        if source_docs:
+            primary_doc = next((d for d in source_docs if d.get("isPrimary")), source_docs[0])
+            original_filename = primary_doc.get("name", "original.pdf")
+            
+        csv_filename = f"{original_filename.replace('.pdf', '')}_InfoSheet.xlsx"
+        csv_path = job_dir / csv_filename
+        
+        infosheet_data = build_infosheet_data(sections, page_texts)
+        generate_info_sheet_csv(infosheet_data, str(csv_path))
+    except Exception as e:
+        logger.error(f"Failed to regenerate info sheet workbook for job {job_id}: {e}", exc_info=True)
+        
+    return data
 
 
