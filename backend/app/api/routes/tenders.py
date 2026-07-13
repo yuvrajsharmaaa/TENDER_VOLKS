@@ -452,6 +452,7 @@ def background_ocr_worker(document_id: str, run_layoutlm: bool):
     from pathlib import Path
     from backend.app.db.session import SessionLocal
     from backend.app.core.constants import STORAGE_ROOT
+    from ocr.pipeline import process_pdf
     
     db = SessionLocal()
     try:
@@ -492,15 +493,14 @@ def background_ocr_worker(document_id: str, run_layoutlm: bool):
             db.commit()
             return
             
-        # 4. Run PDF Ingestion pipeline (hybrid OCR + link extraction)
-        from backend.app.services.pdf_parent_ingest import ingest_parent_tender_pdf
+        # 4. Run PDF OCR processor
         try:
-            ingest_parent_tender_pdf(job_id=document_id, pdf_path=local_pdf_path, original_filename=doc.original_filename)
+            process_pdf(job_id=document_id, pdf_path=local_pdf_path, run_layoutlm=run_layoutlm)
             doc.processing_status = "completed"
             db.commit()
-            logger.info(f"Background Ingestion processing completed successfully for Document {document_id}")
+            logger.info(f"Background OCR processing completed successfully for Document {document_id}")
         except Exception as e:
-            logger.error(f"Ingestion processing pipeline failed for Document {document_id}: {e}", exc_info=True)
+            logger.error(f"OCR processing pipeline failed for Document {document_id}: {e}", exc_info=True)
             doc.processing_status = "failed"
             db.commit()
             

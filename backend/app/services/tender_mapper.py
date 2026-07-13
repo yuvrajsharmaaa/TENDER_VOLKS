@@ -380,169 +380,169 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     # 1. Organization
     organization = field_lookup.get("Authority Agency") or field_lookup.get("Organisation")
     if not organization or organization == "NA":
-        organization = extract_regex(r"Organization\s*\n\s*([^\n]+)")
+        organization = extract_regex(r"Organization[:\-\s]+([^\n]+)")
     if not organization or organization == "NA":
-        organization = extract_regex(r"Organisation Name\s*\n\s*([^\n]+)")
+        organization = extract_regex(r"Organisation Name[:\-\s]+([^\n]+)")
 
     # 2. Tender Name
     tender_name = field_lookup.get("Tender Name / Title")
     if not tender_name or tender_name == "NA":
-        tender_name = extract_regex(r"Tender Name\s*\n\s*([^\n]+)")
+        tender_name = extract_regex(r"Tender Name[:\-\s]+([^\n]+)")
 
     # 3. Tender ID
     tender_id_display = field_lookup.get("Reference ID / NIT No")
     if not tender_id_display or tender_id_display == "NA":
-        tender_id_display = extract_regex(r"Tender No\s*\n\s*([^\n]+)")
+        tender_id_display = extract_regex(r"Tender No[:\-\s]+([^\n]+)")
 
     # 4. Website
-    website = extract_regex(r"Website\s*\n\s*([^\n]+)")
+    website = extract_regex(r"Website[:\-\s]+([^\n]+)")
 
     # 5. Bid Due Date and Time
     bid_due_date_time = field_lookup.get("Bid Submission Deadline")
     if not bid_due_date_time or bid_due_date_time == "NA":
-        bid_due_date_time = extract_regex(r"Due Date & Time\s*\n\s*([^\n]+)")
+        bid_due_date_time = extract_regex(r"Due Date & Time[:\-\s]+([^\n]+)")
 
     # 6. Recommendation by TE
-    te_recommendation_display = extract_regex(r"Recommendation\s*\n\s*([^\n]+)")
+    te_recommendation_display = extract_regex(r"Recommendation[:\-\s]+([^\n]+)")
     if te_recommendation_display == "Yes — Recommended":
         te_recommendation_display = "YES"
     elif te_recommendation_display == "No — Rejected":
         te_recommendation_display = "NO"
 
     # 7. Reason
-    te_rejection_reason_display = extract_regex(r"Reason\s*\n\s*([^\n]+)")
+    te_rejection_reason_display = extract_regex(r"Reason[:\-\s]+([^\n]+)")
 
     # 8. Processing Fees
-    processing_fee_amount_display = extract_regex(r"Processing Fee Amount\s*\n\s*([^\n]+)")
+    processing_fee_amount_display = extract_regex(r"Processing Fee Amount[:\-\s]+([^\n]+)")
     # 9. Processing Fees (in form of)
-    processing_fee_mode_display = extract_regex(r"Processing Fee Mode\s*\n\s*([^\n]+)")
+    processing_fee_mode_display = extract_regex(r"Processing Fee Mode[:\-\s]+([^\n]+)")
 
     # 10. Tender Fees
     tender_fee_amount_display = field_lookup.get("Tender Fee")
     if not tender_fee_amount_display or tender_fee_amount_display == "NA":
-        tender_fee_amount_display = extract_regex(r"Tender Fee Amount\s*\n\s*([^\n]+)")
+        tender_fee_amount_display = extract_regex(r"Tender Fee Amount[:\-\s]+([^\n]+)")
     if not tender_fee_amount_display or tender_fee_amount_display == "NA":
-        tender_fee_amount_display = extract_regex(r"Tender Fee\s*\n\s*([^\n]+)")
+        tender_fee_amount_display = extract_regex(r"Tender Fee[:\-\s]+([^\n]+)")
 
     # 11. Tender Fees (in form of)
-    tender_fee_mode_display = extract_regex(r"Tender Fee Mode\s*\n\s*([^\n]+)")
+    tender_fee_mode_display = extract_regex(r"Tender Fee Mode[:\-\s]+([^\n]+)")
 
     # 12. EMD
     emd_amount_display = field_lookup.get("EMD Amount")
     if not emd_amount_display or emd_amount_display == "NA":
-        emd_amount_display = extract_regex(r"EMD Amount\s*\n\s*([^\n]+)")
+        emd_amount_display = extract_regex(r"EMD Amount[:\-\s]+([^\n]+)")
     if not emd_amount_display or emd_amount_display == "NA":
-        emd_amount_display = extract_regex(r"EMD\s*\n\s*([^\n]+)")
+        emd_amount_display = extract_regex(r"EMD[:\-\s]+([^\n]+)")
 
     # 13. EMD required
-    emd_required_display = extract_regex(r"EMD Required\s*\n\s*([^\n]+)")
+    emd_required_display = extract_regex(r"EMD Required[:\-\s]+([^\n]+)")
 
     # 14. Tender Value (GST Inclusive)
     tender_value_display = field_lookup.get("Estimated Tender Value")
     if not tender_value_display or tender_value_display == "NA":
-        tender_value_display = extract_regex(r"Tender Value \(GST Inclusive\)\s*\n\s*([^\n]+)")
+        tender_value_display = extract_regex(r"Tender Value \(GST Inclusive\)[:\-\s]+([^\n]+)")
 
     # 15. EMD (in form of)
-    emd_mode_display = extract_regex(r"EMD Mode\s*\n\s*([^\n]+)")
+    emd_mode_display = extract_regex(r"EMD Mode[:\-\s]+([^\n]+)")
 
     # 16. Bid Validity
-    bid_validity_days_display = extract_regex(r"Bid Validity \(Days\)\s*\n\s*([^\n]+)")
+    bid_validity_days_display = extract_regex(r"Bid Validity \(Days\)[:\-\s]+([^\n]+)")
 
     # 17. Commercial Evaluation
-    commercial_evaluation_display = extract_regex(r"Commercial Evaluation Type\s*\n\s*([^\n]+)")
+    commercial_evaluation_display = extract_regex(r"Commercial Evaluation Type[:\-\s]+([^\n]+)")
 
     # 18. RA Applicable
-    reverse_auction_applicable_display = extract_regex(r"Reverse Auction Applicable\s*\n\s*([^\n]+)")
+    reverse_auction_applicable_display = extract_regex(r"Reverse Auction Applicable[:\-\s]+([^\n]+)")
 
     # 19. MAF required
-    maf_required_display = extract_regex(r"MAF Required\s*\n\s*([^\n]+)")
+    maf_required_display = extract_regex(r"MAF Required[:\-\s]+([^\n]+)")
 
     # 20. Delivery Time (Supply/Total)
-    delivery_time_supply_display = extract_regex(r"Delivery Time Supply \(Days\)\s*\n\s*([^\n]+)")
+    delivery_time_supply_display = extract_regex(r"Delivery Time Supply \(Days\)[:\-\s]+([^\n]+)")
 
     # 21. Delivery Time (Installation)
-    delivery_time_installation_display = extract_regex(r"Delivery Time Installation \(Days\)\s*\n\s*([^\n]+)")
+    delivery_time_installation_display = extract_regex(r"Delivery Time Installation \(Days\)[:\-\s]+([^\n]+)")
 
     # 22. PBG (in form of)
-    pbg_mode_display = extract_regex(r"PBG Mode\s*\n\s*([^\n]+)")
+    pbg_mode_display = extract_regex(r"PBG Mode[:\-\s]+([^\n]+)")
 
     # 23. Payment Terms (Supply)
-    payment_terms_supply_display = extract_regex(r"Payment Terms Supply \((?:%|\w+)\)\s*\n\s*([^\n]+)")
+    payment_terms_supply_display = extract_regex(r"Payment Terms Supply \((?:%|\w+)\)[:\-\s]+([^\n]+)")
     if payment_terms_supply_display == "NA":
-        payment_terms_supply_display = extract_regex(r"Payment Terms Supply\s*\n\s*([^\n]+)")
+        payment_terms_supply_display = extract_regex(r"Payment Terms Supply[:\-\s]+([^\n]+)")
 
     # 24. Payment Terms (Installation)
-    payment_terms_installation_display = extract_regex(r"Payment Terms Installation \((?:%|\w+)\)\s*\n\s*([^\n]+)")
+    payment_terms_installation_display = extract_regex(r"Payment Terms Installation \((?:%|\w+)\)[:\-\s]+([^\n]+)")
     if payment_terms_installation_display == "NA":
-        payment_terms_installation_display = extract_regex(r"Payment Terms Installation\s*\n\s*([^\n]+)")
+        payment_terms_installation_display = extract_regex(r"Payment Terms Installation[:\-\s]+([^\n]+)")
 
     # 25. SD (in form of)
-    sd_mode_display = extract_regex(r"Security Deposit Mode\s*\n\s*([^\n]+)")
+    sd_mode_display = extract_regex(r"Security Deposit Mode[:\-\s]+([^\n]+)")
 
     # 26. LD/PRS %age (per week)
-    ld_percentage_display = extract_regex(r"LD Percentage Per Week\s*\n\s*([^\n]+)")
+    ld_percentage_display = extract_regex(r"LD Percentage Per Week[:\-\s]+([^\n]+)")
 
     # 27. Max LD %age
-    max_ld_percentage_display = extract_regex(r"Max LD Percentage\s*\n\s*([^\n]+)")
+    max_ld_percentage_display = extract_regex(r"Max LD Percentage[:\-\s]+([^\n]+)")
 
     # 28. PBG %age
-    pbg_percentage_display = extract_regex(r"PBG Percentage\s*\n\s*([^\n]+)")
+    pbg_percentage_display = extract_regex(r"PBG Percentage[:\-\s]+([^\n]+)")
 
     # 29. Security Deposit
-    sd_percentage_display = extract_regex(r"Security Deposit %\s*\n\s*([^\n]+)")
+    sd_percentage_display = extract_regex(r"Security Deposit %[:\-\s]+([^\n]+)")
 
     # 30. PBG Duration
-    pbg_duration_display = extract_regex(r"PBG Duration \(Months\)\s*\n\s*([^\n]+)")
+    pbg_duration_display = extract_regex(r"PBG Duration \(Months\)[:\-\s]+([^\n]+)")
 
     # 31. SD Duration
-    sd_duration_display = extract_regex(r"SD Duration \(Months\)\s*\n\s*([^\n]+)")
+    sd_duration_display = extract_regex(r"SD Duration \(Months\)[:\-\s]+([^\n]+)")
 
     # 32. Physical Docs Submission Required
-    physical_docs_required_display = extract_regex(r"Physical Docs Required\s*\n\s*([^\n]+)")
+    physical_docs_required_display = extract_regex(r"Physical Docs Required[:\-\s]+([^\n]+)")
 
     # 33. Physical Docs Submission Deadline
-    physical_docs_deadline_display = extract_regex(r"Physical Docs Deadline\s*\n\s*([^\n]+)")
+    physical_docs_deadline_display = extract_regex(r"Physical Docs Deadline[:\-\s]+([^\n]+)")
 
     # 34. Age (in yrs)
     experience_years_val = field_lookup.get("Minimum Experience (Years)")
     if experience_years_val and experience_years_val != "NA":
         age_in_yrs = experience_years_val
     else:
-        age_in_yrs = extract_regex(r"Eligibility Criterion \(Years\)\s*\n\s*([^\n]+)")
+        age_in_yrs = extract_regex(r"Eligibility Criterion \(Years\)[:\-\s]+([^\n]+)")
 
     # 35. 3 Works Value
-    order_value_1_display = extract_regex(r"3 Works Value\s*\n\s*([^\n]+)")
+    order_value_1_display = extract_regex(r"3 Works Value[:\-\s]+([^\n]+)")
 
     # 36. Annual Avg Turnover
-    avg_annual_turnover_type_display = extract_regex(r"Avg Annual Turnover Type\s*\n\s*([^\n]+)")
+    avg_annual_turnover_type_display = extract_regex(r"Avg Annual Turnover Type[:\-\s]+([^\n]+)")
     avg_annual_turnover_value_display = field_lookup.get("Annual Turnover Limit")
     if not avg_annual_turnover_value_display or avg_annual_turnover_value_display == "NA":
-        avg_annual_turnover_value_display = extract_regex(r"Avg Annual Turnover Value\s*\n\s*([^\n]+)")
+        avg_annual_turnover_value_display = extract_regex(r"Avg Annual Turnover Value[:\-\s]+([^\n]+)")
 
     # 37. 2 Works Value
-    order_value_2_display = extract_regex(r"2 Works Value\s*\n\s*([^\n]+)")
+    order_value_2_display = extract_regex(r"2 Works Value[:\-\s]+([^\n]+)")
 
     # 38. Working Capital
-    working_capital_type_display = extract_regex(r"Working Capital Type\s*\n\s*([^\n]+)")
-    working_capital_value_display = extract_regex(r"Working Capital Value\s*\n\s*([^\n]+)")
+    working_capital_type_display = extract_regex(r"Working Capital Type[:\-\s]+([^\n]+)")
+    working_capital_value_display = extract_regex(r"Working Capital Value[:\-\s]+([^\n]+)")
 
     # 39. 1 work Value
-    order_value_3_display = extract_regex(r"1 work Value\s*\n\s*([^\n]+)")
+    order_value_3_display = extract_regex(r"1 work Value[:\-\s]+([^\n]+)")
 
     # 40. Net Worth
-    net_worth_type_display = extract_regex(r"Net Worth Type\s*\n\s*([^\n]+)")
-    net_worth_value_display = extract_regex(r"Net Worth Value\s*\n\s*([^\n]+)")
+    net_worth_type_display = extract_regex(r"Net Worth Type[:\-\s]+([^\n]+)")
+    net_worth_value_display = extract_regex(r"Net Worth Value[:\-\s]+([^\n]+)")
 
     # 41. PO selected for Technical Eligibility
-    po_selected_documents_display = extract_regex(r"PO selected for Technical Eligibility\s*\n\s*([^\n]+)")
+    po_selected_documents_display = extract_regex(r"PO selected for Technical Eligibility[:\-\s]+([^\n]+)")
 
     # 42. Solvency Certificate
-    solvency_certificate_type_display = extract_regex(r"Solvency Certificate Type\s*\n\s*([^\n]+)")
-    solvency_certificate_value_display = extract_regex(r"Solvency Certificate Value\s*\n\s*([^\n]+)")
+    solvency_certificate_type_display = extract_regex(r"Solvency Certificate Type[:\-\s]+([^\n]+)")
+    solvency_certificate_value_display = extract_regex(r"Solvency Certificate Value[:\-\s]+([^\n]+)")
 
     # Page 2
     # 43. PQC Documents
-    pqc_docs = extract_regex(r"PQR Selection\s*\n\s*([^\n]+)")
+    pqc_docs = extract_regex(r"PQR Selection[:\-\s]+([^\n]+)")
     if pqc_docs == "—" or pqc_docs == "NA":
         pqc_matches = []
         for line in full_text.split("\n"):
@@ -553,10 +553,10 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     pqc_documents_display = pqc_docs
 
     # 44. Documents for Commercial Eligibility
-    commercial_eligibility_documents_display = extract_regex(r"Documents for Commercial Eligibility\s*\n\s*([^\n]+)")
+    commercial_eligibility_documents_display = extract_regex(r"Documents for Commercial Eligibility[:\-\s]+([^\n]+)")
 
     # 45. Client details
-    client_match = re.search(r"Requested Details\s*\n\s*([^\n]+)\s*\n\s*([^\n]+)\s*\n\s*([^\n]+)", full_text, re.IGNORECASE)
+    client_match = re.search(r"Requested Details[:\-\s]+([^\n]+)[:\-\s]+([^\n]+)[:\-\s]+([^\n]+)", full_text, re.IGNORECASE)
     if client_match:
         client_name_1_display = client_match.group(1).strip()
         client_email_1_display = client_match.group(3).strip()
@@ -584,7 +584,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     doc_8_display = "NA"
     doc_9_display = "NA"
 
-    extra_docs_match = re.search(r"Extra Documents \(\d+\)\s*\n\s*([^\n]+)(?:\n\s*([^\n]+))?(?:\n\s*([^\n]+))?(?:\n\s*([^\n]+))?(?:\n\s*([^\n]+))?(?:\n\s*([^\n]+))?", full_text, re.IGNORECASE)
+    extra_docs_match = re.search(r"Extra Documents \(\d+\)[:\-\s]+([^\n]+)(?:\n\s*([^\n]+))?(?:\n\s*([^\n]+))?(?:\n\s*([^\n]+))?(?:\n\s*([^\n]+))?(?:\n\s*([^\n]+))?", full_text, re.IGNORECASE)
     if extra_docs_match:
         doc_1_display = extra_docs_match.group(1).strip() if extra_docs_match.group(1) else "NA"
         doc_2_display = extra_docs_match.group(2).strip() if extra_docs_match.group(2) else "NA"
@@ -594,7 +594,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         doc_6_display = extra_docs_match.group(6).strip() if extra_docs_match.group(6) else "NA"
 
     # Courier Delivery Address
-    courier_addr_match = re.search(r"Address \(Legacy\)\s*\n\s*([^\n]+(?:\n\s*[^\n]+)?)\s*\n\s*(?:Physical Docs Required|Physical Docs Submission)", full_text, re.IGNORECASE)
+    courier_addr_match = re.search(r"Address \(Legacy\)[:\-\s]+([^\n]+(?:\n\s*[^\n]+)?)[:\-\s]+(?:Physical Docs Required|Physical Docs Submission)", full_text, re.IGNORECASE)
     if courier_addr_match:
         courier_address_display = courier_addr_match.group(1).strip().replace("\n", " ")
     else:

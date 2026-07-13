@@ -65,14 +65,24 @@ def map_extracted_fields_to_tender_info(
     if past_exp_req or past_exp_years:
         tech_exp = f"Past Experience Required: {past_exp_req or 'N/A'}. Years of experience: {past_exp_years or 'N/A'}."
 
-    # 3. Manual-review fields (initialized to None)
+    # 3. Product / item extraction summary
+    products = extracted_data.get("extracted_products", []) or []
+    required_products_summary = None
+    if products:
+        lines = []
+        for p in products:
+            qty = f"{p['quantity']} {p['unit']}".strip() if p.get("quantity") else "qty unknown"
+            lines.append(f"{p['product_name']} ({qty}) - {p['raw_text'][:100]}")
+        required_products_summary = "; ".join(lines)
+
+    # 4. Manual-review fields (initialized to None)
     # These fields are currently not confidently extractable by raw OCR rules
     # and will be reviewed manually later.
     security_deposit = None
     certifications_required = None
     oem_authorization = None
     technical_specifications_summary = None
-    required_products_quantities = None
+    required_products_quantities = required_products_summary
     compliance_schedule = None
     pan_card_proof = None
     gst_registration_certificate = None

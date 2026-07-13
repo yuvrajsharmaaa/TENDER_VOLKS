@@ -71,6 +71,10 @@ models/
 inference/
 whl/
 
+# Local tool/virtual-env artifacts
+tmc/
+scripts/test_extraction_runner.py
+
 # Storage (local dev data — not for version control)
 storage/jobs/
 storage/logs/

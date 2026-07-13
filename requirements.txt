@@ -14,3 +14,4 @@ redis
 sqlalchemy
 pytesseract
 openpyxl
+pytest

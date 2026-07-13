@@ -1,5 +1,10 @@
 import re
-from typing import List, Dict, Any, Tuple
+import logging
+from typing import List, Dict, Any, Tuple, Callable
+
+from backend.app.services.field_registry import get_keywords
+
+logger = logging.getLogger(__name__)
 
 def extract_field_flexible(keywords: List[str], text: str) -> Tuple[str, float, str, str]:
     """
@@ -182,108 +187,130 @@ def extract_products_and_services(pages: List[Dict[str, Any]]) -> List[Dict[str,
 def extract_tender_fields(pages: List[Dict[str, Any]], filename_title: str) -> List[Dict[str, Any]]:
     """
     Advanced layout-aware field extractor targeting GeM and generic Indian tenders.
-    Uses metadata page scope heuristic (Pages 1 & 2) for standard fields to minimize false positives.
+    Prefers the cover pages (1 & 2) for standard fields to minimize false positives,
+    but falls back to searching the full document when a field isn't found on the
+    cover pages, since fields like tender_value sometimes only appear on page 3+.
     """
-    # Scope standard metadata fields strictly to pages 1 and 2 where they reside
+    # Preferred scope: pages 1 and 2 (the "COVER" zone), where most metadata lives.
     metadata_text = "\n".join([p["text"] for p in pages[:2]])
-    
+    # Fallback scope: the entire document, used only when a field is missing on the cover.
+    full_doc_text = "\n".join([p["text"] for p in pages])
+
+    def run_with_fallback(field_label: str, extractor_fn: Callable, keywords: List[str], *extra_args):
+        """
+        Runs an extractor against the cover-page text first. If the field comes back
+        missing and the full document has more text than the cover pages, retries
+        against the full document (e.g. to catch fields that only appear on page 3+).
+        Slightly discounts confidence on fallback matches since they come from outside
+        the primary cover-page heuristic. Logs which source and keyword produced the
+        final value so extraction failures can be traced field-by-field.
+        """
+        val, conf, snip, status = extractor_fn(keywords, metadata_text, *extra_args)
+        source = "cover_pages"
+        if status == "missing" and full_doc_text and full_doc_text != metadata_text:
+            fb_val, fb_conf, fb_snip, fb_status = extractor_fn(keywords, full_doc_text, *extra_args)
+            if fb_status == "extracted":
+                val, conf, snip, status = fb_val, max(0.0, fb_conf - 5.0), fb_snip, fb_status
+                source = "full_document_fallback"
+        logger.info(
+            "[FIELD_TRACE] field=%s source=%s keywords=%s value=%r confidence=%s status=%s",
+            field_label, source, keywords, val, conf, status
+        )
+        return val, conf, snip, status
+
     # 1. Tender Title
-    title_val, title_conf, title_snip, title_status = extract_field_flexible(
-        ["item category", "description /nomenclature of service", "description of service", "name of work"], 
-        metadata_text
+    title_val, title_conf, title_snip, title_status = run_with_fallback(
+        "Tender Name / Title", extract_field_flexible, get_keywords("title")
     )
     if not title_val:
         title_val = filename_title
         title_conf = 90.0
         title_snip = f"Filename Title fallback: {filename_title}"
         title_status = "extracted"
-        
+        logger.info("[FIELD_TRACE] field=Tender Name / Title source=filename_fallback value=%r", title_val)
+
     # 2. Reference ID / Bid Number
-    ref_id, id_conf, id_snip, id_status = extract_field_flexible(
-        ["bid number", "gem bid number", "nit no", "tender ref", "reference no"],
-        metadata_text
+    ref_id, id_conf, id_snip, id_status = run_with_fallback(
+        "Reference ID / NIT No", extract_field_flexible, get_keywords("reference_id")
     )
     if id_status == "missing":
-        gem_match = re.search(r'(GEM/\d{4}/[A-Z]/\d+)', metadata_text)
+        gem_match = re.search(r'(GEM/\d{4}/[A-Z]/\d+)', full_doc_text)
         if gem_match:
             ref_id = gem_match.group(1)
             id_conf = 95.0
-            id_snip = f"... {metadata_text[max(0, gem_match.start()-40):min(len(metadata_text), gem_match.end()+40)].strip().replace(chr(10), ' ')} ..."
+            id_snip = f"... {full_doc_text[max(0, gem_match.start()-40):min(len(full_doc_text), gem_match.end()+40)].strip().replace(chr(10), ' ')} ..."
             id_status = "extracted"
+            logger.info("[FIELD_TRACE] field=Reference ID / NIT No source=gem_pattern_fallback value=%r", ref_id)
 
     # 3. Authority Agency
-    auth_name, auth_conf, auth_snip, auth_status = extract_field_flexible(
-        ["organisation name", "authority name", "agency name", "client name", "buyer office", "office of the"],
-        metadata_text
+    auth_name, auth_conf, auth_snip, auth_status = run_with_fallback(
+        "Authority Agency", extract_field_flexible, get_keywords("authority")
     )
-    
+
     # 4. Department
-    dept, dept_conf, dept_snip, dept_status = extract_field_flexible(
-        ["department name", "department", "division office"],
-        metadata_text
+    dept, dept_conf, dept_snip, dept_status = run_with_fallback(
+        "Department", extract_field_flexible, get_keywords("department")
     )
-    
+
     # 5. Ministry
-    ministry, min_conf, min_snip, min_status = extract_field_flexible(
-        ["ministry/state name", "ministry name", "ministry"],
-        metadata_text
+    ministry, min_conf, min_snip, min_status = run_with_fallback(
+        "Ministry Name", extract_field_flexible, get_keywords("ministry")
     )
-    
+
     # 6. Estimated Tender Value
-    t_val, val_conf, val_snip, val_status = extract_numeric_field(
-        ["estimated bid value", "estimated cost", "tender value", "contract value", "amount of work"],
-        metadata_text
+    t_val, val_conf, val_snip, val_status = run_with_fallback(
+        "Estimated Tender Value", extract_numeric_field, get_keywords("tender_value")
     )
-    
+
     # 7. EMD Amount
-    emd, emd_conf, emd_snip, emd_status = extract_numeric_field(
-        ["emd amount", "emd value", "earnest money"],
-        metadata_text
+    emd, emd_conf, emd_snip, emd_status = run_with_fallback(
+        "EMD Amount", extract_numeric_field, get_keywords("emd_amount")
     )
-    
+
     # 8. Tender Fee
-    fee, fee_conf, fee_snip, fee_status = extract_numeric_field(
-        ["tender fee", "document cost", "bid participation fee"],
-        metadata_text
+    fee, fee_conf, fee_snip, fee_status = run_with_fallback(
+        "Tender Fee", extract_numeric_field, get_keywords("tender_fee")
     )
-    
+
     # 9. Bid Submission Deadline
-    deadline, dead_conf, dead_snip, dead_status = extract_date_field(
-        ["bid end date", "bid submission deadline", "closing date", "last date of submission", "submission deadline"],
-        metadata_text
+    deadline, dead_conf, dead_snip, dead_status = run_with_fallback(
+        "Bid Submission Deadline", extract_date_field, get_keywords("bid_submission_deadline")
     )
-    
+
     # 10. Technical Bid Opening Date
-    open_date, open_conf, open_snip, open_status = extract_date_field(
-        ["bid opening date", "date of opening", "technical bid opening"],
-        metadata_text
+    open_date, open_conf, open_snip, open_status = run_with_fallback(
+        "Technical Bid Opening Date", extract_date_field, get_keywords("bid_opening_date")
     )
-    
+
     # 11. Location of Site
     loc, loc_conf, loc_snip, loc_status = extract_location(metadata_text)
-    
+    if loc_status == "missing" and full_doc_text != metadata_text:
+        fb_loc, fb_loc_conf, fb_loc_snip, fb_loc_status = extract_location(full_doc_text)
+        if fb_loc_status == "extracted":
+            loc, loc_conf, loc_snip, loc_status = fb_loc, max(0.0, fb_loc_conf - 5.0), fb_loc_snip, fb_loc_status
+    logger.info(
+        "[FIELD_TRACE] field=Location of Site source=%s value=%r confidence=%s status=%s",
+        "cover_pages" if loc_status != "missing" else "none", loc, loc_conf, loc_status
+    )
+
     # 12. Contact Officer
-    contact, contact_conf, contact_snip, contact_status = extract_field_flexible(
-        ["consignee", "contact officer", "nodal officer", "buyer email", "executive engineer"],
-        metadata_text
+    contact, contact_conf, contact_snip, contact_status = run_with_fallback(
+        "Contact Officer", extract_field_flexible, get_keywords("contact_officer")
     )
 
     # 13. Pre-Bid Meeting Details
-    prebid, pb_conf, pb_snip, pb_status = extract_date_field(
-        ["pre-bid date and time", "pre-bid meeting date", "pre bid date"],
-        metadata_text
+    prebid, pb_conf, pb_snip, pb_status = run_with_fallback(
+        "Pre-Bid Meeting Date", extract_date_field, get_keywords("prebid_meeting")
     )
 
     # 14. Turnover Requirement
-    turnover, to_conf, to_snip, to_status = extract_requirement_field(
-        ["minimum average annual turnover", "bidder turnover"],
-        metadata_text
+    turnover, to_conf, to_snip, to_status = run_with_fallback(
+        "Annual Turnover Limit", extract_requirement_field, get_keywords("turnover_requirement")
     )
 
     # 15. Experience Requirement
-    experience, exp_conf, exp_snip, exp_status = extract_requirement_field(
-        ["years of past experience required", "experience required"],
-        metadata_text
+    experience, exp_conf, exp_snip, exp_status = run_with_fallback(
+        "Minimum Experience (Years)", extract_requirement_field, get_keywords("experience_requirement")
     )
 
     sections = [

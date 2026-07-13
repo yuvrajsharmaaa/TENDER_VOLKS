@@ -1,0 +1,92 @@
+Here is the comprehensive debugging audit report detailing the exact failure points and structural flaws in the tender-extraction pipeline. 
+
+---
+
+### Section 1: Ranked Issue List
+
+#### 1. Duplicate & Disconnected Field Extractors
+- **Severity**: Critical
+- **Pipeline Stage**: Field Extraction
+- **Exact File**: `ocr/extractors/field_extractor.py` vs `backend/app/services/field_extractor.py`
+- **Why it fails**: The system maintains two parallel extraction engines. The background task pipeline uses one, while the workspace UI pipeline uses the other. 
+- **How it causes missing values**: Improvements (like better regex or new keywords) added to one file do not apply to the other pipeline. This results in inconsistent extractions where a field might be found in the background job but missed in the workspace UI.
+- **How to verify it**: Run a tender through both pipelines and compare the JSON outputs; the extracted fields will diverge.
+- **Recommended fix**: Consolidate all extraction logic into a single shared service module used by both pipelines.
+
+#### 2. Fragile Vertical Newline Assumptions in RegEx
+- **Severity**: High
+- **Pipeline Stage**: Regex Rules / Normalization
+- **Exact File**: `backend/app/services/tender_mapper.py` (`build_infosheet_data`)
+- **Why it fails**: The fallback regex patterns expect labels and values to be separated strictly by a newline (e.g., `r"EMD Required\s*\n\s*([^\n]+)"`). 
+- **How it causes missing values**: OCR engines frequently extract tabular side-by-side cells on the same line, separated by spaces or tabs (e.g., `EMD Required Yes`). The strict newline requirement causes the regex to fail completely, resulting in `"NA"`.
+- **How to verify it**: Inspect the raw OCR text for `EMD Required Yes` and observe that `emd_required_display` resolves to `"NA"`.
+- **Recommended fix**: Update regex patterns to tolerate both horizontal spaces and vertical newlines: `r"EMD Required\s*[\n\t:\-\s]+\s*([^\n]+)"`.
+
+#### 3. Hardcoded Page Ingestion Scoping
+- **Severity**: High
+- **Pipeline Stage**: Page Routing
+- **Exact File**: `backend/app/services/field_extractor.py` (around line 188)
+- **Why it fails**: The code uses `metadata_text = "\n".join([p["text"] for p in pages[:2]])`, which hardcodes the search for critical metadata to the first two pages.
+- **How it causes missing values**: If a GeM tender has a long table of contents or introductory disclaimers, the actual commercial details might get pushed to page 3 or 4. The extractor never sees them.
+- **How to verify it**: Process a tender document where the EMD and bid value are on page 3. The fields will remain blank.
+- **Recommended fix**: Scope the search context dynamically using the page classifier's `COVER` zone output rather than a hardcoded `pages[:2]` slice.
+
+#### 4. Corrupted String Iteration during CSV Export
+- **Severity**: Medium
+- **Pipeline Stage**: Excel Export / Schema Mapping
+- **Exact File**: `backend/app/services/tender_mapper.py` (lines 309-310) and `export_service.py`
+- **Why it fails**: The code uses `isinstance(val, list)` to handle arrays. If a value is improperly typed as a string (e.g., `"YES"`), but the code assumes it's an iterable collection of items due to a loose check, it might iterate over characters.
+- **How it causes missing values**: While not missing, the value is corrupted into a pipe-separated string of characters (e.g., `Y|E|S`).
+- **How to verify it**: Check the exported CSV rows for string flags that have been fragmented by pipe characters.
+- **Recommended fix**: Ensure strict type checking before executing list comprehensions and `.join()` operations.
+
+---
+
+### Section 2: Field-Level Failure Analysis
+
+| Field Name | Expected Source Page Type | Likely Failure Point | Failure Reason | Exact Fix Needed |
+| :--- | :--- | :--- | :--- | :--- |
+| `emd_required` | `commercial` | `tender_mapper.py` regex | **Never detected** (regex expects a newline before the value, missing inline tabular data) | Change regex to `r"EMD Required\s*[:\-\s]+\s*(Yes\|No)"` |
+| `tender_value` | `financial` / `summary` | `field_extractor.py` page scoping | **Never detected** (value appears on page 3, but search is hardcoded to `pages[:2]`) | Change metadata search scope to dynamically cover the `COVER` zone. |
+| `pbg_duration` | `ATC` | Normalization parser | **Overwritten** (parser expects a strict integer, discarding text like "6 months") | Update `parse_int` fallback to extract numbers from mixed text strings. |
+| `working_capital_value` | `eligibility` | `normalizer.py` money parser | **Detected incorrectly** (spacing/comma formatting issues cause float cast to fail) | Strip spaces and commas before casting to float. |
+| `te_recommendation` | `disclaimer` | `tender_mapper.py` | **Never detected** (no extraction rule mapped to this field) | Map this field to read from the manual review payload state. |
+
+---
+
+### Section 3: Confirmed vs. Suspected
+
+#### Confirmed Issues
+- **Newline Regex Breakers**: Confirmed that `r"Label\s*\n\s*value"` fails on single-line tabular OCR outputs.
+- **Cover Page Cut-off**: Confirmed `pages[:2]` ignores target content on subsequent pages.
+- **Duplicate Extractor Logic**: Confirmed identical regex structures are defined and maintained separately in the `ocr` package and the `backend/app/services` directory.
+
+#### Suspected Issues
+- **OCR Quality Degrades on Tables**: Bounding boxes may overlap on dense tables, leading to merged columns that confuse the regex.
+- **LLM Context Overload**: Global LLM fallback queries on unknown pages may exceed context windows or lead to timeouts on larger PDFs.
+
+---
+
+### Section 4: Shortest-Path Fix Order
+
+1. **Fix Regex Separators**: Immediately modify the vertical match expressions in `tender_mapper.py` to allow spaces and colons as valid separators. This is a low-effort, high-impact fix.
+2. **Expand Page Scope**: Bind the `metadata_text` assembly to the classifier's `COVER` zone output instead of `pages[:2]`.
+3. **Add Type Safety**: Incorporate strict array check rules in the export layer to prevent pipe-segmentation on strings.
+4. **Resolve Duplicate Classes**: Consolidate search terms and patterns into a unified module to ensure both pipelines benefit from improvements.
+
+---
+
+### Section 5: Working Components
+
+- **Database Ingestion**: SQLAlchemy model bindings match the PostgreSQL columns correctly.
+- **Workspace Status Store**: The SQLite task tracker manages state transitions (`pending`, `processing`, `completed`) reliably.
+- **Excel Cell Styling**: Grid layout styling, border fonts, and row heights are rendered correctly and robustly by `info_sheet_generator.py`.
+- **Delete/Download Flow**: Files are cleaned up and served correctly via the API.
+
+---
+
+### Section 6: Do-Not-Change List
+
+- **Visual Sheet Dimensions**: Do not modify row indexes, merging spans, or columns in `INFOSHEET_PAGE1_LAYOUT` or `INFOSHEET_PAGE2_LAYOUT` to prevent layout drift.
+- **CSV Column List**: Keep `CSV_COLUMNS` order and naming unchanged.
+- **Mock State Fallback**: Do not disable the frontend local storage fallback mechanism, as it provides a safety net during backend downtime.

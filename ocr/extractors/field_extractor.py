@@ -1,8 +1,12 @@
 import re
 import math
+import logging
 from typing import List, Dict, Any, Optional, Tuple
 from backend.app.models.models import PageResult, TextBlock, LayoutRegion
 from backend.app.schemas.schemas import ExtractedFieldSchema, SourceBlockRef, BoundingBox
+from backend.app.services.field_registry import merge_keywords
+
+logger = logging.getLogger(__name__)
 
 # Utility Spatial Containment checks
 def get_intersection_area(boxA: Dict[str, int], boxB: Dict[str, int]) -> int:
@@ -111,8 +115,8 @@ class FieldExtractor:
                 "type": "nit"
             },
             "Tender Value": {
-                "anchors": ["tender value", "estimated cost", "estimated value", "tender cost", "work value", "amount of work"],
-                "hindi": ["अनुमानित लागत", "निविदा मूल्य", "अनुमानित दर"],
+                "anchors": ["tender value", "estimated cost", "estimated value", "tender cost", "work value", "amount of work", "contract value", "total value", "bid value", "value of work", "work cost", "tender amount"],
+                "hindi": ["अनुमानित लागत", "निविदा मूल्य", "अनुमानित दर", "अनुबंध मूल्य"],
                 "type": "currency"
             },
             "Organisation": {
@@ -214,6 +218,114 @@ class FieldExtractor:
             }
         }
 
+        # Widen (never narrow) specific rules' anchors with any synonyms the
+        # shared field registry knows about but this rule doesn't yet. This
+        # is how keyword fixes made for the other (plain-text) extraction
+        # engine also reach this engine, without touching this engine's own
+        # matching/confidence logic. Rules that already show anchor-overlap
+        # precision issues (e.g. "ministry_name" matching inside its own
+        # value) are intentionally left out of this merge to avoid making
+        # that pre-existing issue worse.
+        _REGISTRY_MERGE_MAP = {
+            "NIT No": "reference_id",
+            "bid_number": "reference_id",
+            "EMD": "emd_amount",
+            "Tender Fee": "tender_fee",
+            "Bid Submission End Date": "bid_submission_deadline",
+            "bid_end_datetime": "bid_submission_deadline",
+            "Bid Opening Date": "bid_opening_date",
+            "bid_open_datetime": "bid_opening_date",
+            "Tender Value": "tender_value",
+            "Pre-Bid Meeting Date": "prebid_meeting",
+            "minimum_average_annual_turnover": "turnover_requirement",
+            "years_of_past_experience": "experience_requirement",
+            "item_category": "title",
+            "buyer_email": "contact_officer",
+        }
+        for rule_key, canonical_key in _REGISTRY_MERGE_MAP.items():
+            if rule_key in self.rules:
+                self.rules[rule_key]["anchors"] = merge_keywords(self.rules[rule_key]["anchors"], canonical_key)
+
+    def _normalize_for_match(self, text: str) -> str:
+        """Replace common separators with spaces and collapse whitespace for
+        fuzzy anchor matching. This lets "ministry/state name" match the
+        anchor "ministry name" without collapsing numbers/words into false
+        substring matches (e.g. "06-06-2025" stays "06 06 2025")."""
+        return re.sub(r"\s+", " ", re.sub(r"[/\\_.:\-]", " ", text.lower())).strip()
+
+    def _anchor_matches(self, anchor: str, text: str) -> bool:
+        """Check if the anchor words appear in order inside the text words,
+        allowing small gaps. This is stricter than raw substring (so it
+        avoids "value" matching inside "devalued") but more forgiving than
+        exact phrase matching (so "ministry name" matches
+        "ministry / state name")."""
+        anchor_words = self._normalize_for_match(anchor).split()
+        text_words = self._normalize_for_match(text).split()
+        if not anchor_words:
+            return False
+        i = 0
+        for aw in anchor_words:
+            while i < len(text_words) and text_words[i] != aw:
+                i += 1
+            if i >= len(text_words):
+                return False
+            i += 1
+        return True
+
+    def _anchor_at_start_or_short(self, anchor: str, text: str) -> bool:
+        """True if the anchor is at the very start of the text or the text is
+        a short label. Used in the general block scan to avoid matching broad
+        anchors inside paragraphs (e.g. "office of" inside a long clause)."""
+        if not self._anchor_matches(anchor, text):
+            return False
+        if len(text.strip()) < 50:
+            return True
+        text_norm = self._normalize_for_match(text)
+        anchor_norm = self._normalize_for_match(anchor)
+        return text_norm.startswith(anchor_norm)
+
+    def _strip_noise_words(self, text: str) -> str:
+        """Remove leading OCR/Hindi noise tokens from a merged label/value suffix.
+        Keeps all-uppercase acronyms and words that contain a lowercase vowel."""
+        words = text.split()
+        for i, word in enumerate(words):
+            if len(word) >= 2 and word.isupper():
+                return " ".join(words[i:])
+            if any(v in word for v in "aeiouy"):
+                return " ".join(words[i:])
+        return ""
+
+    def _extract_suffix_after_anchor(self, text: str, anchors: List[str]) -> Optional[str]:
+        """When an anchor and its value live in the same text block (common in
+        GeM tables where OCR merges a label and value), return the text that
+        follows the matched anchor, stripping trailing Hindi/gibberish."""
+        best_suffix = None
+        best_pos = -1
+        for anchor in anchors:
+            if not self._anchor_matches(anchor, text):
+                continue
+            anchor_words = self._normalize_for_match(anchor).split()
+            if not anchor_words:
+                continue
+            # Match the anchor words in the original text, allowing flexible
+            # separators (slashes, spaces, Hindi characters) between them.
+            parts = [re.escape(w) for w in anchor_words]
+            pattern = re.compile(r"(?:\W|\s)*".join(parts), re.IGNORECASE)
+            m = pattern.search(text)
+            if m and m.end() > best_pos:
+                best_pos = m.end()
+                best_suffix = text[m.end():]
+        if best_suffix:
+            # Strip leading label noise (hindi words, slashes, colons, short mixed-case tokens)
+            best_suffix = re.sub(r"^[^a-zA-Z0-9\s]+", "", best_suffix)          # leading non-alphanumeric
+            best_suffix = re.sub(r"^(\b\w{1,3}\b\s*)+", "", best_suffix)      # leading very short words
+            # mixed-case transliterations starting with uppercase (FeadY, Avft)
+            best_suffix = re.sub(r"^(\b[A-Z][a-zA-Z]*[A-Z][a-zA-Z]*\b\s*)+", "", best_suffix)
+            best_suffix = self._strip_noise_words(best_suffix)
+            best_suffix = re.sub(r"^[/\\_.:\-]+\s*", "", best_suffix)
+            best_suffix = best_suffix.strip()
+        return best_suffix if best_suffix else None
+
     def _match_value_pattern(self, text: str, field_type: str) -> Optional[str]:
         """Verify if text matches the expected pattern for field_type and return matched string."""
         text_clean = text.strip()
@@ -271,6 +383,84 @@ class FieldExtractor:
             return None
         return None
 
+    def extract_products(self, pages: List[PageResult]) -> List[Dict[str, Any]]:
+        """
+        Heuristic product / service line-item extraction for Indian tender docs.
+        Scans OCR text for keywords aligned to Volks Energie's typical scope
+        (batteries, ACs, UPS/inverters, electrical accessories, cables, panels,
+        solar, HVAC, installation / maintenance). Returns structured product
+        candidates with quantity, unit, and page evidence where detectable.
+        """
+        category_keywords = {
+            "battery": ["battery", "batteries", "battery pack", "battery set", "battery unit"],
+            "air_conditioner": ["air conditioner", "air conditioning", "split ac", "window ac", "cassette ac", "air cooled"],
+            "ups": ["ups", "uninterruptible power supply", "online ups", "line interactive ups"],
+            "inverter": ["inverter", "solar inverter", "grid tie inverter", "off-grid inverter"],
+            "solar": ["solar panel", "solar module", "pv module", "solar cell", "solar power", "solar system"],
+            "cable": ["cable", "cables", "wire", "wires", "power cable", "control cable", "lt cable"],
+            "panel": ["distribution panel", "db panel", "switchgear panel", "control panel", "mcc panel", "panel board"],
+            "transformer": ["transformer", "distribution transformer", "power transformer"],
+            "stabilizer": ["stabilizer", "voltage stabilizer", "avr", "automatic voltage regulator"],
+            "hvac": ["hvac", "ventilation", "duct", "air handling unit", "ahu", "cooling"],
+            "electrical_accessory": ["switch", "socket", "mcb", "mccb", "rccb", "contactor", "relay", "fuse", "breaker", "distribution board", "db"],
+            "maintenance_service": ["amc", "annual maintenance", "maintenance contract", "preventive maintenance", "maintenance service"],
+            "installation_service": ["installation", "commissioning", "erection", "supply and installation", "supply & installation"],
+            "civil_work": ["civil work", "civil works", "construction", "foundation", "shed", "room"],
+        }
+
+        products: List[Dict[str, Any]] = []
+        seen: set = set()
+
+        for page in pages:
+            page_num = page.page_number
+            for block in page.text_blocks:
+                text = block.text
+                text_lower = text.lower()
+                if len(text.strip()) < 4:
+                    continue
+                for category, keywords in category_keywords.items():
+                    # Use word-boundary-aware matching so short substrings like
+                    # "duct" inside "production" don't trigger false positives.
+                    if not any(re.search(rf'(?<!\w){re.escape(kw)}(?!\w)', text_lower) for kw in keywords):
+                        continue
+                    # Try to pull a quantity + unit from the same line.
+                    qty = None
+                    unit = None
+                    qty_match = re.search(
+                        r'\b(\d+(?:\.\d+)?)\s*(?:nos|no|units|unit|sets|set|pcs|pieces|pairs|kg|m|mtr|meter|meters|sqm|each|lot|ea)\b',
+                        text, re.IGNORECASE
+                    )
+                    if qty_match:
+                        qty = qty_match.group(1)
+                        tail = text[qty_match.end():].strip()[:20].lower()
+                        unit_match = re.search(r'\b(?:nos|no|units|unit|sets|set|pcs|pieces|pairs|kg|m|mtr|meter|meters|sqm|each|lot|ea)\b', tail)
+                        if unit_match:
+                            unit = unit_match.group(0)
+
+                    brand_match = re.search(r'\b(?:oem|make|brand|mfg|manufacturer)[:\s]+([A-Za-z][A-Za-z0-9\s&\-]{2,30})', text, re.IGNORECASE)
+                    brand = brand_match.group(1).strip() if brand_match else None
+
+                    key = (category, text[:80].strip().lower())
+                    if key in seen:
+                        continue
+                    seen.add(key)
+
+                    products.append({
+                        "product_name": category.replace("_", " ").title(),
+                        "normalized_category": category,
+                        "raw_text": text,
+                        "quantity": qty,
+                        "unit": unit,
+                        "technical_specification": text,
+                        "brand_or_oem_if_present": brand,
+                        "page_number": page_num,
+                        "confidence": round(0.6 + min(0.35, len([k for k in keywords if re.search(rf'(?<!\w){re.escape(k)}(?!\w)', text_lower)]) * 0.05), 2),
+                        "evidence_text": text,
+                    })
+                    break
+
+        return products
+
     def extract_fields(self, pages: List[PageResult]) -> List[ExtractedFieldSchema]:
         extracted = []
         print(f"\n[FIELD_EXTRACTOR_DEBUG] Starting field extraction on {len(pages)} page(s).", flush=True)
@@ -290,38 +480,77 @@ class FieldExtractor:
                     table_blocks = [b for b in blocks if is_contained(b.bounding_box, table.bounding_box)]
                     if not table_blocks:
                         continue
-                        
+
                     rows = group_blocks_into_rows(table_blocks)
                     for row in rows:
-                        anchor_found = None
-                        anchor_score = 0.0
-                        
+                        # Find all anchor candidates in the row, then prefer the leftmost
+                        # label cell. This prevents value cells that happen to contain
+                        # anchor keywords (e.g., "Ministry Of Defence") from being picked
+                        # as the anchor for "ministry_name".
+                        anchor_candidates = []
                         for block in row:
-                            txt_lower = block.text.lower()
-                            if any(k in txt_lower for k in rule["hindi"]):
-                                anchor_found = block
-                                anchor_score = 0.40
-                                break
-                            elif any(k in txt_lower for k in rule["anchors"]):
-                                anchor_found = block
-                                anchor_score = 0.35
-                                break
-                                
-                        if anchor_found:
-                            print(f"  [FIELD_EXTRACTOR_DEBUG] Table row anchor matched: '{anchor_found.text}'", flush=True)
-                            for block in row:
-                                if block == anchor_found:
-                                    continue
-                                val = self._match_value_pattern(block.text, rule["type"])
-                                print(f"    [FIELD_EXTRACTOR_DEBUG] Table cell value test: '{block.text}' -> matched val: '{val}'", flush=True)
-                                if val:
-                                    conf = anchor_score + 0.35 + 0.20 + 0.05
-                                    conf = min(1.0, conf)
+                            score = 0.0
+                            if any(self._anchor_matches(k, block.text) for k in rule["hindi"]):
+                                score = 0.40
+                            elif any(self._anchor_matches(k, block.text) for k in rule["anchors"]):
+                                score = 0.35
+                            if score > 0.0:
+                                anchor_candidates.append((score, block))
+
+                        if not anchor_candidates:
+                            continue
+
+                        anchor_candidates.sort(key=lambda sb: sb[1].bounding_box["x1"])
+                        anchor_score, anchor_found = anchor_candidates[0]
+
+                        print(f"  [FIELD_EXTRACTOR_DEBUG] Table row anchor matched: '{anchor_found.text}'", flush=True)
+                        # Concatenate all non-anchor cells in reading order. This handles
+                        # the normal GeM table layout where the label and value are in
+                        # different cells.
+                        value_blocks = [b for b in row if b != anchor_found]
+                        value_blocks.sort(key=lambda b: b.bounding_box["x1"])
+                        cell_text = " ".join(b.text.strip() for b in value_blocks)
+                        val = self._match_value_pattern(cell_text, rule["type"])
+                        print(f"    [FIELD_EXTRACTOR_DEBUG] Table cell value test (concatenated): '{cell_text}' -> matched val: '{val}'", flush=True)
+                        if val:
+                            conf = anchor_score + 0.35 + 0.20 + 0.05
+                            conf = min(1.0, conf)
+                            candidates.append({
+                                "value": val,
+                                "confidence": round(conf, 2),
+                                "source_page": page_num,
+                                "evidence": f"Row match in table: '{anchor_found.text}' -> '{cell_text}'",
+                                "source_blocks": [
+                                    SourceBlockRef(
+                                        page_number=page_num,
+                                        block_id=anchor_found.block_id,
+                                        region_id=table.region_id,
+                                        text=anchor_found.text,
+                                        bounding_box=BoundingBox(**anchor_found.bounding_box)
+                                    )
+                                ] + [
+                                    SourceBlockRef(
+                                        page_number=page_num,
+                                        block_id=b.block_id,
+                                        region_id=table.region_id,
+                                        text=b.text,
+                                        bounding_box=BoundingBox(**b.bounding_box)
+                                    ) for b in value_blocks
+                                ]
+                            })
+                        elif rule["type"] in ("text", "org"):
+                            # Fallback: the anchor block itself may have merged the label
+                            # and value (common in GeM OCR). Extract the value suffix.
+                            suffix = self._extract_suffix_after_anchor(anchor_found.text, rule["anchors"] + rule["hindi"])
+                            if suffix:
+                                suffix_val = self._match_value_pattern(suffix, rule["type"])
+                                print(f"    [FIELD_EXTRACTOR_DEBUG] Table anchor suffix value: '{suffix}' -> matched val: '{suffix_val}'", flush=True)
+                                if suffix_val:
                                     candidates.append({
-                                        "value": val,
-                                        "confidence": round(conf, 2),
+                                        "value": suffix_val,
+                                        "confidence": round(anchor_score + 0.35 + 0.20 + 0.05, 2),
                                         "source_page": page_num,
-                                        "evidence": f"Row match in table: '{anchor_found.text}' -> '{block.text}'",
+                                        "evidence": f"Row match in table: '{anchor_found.text}' -> '{suffix_val}'",
                                         "source_blocks": [
                                             SourceBlockRef(
                                                 page_number=page_num,
@@ -329,31 +558,40 @@ class FieldExtractor:
                                                 region_id=table.region_id,
                                                 text=anchor_found.text,
                                                 bounding_box=BoundingBox(**anchor_found.bounding_box)
-                                            ),
-                                            SourceBlockRef(
-                                                page_number=page_num,
-                                                block_id=block.block_id,
-                                                region_id=table.region_id,
-                                                text=block.text,
-                                                bounding_box=BoundingBox(**block.bounding_box)
                                             )
                                         ]
                                     })
-                
+
                 # Scan general blocks
+                # In the general block scan, avoid single-word broad anchors like
+                # "authority", "office", or "category" from matching paragraph text.
+                # Table rows have their own structural disambiguation, so they still
+                # use the full anchor set. Short uppercase acronyms (e.g. "EMD") are
+                # allowed here because they are specific.
+                general_anchors = [
+                    k for k in rule["anchors"]
+                    if len(k.split()) >= 2 or (len(k) <= 5 and k.isupper())
+                ]
+
                 for idx, block in enumerate(blocks):
-                    txt_lower = block.text.lower()
                     anchor_score = 0.0
-                    
-                    if any(k in txt_lower for k in rule["hindi"]):
+
+                    if any(self._anchor_at_start_or_short(k, block.text) for k in rule["hindi"]):
                         anchor_score = 0.40
-                    elif any(k in txt_lower for k in rule["anchors"]):
+                    elif any(self._anchor_at_start_or_short(k, block.text) for k in general_anchors):
                         anchor_score = 0.35
-                    
+
                     if anchor_score > 0.0:
-                        # 1. Check same block
+                        # 1. Check same block. If the whole block was returned, try
+                        # to extract the value that appears after the anchor; this
+                        # handles GeM cells where OCR merges the label and value
+                        # (e.g. "Item Category/Implementation of UPS...").
                         val = self._match_value_pattern(block.text, rule["type"])
-                        if val and len(val) < len(block.text):
+                        if val and val == block.text.strip() and rule["type"] in ("text", "org"):
+                            suffix = self._extract_suffix_after_anchor(block.text, rule["anchors"] + rule["hindi"])
+                            if suffix:
+                                val = self._match_value_pattern(suffix, rule["type"])
+                        if val and val != block.text.strip():
                             print(f"  [FIELD_EXTRACTOR_DEBUG] Same-block match: '{block.text}' -> '{val}'", flush=True)
                             conf = anchor_score + 0.35 + 0.25
                             conf = min(1.0, conf)
@@ -458,8 +696,34 @@ class FieldExtractor:
                             })
                             
             if candidates:
-                best_cand = sorted(candidates, key=lambda c: c["confidence"], reverse=True)[0]
-                print(f"[FIELD_EXTRACTOR_DEBUG] Extracted value for '{field_name}': '{best_cand['value']}' (conf: {best_cand['confidence']})", flush=True)
+                # Drop value candidates that are clearly paragraphs/sentences rather
+                # than discrete field values (e.g., an org value that continues as
+                # "Ministry. If the bidder wants..."). This improves table extraction
+                # quality on noisy GeM PDFs without adding per-layout special cases.
+                def _looks_like_paragraph(value: str) -> bool:
+                    if len(value) > 100:
+                        return True
+                    return bool(re.search(
+                        r'\.\s+(if|the|and|or|shall|for|of|to|in|with|this|that|these|those|is|are|was|were|has|have|had|be|been|being|it|they|there)\b',
+                        value, re.IGNORECASE
+                    ))
+
+                candidates = [c for c in candidates if not _looks_like_paragraph(c["value"])]
+
+                if candidates:
+                    best_cand = sorted(candidates, key=lambda c: c["confidence"], reverse=True)[0]
+                    print(f"[FIELD_EXTRACTOR_DEBUG] Extracted value for '{field_name}': '{best_cand['value']}' (conf: {best_cand['confidence']})", flush=True)
+                else:
+                    print(f"[FIELD_EXTRACTOR_DEBUG] Extracted value for '{field_name}': Not Found (all candidates looked like paragraphs)", flush=True)
+                    extracted.append(ExtractedFieldSchema(
+                        field_name=field_name,
+                        value="Not Found",
+                        confidence=0.0,
+                        source_page=1,
+                        evidence="No matching anchors or value patterns found in document.",
+                        source_blocks=[]
+                    ))
+                    continue
                 extracted.append(ExtractedFieldSchema(
                     field_name=field_name,
                     value=best_cand["value"],

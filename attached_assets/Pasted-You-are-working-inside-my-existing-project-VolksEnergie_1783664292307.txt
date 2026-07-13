@@ -1,0 +1,354 @@
+You are working inside my existing project: VolksEnergies Tender OCR.
+
+You are a senior engineer for OCR/document AI, FastAPI backends, structured extraction systems, and pragmatic frontend integration.
+
+IMPORTANT PROJECT CONTEXT
+- This is an MVP for Indian tender document processing.
+- The company context is Volks Energie, Mohan Estate.
+- The system processes tender PDFs and should extract structured tender intelligence.
+- The project should stay lightweight, practical, and suitable for a 2-person MVP.
+- Do not overengineer.
+- Do not rewrite the whole project.
+- Do not scaffold a new architecture.
+- Do not break existing working routes or flows.
+- I want minimal, surgical, high-value changes.
+
+MY MAIN GOALS
+1. Parse through the existing codebase carefully.
+2. Fix any actual errors and broken flows.
+3. Improve the OCR/model pipeline substantially without replacing everything.
+4. Drastically improve the generated info sheet quality.
+5. Extract the products/items required in the tender much better.
+6. The products are often related to:
+   - batteries
+   - air conditioners
+   - UPS/inverters
+   - electrical accessories
+   - cables
+   - panels
+   - solar/power products
+   - HVAC-related items
+   - maintenance/installation scope
+7. Make the website/frontend dynamic and properly working.
+8. Do all of this without messing with the code too much.
+
+NON-NEGOTIABLE RULES
+- First inspect the codebase and understand the current architecture before editing anything.
+- Prefer patching existing files instead of creating many new files.
+- Keep current backend routes and core contracts stable unless there is a proven issue.
+- Do not create a flashy fake frontend using mock data.
+- Do not replace real backend logic with setTimeout/local mock flows.
+- Do not do a full rewrite.
+- Do not change the visual/frontend layer aggressively unless necessary for functionality.
+- Do not waste credits on repeated reinstall loops, unnecessary rebuilds, or speculative rewrites.
+- Be conservative, practical, and production-minded.
+
+WHAT TO AUDIT FIRST
+Please inspect and understand these areas first:
+- backend/app/main.py
+- backend/app/api/
+- backend/app/services/
+- backend/app/core/
+- backend/app/data/
+- ocr/
+- frontend/
+- frontend_legacy/ if it exists
+- requirements files
+- Dockerfile
+- object storage / MinIO integration
+- upload + processing endpoints
+- info sheet generation logic
+- extraction logic for tender fields
+- any logic for linked/embedded/mentioned documents inside the uploaded tender PDF
+
+PHASE 1 — AUDIT THE CURRENT SYSTEM
+Before making major edits, produce a short audit of:
+
+1. Current real end-to-end flow
+   - upload PDF
+   - store file
+   - OCR/process
+   - extract fields
+   - generate info sheet
+   - return/display results
+
+2. What is broken right now
+   - import/runtime issues
+   - route mismatches
+   - frontend/backend wiring issues
+   - schema mismatches
+   - missing fields
+   - rendering failures
+   - bad file paths
+   - non-working upload flow
+   - info sheet not appearing
+   - OCR output weak or incomplete
+
+3. What is fake or mocked
+   - any mock upload flow
+   - setTimeout fake processing
+   - local placeholder tender data
+   - any frontend path not using real backend APIs
+
+4. What is already working and should be preserved
+
+PHASE 2 — FIX REAL ERRORS FIRST
+Fix only the issues that block the working system first. Prioritize:
+- broken imports
+- APIRouter registration issues
+- bad file handling
+- upload endpoint mismatches
+- background task/process flow bugs
+- response shape mismatches
+- frontend/backend API wiring
+- info sheet rendering issues
+- broken preview/document tabs
+- route issues
+- confidence or mapping issues if they break output
+
+Do not start with redesign.
+Do not refactor for style only.
+First make the existing system work correctly.
+
+PHASE 3 — IMPROVE OCR / DOCUMENT UNDERSTANDING
+I want major OCR and extraction improvements, but still in a practical MVP-safe way.
+
+Important:
+- Prefer strengthening the current OCR stack rather than replacing it.
+- If PaddleOCR / PP-Structure already exists, preserve and improve that path.
+- Use layout-aware extraction, not only plain OCR text.
+
+Improve these capabilities:
+1. Better page/layout understanding
+   - headings
+   - tables
+   - sections
+   - forms
+   - schedules
+   - commercial and technical sections
+
+2. Better tender field extraction
+   - tender ID / bid number / NIT number
+   - authority / department / buyer
+   - tender title
+   - estimated value
+   - EMD
+   - tender fee
+   - submission deadline
+   - opening date
+   - work location
+   - delivery location
+   - eligibility criteria
+   - experience criteria
+   - document requirements
+   - scope summary
+   - technical requirements
+
+3. Better confidence handling
+   - field-level confidence where possible
+   - page number
+   - evidence snippet / supporting text if possible
+   - review flag if uncertain or conflicting
+
+4. Better document discovery
+   - if the parent tender PDF references linked/child/supporting PDFs or annexures, improve extraction of these references where practical
+   - do not overengineer this, but improve it if the current code already has a path for it
+
+PHASE 4 — PRODUCT / ITEM EXTRACTION IMPROVEMENT
+This is very important.
+
+I need the system to extract what products/services are actually required by the tender, not just generic tender metadata.
+
+For each detected product/service line item, try to extract:
+- product_name
+- normalized_category
+- raw_text
+- quantity
+- unit
+- technical_specification
+- brand_or_oem_if_present
+- page_number
+- confidence
+- evidence_text
+
+Support normalized categories like:
+- battery
+- air_conditioner
+- ups
+- inverter
+- solar
+- cable
+- panel
+- transformer
+- stabilizer
+- hvac
+- electrical_accessory
+- maintenance_service
+- installation_service
+- civil_work
+- miscellaneous
+
+Use a hybrid extraction approach:
+- OCR text
+- layout blocks/tables
+- regex/pattern rules
+- keyword dictionaries
+- post-processing normalization
+- confidence scoring
+
+Do not rely only on one regex.
+Do not return only raw chunks of text.
+I want useful structured product extraction.
+
+PHASE 5 — DRASTICALLY IMPROVE THE INFO SHEET
+The info sheet should become a much better structured tender summary.
+
+Target the info sheet to include these sections:
+
+1. Tender Identity
+- tender title
+- tender number
+- authority / department
+- organization
+- location
+
+2. Commercial Summary
+- estimated value
+- EMD
+- tender fee
+- contract period
+- bid type if detectable
+- payment/security terms if detectable
+
+3. Timeline
+- publish date
+- pre-bid date
+- submission deadline
+- opening date
+
+4. Product / Requirement Summary
+- main required products
+- categories
+- quantities if available
+- major technical specs
+- supply/installation/AMC scope if available
+
+5. Eligibility Snapshot
+- turnover criteria
+- prior experience criteria
+- certifications/documents required
+
+6. Document Bundle Summary
+- parent PDF
+- linked/extracted PDFs
+- annexures/supporting documents
+- mentioned attachments
+
+7. Risk / Review Flags
+- low-confidence fields
+- conflicting values
+- poor scan quality
+- missing key sections
+- possible manual review needed
+
+8. Evidence
+- short evidence snippets with page references for important fields
+
+IMPORTANT:
+- If an info sheet schema already exists, improve it carefully.
+- Prefer backward-compatible extensions instead of breaking consumers.
+- The output should be useful for real tender review, not just a demo.
+
+PHASE 6 — FRONTEND / WEBSITE DYNAMIC WORKING FLOW
+The website should be dynamic and properly working, but do not aggressively redesign it.
+
+Frontend goals:
+- use real backend APIs
+- upload should trigger real processing
+- show loading/processing states properly
+- render improved info sheet correctly
+- render product extraction results clearly
+- render extracted/linked/supporting documents if available
+- keep document preview working if it already exists
+- preserve any good existing flow or visualizer behavior
+- avoid heavy UI rewrites
+- do not make cosmetic changes unless they support functionality
+
+If there are multiple frontend paths, prefer the one closest to working and patch it.
+Do not keep two parallel broken flows.
+
+PHASE 7 — IMPLEMENTATION STRATEGY
+Work in this order:
+1. Audit current codebase
+2. Identify exact broken points
+3. Fix backend/runtime errors
+4. Fix frontend/backend wiring
+5. Improve OCR/layout extraction
+6. Improve tender field extraction
+7. Improve product extraction
+8. Improve info sheet generation
+9. Improve dynamic rendering in frontend
+10. Verify end-to-end
+
+TECHNICAL PREFERENCES
+- Keep FastAPI modular and clean
+- Keep APIRouter registration correct
+- Keep real object storage / MinIO behavior if already in use
+- Avoid hardcoded absolute paths
+- Avoid overengineering
+- Avoid giant refactors
+- Keep this suitable for later integration with a larger Tender Management System
+- Prefer practical heuristics + confidence scoring + review flags over fancy but unstable changes
+
+SUCCESS CRITERIA
+By the end, I want:
+1. The app runs without obvious runtime errors
+2. Uploading a tender PDF works
+3. Processing hits the real backend
+4. OCR output is materially better
+5. Info sheet quality is much better
+6. Product extraction is much better
+7. Frontend displays the data dynamically and correctly
+8. Existing good code paths are preserved
+9. Changes are minimal but high impact
+
+OUTPUT FORMAT I WANT
+Return in this exact structure:
+
+A. AUDIT SUMMARY
+- current architecture
+- what is broken
+- what is fake/mocked
+- what is already good and preserved
+
+B. CHANGE PLAN
+- exact files to edit
+- why each file needs edits
+- which files are intentionally left untouched
+
+C. IMPLEMENTATION
+- make the changes
+- provide file-by-file patches or updated code only for changed files
+- keep edits precise and minimal
+
+D. VERIFICATION
+- show how you tested:
+  - backend boot
+  - route checks
+  - upload flow
+  - OCR processing
+  - info sheet rendering
+  - product extraction rendering
+
+E. FINAL NOTES
+- remaining weaknesses
+- only the next necessary improvements
+
+CREDIT-SAVING RULES
+- do not run repeated full reinstalls unless required
+- batch related edits together
+- do not rewrite untouched files
+- do not refactor only for style
+- prefer reading and patching over speculative rebuilding
+
+Start by auditing the current codebase first, then make minimal, high-impact changes.
