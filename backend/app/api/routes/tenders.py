@@ -1263,3 +1263,236 @@ async def workspace_delete_tender(job_id: str, db: Session = Depends(get_db)):
     return {"status": "success", "message": "Tender deleted successfully"}
 
 
+class FieldUpdateRequest(BaseModel):
+    value: str
+
+
+@router.put("/workspace/{job_id}/fields/{field_id}")
+async def update_workspace_field(job_id: str, field_id: str, payload: FieldUpdateRequest):
+    job_dir = STORAGE_ROOT / "jobs" / job_id
+    detail_path = job_dir / "tender_detail.json"
+    if not detail_path.exists():
+        raise HTTPException(status_code=404, detail="Tender detail not found")
+        
+    try:
+        with open(detail_path, "r", encoding="utf-8") as f:
+            data = _json.load(f)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read tender details: {e}")
+        
+    # Find and update the field
+    found = False
+    for sec in data.get("infoSheetSections", []):
+        for f in sec.get("fields", []):
+            if f.get("id") == field_id:
+                f["value"] = payload.value
+                f["status"] = "edited"
+                found = True
+                break
+        if found:
+            break
+            
+    if not found:
+        raise HTTPException(status_code=404, detail=f"Field with ID {field_id} not found")
+        
+    # Recalculate issues_count
+    issues = 0
+    for sec in data.get("infoSheetSections", []):
+        for f in sec.get("fields", []):
+            if f.get("critical") and f.get("status") == "missing":
+                issues += 1
+            elif f.get("status") == "extracted" and f.get("confidence", 100) < 70:
+                issues += 1
+                
+    unresolved_mentions = 0
+    mentioned = data.get("documents", {}).get("mentionedAttachments", [])
+    for m in mentioned:
+        if not m.get("resolved", False):
+            unresolved_mentions += 1
+    issues += unresolved_mentions
+    data["issues_count"] = issues
+    
+    # Save tender_detail.json
+    try:
+        with open(detail_path, "w", encoding="utf-8") as f:
+            _json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save tender details: {e}")
+        
+    # Regenerate workbook
+    try:
+        from backend.app.services.tender_mapper import build_infosheet_data
+        from backend.app.services.info_sheet_generator import generate_info_sheet_csv
+        
+        sections = data.get("infoSheetSections", [])
+        page_texts = data.get("rawTextPages", [])
+        
+        source_docs = data.get("documents", {}).get("sourceDocuments", [])
+        original_filename = "original.pdf"
+        if source_docs:
+            primary_doc = next((d for d in source_docs if d.get("isPrimary")), source_docs[0])
+            original_filename = primary_doc.get("name", "original.pdf")
+            
+        csv_filename = f"{original_filename.replace('.pdf', '')}_InfoSheet.xlsx"
+        csv_path = job_dir / csv_filename
+        
+        infosheet_data = build_infosheet_data(sections, page_texts)
+        generate_info_sheet_csv(infosheet_data, str(csv_path))
+    except Exception as e:
+        logger.error(f"Failed to regenerate info sheet workbook for job {job_id}: {e}", exc_info=True)
+        
+    return data
+
+
+@router.post("/workspace/{job_id}/fields/{field_id}/verify")
+async def verify_workspace_field(job_id: str, field_id: str):
+    job_dir = STORAGE_ROOT / "jobs" / job_id
+    detail_path = job_dir / "tender_detail.json"
+    if not detail_path.exists():
+        raise HTTPException(status_code=404, detail="Tender detail not found")
+        
+    try:
+        with open(detail_path, "r", encoding="utf-8") as f:
+            data = _json.load(f)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read tender details: {e}")
+        
+    # Find and verify the field
+    found = False
+    for sec in data.get("infoSheetSections", []):
+        for f in sec.get("fields", []):
+            if f.get("id") == field_id:
+                f["status"] = "verified"
+                found = True
+                break
+        if found:
+            break
+            
+    if not found:
+        raise HTTPException(status_code=404, detail=f"Field with ID {field_id} not found")
+        
+    # Recalculate issues_count
+    issues = 0
+    for sec in data.get("infoSheetSections", []):
+        for f in sec.get("fields", []):
+            if f.get("critical") and f.get("status") == "missing":
+                issues += 1
+            elif f.get("status") == "extracted" and f.get("confidence", 100) < 70:
+                issues += 1
+                
+    unresolved_mentions = 0
+    mentioned = data.get("documents", {}).get("mentionedAttachments", [])
+    for m in mentioned:
+        if not m.get("resolved", False):
+            unresolved_mentions += 1
+    issues += unresolved_mentions
+    data["issues_count"] = issues
+    
+    # Save tender_detail.json
+    try:
+        with open(detail_path, "w", encoding="utf-8") as f:
+            _json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save tender details: {e}")
+        
+    # Regenerate workbook
+    try:
+        from backend.app.services.tender_mapper import build_infosheet_data
+        from backend.app.services.info_sheet_generator import generate_info_sheet_csv
+        
+        sections = data.get("infoSheetSections", [])
+        page_texts = data.get("rawTextPages", [])
+        
+        source_docs = data.get("documents", {}).get("sourceDocuments", [])
+        original_filename = "original.pdf"
+        if source_docs:
+            primary_doc = next((d for d in source_docs if d.get("isPrimary")), source_docs[0])
+            original_filename = primary_doc.get("name", "original.pdf")
+            
+        csv_filename = f"{original_filename.replace('.pdf', '')}_InfoSheet.xlsx"
+        csv_path = job_dir / csv_filename
+        
+        infosheet_data = build_infosheet_data(sections, page_texts)
+        generate_info_sheet_csv(infosheet_data, str(csv_path))
+    except Exception as e:
+        logger.error(f"Failed to regenerate info sheet workbook for job {job_id}: {e}", exc_info=True)
+        
+    return data
+
+
+class ReviewCompleteRequest(BaseModel):
+    reviewer_name: str
+
+
+@router.post("/workspace/{job_id}/review")
+async def review_workspace_tender(job_id: str, payload: ReviewCompleteRequest):
+    job_dir = STORAGE_ROOT / "jobs" / job_id
+    detail_path = job_dir / "tender_detail.json"
+    if not detail_path.exists():
+        raise HTTPException(status_code=404, detail="Tender detail not found")
+        
+    try:
+        with open(detail_path, "r", encoding="utf-8") as f:
+            data = _json.load(f)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read tender details: {e}")
+        
+    # Mark review completed
+    data["review_status"] = "completed"
+    data["reviewer_name"] = payload.reviewer_name
+    
+    # Mark all fields as verified
+    for sec in data.get("infoSheetSections", []):
+        for f in sec.get("fields", []):
+            if f.get("status") in ("extracted", "edited"):
+                f["status"] = "verified"
+                
+    # Recalculate issues_count
+    issues = 0
+    for sec in data.get("infoSheetSections", []):
+        for f in sec.get("fields", []):
+            if f.get("critical") and f.get("status") == "missing":
+                issues += 1
+            elif f.get("status") == "extracted" and f.get("confidence", 100) < 70:
+                issues += 1
+                
+    unresolved_mentions = 0
+    mentioned = data.get("documents", {}).get("mentionedAttachments", [])
+    for m in mentioned:
+        if not m.get("resolved", False):
+            unresolved_mentions += 1
+    issues += unresolved_mentions
+    data["issues_count"] = issues
+    
+    # Save tender_detail.json
+    try:
+        with open(detail_path, "w", encoding="utf-8") as f:
+            _json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save tender details: {e}")
+        
+    # Regenerate workbook
+    try:
+        from backend.app.services.tender_mapper import build_infosheet_data
+        from backend.app.services.info_sheet_generator import generate_info_sheet_csv
+        
+        sections = data.get("infoSheetSections", [])
+        page_texts = data.get("rawTextPages", [])
+        
+        source_docs = data.get("documents", {}).get("sourceDocuments", [])
+        original_filename = "original.pdf"
+        if source_docs:
+            primary_doc = next((d for d in source_docs if d.get("isPrimary")), source_docs[0])
+            original_filename = primary_doc.get("name", "original.pdf")
+            
+        csv_filename = f"{original_filename.replace('.pdf', '')}_InfoSheet.xlsx"
+        csv_path = job_dir / csv_filename
+        
+        infosheet_data = build_infosheet_data(sections, page_texts)
+        generate_info_sheet_csv(infosheet_data, str(csv_path))
+    except Exception as e:
+        logger.error(f"Failed to regenerate info sheet workbook for job {job_id}: {e}", exc_info=True)
+        
+    return data
+
+

@@ -179,4 +179,318 @@ EVIDENCE_COLUMNS = [
     "extraction_timestamp"
 ]
 
+# ==============================================================================
+# INFOSHEET VISUAL LAYOUT (openpyxl form-style sheet) — Page 1 / Page 2
+# ==============================================================================
+# This section defines the *visual* form layout used by info_sheet_generator.py.
+# It is fully decoupled from CSV_COLUMNS above (that list still drives the flat
+# Layer-1 CSV/DB export). The visual sheet is rendered from a fixed 6-column
+# grid (A-F). Every row is declared here as data so the generator stays a thin,
+# generic renderer instead of hand-coded per-field openpyxl calls.
+#
+# Style tags below are resolved to actual PatternFill/Font objects inside
+# info_sheet_generator.py (see STYLE_MAP there). Keeping the tag names here
+# and the actual colors there means you can restyle without touching layout.
 
+NA_DISPLAY = "NA"
+
+# Style tags
+STYLE_SECTION_HEADER = "section_header"     # bold, blue-gray fill, full-width banners
+STYLE_SUBSECTION = "subsection_header"      # bold, light gray fill
+STYLE_LABEL = "label"                       # plain white label cell
+STYLE_LABEL_PINK = "label_pink"             # pink label (Bid Due Date / Recommendation rows)
+STYLE_LABEL_YELLOW = "label_yellow"         # pale yellow label (PBG/SD/Physical docs rows)
+STYLE_VALUE = "value"                       # plain white value cell
+STYLE_VALUE_PINK = "value_pink"             # pink value cell
+STYLE_VALUE_YELLOW = "value_yellow"         # pale yellow value cell
+STYLE_VALUE_BLUE = "value_blue"             # light blue value cell (top identity block)
+STYLE_PLAIN = "plain"                       # no fill, used for spacer/unit cells
+
+INFOSHEET_GRID_COLUMNS = 6  # fixed column count (A-F) for both pages
+
+
+def _cell(colspan, kind, text=None, key=None, style=STYLE_PLAIN, bold=False, wrap=True, align="left"):
+    """
+    kind: "label" | "value" | "header" (static section banner) | "spacer"
+    text: static text used for kind="label"/"header"
+    key:  lookup key into the flat infosheet data dict, used for kind="value"
+    """
+    return {
+        "colspan": colspan,
+        "kind": kind,
+        "text": text,
+        "key": key,
+        "style": style,
+        "bold": bold,
+        "wrap": wrap,
+        "align": align,
+    }
+
+
+def _row(cells, height=20):
+    return {"height": height, "cells": cells}
+
+
+# ------------------------------------------------------------------------
+# PAGE 1
+# ------------------------------------------------------------------------
+INFOSHEET_PAGE1_LAYOUT = [
+    # --- Identity block ---
+    _row([
+        _cell(2, "label", "Organization:", style=STYLE_LABEL, bold=True),
+        _cell(4, "value", key="organization", style=STYLE_VALUE_BLUE),
+    ]),
+    _row([
+        _cell(2, "label", "Tender Name:", style=STYLE_LABEL, bold=True),
+        _cell(4, "value", key="tender_name", style=STYLE_VALUE_BLUE),
+    ]),
+    _row([
+        _cell(2, "label", "Tender ID:", style=STYLE_LABEL, bold=True),
+        _cell(4, "value", key="tender_id_display", style=STYLE_VALUE_BLUE),
+    ]),
+    _row([
+        _cell(2, "label", "Website:", style=STYLE_LABEL, bold=True),
+        _cell(4, "value", key="website", style=STYLE_VALUE_BLUE),
+    ]),
+
+    # --- Pink highlight rows ---
+    _row([
+        _cell(2, "label", "Bid Due Date and Time", style=STYLE_LABEL_PINK, bold=True, align="center"),
+        _cell(4, "value", key="bid_due_date_time", style=STYLE_VALUE_PINK, bold=True, align="center"),
+    ]),
+    _row([
+        _cell(1, "label", "Recommendation by TE", style=STYLE_LABEL_PINK, bold=True),
+        _cell(1, "value", key="te_recommendation_display", style=STYLE_VALUE_PINK, align="center"),
+        _cell(1, "label", "Reason", style=STYLE_LABEL_PINK, bold=True),
+        _cell(3, "value", key="te_rejection_reason_display", style=STYLE_VALUE_PINK),
+    ], height=32),
+
+    # --- Section: Tender Information ---
+    _row([_cell(6, "header", "Tender Information", style=STYLE_SECTION_HEADER, bold=True, align="center")], height=22),
+
+    _row([
+        _cell(2, "label", "Processing Fees"),
+        _cell(1, "value", key="processing_fee_amount_display"),
+        _cell(2, "label", "Processing Fees (in form of)"),
+        _cell(1, "value", key="processing_fee_mode_display"),
+    ]),
+    _row([
+        _cell(2, "label", "Tender Fees"),
+        _cell(1, "value", key="tender_fee_amount_display"),
+        _cell(2, "label", "Tender Fees (in form of)"),
+        _cell(1, "value", key="tender_fee_mode_display"),
+    ]),
+    _row([
+        _cell(2, "label", "EMD"),
+        _cell(1, "value", key="emd_amount_display"),
+        _cell(2, "label", "EMD required"),
+        _cell(1, "value", key="emd_required_display"),
+    ]),
+    _row([
+        _cell(2, "label", "Tender Value (GST Inclusive)"),
+        _cell(1, "value", key="tender_value_display"),
+        _cell(2, "label", "EMD (in form of)"),
+        _cell(1, "value", key="emd_mode_display"),
+    ]),
+    _row([
+        _cell(1, "label", "Bid Validity"),
+        _cell(1, "value", key="bid_validity_days_display"),
+        _cell(1, "label", "Commercial Evaluation"),
+        _cell(1, "value", key="commercial_evaluation_display"),
+        _cell(1, "label", "RA Applicable"),
+        _cell(1, "value", key="reverse_auction_applicable_display"),
+    ]),
+    _row([
+        _cell(1, "label", "MAF required"),
+        _cell(1, "value", key="maf_required_display"),
+        _cell(1, "label", "Delivery Time (Supply/Total)"),
+        _cell(1, "value", key="delivery_time_supply_display"),
+        _cell(1, "label", "Delivery Time (Installation)"),
+        _cell(1, "value", key="delivery_time_installation_display"),
+    ]),
+    _row([
+        _cell(1, "label", "PBG (in form of)", style=STYLE_LABEL_YELLOW),
+        _cell(1, "value", key="pbg_mode_display"),
+        _cell(1, "label", "Payment Terms (Supply)"),
+        _cell(1, "value", key="payment_terms_supply_display"),
+        _cell(1, "label", "Payment Terms (Installation)"),
+        _cell(1, "value", key="payment_terms_installation_display"),
+    ]),
+    _row([
+        _cell(1, "label", "SD (in form of)", style=STYLE_LABEL_YELLOW),
+        _cell(1, "value", key="sd_mode_display"),
+        _cell(1, "label", "LD/PRS %age (per week)"),
+        _cell(1, "value", key="ld_percentage_display"),
+        _cell(1, "label", "Max LD %age"),
+        _cell(1, "value", key="max_ld_percentage_display"),
+    ]),
+    _row([
+        _cell(2, "label", "PBG %age"),
+        _cell(1, "value", key="pbg_percentage_display"),
+        _cell(2, "label", "Security Deposit", style=STYLE_LABEL_YELLOW),
+        _cell(1, "value", key="sd_percentage_display"),
+    ]),
+    _row([
+        _cell(2, "label", "PBG Duration"),
+        _cell(1, "value", key="pbg_duration_display"),
+        _cell(2, "label", "SD Duration"),
+        _cell(1, "value", key="sd_duration_display"),
+    ]),
+    _row([
+        _cell(2, "label", "Physical Docs Submission Required", style=STYLE_LABEL_YELLOW, wrap=True),
+        _cell(1, "value", key="physical_docs_required_display"),
+        _cell(1, "label", "Physical Docs Submission Deadline", style=STYLE_LABEL_YELLOW, wrap=True),
+        _cell(2, "value", key="physical_docs_deadline_display"),
+    ], height=30),
+
+    # --- Eligibility / Financial criterion header row ---
+    _row([
+        _cell(2, "label", "Eligibility Criterion", style=STYLE_SUBSECTION, bold=True),
+        _cell(1, "label", "Age (in yrs)", style=STYLE_SUBSECTION, bold=True, align="center"),
+        _cell(3, "header", "Financial Criterion", style=STYLE_SECTION_HEADER, bold=True, align="center"),
+    ]),
+
+    _row([
+        _cell(2, "label", "3 Works Value"),
+        _cell(1, "value", key="order_value_1_display"),
+        _cell(1, "label", "Annual Avg Turnover"),
+        _cell(1, "value", key="avg_annual_turnover_type_display"),
+        _cell(1, "value", key="avg_annual_turnover_value_display"),
+    ]),
+    _row([
+        _cell(2, "label", "2 Works Value"),
+        _cell(1, "value", key="order_value_2_display"),
+        _cell(1, "label", "Working Capital"),
+        _cell(1, "value", key="working_capital_type_display"),
+        _cell(1, "value", key="working_capital_value_display"),
+    ]),
+    _row([
+        _cell(2, "label", "1 work Value"),
+        _cell(1, "value", key="order_value_3_display"),
+        _cell(1, "label", "Net Worth"),
+        _cell(1, "value", key="net_worth_type_display"),
+        _cell(1, "value", key="net_worth_value_display"),
+    ]),
+    _row([
+        _cell(2, "label", "PO selected for Technical Eligibility", wrap=True),
+        _cell(1, "value", key="po_selected_documents_display"),
+        _cell(1, "label", "Solvency Certificate"),
+        _cell(1, "value", key="solvency_certificate_type_display"),
+        _cell(1, "value", key="solvency_certificate_value_display"),
+    ], height=28),
+]
+
+# ------------------------------------------------------------------------
+# PAGE 2
+# ------------------------------------------------------------------------
+INFOSHEET_PAGE2_LAYOUT = [
+    _row([
+        _cell(1, "label", "PQC Documents", style=STYLE_LABEL_YELLOW, bold=True),
+        _cell(2, "label",
+              "Document-1, Document-2, Document-3 (Auto attach the documents from PQR "
+              "dashboard, based on the name selection)",
+              style=STYLE_LABEL_YELLOW),
+        _cell(1, "label", "Documents for Commercial Eligibility", bold=True, wrap=True),
+        _cell(2, "value", key="commercial_eligibility_documents_display"),
+    ], height=55),
+
+    _row([_cell(6, "spacer", "")], height=10),
+
+    _row([
+        _cell(1, "label", "Client Name"),
+        _cell(1, "value", key="client_name_1_display"),
+        _cell(1, "label", "Email"),
+        _cell(1, "value", key="client_email_1_display"),
+        _cell(1, "label", "Mobile No."),
+        _cell(1, "value", key="client_phone_1_display"),
+    ]),
+    _row([
+        _cell(1, "label", "Client Name"),
+        _cell(1, "value", key="client_name_2_display"),
+        _cell(1, "label", "Email"),
+        _cell(1, "value", key="client_email_2_display"),
+        _cell(1, "label", "Mobile No."),
+        _cell(1, "value", key="client_phone_2_display"),
+    ]),
+    _row([
+        _cell(1, "label", "Client Name"),
+        _cell(1, "value", key="client_name_3_display"),
+        _cell(1, "label", "Email"),
+        _cell(1, "value", key="client_email_3_display"),
+        _cell(1, "label", "Mobile No."),
+        _cell(1, "value", key="client_phone_3_display"),
+    ]),
+
+    _row([_cell(6, "spacer", "")], height=10),
+
+    _row([_cell(6, "header", "Documents Submitted", style=STYLE_SUBSECTION, bold=True)]),
+    _row([
+        _cell(1, "label", "Doc 1"), _cell(1, "value", key="doc_1_display"),
+        _cell(1, "label", "Doc 2"), _cell(1, "value", key="doc_2_display"),
+        _cell(1, "label", "Doc 3"), _cell(1, "value", key="doc_3_display"),
+    ]),
+    _row([
+        _cell(1, "label", "Doc 4"), _cell(1, "value", key="doc_4_display"),
+        _cell(1, "label", "Doc 5"), _cell(1, "value", key="doc_5_display"),
+        _cell(1, "label", "Doc 6"), _cell(1, "value", key="doc_6_display"),
+    ]),
+    _row([
+        _cell(1, "label", "Doc 7"), _cell(1, "value", key="doc_7_display"),
+        _cell(1, "label", "Doc 8"), _cell(1, "value", key="doc_8_display"),
+        _cell(1, "label", "Doc 9"), _cell(1, "value", key="doc_9_display"),
+    ]),
+
+    _row([
+        _cell(2, "label", "Courier Delivery Address"),
+        _cell(4, "value", key="courier_address_display"),
+    ]),
+    _row([
+        _cell(1, "label", "Courier Provider"),
+        _cell(1, "value", key="courier_provider_display"),
+        _cell(1, "label", "Courier Docket No."),
+        _cell(1, "value", key="courier_docket_no_display"),
+        _cell(1, "label", "Delivery time"),
+        _cell(1, "value", key="courier_delivery_time_display"),
+    ]),
+    _row([
+        _cell(2, "label", "Docket slip - Upload"),
+        _cell(1, "value", key="docket_slip_upload_display"),
+        _cell(2, "label", "Physical Documents Couriered - Upload", wrap=True),
+        _cell(1, "value", key="physical_docs_uploaded_display"),
+    ], height=30),
+]
+
+# Column width plan (characters) for the 6-column A-F grid used by both pages.
+INFOSHEET_COLUMN_WIDTHS = [24, 16, 26, 24, 16, 20]
+
+# All flat keys the visual sheet expects to find in the data dict passed into
+# generate_info_sheet_csv(). tender_mapper.build_infosheet_data() is
+# responsible for populating these (falling back to NA_DISPLAY if missing).
+INFOSHEET_DATA_KEYS = [
+    "organization", "tender_name", "tender_id_display", "website",
+    "bid_due_date_time", "te_recommendation_display", "te_rejection_reason_display",
+    "processing_fee_amount_display", "processing_fee_mode_display",
+    "tender_fee_amount_display", "tender_fee_mode_display",
+    "emd_amount_display", "emd_required_display", "tender_value_display", "emd_mode_display",
+    "bid_validity_days_display", "commercial_evaluation_display", "reverse_auction_applicable_display",
+    "maf_required_display", "delivery_time_supply_display", "delivery_time_installation_display",
+    "pbg_mode_display", "payment_terms_supply_display", "payment_terms_installation_display",
+    "sd_mode_display", "ld_percentage_display", "max_ld_percentage_display",
+    "pbg_percentage_display", "sd_percentage_display",
+    "pbg_duration_display", "sd_duration_display",
+    "physical_docs_required_display", "physical_docs_deadline_display",
+    "order_value_1_display", "avg_annual_turnover_type_display", "avg_annual_turnover_value_display",
+    "order_value_2_display", "working_capital_type_display", "working_capital_value_display",
+    "order_value_3_display", "net_worth_type_display", "net_worth_value_display",
+    "po_selected_documents_display", "solvency_certificate_type_display", "solvency_certificate_value_display",
+    "commercial_eligibility_documents_display",
+    "client_name_1_display", "client_email_1_display", "client_phone_1_display",
+    "client_name_2_display", "client_email_2_display", "client_phone_2_display",
+    "client_name_3_display", "client_email_3_display", "client_phone_3_display",
+    "doc_1_display", "doc_2_display", "doc_3_display",
+    "doc_4_display", "doc_5_display", "doc_6_display",
+    "doc_7_display", "doc_8_display", "doc_9_display",
+    "courier_address_display", "courier_provider_display",
+    "courier_docket_no_display", "courier_delivery_time_display",
+    "docket_slip_upload_display", "physical_docs_uploaded_display",
+]

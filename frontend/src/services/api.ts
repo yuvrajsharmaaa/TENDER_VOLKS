@@ -430,6 +430,21 @@ export const apiService = {
     fieldId: string,
     value: string
   ): Promise<TenderDetail> => {
+    try {
+      if (await isBackendReachable()) {
+        const res = await fetch(`${BACKEND_URL}/tenders/workspace/${tenderId}/fields/${fieldId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ value })
+        });
+        if (res.ok) {
+          return adaptBackendPayload(await res.json());
+        }
+      }
+    } catch (err) {
+      console.error("Failed to update field on backend, falling back to local store:", err);
+    }
+
     const tenders = getStoredTenders();
     const idx = tenders.findIndex((t) => t.id === tenderId);
     if (idx === -1) throw new Error("Tender not found");
@@ -466,6 +481,19 @@ export const apiService = {
    * Marks a field as verified.
    */
   verifyField: async (tenderId: string, fieldId: string): Promise<TenderDetail> => {
+    try {
+      if (await isBackendReachable()) {
+        const res = await fetch(`${BACKEND_URL}/tenders/workspace/${tenderId}/fields/${fieldId}/verify`, {
+          method: "POST"
+        });
+        if (res.ok) {
+          return adaptBackendPayload(await res.json());
+        }
+      }
+    } catch (err) {
+      console.error("Failed to verify field on backend, falling back to local store:", err);
+    }
+
     const tenders = getStoredTenders();
     const idx = tenders.findIndex((t) => t.id === tenderId);
     if (idx === -1) throw new Error("Tender not found");
@@ -731,6 +759,21 @@ export const apiService = {
    * Marks a tender as reviewed.
    */
   markReviewed: async (tenderId: string, reviewer: string): Promise<TenderDetail> => {
+    try {
+      if (await isBackendReachable()) {
+        const res = await fetch(`${BACKEND_URL}/tenders/workspace/${tenderId}/review`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reviewer_name: reviewer })
+        });
+        if (res.ok) {
+          return adaptBackendPayload(await res.json());
+        }
+      }
+    } catch (err) {
+      console.error("Failed to mark reviewed on backend, falling back to local store:", err);
+    }
+
     const tenders = getStoredTenders();
     const idx = tenders.findIndex((t) => t.id === tenderId);
     if (idx === -1) throw new Error("Tender not found");
