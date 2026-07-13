@@ -1,8 +1,12 @@
 import re
 import math
+import logging
 from typing import List, Dict, Any, Optional, Tuple
 from backend.app.models.models import PageResult, TextBlock, LayoutRegion
 from backend.app.schemas.schemas import ExtractedFieldSchema, SourceBlockRef, BoundingBox
+from backend.app.services.field_registry import merge_keywords
+
+logger = logging.getLogger(__name__)
 
 # Utility Spatial Containment checks
 def get_intersection_area(boxA: Dict[str, int], boxB: Dict[str, int]) -> int:
@@ -214,12 +218,40 @@ class FieldExtractor:
             }
         }
 
+        # Widen (never narrow) specific rules' anchors with any synonyms the
+        # shared field registry knows about but this rule doesn't yet. This
+        # is how keyword fixes made for the other (plain-text) extraction
+        # engine also reach this engine, without touching this engine's own
+        # matching/confidence logic. Rules that already show anchor-overlap
+        # precision issues (e.g. "ministry_name" matching inside its own
+        # value) are intentionally left out of this merge to avoid making
+        # that pre-existing issue worse.
+        _REGISTRY_MERGE_MAP = {
+            "NIT No": "reference_id",
+            "bid_number": "reference_id",
+            "EMD": "emd_amount",
+            "Tender Fee": "tender_fee",
+            "Bid Submission End Date": "bid_submission_deadline",
+            "bid_end_datetime": "bid_submission_deadline",
+            "Bid Opening Date": "bid_opening_date",
+            "bid_open_datetime": "bid_opening_date",
+            "Tender Value": "tender_value",
+            "Pre-Bid Meeting Date": "prebid_meeting",
+            "minimum_average_annual_turnover": "turnover_requirement",
+            "years_of_past_experience": "experience_requirement",
+            "item_category": "title",
+            "buyer_email": "contact_officer",
+        }
+        for rule_key, canonical_key in _REGISTRY_MERGE_MAP.items():
+            if rule_key in self.rules:
+                self.rules[rule_key]["anchors"] = merge_keywords(self.rules[rule_key]["anchors"], canonical_key)
+
     def _normalize_for_match(self, text: str) -> str:
         """Replace common separators with spaces and collapse whitespace for
         fuzzy anchor matching. This lets "ministry/state name" match the
         anchor "ministry name" without collapsing numbers/words into false
         substring matches (e.g. "06-06-2025" stays "06 06 2025")."""
-        return re.sub(r"\s+", " ", re.sub(r"[/\\_.-]", " ", text.lower())).strip()
+        return re.sub(r"\s+", " ", re.sub(r"[/\\_.:\-]", " ", text.lower())).strip()
 
     def _anchor_matches(self, anchor: str, text: str) -> bool:
         """Check if the anchor words appear in order inside the text words,

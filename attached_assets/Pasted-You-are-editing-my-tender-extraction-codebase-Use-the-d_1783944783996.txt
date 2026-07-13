@@ -1,0 +1,79 @@
+You are editing my tender-extraction codebase.
+
+Use the debugging audit as the source of truth. The main failures are:
+1. duplicate extractor logic across two modules,
+2. brittle regex patterns that assume newline-separated OCR,
+3. hardcoded page scope using pages[:2],
+4. export handling that may corrupt strings,
+5. missing traceability for field-level failures.
+
+IMPORTANT:
+- Do not change the Excel template layout.
+- Do not rename or add output fields.
+- Do not redesign the schema.
+- Do not rewrite the whole project.
+- Make surgical edits only.
+
+FILES TO EDIT:
+1. ocr/extractors/field_extractor.py
+2. backend/app/services/field_extractor.py
+3. backend/app/services/tender_mapper.py
+4. export_service.py
+5. normalizer.py
+6. page_classifier.py if needed
+7. tests/
+
+TASKS:
+A. Consolidate extraction logic
+- Remove duplicate extraction logic.
+- Create one shared extraction implementation.
+- Make both pipeline entry points use the same extractor.
+- Ensure changes in one place affect both pipelines.
+
+B. Fix page scoping
+- Remove any hardcoded use of pages[:2].
+- Build metadata/search text from classifier-driven pages.
+- If classifier exists, use page labels like summary, commercial, technical, ATC, delivery.
+- If classifier is missing, add a safe fallback rather than page slicing.
+
+C. Fix regex patterns
+- Update regexes in tender_mapper.py so they match both:
+  - label and value on the same line
+  - label and value separated by newline
+  - label and value separated by colon, dash, spaces, or tabs
+- Do not rely on newline-only patterns.
+- Add tests for inline OCR values such as:
+  - "EMD Required Yes"
+  - "Bid Validity 90 Days"
+  - "PBG Duration 6 Months"
+
+D. Fix export safety
+- Ensure strings are not treated like lists.
+- Ensure .join() is only used on real lists.
+- Keep string values unchanged.
+- Preserve Excel formatting and template structure.
+
+E. Add traceability
+- For every field, keep:
+  - source page number
+  - raw OCR snippet
+  - extractor used
+  - confidence
+  - final mapped value
+- Add logs or a trace object so I can see why a field became NA.
+
+F. Add tests
+- One test proving both extractor paths return the same output.
+- One test proving regex patterns work on same-line OCR.
+- One test proving pages beyond page 2 are included when needed.
+- One test proving export keeps strings intact.
+- One test proving the template column order is unchanged.
+
+OUTPUT REQUIRED:
+1. A short explanation of what you changed.
+2. Exact files modified.
+3. A diff-style summary of key logic changes.
+4. Any remaining limitations.
+
+Make the changes directly in the code where possible.
+If something cannot be safely changed, say exactly why and where.
