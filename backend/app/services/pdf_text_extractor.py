@@ -10,8 +10,8 @@ def preprocess_image_for_ocr(img_path: Path) -> Path:
     Performs lightweight image preprocessing for improved OCR accuracy:
     - Grayscale conversion
     - Contrast enhancement
-    - Denoise filtering
-    - Grayscale binarization thresholding
+    - Sharpening instead of blurring to keep character edges clean
+    - Avoids global threshold binarization to let Tesseract do internal adaptive thresholding
     """
     try:
         with Image.open(img_path) as img:
@@ -22,29 +22,46 @@ def preprocess_image_for_ocr(img_path: Path) -> Path:
             enhancer = ImageEnhance.Contrast(gray)
             enhanced = enhancer.enhance(2.0)
             
-            # 3. Simple denoise filter
-            denoised = enhanced.filter(ImageFilter.SMOOTH)
+            # 3. Sharpening filter to make text borders crisp
+            sharpened = enhanced.filter(ImageFilter.SHARPEN)
             
-            # 4. Adaptive thresholding via numpy
-            arr = np.array(denoised)
-            # Use mean thresholding
-            threshold = int(arr.mean()) if arr.size > 0 else 127
-            binarized = np.where(arr > threshold, 255, 0).astype(np.uint8)
-            
-            # Save preprocessed image
-            processed_img = Image.fromarray(binarized)
+            # Save preprocessed image (as grayscale, letting Tesseract handle binarization)
             processed_path = img_path.parent / f"preprocessed_{img_path.name}"
-            processed_img.save(processed_path)
+            sharpened.save(processed_path)
             return processed_path
     except Exception as e:
         print(f"OCR preprocessing warning: {e}. Falling back to original image.")
         return img_path
 
+def is_text_scrambled_or_garbage(text: str) -> bool:
+    """
+    Detects if native PDF text is scrambled or contains corrupted font mappings
+    (e.g., (cid:X) codes or high non-alphanumeric ratio).
+    """
+    if not text:
+        return True
+    
+    # Common PyMuPDF font corruption artifacts
+    if text.count("(cid:") > 3:
+        return True
+        
+    # Check alphanumeric ratio
+    cleaned = text.strip()
+    if not cleaned:
+        return True
+        
+    total_len = len(cleaned)
+    alnum_count = sum(1 for c in cleaned if c.isalnum() or c.isspace())
+    if alnum_count / total_len < 0.6:
+        return True
+        
+    return False
+
 def extract_pdf_text_hybrid(pdf_path: str, pages_dir: Path) -> List[Dict[str, Any]]:
     """
     Hybrid PDF extraction.
     Determines if a page is a text-based digital PDF or a scanned image page.
-    Applies image preprocessing before running PaddleOCR on scanned pages.
+    Applies image preprocessing before running Tesseract on scanned pages.
     """
     doc = fitz.open(pdf_path)
     ocr_engine = None
@@ -63,10 +80,11 @@ def extract_pdf_text_hybrid(pdf_path: str, pages_dir: Path) -> List[Dict[str, An
         if len(stripped) > 5 and word_count > 0:
             if word_count > 5:
                 avg_word_len = len(stripped) / word_count
-                if 3.0 <= avg_word_len <= 15.0:
+                if 3.0 <= avg_word_len <= 15.0 and not is_text_scrambled_or_garbage(native_text):
                     is_digital = True
             else:
-                is_digital = True
+                if not is_text_scrambled_or_garbage(native_text):
+                    is_digital = True
                 
         if is_digital:
             results.append({
@@ -81,7 +99,7 @@ def extract_pdf_text_hybrid(pdf_path: str, pages_dir: Path) -> List[Dict[str, An
             if not ocr_engine:
                 ocr_engine = OcrEngine()
                 
-            zoom = 2.77  # ~200 DPI
+            zoom = 4.16  # ~300 DPI for high-precision character matching
             mat = fitz.Matrix(zoom, zoom)
             pix = page.get_pixmap(matrix=mat, alpha=False)
             
@@ -122,3 +140,4 @@ def extract_pdf_text_hybrid(pdf_path: str, pages_dir: Path) -> List[Dict[str, An
             
     doc.close()
     return results
+

@@ -27,9 +27,9 @@ def parse_money(val: Any) -> Optional[float]:
     elif "crore" in val_str or "cr" in val_str:
         multiplier = 10000000.0
         
-    # Remove standard prefix abbreviations which might contain a dot
-    val_str = re.sub(r'\brs\b\.?', '', val_str)
-    val_str = re.sub(r'\binr\b\.?', '', val_str)
+    # Remove standard prefix abbreviations and common OCR misreads (e.g. ks., re., *, F, E, rs., inr)
+    val_str = re.sub(r'\b(?:rs|inr|re|ks|rupees|rupee)\b\.?[:\-]?\s*', '', val_str)
+    val_str = re.sub(r'^[₹*FE]\s*', '', val_str)
     
     cleaned = CURRENCY_CLEAN_RE.sub("", val_str)
     if cleaned:

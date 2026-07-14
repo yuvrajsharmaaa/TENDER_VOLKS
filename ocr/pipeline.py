@@ -9,12 +9,68 @@ from ocr.layout.layoutlm_stage import LayoutLmStage
 from ocr.extractors.field_extractor import FieldExtractor, is_contained
 from ocr.result_writer import write_page_json, write_aggregate_json
 
-from backend.app.models.models import PageResult
+from backend.app.models.models import PageResult, TextBlock, LayoutRegion
 from backend.app.schemas.schemas import (
     RawOCRResponse, OCRBlockSchema, BoundingBox,
     LayoutResponse, LayoutRegionSchema,
     ExtractedFieldsResponse, ProductItemSchema
 )
+
+def sort_blocks_by_reading_order(blocks: list[TextBlock], y_tolerance: int = 12) -> list[TextBlock]:
+    """
+    Groups text blocks into lines based on vertical overlap/proximity,
+    then sorts columns from left-to-right (x1) within each line.
+    This preserves the reading order in tables and multi-column layouts.
+    """
+    if not blocks:
+        return []
+    
+    # Sort blocks primarily by top-y coordinate
+    sorted_by_y = sorted(blocks, key=lambda b: b.bounding_box["y1"])
+    
+    lines = []
+    current_line = [sorted_by_y[0]]
+    
+    for block in sorted_by_y[1:]:
+        avg_y1 = sum(b.bounding_box["y1"] for b in current_line) / len(current_line)
+        if abs(block.bounding_box["y1"] - avg_y1) <= y_tolerance:
+            current_line.append(block)
+        else:
+            lines.append(sorted(current_line, key=lambda b: b.bounding_box["x1"]))
+            current_line = [block]
+    lines.append(sorted(current_line, key=lambda b: b.bounding_box["x1"]))
+    
+    flattened = []
+    for line in lines:
+        flattened.extend(line)
+    return flattened
+
+def serialize_page_result_to_xml(pr: PageResult) -> str:
+    """
+    Serializes a PageResult into structured XML showing layout tags,
+    bounding boxes, confidence scores, and reading-order text.
+    """
+    lines = [f'<page number="{pr.page_number}" width="{pr.image_width_px}" height="{pr.image_height_px}">']
+    
+    # Sort layout regions by vertical position (reading order)
+    sorted_regions = sorted(pr.layout_regions, key=lambda r: (r.bounding_box["y1"], r.bounding_box["x1"]))
+    
+    for r in sorted_regions:
+        bbox_str = f"{r.bounding_box['x1']},{r.bounding_box['y1']},{r.bounding_box['x2']},{r.bounding_box['y2']}"
+        conf = f"{r.confidence:.2f}" if r.confidence is not None else "1.00"
+        tag = r.region_type.lower()  # 'table' or 'paragraph'
+        
+        lines.append(f'  <{tag} bbox="[{bbox_str}]" confidence="{conf}">')
+        
+        content = r.text_content or ""
+        for line in content.split("\n"):
+            if line.strip():
+                lines.append(f"    {line.strip()}")
+                
+        lines.append(f"  </{tag}>")
+        
+    lines.append("</page>")
+    return "\n".join(lines)
 
 def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False) -> list[PageResult]:
     start_pipeline_time = time.time()
@@ -24,7 +80,7 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False) -> list
     # 1. Convert PDF to images
     image_paths = convert_pdf_to_images(pdf_path, pages_dir)
     
-    # 2. Init models (lazy loading can be improved)
+    # 2. Init models
     ocr = OcrEngine()
     layout = LayoutDetector()
     layoutlm = LayoutLmStage() if run_layoutlm else None
@@ -35,16 +91,27 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False) -> list
     for i, img_path in enumerate(image_paths):
         start_time = time.time()
         
-        text_blocks = ocr.run(img_path)
-        layout_regions = layout.detect(img_path)
+        # Apply unified image preprocessing for OCR
+        from backend.app.services.pdf_text_extractor import preprocess_image_for_ocr
+        preprocessed_path = preprocess_image_for_ocr(img_path)
+        
+        text_blocks = ocr.run(preprocessed_path)
+        layout_regions = layout.detect(preprocessed_path)
+        
+        # Clean up temp preprocessed file
+        if preprocessed_path != img_path:
+            try:
+                preprocessed_path.unlink()
+            except Exception:
+                pass
         
         # Spatial containment and reading order mapping
         for idx, region in enumerate(layout_regions):
             region.reading_order_index = idx + 1
             # Find contained text blocks
             contained_blocks = [tb for tb in text_blocks if is_contained(tb.bounding_box, region.bounding_box)]
-            # Sort contained blocks in reading order (y1, then x1)
-            sorted_contained = sorted(contained_blocks, key=lambda b: (b.bounding_box["y1"], b.bounding_box["x1"]))
+            # Sort contained blocks in layout-aware reading order
+            sorted_contained = sort_blocks_by_reading_order(contained_blocks)
             
             region.contained_block_ids = [b.block_id for b in sorted_contained]
             region.text_content = "\n".join([b.text for b in sorted_contained])
@@ -59,7 +126,6 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False) -> list
             try:
                 layoutlm_results = layoutlm.run(text_blocks, width, height)
             except Exception as e:
-                # Log error but don't crash the pipeline, save error under warnings
                 import traceback
                 traceback.print_exc()
                 layoutlm_results = {
@@ -84,6 +150,15 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False) -> list
         
     # Write aggregate json for existing visualizer compatibility
     write_aggregate_json(job_id, page_results, job_dir, pdf_path.name)
+    
+    # Generate structured layout-aware XML file for downstream LLM extraction
+    llm_xml_lines = []
+    for pr in page_results:
+        llm_xml_lines.append(serialize_page_result_to_xml(pr))
+        
+    with open(job_dir / "llm_layout_text.txt", "w", encoding="utf-8") as f:
+        f.write("\n\n".join(llm_xml_lines))
+
     
     # 4. Deterministic Field Extraction + Product/Item extraction
     extractor = FieldExtractor()

@@ -17,6 +17,9 @@ def test_parse_money():
     assert parse_money("Rs. 1,50,000/-") == 150000.0
     assert parse_money("Rs 2.5 Lakh") == 250000.0
     assert parse_money("3.5 Crores") == 35000000.0
+    assert parse_money("* 1,50,000/-") == 150000.0
+    assert parse_money("ks. 50,000/-") == 50000.0
+    assert parse_money("F 2.5 Lakh") == 250000.0
     assert parse_money("Not Found") is None
     assert parse_money(None) is None
     assert parse_money("") is None

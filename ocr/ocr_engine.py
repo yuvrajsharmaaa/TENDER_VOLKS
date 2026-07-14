@@ -20,14 +20,23 @@ class OcrEngine:
     downstream layout detection and field extraction are unaffected.
     """
 
+    # Class-level cache to share raw OCR results and avoid double-processing in layout detection
+    _cache: dict[str, dict] = {}
+
     def __init__(self, lang: str = "eng"):
         self.lang = lang
 
     def run(self, image_path: Path) -> list[TextBlock]:
-        img = Image.open(image_path).convert("RGB")
-        data = pytesseract.image_to_data(
-            img, lang=self.lang, output_type=pytesseract.Output.DICT
-        )
+        cache_key = str(image_path)
+        if cache_key in OcrEngine._cache:
+            data = OcrEngine._cache[cache_key]
+        else:
+            img = Image.open(image_path).convert("RGB")
+            data = pytesseract.image_to_data(
+                img, lang=self.lang, output_type=pytesseract.Output.DICT
+            )
+            OcrEngine._cache[cache_key] = data
+
 
         # Group Tesseract's word-level boxes into line-level blocks (grouped
         # by block/paragraph/line index) so downstream anchor/regex matching
