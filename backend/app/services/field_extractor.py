@@ -8,6 +8,9 @@ from ocr.extractors.gem_field_extractor import GemFieldExtractor
 
 logger = logging.getLogger(__name__)
 
+def _is_missing(val):
+    return val is None or val == "" or val == "NA"
+
 def extract_tender_fields(
     pages: List[Dict[str, Any]],
     filename_title: str,
@@ -71,7 +74,7 @@ def extract_tender_fields(
             if re.search(r'gem/20\d{2}/[a-z]/\d+', text):
                 is_gem = True
                 break
-
+ 
     if is_gem:
         extractor = GemFieldExtractor()
     else:
@@ -88,6 +91,11 @@ def extract_tender_fields(
         "emd_required": "EMD Required",
         "bid_validity_days": "Bid Validity Period",
         "reverse_auction_enabled": "Reverse Auction Applicable",
+        "pbg_required": "PBG Required",
+        "pbg_percentage": "PBG Percentage",
+        "pbg_duration_months": "PBG Duration (Months)",
+        "evaluation_method": "Commercial Evaluation Type",
+        "buyer_added_text_atc_clauses": "Custom Eligibility Criteria",
         "NIT No": "Reference ID / NIT No",
         "bid_number": "Reference ID / NIT No",
         "tender_id": "Reference ID / NIT No",
@@ -122,7 +130,7 @@ def extract_tender_fields(
     label_to_field = {}
     for i, f in enumerate(extracted):
         label = label_mapping.get(f.field_name, f.field_name)
-        status = "missing" if (not f.value or f.value == "Not Found") else "extracted"
+        status = "missing" if (_is_missing(f.value) or f.value == "Not Found") else "extracted"
         field_dict = {
             "id": f"f-{i}",
             "label": label,

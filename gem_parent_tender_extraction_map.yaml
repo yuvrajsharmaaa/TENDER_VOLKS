@@ -261,6 +261,18 @@ fields:
     type: boolean
     notes: "Standard GeM GTC clause 26 — boilerplate, present on virtually every bid; low extraction priority."
 
+  pbg_required:
+    derived: true
+    rule: "true if pbg_percentage_value > 0 else false"
+
+  buyer_added_text_atc_clauses:
+    extraction_type: layout_region
+    region_type: "list"
+    anchor_heading:
+      - "Buyer Added Bid Specific Terms and Conditions"
+      - "Buyer Added text based ATC clauses"
+    pattern: numbered_list
+
 
 # =============================================================================
 # Fields deliberately OUT OF SCOPE for Stage 1 (parent PDF does not contain

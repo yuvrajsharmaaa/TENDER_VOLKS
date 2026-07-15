@@ -325,6 +325,11 @@ INFOSHEET_PAGE1_LAYOUT = [
         _cell(1, "value", key="max_ld_percentage_display"),
     ]),
     _row([
+        _cell(2, "label", "PBG Required"),
+        _cell(1, "value", key="pbg_required_display"),
+        _cell(3, "spacer", ""),
+    ]),
+    _row([
         _cell(2, "label", "PBG %age"),
         _cell(1, "value", key="pbg_percentage_display"),
         _cell(2, "label", "Security Deposit", style=STYLE_LABEL_YELLOW),
@@ -393,6 +398,11 @@ INFOSHEET_PAGE2_LAYOUT = [
         _cell(1, "label", "Documents for Commercial Eligibility", bold=True, wrap=True),
         _cell(2, "value", key="commercial_eligibility_documents_display"),
     ], height=55),
+
+    _row([
+        _cell(2, "label", "Custom Eligibility Criteria", bold=True, wrap=True),
+        _cell(4, "value", key="custom_eligibility_criteria_display"),
+    ], height=40),
 
     _row([_cell(6, "spacer", "")], height=10),
 
@@ -504,14 +514,14 @@ INFOSHEET_DATA_KEYS = [
     "maf_required_display", "delivery_time_supply_display", "delivery_time_installation_display",
     "pbg_mode_display", "payment_terms_supply_display", "payment_terms_installation_display",
     "sd_mode_display", "ld_percentage_display", "max_ld_percentage_display",
-    "pbg_percentage_display", "sd_percentage_display",
+    "pbg_required_display", "pbg_percentage_display", "sd_percentage_display",
     "pbg_duration_display", "sd_duration_display",
     "physical_docs_required_display", "physical_docs_deadline_display",
     "order_value_1_display", "avg_annual_turnover_type_display", "avg_annual_turnover_value_display",
     "order_value_2_display", "working_capital_type_display", "working_capital_value_display",
     "order_value_3_display", "net_worth_type_display", "net_worth_value_display",
     "po_selected_documents_display", "solvency_certificate_type_display", "solvency_certificate_value_display",
-    "commercial_eligibility_documents_display",
+    "custom_eligibility_criteria_display", "commercial_eligibility_documents_display",
     "client_name_1_display", "client_email_1_display", "client_phone_1_display",
     "client_name_2_display", "client_email_2_display", "client_phone_2_display",
     "client_name_3_display", "client_email_3_display", "client_phone_3_display",
