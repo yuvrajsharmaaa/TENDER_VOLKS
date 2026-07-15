@@ -345,8 +345,9 @@ class GemFieldExtractor(FieldExtractor):
             
             for page in pages:
                 page_num = page.page_number
-                left_blocks = [b for b in page.text_blocks if b.bounding_box["x1"] < 750]
-                right_blocks = [b for b in page.text_blocks if b.bounding_box["x1"] >= 750]
+                col_split = 750 if page.image_width_px > 1000 else 260
+                left_blocks = [b for b in page.text_blocks if b.bounding_box["x1"] < col_split]
+                right_blocks = [b for b in page.text_blocks if b.bounding_box["x1"] >= col_split]
                 
                 left_cells = merge_blocks_into_cells(left_blocks)
                 right_cells = merge_blocks_into_cells(right_blocks)

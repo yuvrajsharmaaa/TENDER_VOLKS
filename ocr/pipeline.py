@@ -47,6 +47,12 @@ def sort_blocks_by_reading_order(blocks: list[TextBlock], y_tolerance: int = 12)
         flattened.extend(line)
     return flattened
 
+def classify_document_type(page1_text: str) -> str:
+    if re.search(r'GEM/20\d{2}/[A-Z]/\d+', page1_text) or \
+       "Bid Document" in page1_text:
+        return "gem_structured"
+    return "generic_nit"
+
 def serialize_page_result_to_xml(pr: PageResult) -> str:
     """
     Serializes a PageResult into structured XML showing layout tags,
@@ -234,6 +240,11 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False) -> list
             if f.field_name == "required_documents" and isinstance(f.value, list):
                 needs_stage2 = any(item.get("needs_stage2") for item in f.value if isinstance(item, dict))
 
+    page1_text = ""
+    if page_results:
+        page1_text = "\n".join([tb.text for tb in page_results[0].text_blocks])
+    doc_type = classify_document_type(page1_text)
+
     # extracted_fields.json
     extracted_fields_resp = ExtractedFieldsResponse(
         job_id=job_id,
@@ -243,7 +254,8 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False) -> list
         extracted_products=[
             ProductItemSchema(**p) for p in extracted_products
         ],
-        needs_stage2_atc_parse=needs_stage2
+        needs_stage2_atc_parse=needs_stage2,
+        document_type=doc_type
     )
 
     # Save files to disk

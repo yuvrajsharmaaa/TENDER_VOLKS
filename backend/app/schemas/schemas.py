@@ -78,3 +78,4 @@ class ExtractedFieldsResponse(BaseModel):
     extracted_fields: List[ExtractedFieldSchema]
     extracted_products: List[ProductItemSchema] = []
     needs_stage2_atc_parse: Optional[bool] = None
+    document_type: Optional[str] = "generic_nit"

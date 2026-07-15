@@ -56,6 +56,36 @@ def is_text_scrambled_or_garbage(text: str) -> bool:
         
     return False
 
+def cluster_words_into_cells(words, gap_threshold=15):
+    if not words:
+        return []
+    words_sorted = sorted(words, key=lambda w: (w[1], w[0]))  # y, x
+    cells, current = [], [words_sorted[0]]
+    for w in words_sorted[1:]:
+        prev = current[-1]
+        same_line = abs(w[1] - prev[1]) < 5
+        close_enough = (w[0] - prev[2]) < gap_threshold
+        if same_line and close_enough:
+            current.append(w)
+        else:
+            cells.append(current)
+            current = [w]
+    cells.append(current)
+    return [
+        {
+            "text": " ".join(w[4] for w in cell),
+            "confidence": 100.0,
+            "bounding_box": {
+                "x1": int(round(min(w[0] for w in cell))),
+                "y1": int(round(min(w[1] for w in cell))),
+                "x2": int(round(max(w[2] for w in cell))),
+                "y2": int(round(max(w[3] for w in cell))),
+            },
+            "language_hint": "en",
+        }
+        for cell in cells
+    ]
+
 def extract_pdf_text_hybrid(pdf_path: str, pages_dir: Path) -> List[Dict[str, Any]]:
     import fitz
     """
@@ -87,12 +117,14 @@ def extract_pdf_text_hybrid(pdf_path: str, pages_dir: Path) -> List[Dict[str, An
                     is_digital = True
                 
         if is_digital:
+            native_words = page.get_text("words")
+            blocks = cluster_words_into_cells(native_words)
             results.append({
                 "page": page_num + 1,
                 "text": native_text,
                 "source": "native",
                 "confidence": 100.0,
-                "blocks": []
+                "blocks": blocks
             })
         else:
             # Scanned page detected -> render to image

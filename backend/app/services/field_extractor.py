@@ -1,6 +1,6 @@
 import logging
 import re
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 from backend.app.models.models import PageResult, TextBlock
 from ocr.extractors.field_extractor import FieldExtractor
@@ -8,30 +8,47 @@ from ocr.extractors.gem_field_extractor import GemFieldExtractor
 
 logger = logging.getLogger(__name__)
 
-def extract_tender_fields(pages: List[Dict[str, Any]], filename_title: str) -> List[Dict[str, Any]]:
+def extract_tender_fields(
+    pages: List[Dict[str, Any]],
+    filename_title: str,
+    document_type: Optional[str] = "generic_nit"
+) -> List[Dict[str, Any]]:
     """
     Unified extractor entrypoint for the background pipeline.
     Routes raw PyMuPDF text pages through the advanced spatial FieldExtractor.
     """
     logger.info("Routing %d pages through unified FieldExtractor...", len(pages))
     
-    # 1. Map raw text to synthetic PageResults for the spatial engine
+    # 1. Map raw text to PageResults for the spatial engine
     mock_results = []
     for p in pages:
         lines = p.get("text", "").split('\n')
         blocks = []
-        for i, line in enumerate(lines):
-            line_str = line.strip()
-            if not line_str: 
-                continue
-            blocks.append(TextBlock(
-                block_id=f"line_{i}",
-                text=line_str,
-                confidence=1.0,
-                language_hint="en",
-                # Synthetic bounding boxes mapping lines vertically
-                bounding_box={"x1": 0, "y1": i * 20, "x2": 500, "y2": (i * 20) + 15}
-            ))
+        blocks_data = p.get("blocks")
+        
+        if blocks_data:
+            for idx, b in enumerate(blocks_data):
+                bbox = b.get("bounding_box", {"x1": 0, "y1": 0, "x2": 0, "y2": 0})
+                blocks.append(TextBlock(
+                    block_id=str(b.get("block_id", idx)),
+                    text=b.get("text", ""),
+                    confidence=b.get("confidence", 1.0),
+                    language_hint=b.get("language_hint", "en"),
+                    bounding_box=bbox
+                ))
+        else:
+            for i, line in enumerate(lines):
+                line_str = line.strip()
+                if not line_str: 
+                    continue
+                blocks.append(TextBlock(
+                    block_id=f"line_{i}",
+                    text=line_str,
+                    confidence=1.0,
+                    language_hint="en",
+                    # Synthetic bounding boxes mapping lines vertically
+                    bounding_box={"x1": 0, "y1": i * 20, "x2": 500, "y2": (i * 20) + 15}
+                ))
         mock_results.append(PageResult(
             job_id="background-ingest",
             page_number=p.get("page", 1),

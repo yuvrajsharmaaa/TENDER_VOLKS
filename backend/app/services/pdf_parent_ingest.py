@@ -87,7 +87,13 @@ def ingest_parent_tender_pdf(
 
     # 3. Deterministic Field Extraction
     title_raw = original_filename.replace(".pdf", "").replace("_", " ").replace("-", " ")
-    sections = extract_tender_fields(page_texts, title_raw)
+    
+    # Classify document type using page 1 text
+    page1_text = page_texts[0].get("text", "") if page_texts else ""
+    from ocr.pipeline import classify_document_type
+    doc_type = classify_document_type(page1_text)
+    
+    sections = extract_tender_fields(page_texts, title_raw, document_type=doc_type)
 
     # 4. Generate XLSX Spreadsheet Info Sheet
     csv_filename = f"{original_filename.replace('.pdf', '')}_InfoSheet.xlsx"

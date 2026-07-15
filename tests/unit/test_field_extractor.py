@@ -170,3 +170,74 @@ def test_field_extractor_gem_stage1_specifications():
     assert "eligibility_criterion_years" in field_map
     assert field_map["eligibility_criterion_years"].value == "Out of Scope (Stage 1)"
 
+
+def test_cluster_words_into_cells():
+    from backend.app.services.pdf_text_extractor import cluster_words_into_cells
+    
+    # Mock words tuple: (x0, y0, x1, y1, word, block_no, line_no, word_no)
+    words = [
+        (10, 10, 30, 20, "EMD", 0, 0, 0),
+        (35, 10, 80, 20, "Amount", 0, 0, 1),
+        (200, 10, 250, 20, "50000", 0, 0, 2),  # large gap from "Amount" (120px > 15px threshold)
+    ]
+    
+    cells = cluster_words_into_cells(words, gap_threshold=15)
+    assert len(cells) == 2
+    assert cells[0]["text"] == "EMD Amount"
+    assert cells[0]["bounding_box"] == {"x1": 10, "y1": 10, "x2": 80, "y2": 20}
+    assert cells[1]["text"] == "50000"
+    assert cells[1]["bounding_box"] == {"x1": 200, "y1": 10, "x2": 250, "y2": 20}
+
+
+def test_extract_tender_fields_preserves_real_coordinates():
+    from backend.app.services.field_extractor import extract_tender_fields
+    
+    pages = [
+        {
+            "page": 1,
+            "text": "EMD Amount 50000",
+            "blocks": [
+                {
+                    "text": "EMD Amount",
+                    "confidence": 1.0,
+                    "bounding_box": {"x1": 10, "y1": 10, "x2": 80, "y2": 20},
+                    "language_hint": "en"
+                },
+                {
+                    "text": "50000",
+                    "confidence": 1.0,
+                    "bounding_box": {"x1": 200, "y1": 10, "x2": 250, "y2": 20},
+                    "language_hint": "en"
+                }
+            ]
+        }
+    ]
+    
+    sections = extract_tender_fields(pages, "Test Tender")
+    # Retrieve the constructed TextBlocks for the first page
+    # Since we mocked it, we can verify that blocks inside the spatial engine were mapped correctly
+    assert len(sections) == 1
+    # Check that it did not raise exceptions, and check mapping worked.
+    # Let's ensure the label "EMD Amount" mapped successfully to EMD
+    fields_map = {}
+    for s in sections:
+        for f in s["fields"]:
+            fields_map[f["label"]] = f
+            
+    assert "EMD Amount" in fields_map
+    assert "50000" in fields_map["EMD Amount"]["value"]
+
+
+def test_classify_document_type():
+    from ocr.pipeline import classify_document_type
+    
+    # 1. GeM bids matching Bid Document
+    assert classify_document_type("This is a Bid Document for procurement...") == "gem_structured"
+    
+    # 2. GeM bids matching regex
+    assert classify_document_type("Bid details: GEM/2026/R/482718") == "gem_structured"
+    
+    # 3. Generic NIT
+    assert classify_document_type("Notice Inviting Tender for building roads...") == "generic_nit"
+
+
