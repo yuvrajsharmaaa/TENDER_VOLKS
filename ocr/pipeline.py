@@ -8,6 +8,8 @@ from ocr.layout.layout_detector import LayoutDetector
 from ocr.layout.layoutlm_stage import LayoutLmStage
 from ocr.extractors.field_extractor import FieldExtractor, is_contained
 from ocr.result_writer import write_page_json, write_aggregate_json
+import re
+from ocr.extractors.gem_field_extractor import GemFieldExtractor
 
 from backend.app.models.models import PageResult, TextBlock, LayoutRegion
 from backend.app.schemas.schemas import (
@@ -71,6 +73,17 @@ def serialize_page_result_to_xml(pr: PageResult) -> str:
         
     lines.append("</page>")
     return "\n".join(lines)
+
+def is_gem_document(page_results: list[PageResult]) -> bool:
+    if not page_results:
+        return False
+    for block in page_results[0].text_blocks:
+        text = block.text.lower()
+        if "bid document" in text or "bid details" in text or "government e-marketplace" in text:
+            return True
+        if re.search(r'gem/20\d{2}/[a-z]/\d+', text):
+            return True
+    return False
 
 def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False) -> list[PageResult]:
     start_pipeline_time = time.time()
@@ -161,7 +174,12 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False) -> list
 
     
     # 4. Deterministic Field Extraction + Product/Item extraction
-    extractor = FieldExtractor()
+    is_gem = is_gem_document(page_results)
+    if is_gem:
+        extractor = GemFieldExtractor()
+    else:
+        extractor = FieldExtractor()
+        
     extracted_fields = extractor.extract_fields(page_results)
     extracted_products = extractor.extract_products(page_results)
 
@@ -210,6 +228,12 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False) -> list
         pages=layout_pages
     )
     
+    needs_stage2 = False
+    if is_gem:
+        for f in extracted_fields:
+            if f.field_name == "required_documents" and isinstance(f.value, list):
+                needs_stage2 = any(item.get("needs_stage2") for item in f.value if isinstance(item, dict))
+
     # extracted_fields.json
     extracted_fields_resp = ExtractedFieldsResponse(
         job_id=job_id,
@@ -218,7 +242,8 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False) -> list
         extracted_fields=extracted_fields,
         extracted_products=[
             ProductItemSchema(**p) for p in extracted_products
-        ]
+        ],
+        needs_stage2_atc_parse=needs_stage2
     )
 
     # Save files to disk

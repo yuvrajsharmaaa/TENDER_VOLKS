@@ -476,6 +476,10 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
 
     # 16. Bid Validity
     bid_validity_days_display = resolve_field("Bid Validity Period", r"Bid Validity \(Days\)[:\-\s]+([^\n]+)")
+    if bid_validity_days_display and bid_validity_days_display != "NA":
+        clean_num = re.sub(r"\D", "", str(bid_validity_days_display))
+        if clean_num:
+            bid_validity_days_display = f"{clean_num} Days"
 
     # 17. Commercial Evaluation
     commercial_evaluation_display = resolve_field(["Commercial Evaluation", "Commercial Evaluation Type"], r"Commercial Evaluation Type[:\-\s]+([^\n]+)")
@@ -635,6 +639,88 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     docket_slip_upload_display = "NA"
     physical_docs_uploaded_display = "NA"
 
+    # Format and map GeM required documents list
+    docs_list_raw = field_lookup.get("required_documents") or field_lookup.get("Document required from seller")
+    if docs_list_raw:
+        import ast
+        parsed_docs = []
+        try:
+            if isinstance(docs_list_raw, str) and docs_list_raw.startswith("["):
+                parsed_docs = ast.literal_eval(docs_list_raw)
+            elif isinstance(docs_list_raw, list):
+                parsed_docs = docs_list_raw
+        except Exception:
+            pass
+        if not parsed_docs and isinstance(docs_list_raw, str):
+            parsed_docs = [d.strip() for d in docs_list_raw.split(",") if d.strip()]
+            
+        for idx, doc in enumerate(parsed_docs[:9]):
+            doc_name = doc.get("document_name") if isinstance(doc, dict) else str(doc)
+            if idx == 0: doc_1_display = doc_name
+            elif idx == 1: doc_2_display = doc_name
+            elif idx == 2: doc_3_display = doc_name
+            elif idx == 3: doc_4_display = doc_name
+            elif idx == 4: doc_5_display = doc_name
+            elif idx == 5: doc_6_display = doc_name
+            elif idx == 6: doc_7_display = doc_name
+            elif idx == 7: doc_8_display = doc_name
+            elif idx == 8: doc_9_display = doc_name
+
+    # Policies displays
+    mse_relaxation_display = field_lookup.get("mse_relaxation_experience_turnover") or field_lookup.get("MSE Relaxation for Years of Experience and Turnover") or "NA"
+    startup_relaxation_display = field_lookup.get("startup_relaxation_experience_turnover") or field_lookup.get("Startup Relaxation for Years Of Experience and Turnover") or "NA"
+    
+    mse_pref = field_lookup.get("mse_purchase_preference") or field_lookup.get("MSE Purchase Preference") or "NA"
+    mse_band = field_lookup.get("mse_preference_price_band_percent") or field_lookup.get("Purchase Preference to MSE OEMs available upto price within L1+X%")
+    mse_qty = field_lookup.get("mse_preference_max_qty_percent") or field_lookup.get("Maximum Percentage of Bid quantity for MSE purchase preference")
+    if mse_pref != "NA" and (mse_band or mse_qty):
+        mse_preference_display = f"{mse_pref} (Band: {mse_band or 'NA'}, Qty: {mse_qty or 'NA'})"
+    else:
+        mse_preference_display = mse_pref
+        
+    mii_pref = field_lookup.get("mii_purchase_preference") or field_lookup.get("MII Purchase Preference") or "NA"
+    mii_reason = field_lookup.get("mii_non_applicability_reason") or field_lookup.get("Brief Description of the Approval Granted by Competent Authority")
+    if mii_pref != "NA" and mii_reason:
+        mii_preference_display = f"{mii_pref} (Reason: {mii_reason})"
+    else:
+        mii_preference_display = mii_pref
+
+    # Pre-bid display
+    pre_bid_display = "NA"
+    pre_bid_raw = field_lookup.get("pre_bid_meeting") or field_lookup.get("Pre-Bid Date and Time") or field_lookup.get("Pre-Bid Venue")
+    if pre_bid_raw:
+        pre_bid_display = str(pre_bid_raw).replace("\n", " ").strip()
+
+    # Schedules display
+    schedule_1_details_display = "NA"
+    schedule_2_details_display = "NA"
+    schedule_3_details_display = "NA"
+    
+    sch_raw = field_lookup.get("schedules")
+    if sch_raw:
+        import ast
+        schedules_list = []
+        try:
+            if isinstance(sch_raw, str) and sch_raw.startswith("["):
+                schedules_list = ast.literal_eval(sch_raw)
+            elif isinstance(sch_raw, list):
+                schedules_list = sch_raw
+        except Exception:
+            pass
+            
+        for idx, sch in enumerate(schedules_list[:3]):
+            sch_num = sch.get("schedule_number", idx+1)
+            desc = sch.get("item_description", "NA")
+            qty = sch.get("quantity", "NA")
+            days = sch.get("delivery_days", "NA")
+            specs = sch.get("technical_specs", {})
+            specs_str = ", ".join(f"{k}: {v}" for k, v in specs.items()) if isinstance(specs, dict) else str(specs)
+            detail = f"Sch {sch_num} | Qty: {qty} | Delivery: {days} days | {desc} | Specs: {specs_str}"
+            
+            if idx == 0: schedule_1_details_display = detail
+            elif idx == 1: schedule_2_details_display = detail
+            elif idx == 2: schedule_3_details_display = detail
+
     return {
         "organization": organization,
         "tender_name": tender_name,
@@ -706,5 +792,13 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         "courier_delivery_time_display": courier_delivery_time_display,
         "docket_slip_upload_display": docket_slip_upload_display,
         "physical_docs_uploaded_display": physical_docs_uploaded_display,
+        "mse_relaxation_display": mse_relaxation_display,
+        "startup_relaxation_display": startup_relaxation_display,
+        "mse_preference_display": mse_preference_display,
+        "mii_preference_display": mii_preference_display,
+        "pre_bid_meeting_display": pre_bid_display,
+        "schedule_1_details_display": schedule_1_details_display,
+        "schedule_2_details_display": schedule_2_details_display,
+        "schedule_3_details_display": schedule_3_details_display,
     }
 

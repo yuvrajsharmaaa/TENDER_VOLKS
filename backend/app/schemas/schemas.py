@@ -51,11 +51,13 @@ class SourceBlockRef(BaseModel):
 
 class ExtractedFieldSchema(BaseModel):
     field_name: str
-    value: str
+    value: Optional[Any] = None
     confidence: float
     source_page: int
     evidence: str
     source_blocks: List[SourceBlockRef]
+    source: Optional[str] = None
+    likely_source: Optional[str] = None
 
 class ProductItemSchema(BaseModel):
     product_name: str
@@ -75,3 +77,4 @@ class ExtractedFieldsResponse(BaseModel):
     page_count: int
     extracted_fields: List[ExtractedFieldSchema]
     extracted_products: List[ProductItemSchema] = []
+    needs_stage2_atc_parse: Optional[bool] = None

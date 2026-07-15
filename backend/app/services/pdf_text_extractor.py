@@ -1,4 +1,3 @@
-import fitz
 from pathlib import Path
 from PIL import Image, ImageEnhance, ImageFilter
 import numpy as np
@@ -58,6 +57,7 @@ def is_text_scrambled_or_garbage(text: str) -> bool:
     return False
 
 def extract_pdf_text_hybrid(pdf_path: str, pages_dir: Path) -> List[Dict[str, Any]]:
+    import fitz
     """
     Hybrid PDF extraction.
     Determines if a page is a text-based digital PDF or a scanned image page.

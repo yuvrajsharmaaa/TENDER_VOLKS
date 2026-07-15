@@ -1,4 +1,3 @@
-import fitz  # PyMuPDF
 from pathlib import Path
 
 def convert_pdf_to_images(
@@ -6,6 +5,7 @@ def convert_pdf_to_images(
     output_dir: Path,
     dpi: int = 200
 ) -> list[Path]:
+    import fitz  # PyMuPDF
     """
     Step 1: Open the PDF document.
     Step 2: Iterate pages, render each to a pixmap at target DPI.

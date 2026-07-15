@@ -644,6 +644,46 @@ class FieldExtractor:
                 text_lower = text.lower()
                 if len(text.strip()) < 4:
                     continue
+                for category, keywords in category_keywords.items():
+                    if not any(re.search(rf'(?<!\w){re.escape(kw)}(?!\w)', text_lower) for kw in keywords):
+                        continue
+                    qty = None
+                    unit = None
+                    qty_match = re.search(
+                        r'\b(\d+(?:\.\d+)?)\s*(?:nos|no|units|unit|sets|set|pcs|pieces|pairs|kg|m|mtr|meter|meters|sqm|each|lot|ea)\b',
+                        text, re.IGNORECASE
+                    )
+                    if qty_match:
+                        qty = qty_match.group(1)
+                        tail = text[qty_match.end():].strip()[:20].lower()
+                        unit_match = re.search(r'\b(?:nos|no|units|unit|sets|set|pcs|pieces|pairs|kg|m|mtr|meter|meters|sqm|each|lot|ea)\b', tail)
+                        if unit_match:
+                            unit = unit_match.group(0)
+
+                    brand_match = re.search(r'\b(?:oem|make|brand|mfg|manufacturer)[:\s]+([A-Za-z][A-Za-z0-9\s&\-]{2,30})', text, re.IGNORECASE)
+                    brand = brand_match.group(1).strip() if brand_match else None
+
+                    key = (category, text[:80].strip().lower())
+                    if key in seen:
+                        continue
+                    seen.add(key)
+
+                    products.append({
+                        "product_name": category.replace("_", " ").title(),
+                        "normalized_category": category,
+                        "raw_text": text,
+                        "quantity": qty,
+                        "unit": unit,
+                        "technical_specification": text,
+                        "brand_or_oem_if_present": brand,
+                        "page_number": page_num,
+                        "confidence": round(0.6 + min(0.35, len([k for k in keywords if re.search(rf'(?<!\w){re.escape(k)}(?!\w)', text_lower)]) * 0.05), 2),
+                        "evidence_text": text,
+                    })
+                    break
+
+        return products
+
     def extract_fields(self, pages: List[PageResult]) -> List[ExtractedFieldSchema]:
         extracted = []
         print(f"\n[FIELD_EXTRACTOR_DEBUG] Starting field extraction on {len(pages)} page(s).", flush=True)
@@ -892,12 +932,12 @@ class FieldExtractor:
                         anchor_candidates.sort(key=lambda sb: sb[1].bounding_box["x1"])
                         anchor_score, anchor_found = anchor_candidates[0]
 
-                        print(f"  [FIELD_EXTRACTOR_DEBUG] Table row anchor matched: '{anchor_found.text}'", flush=True)
+                        print(f"  [FIELD_EXTRACTOR_DEBUG] Table row anchor matched: {ascii(anchor_found.text)}", flush=True)
                         value_blocks = [b for b in row if b != anchor_found]
                         value_blocks.sort(key=lambda b: b.bounding_box["x1"])
                         cell_text = " ".join(b.text.strip() for b in value_blocks)
                         val = self._match_value_pattern(cell_text, rule["type"])
-                        print(f"    [FIELD_EXTRACTOR_DEBUG] Table cell value test (concatenated): '{cell_text}' -> matched val: '{val}'", flush=True)
+                        print(f"    [FIELD_EXTRACTOR_DEBUG] Table cell value test (concatenated): {ascii(cell_text)} -> matched val: {ascii(val)}", flush=True)
                         if val:
                             conf = anchor_score + 0.35 + 0.20 + 0.05
                             conf = min(1.0, conf)
@@ -928,7 +968,7 @@ class FieldExtractor:
                             suffix = self._extract_suffix_after_anchor(anchor_found.text, rule["anchors"] + rule.get("hindi", []))
                             if suffix:
                                 suffix_val = self._match_value_pattern(suffix, rule["type"])
-                                print(f"    [FIELD_EXTRACTOR_DEBUG] Table anchor suffix value: '{suffix}' -> matched val: '{suffix_val}'", flush=True)
+                                print(f"    [FIELD_EXTRACTOR_DEBUG] Table anchor suffix value: {ascii(suffix)} -> matched val: {ascii(suffix_val)}", flush=True)
                                 if suffix_val:
                                     candidates.append({
                                         "value": suffix_val,
@@ -978,7 +1018,7 @@ class FieldExtractor:
 
                         if is_org_preposition:
                             val = block.text.strip()
-                            print(f"  [FIELD_EXTRACTOR_DEBUG] Same-block match (org preposition): '{block.text}' -> '{val}'", flush=True)
+                            print(f"  [FIELD_EXTRACTOR_DEBUG] Same-block match (org preposition): {ascii(block.text)} -> {ascii(val)}", flush=True)
                             conf = anchor_score + 0.35 + 0.25
                             conf = min(1.0, conf)
                             candidates.append({
@@ -1003,7 +1043,7 @@ class FieldExtractor:
                             if suffix:
                                 val = self._match_value_pattern(suffix, rule["type"])
                         if val and val != block.text.strip():
-                            print(f"  [FIELD_EXTRACTOR_DEBUG] Same-block match: '{block.text}' -> '{val}'", flush=True)
+                            print(f"  [FIELD_EXTRACTOR_DEBUG] Same-block match: {ascii(block.text)} -> {ascii(val)}", flush=True)
                             conf = anchor_score + 0.35 + 0.25
                             conf = min(1.0, conf)
                             candidates.append({
@@ -1029,7 +1069,7 @@ class FieldExtractor:
                             if val:
                                 dist_y = abs(next_block.bounding_box["y1"] - block.bounding_box["y2"])
                                 if dist_y < 50:
-                                    print(f"  [FIELD_EXTRACTOR_DEBUG] Next-block match: '{block.text}' | '{next_block.text}' -> '{val}'", flush=True)
+                                    print(f"  [FIELD_EXTRACTOR_DEBUG] Next-block match: {ascii(block.text)} | {ascii(next_block.text)} -> {ascii(val)}", flush=True)
                                     conf = anchor_score + 0.35 + 0.15
                                     conf = min(1.0, conf)
                                     candidates.append({
@@ -1082,7 +1122,7 @@ class FieldExtractor:
                                         best_neighbor_val = val
                                         
                         if best_neighbor:
-                            print(f"  [FIELD_EXTRACTOR_DEBUG] Spatial neighbor match: '{block.text}' -> '{best_neighbor.text}' -> '{best_neighbor_val}'", flush=True)
+                            print(f"  [FIELD_EXTRACTOR_DEBUG] Spatial neighbor match: {ascii(block.text)} -> {ascii(best_neighbor.text)} -> {ascii(best_neighbor_val)}", flush=True)
                             conf = anchor_score + 0.35 + 0.15
                             conf = min(1.0, conf)
                             candidates.append({
@@ -1123,7 +1163,7 @@ class FieldExtractor:
 
                 if candidates:
                     best_cand = sorted(candidates, key=lambda c: c["confidence"], reverse=True)[0]
-                    print(f"[FIELD_EXTRACTOR_DEBUG] Extracted value for '{field_name}': '{best_cand['value']}' (conf: {best_cand['confidence']})", flush=True)
+                    print(f"[FIELD_EXTRACTOR_DEBUG] Extracted value for '{field_name}': {ascii(best_cand['value'])} (conf: {best_cand['confidence']})", flush=True)
                 else:
                     print(f"[FIELD_EXTRACTOR_DEBUG] Extracted value for '{field_name}': Not Found (all candidates looked like paragraphs)", flush=True)
                     extracted.append(ExtractedFieldSchema(

@@ -1,8 +1,10 @@
 import logging
+import re
 from typing import List, Dict, Any
 
 from backend.app.models.models import PageResult, TextBlock
 from ocr.extractors.field_extractor import FieldExtractor
+from ocr.extractors.gem_field_extractor import GemFieldExtractor
 
 logger = logging.getLogger(__name__)
 
@@ -41,8 +43,22 @@ def extract_tender_fields(pages: List[Dict[str, Any]], filename_title: str) -> L
             layout_regions=[]
         ))
         
-    # 2. Run advanced FieldExtractor
-    extractor = FieldExtractor()
+    # 2. Run advanced FieldExtractor or GemFieldExtractor based on document type
+    is_gem = False
+    if pages:
+        for p in pages:
+            text = p.get("text", "").lower()
+            if "bid document" in text or "bid details" in text or "government e-marketplace" in text:
+                is_gem = True
+                break
+            if re.search(r'gem/20\d{2}/[a-z]/\d+', text):
+                is_gem = True
+                break
+
+    if is_gem:
+        extractor = GemFieldExtractor()
+    else:
+        extractor = FieldExtractor()
     extracted = extractor.extract_fields(mock_results)
     
     # 3. Map extracted fields back to legacy sections structure expected by tender_mapper
@@ -51,13 +67,20 @@ def extract_tender_fields(pages: List[Dict[str, Any]], filename_title: str) -> L
         "tender_value": "Estimated Tender Value",
         "EMD": "EMD Amount",
         "emd_amount": "EMD Amount",
+        "emd_total": "EMD Amount",
+        "emd_required": "EMD Required",
+        "bid_validity_days": "Bid Validity Period",
+        "reverse_auction_enabled": "Reverse Auction Applicable",
         "NIT No": "Reference ID / NIT No",
         "bid_number": "Reference ID / NIT No",
+        "tender_id": "Reference ID / NIT No",
         "Bid Submission End Date": "Bid Submission Deadline",
         "bid_end_datetime": "Bid Submission Deadline",
         "Organisation": "Organisation",
         "organisation_name": "Organisation",
+        "organization_name": "Organisation",
         "ministry_name": "Organisation",
+        "ministry_state_name": "Organisation",
         "department_name": "Organisation",
         "office_name": "Organisation",
         "Tender Fee": "Tender Fee",

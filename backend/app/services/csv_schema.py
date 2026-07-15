@@ -458,6 +458,34 @@ INFOSHEET_PAGE2_LAYOUT = [
         _cell(2, "label", "Physical Documents Couriered - Upload", wrap=True),
         _cell(1, "value", key="physical_docs_uploaded_display"),
     ], height=30),
+    _row([_cell(6, "spacer", "")], height=10),
+    _row([_cell(6, "header", "Evaluation & Preference Policies", style=STYLE_SECTION_HEADER, bold=True, align="center")]),
+    _row([
+        _cell(2, "label", "MSE Relaxation"), _cell(1, "value", key="mse_relaxation_display"),
+        _cell(2, "label", "Startup Relaxation"), _cell(1, "value", key="startup_relaxation_display"),
+    ]),
+    _row([
+        _cell(2, "label", "MSE Purchase Preference"), _cell(1, "value", key="mse_preference_display"),
+        _cell(2, "label", "MII Purchase Preference"), _cell(1, "value", key="mii_preference_display"),
+    ]),
+    _row([
+        _cell(2, "label", "Pre-Bid Meeting Details"),
+        _cell(4, "value", key="pre_bid_meeting_display"),
+    ]),
+    _row([_cell(6, "spacer", "")], height=10),
+    _row([_cell(6, "header", "Schedule & Technical Specifications", style=STYLE_SECTION_HEADER, bold=True, align="center")]),
+    _row([
+        _cell(2, "label", "Schedule 1 Details"),
+        _cell(4, "value", key="schedule_1_details_display"),
+    ], height=40),
+    _row([
+        _cell(2, "label", "Schedule 2 Details"),
+        _cell(4, "value", key="schedule_2_details_display"),
+    ], height=40),
+    _row([
+        _cell(2, "label", "Schedule 3 Details"),
+        _cell(4, "value", key="schedule_3_details_display"),
+    ], height=40),
 ]
 
 # Column width plan (characters) for the 6-column A-F grid used by both pages.
@@ -493,4 +521,8 @@ INFOSHEET_DATA_KEYS = [
     "courier_address_display", "courier_provider_display",
     "courier_docket_no_display", "courier_delivery_time_display",
     "docket_slip_upload_display", "physical_docs_uploaded_display",
+    "mse_relaxation_display", "startup_relaxation_display",
+    "mse_preference_display", "mii_preference_display",
+    "pre_bid_meeting_display",
+    "schedule_1_details_display", "schedule_2_details_display", "schedule_3_details_display",
 ]

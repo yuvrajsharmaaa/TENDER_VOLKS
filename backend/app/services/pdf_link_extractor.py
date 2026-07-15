@@ -1,9 +1,9 @@
-import fitz
 import re
 import os
 from typing import List, Dict, Any, Tuple
 
 def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    import fitz
     """
     Hardened layer-based link extractor for tender PDFs.
     Layer 1: Standard machine-readable page links via page.get_links()
