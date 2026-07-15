@@ -109,3 +109,64 @@ def test_field_extractor_new_gem_fields():
     assert "years_of_past_experience" in field_map
     assert field_map["years_of_past_experience"].value == "3 Year"
 
+
+def test_field_extractor_gem_stage1_specifications():
+    extractor = FieldExtractor()
+    
+    # 1. Mock a page containing schedule-wise EMDs
+    b1 = TextBlock(block_id="b1", text="Schedule 1 EMD Amount (In INR)", confidence=1.0, bounding_box={"x1": 10, "y1": 10, "x2": 200, "y2": 25}, language_hint="en")
+    b2 = TextBlock(block_id="b2", text="43000", confidence=1.0, bounding_box={"x1": 220, "y1": 10, "x2": 300, "y2": 25}, language_hint="en")
+    b3 = TextBlock(block_id="b3", text="Schedule 2 EMD Amount (In INR)", confidence=1.0, bounding_box={"x1": 10, "y1": 40, "x2": 200, "y2": 55}, language_hint="en")
+    b4 = TextBlock(block_id="b4", text="7000", confidence=1.0, bounding_box={"x1": 220, "y1": 40, "x2": 300, "y2": 55}, language_hint="en")
+    
+    # 2. Mock a schedule-wise consignee table
+    r_header = LayoutRegion(region_id="r1", region_type="table", bounding_box={"x1": 10, "y1": 100, "x2": 600, "y2": 300}, contained_block_ids=[], reading_order_index=1, text_content="")
+    b_sch = TextBlock(block_id="b_sch", text="Schedule 1", confidence=1.0, bounding_box={"x1": 10, "y1": 80, "x2": 100, "y2": 95}, language_hint="en")
+    
+    b_col1 = TextBlock(block_id="b_col1", text="Consignee/Reporting Officer", confidence=1.0, bounding_box={"x1": 10, "y1": 110, "x2": 150, "y2": 130}, language_hint="en")
+    b_col2 = TextBlock(block_id="b_col2", text="Address", confidence=1.0, bounding_box={"x1": 160, "y1": 110, "x2": 300, "y2": 130}, language_hint="en")
+    b_col3 = TextBlock(block_id="b_col3", text="Quantity", confidence=1.0, bounding_box={"x1": 310, "y1": 110, "x2": 400, "y2": 130}, language_hint="en")
+    b_col4 = TextBlock(block_id="b_col4", text="Delivery Days", confidence=1.0, bounding_box={"x1": 410, "y1": 110, "x2": 500, "y2": 130}, language_hint="en")
+    
+    b_val1 = TextBlock(block_id="b_val1", text="John Doe", confidence=1.0, bounding_box={"x1": 10, "y1": 140, "x2": 150, "y2": 160}, language_hint="en")
+    b_val2 = TextBlock(block_id="b_val2", text="123 Street Name, Delhi", confidence=1.0, bounding_box={"x1": 160, "y1": 140, "x2": 300, "y2": 160}, language_hint="en")
+    b_val3 = TextBlock(block_id="b_val3", text="445", confidence=1.0, bounding_box={"x1": 310, "y1": 140, "x2": 400, "y2": 160}, language_hint="en")
+    b_val4 = TextBlock(block_id="b_val4", text="90", confidence=1.0, bounding_box={"x1": 410, "y1": 140, "x2": 500, "y2": 160}, language_hint="en")
+    
+    page = PageResult(
+        job_id="test_job",
+        page_number=1,
+        image_path="",
+        image_width_px=1000,
+        image_height_px=1000,
+        processing_time_seconds=0.1,
+        text_blocks=[b1, b2, b3, b4, b_sch, b_col1, b_col2, b_col3, b_col4, b_val1, b_val2, b_val3, b_val4],
+        layout_regions=[r_header]
+    )
+    
+    fields = extractor.extract_fields([page])
+    field_map = {f.field_name: f for f in fields}
+    
+    # Assert EMD by schedule and derived fields
+    assert "emd_by_schedule" in field_map
+    assert "1: 43000" in field_map["emd_by_schedule"].value
+    assert "2: 7000" in field_map["emd_by_schedule"].value
+    
+    assert "emd_total" in field_map
+    assert "50,000" in field_map["emd_total"].value
+    
+    assert "emd_required" in field_map
+    assert field_map["emd_required"].value == "Yes"
+    
+    # Assert schedules extracted
+    assert "schedules" in field_map
+    assert "John Doe" in field_map["schedules"].value
+    assert "445" in field_map["schedules"].value
+    
+    # Assert out-of-scope fields correctly set
+    assert "tender_value_gst_inclusive" in field_map
+    assert field_map["tender_value_gst_inclusive"].value == "Out of Scope (Stage 1)"
+    
+    assert "eligibility_criterion_years" in field_map
+    assert field_map["eligibility_criterion_years"].value == "Out of Scope (Stage 1)"
+

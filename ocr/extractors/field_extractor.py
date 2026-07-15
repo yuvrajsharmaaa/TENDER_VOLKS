@@ -81,6 +81,35 @@ class FieldExtractor:
             re.IGNORECASE
         )
         
+        # Explicit out of scope fields for Stage 1 (confirmed missing in parent PDF)
+        self.out_of_scope_stage1 = [
+            "tender_value_gst_inclusive",
+            "eligibility_criterion_years",
+            "annual_avg_turnover_value",
+            "working_capital_value",
+            "net_worth_type_value",
+            "solvency_certificate_value",
+            "ld_applicable",
+            "ld_percentage_per_week",
+            "max_ld_percentage",
+            "payment_terms_supply_percent",
+            "payment_terms_installation_percent",
+            "maf_required",
+            "client_contact_person",
+            "full_courier_address_with_pincode",
+            "tender_fee_amount",
+            "processing_fee_amount",
+            
+            # Legacy field mappers that are out of scope in parent PDF
+            "Tender Value",
+            "tender_value",
+            "Tender Fee",
+            "tender_fee_amount",
+            "years_of_past_experience",
+            "minimum_average_annual_turnover",
+            "past_experience_required"
+        ]
+
         # Mapping definition of fields with anchors, hindi translations, and type of regex used
         self.rules = {
             # Legacy Fields
@@ -208,12 +237,179 @@ class FieldExtractor:
             },
             "years_of_past_experience": {
                 "anchors": ["years of past experience", "past experience", "experience criteria", "bidder experience", "years of experience"],
-                "hindi": ["अनुभव", "पूर्व अनुभव"],
+                "hindi": ["अनुभाव", "पूर्व अनुभव"],
                 "type": "experience"
             },
             "past_experience_required": {
                 "anchors": ["past experience required", "past performance", "experience required", "performance required", "past experience required?"],
                 "hindi": ["पूर्व प्रदर्शन", "पूर्व अनुभव आवश्यक"],
+                "type": "yes_no"
+            },
+
+            # GeM Parent Tender Stage 1 Map Fields
+            "tender_id": {
+                "anchors": ["Bid Number"],
+                "hindi": ["बोली संख्या"],
+                "type": "nit"
+            },
+            "bid_published_date": {
+                "anchors": ["Dated"],
+                "hindi": ["दिनांक"],
+                "type": "date"
+            },
+            "ministry_state_name": {
+                "anchors": ["Ministry/State Name", "Ministry Name"],
+                "hindi": ["मंत्रालय/राज्य नाम"],
+                "type": "org"
+            },
+            "total_quantity": {
+                "anchors": ["Total Quantity"],
+                "hindi": ["कुल मात्रा"],
+                "type": "integer"
+            },
+            "bid_opening_datetime": {
+                "anchors": ["Bid Opening Date/Time"],
+                "hindi": ["बोली खोले जाने का समय"],
+                "type": "datetime"
+            },
+            "bid_validity_days": {
+                "anchors": ["Bid Offer Validity", "Bid Offer Validity (From publish date)"],
+                "hindi": ["बोली वैधता"],
+                "type": "validity"
+            },
+            "auto_extension_days": {
+                "anchors": ["Number of days for which Bid would be auto-extended"],
+                "hindi": [],
+                "type": "integer"
+            },
+            "auto_extension_max_count": {
+                "anchors": ["Number of Auto Extension count"],
+                "hindi": [],
+                "type": "integer"
+            },
+            "min_bids_to_disable_auto_extension": {
+                "anchors": ["Minimum number of bids required to disable automatic bid extension"],
+                "hindi": [],
+                "type": "integer"
+            },
+            "pre_bid_meeting": {
+                "anchors": ["Pre-Bid Date and Time", "Pre-Bid Venue"],
+                "hindi": [],
+                "type": "text"
+            },
+            "emd_by_schedule": {
+                "anchors": ["Schedule 1 EMD Amount", "Schedule 2 EMD Amount", "EMD Amount"],
+                "hindi": [],
+                "type": "emd_by_schedule"
+            },
+            "emd_advisory_bank": {
+                "anchors": ["Advisory Bank"],
+                "hindi": [],
+                "type": "text"
+            },
+            "pbg_percentage": {
+                "anchors": ["ePBG Percentage(%)", "ePBG Percentage"],
+                "hindi": [],
+                "type": "currency"
+            },
+            "pbg_duration_months": {
+                "anchors": ["Duration of ePBG required (Months)"],
+                "hindi": [],
+                "type": "integer"
+            },
+            "pbg_advisory_bank": {
+                "anchors": ["Advisory Bank"],
+                "hindi": [],
+                "type": "text"
+            },
+            "beneficiary_name": {
+                "anchors": ["Beneficiary"],
+                "hindi": [],
+                "type": "text"
+            },
+            "evaluation_method": {
+                "anchors": ["Evaluation Method"],
+                "hindi": [],
+                "type": "text"
+            },
+            "reverse_auction_enabled": {
+                "anchors": ["Bid to RA enabled"],
+                "hindi": [],
+                "type": "yes_no"
+            },
+            "bid_type": {
+                "anchors": ["Type of Bid"],
+                "hindi": [],
+                "type": "text"
+            },
+            "inspection_required": {
+                "anchors": ["Inspection Required"],
+                "hindi": [],
+                "type": "yes_no"
+            },
+            "arbitration_clause": {
+                "anchors": ["Arbitration Clause"],
+                "hindi": [],
+                "type": "yes_no"
+            },
+            "mediation_clause": {
+                "anchors": ["Mediation Clause"],
+                "hindi": [],
+                "type": "yes_no"
+            },
+            "mse_relaxation_experience_turnover": {
+                "anchors": ["MSE Relaxation for Years of Experience and Turnover", "Relaxation for Years of Experience and Turnover"],
+                "hindi": [],
+                "type": "yes_no"
+            },
+            "startup_relaxation_experience_turnover": {
+                "anchors": ["Startup Relaxation for Years Of Experience and Turnover"],
+                "hindi": [],
+                "type": "text"
+            },
+            "mse_purchase_preference": {
+                "anchors": ["MSE Purchase Preference"],
+                "hindi": [],
+                "type": "yes_no"
+            },
+            "mse_preference_price_band_percent": {
+                "anchors": ["Purchase Preference to MSE OEMs available upto price within L1+X%"],
+                "hindi": [],
+                "type": "currency"
+            },
+            "mse_preference_max_qty_percent": {
+                "anchors": ["Maximum Percentage of Bid quantity for MSE purchase preference"],
+                "hindi": [],
+                "type": "currency"
+            },
+            "mii_purchase_preference": {
+                "anchors": ["MII Purchase Preference"],
+                "hindi": [],
+                "type": "yes_no"
+            },
+            "mii_non_applicability_reason": {
+                "anchors": ["Brief Description of the Approval Granted by Competent Authority"],
+                "hindi": [],
+                "type": "text"
+            },
+            "required_documents": {
+                "anchors": ["Document required from seller"],
+                "hindi": [],
+                "type": "text"
+            },
+            "schedules": {
+                "anchors": [],
+                "hindi": [],
+                "type": "schedules"
+            },
+            "atc_document_link_present": {
+                "anchors": ["Buyer uploaded ATC document"],
+                "hindi": [],
+                "type": "yes_no"
+            },
+            "land_border_clause_present": {
+                "anchors": ["Restrictions on procurement from a bidder of a country which shares a land border with India"],
+                "hindi": [],
                 "type": "yes_no"
             }
         }
@@ -408,6 +604,9 @@ class FieldExtractor:
                 if not cleaned.lower().startswith(("bid document", "bid details", "boli vivran")):
                     return cleaned
             return None
+        elif field_type == "integer":
+            m = re.search(r'\b\d+\b', text_clean)
+            return m.group(0) if m else None
         return None
 
     def extract_products(self, pages: List[PageResult]) -> List[Dict[str, Any]]:
@@ -445,54 +644,221 @@ class FieldExtractor:
                 text_lower = text.lower()
                 if len(text.strip()) < 4:
                     continue
-                for category, keywords in category_keywords.items():
-                    # Use word-boundary-aware matching so short substrings like
-                    # "duct" inside "production" don't trigger false positives.
-                    if not any(re.search(rf'(?<!\w){re.escape(kw)}(?!\w)', text_lower) for kw in keywords):
-                        continue
-                    # Try to pull a quantity + unit from the same line.
-                    qty = None
-                    unit = None
-                    qty_match = re.search(
-                        r'\b(\d+(?:\.\d+)?)\s*(?:nos|no|units|unit|sets|set|pcs|pieces|pairs|kg|m|mtr|meter|meters|sqm|each|lot|ea)\b',
-                        text, re.IGNORECASE
-                    )
-                    if qty_match:
-                        qty = qty_match.group(1)
-                        tail = text[qty_match.end():].strip()[:20].lower()
-                        unit_match = re.search(r'\b(?:nos|no|units|unit|sets|set|pcs|pieces|pairs|kg|m|mtr|meter|meters|sqm|each|lot|ea)\b', tail)
-                        if unit_match:
-                            unit = unit_match.group(0)
-
-                    brand_match = re.search(r'\b(?:oem|make|brand|mfg|manufacturer)[:\s]+([A-Za-z][A-Za-z0-9\s&\-]{2,30})', text, re.IGNORECASE)
-                    brand = brand_match.group(1).strip() if brand_match else None
-
-                    key = (category, text[:80].strip().lower())
-                    if key in seen:
-                        continue
-                    seen.add(key)
-
-                    products.append({
-                        "product_name": category.replace("_", " ").title(),
-                        "normalized_category": category,
-                        "raw_text": text,
-                        "quantity": qty,
-                        "unit": unit,
-                        "technical_specification": text,
-                        "brand_or_oem_if_present": brand,
-                        "page_number": page_num,
-                        "confidence": round(0.6 + min(0.35, len([k for k in keywords if re.search(rf'(?<!\w){re.escape(k)}(?!\w)', text_lower)]) * 0.05), 2),
-                        "evidence_text": text,
-                    })
-                    break
-
-        return products
-
     def extract_fields(self, pages: List[PageResult]) -> List[ExtractedFieldSchema]:
         extracted = []
         print(f"\n[FIELD_EXTRACTOR_DEBUG] Starting field extraction on {len(pages)} page(s).", flush=True)
         
         for field_name, rule in self.rules.items():
+            # 1. Custom Multi-Instance Field Processing
+            if field_name == "emd_by_schedule":
+                emd_dict = {}
+                source_blocks = []
+                evidence_parts = []
+                for page in pages:
+                    for block in page.text_blocks:
+                        m_sch = re.search(r"Schedule\s*(\d+)\s*EMD\s*Amount", block.text, re.IGNORECASE)
+                        if m_sch:
+                            sch_num = int(m_sch.group(1))
+                            val_str = self._extract_suffix_after_anchor(block.text, [m_sch.group(0)])
+                            val = None
+                            if val_str:
+                                val = self._match_value_pattern(val_str, "currency")
+                            if not val:
+                                try:
+                                    idx = page.text_blocks.index(block)
+                                    if idx + 1 < len(page.text_blocks):
+                                        val = self._match_value_pattern(page.text_blocks[idx+1].text, "currency")
+                                except ValueError:
+                                    pass
+                            if val:
+                                clean_val = re.sub(r"[^\d.]", "", val)
+                                if clean_val:
+                                    try:
+                                        emd_dict[sch_num] = float(clean_val)
+                                        evidence_parts.append(f"Schedule {sch_num}: {clean_val}")
+                                        source_blocks.append(SourceBlockRef(
+                                            page_number=page.page_number,
+                                            block_id=block.block_id,
+                                            text=block.text,
+                                            bounding_box=BoundingBox(**block.bounding_box)
+                                        ))
+                                    except ValueError:
+                                        pass
+                
+                # Also search table rows for Schedule N EMD Amount
+                for page in pages:
+                    table_regions = [r for r in page.layout_regions if r.region_type.lower() == "table"]
+                    for table in table_regions:
+                        table_blocks = [b for b in page.text_blocks if is_contained(b.bounding_box, table.bounding_box)]
+                        if not table_blocks:
+                            continue
+                        rows = group_blocks_into_rows(table_blocks)
+                        for row in rows:
+                            row_text = " ".join(b.text for b in row)
+                            m_sch = re.search(r"Schedule\s*(\d+)\s*EMD\s*Amount", row_text, re.IGNORECASE)
+                            if m_sch:
+                                sch_num = int(m_sch.group(1))
+                                if sch_num not in emd_dict:
+                                    for cell in row:
+                                        val = self._match_value_pattern(cell.text, "currency")
+                                        if val:
+                                            clean_val = re.sub(r"[^\d.]", "", val)
+                                            if clean_val:
+                                                try:
+                                                    emd_dict[sch_num] = float(clean_val)
+                                                    evidence_parts.append(f"Schedule {sch_num}: {clean_val}")
+                                                    source_blocks.append(SourceBlockRef(
+                                                        page_number=page.page_number,
+                                                        block_id=cell.block_id,
+                                                        text=cell.text,
+                                                        bounding_box=BoundingBox(**cell.bounding_box)
+                                                    ))
+                                                    break
+                                                except ValueError:
+                                                    pass
+
+                if emd_dict:
+                    val_repr = str(dict(sorted(emd_dict.items())))
+                    extracted.append(ExtractedFieldSchema(
+                        field_name="emd_by_schedule",
+                        value=val_repr,
+                        confidence=0.9,
+                        source_page=1,
+                        evidence=" | ".join(evidence_parts),
+                        source_blocks=source_blocks
+                    ))
+                else:
+                    default_val = "Out of Scope (Stage 1)" if "emd_by_schedule" in self.out_of_scope_stage1 else "Not Found"
+                    extracted.append(ExtractedFieldSchema(
+                        field_name="emd_by_schedule",
+                        value=default_val,
+                        confidence=0.0,
+                        source_page=1,
+                        evidence="No schedule EMD amounts found.",
+                        source_blocks=[]
+                    ))
+                continue
+
+            if field_name == "schedules":
+                schedules_data = {}
+                for page in pages:
+                    page_num = page.page_number
+                    blocks = page.text_blocks
+                    regions = page.layout_regions
+                    
+                    table_regions = [r for r in regions if r.region_type.lower() == "table"]
+                    for table in table_regions:
+                        table_blocks = [b for b in blocks if is_contained(b.bounding_box, table.bounding_box)]
+                        if not table_blocks:
+                            continue
+                        
+                        rows = group_blocks_into_rows(table_blocks)
+                        col_indices = {}
+                        
+                        header_row_idx = -1
+                        for idx, row in enumerate(rows):
+                            row_texts = [b.text.lower() for b in row]
+                            has_consignee = any("consignee" in txt or "reporting" in txt or "officer" in txt for txt in row_texts)
+                            has_qty = any("quantity" in txt or "मात्रा" in txt for txt in row_texts)
+                            has_days = any("delivery" in txt or "days" in txt for txt in row_texts)
+                            
+                            if has_consignee and (has_qty or has_days):
+                                header_row_idx = idx
+                                for col_idx, block in enumerate(row):
+                                    txt = block.text.lower()
+                                    if "consignee" in txt or "reporting" in txt or "officer" in txt:
+                                        col_indices["consignee_name"] = col_idx
+                                    elif "address" in txt or "पता" in txt:
+                                        col_indices["consignee_address"] = col_idx
+                                    elif "quantity" in txt or "मात्रा" in txt:
+                                        col_indices["quantity"] = col_idx
+                                    elif "delivery" in txt or "days" in txt:
+                                        col_indices["delivery_days"] = col_idx
+                                break
+                        
+                        if header_row_idx != -1 and col_indices:
+                            schedule_num = 1
+                            table_bbox = table.bounding_box
+                            # Search back for Schedule N
+                            for block in sorted(blocks, key=lambda b: b.bounding_box["y1"], reverse=True):
+                                if block.bounding_box["y2"] < table_bbox["y1"]:
+                                    m_sch = re.search(r"Schedule\s*(\d+)", block.text, re.IGNORECASE)
+                                    if m_sch:
+                                        schedule_num = int(m_sch.group(1))
+                                        break
+                            
+                            for row in rows[header_row_idx + 1:]:
+                                if len(row) < len(col_indices) - 1:
+                                    continue
+                                if any("total" in b.text.lower() or "योग" in b.text.lower() for b in row):
+                                    continue
+                                
+                                entry = {
+                                    "schedule_number": schedule_num,
+                                    "consignee_name": "Not Found",
+                                    "consignee_address": "Not Found",
+                                    "quantity": "Not Found",
+                                    "delivery_days": "Not Found",
+                                    "item_description": "Not Found",
+                                    "technical_specs": "Not Found"
+                                }
+                                
+                                for field, col_idx in col_indices.items():
+                                    if col_idx < len(row):
+                                        val = row[col_idx].text.strip()
+                                        if field in ("quantity", "delivery_days"):
+                                            clean_val = re.sub(r"\D", "", val)
+                                            if clean_val:
+                                                try:
+                                                    entry[field] = int(clean_val)
+                                                except ValueError:
+                                                    pass
+                                        else:
+                                            entry[field] = val
+                                
+                                desc = "Not Found"
+                                specs = {}
+                                for block in blocks:
+                                    if block.bounding_box["y2"] < table_bbox["y1"]:
+                                        if any(k in block.text.lower() for k in ["nominal battery voltage", "battery capacity", "specification", "voltage"]):
+                                            parts = block.text.split(":")
+                                            if len(parts) == 2:
+                                                specs[parts[0].strip()] = parts[1].strip()
+                                        if "pieces" in block.text or "quantity" in block.text.lower() or "schedule" in block.text.lower():
+                                            desc = block.text.strip()
+                                
+                                entry["item_description"] = desc
+                                if specs:
+                                    entry["technical_specs"] = str(specs)
+                                
+                                schedules_data.setdefault(schedule_num, []).append(entry)
+                
+                if schedules_data:
+                    flat_schedules = []
+                    for sch_num, entries in sorted(schedules_data.items()):
+                        flat_schedules.extend(entries)
+                    val_repr = str(flat_schedules)
+                    extracted.append(ExtractedFieldSchema(
+                        field_name="schedules",
+                        value=val_repr,
+                        confidence=0.9,
+                        source_page=1,
+                        evidence=f"Extracted {len(flat_schedules)} schedules/consignees.",
+                        source_blocks=[]
+                    ))
+                else:
+                    default_val = "Out of Scope (Stage 1)" if "schedules" in self.out_of_scope_stage1 else "Not Found"
+                    extracted.append(ExtractedFieldSchema(
+                        field_name="schedules",
+                        value=default_val,
+                        confidence=0.0,
+                        source_page=1,
+                        evidence="No schedules found.",
+                        source_blocks=[]
+                    ))
+                continue
+
+            # 2. Standard Rule-Based Field Processing
             candidates: List[Dict[str, Any]] = []
             print(f"[FIELD_EXTRACTOR_DEBUG] Processing rule '{field_name}' (expected type: '{rule['type']}')", flush=True)
             
@@ -510,16 +876,12 @@ class FieldExtractor:
 
                     rows = group_blocks_into_rows(table_blocks)
                     for row in rows:
-                        # Find all anchor candidates in the row, then prefer the leftmost
-                        # label cell. This prevents value cells that happen to contain
-                        # anchor keywords (e.g., "Ministry Of Defence") from being picked
-                        # as the anchor for "ministry_name".
                         anchor_candidates = []
                         for block in row:
                             score = 0.0
-                            if any(self._anchor_matches(k, block.text) for k in rule["hindi"]):
+                            if any(self._anchor_matches(k, block.text) for k in rule.get("hindi", [])):
                                 score = 0.40
-                            elif any(self._anchor_matches(k, block.text) for k in rule["anchors"]):
+                            elif any(self._anchor_matches(k, block.text) for k in rule.get("anchors", [])):
                                 score = 0.35
                             if score > 0.0:
                                 anchor_candidates.append((score, block))
@@ -531,9 +893,6 @@ class FieldExtractor:
                         anchor_score, anchor_found = anchor_candidates[0]
 
                         print(f"  [FIELD_EXTRACTOR_DEBUG] Table row anchor matched: '{anchor_found.text}'", flush=True)
-                        # Concatenate all non-anchor cells in reading order. This handles
-                        # the normal GeM table layout where the label and value are in
-                        # different cells.
                         value_blocks = [b for b in row if b != anchor_found]
                         value_blocks.sort(key=lambda b: b.bounding_box["x1"])
                         cell_text = " ".join(b.text.strip() for b in value_blocks)
@@ -566,9 +925,7 @@ class FieldExtractor:
                                 ]
                             })
                         elif rule["type"] in ("text", "org"):
-                            # Fallback: the anchor block itself may have merged the label
-                            # and value (common in GeM OCR). Extract the value suffix.
-                            suffix = self._extract_suffix_after_anchor(anchor_found.text, rule["anchors"] + rule["hindi"])
+                            suffix = self._extract_suffix_after_anchor(anchor_found.text, rule["anchors"] + rule.get("hindi", []))
                             if suffix:
                                 suffix_val = self._match_value_pattern(suffix, rule["type"])
                                 print(f"    [FIELD_EXTRACTOR_DEBUG] Table anchor suffix value: '{suffix}' -> matched val: '{suffix_val}'", flush=True)
@@ -590,32 +947,23 @@ class FieldExtractor:
                                     })
 
                 # Scan general blocks
-                # In the general block scan, avoid single-word broad anchors like
-                # "authority", "office", or "category" from matching paragraph text.
-                # Table rows have their own structural disambiguation, so they still
-                # use the full anchor set. Short uppercase acronyms (e.g. "EMD") are
-                # allowed here because they are specific.
                 general_anchors = [
-                    k for k in rule["anchors"]
+                    k for k in rule.get("anchors", [])
                     if len(k.split()) >= 2 or (len(k) <= 5 and k.isupper())
                 ]
 
                 for idx, block in enumerate(blocks):
                     anchor_score = 0.0
 
-                    if any(self._anchor_at_start_or_short(k, block.text) for k in rule["hindi"]):
+                    if any(self._anchor_at_start_or_short(k, block.text) for k in rule.get("hindi", [])):
                         anchor_score = 0.40
                     elif any(self._anchor_at_start_or_short(k, block.text) for k in general_anchors):
                         anchor_score = 0.35
 
                     if anchor_score > 0.0:
-                        # 1. Check same block. If the whole block was returned, try
-                        # to extract the value that appears after the anchor; this
-                        # handles GeM cells where OCR merges the label and value
-                        # (e.g. "Item Category/Implementation of UPS...").
                         is_org_preposition = False
                         if rule["type"] in ("text", "org"):
-                            for anchor in (rule["anchors"] + rule["hindi"]):
+                            for anchor in (rule.get("anchors", []) + rule.get("hindi", [])):
                                 if anchor.lower() in ("ministry of", "department of", "office of", "organisation of", "organization of"):
                                     if self._anchor_matches(anchor, block.text):
                                         anchor_words = self._normalize_for_match(anchor).split()
@@ -797,14 +1145,71 @@ class FieldExtractor:
                 ))
             else:
                 print(f"[FIELD_EXTRACTOR_DEBUG] Extracted value for '{field_name}': Not Found", flush=True)
+                default_val = "Out of Scope (Stage 1)" if field_name in self.out_of_scope_stage1 else "Not Found"
+                evidence = "This field is out of scope for Stage 1 (Parent Tender PDF)." if default_val == "Out of Scope (Stage 1)" else "No matching anchors or value patterns found in document."
                 extracted.append(ExtractedFieldSchema(
                     field_name=field_name,
-                    value="Not Found",
+                    value=default_val,
                     confidence=0.0,
                     source_page=1,
-                    evidence="No matching anchors or value patterns found in document.",
+                    evidence=evidence,
                     source_blocks=[]
                 ))
                 
+        # Compute derived EMD fields if emd_by_schedule was processed
+        emd_by_sch_field = next((f for f in extracted if f.field_name == "emd_by_schedule"), None)
+        if emd_by_sch_field and emd_by_sch_field.value not in ("Not Found", "Out of Scope (Stage 1)"):
+            try:
+                import ast
+                emd_dict = ast.literal_eval(emd_by_sch_field.value)
+                total_val = sum(emd_dict.values())
+                extracted.append(ExtractedFieldSchema(
+                    field_name="emd_total",
+                    value=f"{total_val:,.2f}" if total_val > 0 else "0",
+                    confidence=0.9,
+                    source_page=1,
+                    evidence=f"Derived sum of schedule EMDs: {emd_by_sch_field.value}",
+                    source_blocks=[]
+                ))
+                extracted.append(ExtractedFieldSchema(
+                    field_name="emd_required",
+                    value="Yes" if total_val > 0 else "No",
+                    confidence=0.9,
+                    source_page=1,
+                    evidence=f"Derived from EMD total: {total_val}",
+                    source_blocks=[]
+                ))
+            except Exception as e:
+                print(f"[FIELD_EXTRACTOR_DEBUG] Failed to parse emd_by_schedule: {e}", flush=True)
+        else:
+            extracted.append(ExtractedFieldSchema(
+                field_name="emd_total",
+                value="Out of Scope (Stage 1)" if "emd_total" in self.out_of_scope_stage1 else "Not Found",
+                confidence=0.0,
+                source_page=1,
+                evidence="Derived field, parent EMD details not found.",
+                source_blocks=[]
+            ))
+            extracted.append(ExtractedFieldSchema(
+                field_name="emd_required",
+                value="Out of Scope (Stage 1)" if "emd_required" in self.out_of_scope_stage1 else "Not Found",
+                confidence=0.0,
+                source_page=1,
+                evidence="Derived field, parent EMD details not found.",
+                source_blocks=[]
+            ))
+
+        # Ensure all out of scope fields are represented in the output list
+        for field_name in self.out_of_scope_stage1:
+            if not any(f.field_name == field_name for f in extracted):
+                extracted.append(ExtractedFieldSchema(
+                    field_name=field_name,
+                    value="Out of Scope (Stage 1)",
+                    confidence=0.0,
+                    source_page=1,
+                    evidence="This field is designated as out of scope for Stage 1 (Parent Tender PDF).",
+                    source_blocks=[]
+                ))
+
         print(f"[FIELD_EXTRACTOR_DEBUG] Finished extraction. Total extracted fields count: {len(extracted)}\n", flush=True)
         return extracted
