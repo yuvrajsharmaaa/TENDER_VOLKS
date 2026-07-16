@@ -12,6 +12,10 @@ from backend.app.schemas.schemas import ExtractedFieldSchema, SourceBlockRef, Bo
 logger = logging.getLogger("tender_ocr")
 
 DEVANAGARI_RANGE = re.compile(r'[\u0900-\u097F]+')
+TENDER_ID_RE = re.compile(r"GEM/20\d{2}/[A-Z]/\d+")
+
+def validate_tender_id(candidate: str | None) -> bool:
+    return bool(TENDER_ID_RE.search(candidate or ""))
 
 def strip_devanagari(text: str) -> str:
     """Improves fuzzy match reliability — mixed Hindi/English label text
@@ -22,17 +26,41 @@ def strip_devanagari(text: str) -> str:
 def detect_column_split(text_blocks: List[TextBlock]) -> int:
     """
     Find the x-coordinate that best separates the label column from the
-    value column by locating the largest horizontal gap across all block
-    x1 positions on the page. Avoids hardcoding a DPI/scan-specific
-    threshold.
+    value column.
     """
+    if not text_blocks:
+        return 300
+    
+    # 1. Try x1 binning to identify the two column start boundaries
+    bins = {}
+    for b in text_blocks:
+        key = b.bounding_box["x1"] // 20
+        bins[key] = bins.get(key, 0) + 1
+        
+    sorted_bins = sorted(bins.items(), key=lambda kv: kv[1], reverse=True)
+    
+    if len(sorted_bins) >= 2:
+        # Check if the two most populated bins are sufficiently far apart (at least 80px / 4 bins)
+        # to represent distinct columns rather than variations within the same column.
+        top2 = sorted(sorted_bins[:2], key=lambda kv: kv[0])
+        bin1, bin2 = top2[0][0], top2[1][0]
+        if bin2 - bin1 >= 4:
+            mid_bin_x = (bin1 + bin2) * 10
+            left_col_blocks = [b for b in text_blocks if b.bounding_box["x1"] < mid_bin_x]
+            right_col_blocks = [b for b in text_blocks if b.bounding_box["x1"] >= mid_bin_x]
+            
+            max_left_x2 = max(b.bounding_box["x2"] for b in left_col_blocks) if left_col_blocks else (bin1 * 20 + 20)
+            min_right_x1 = min(b.bounding_box["x1"] for b in right_col_blocks) if right_col_blocks else (bin2 * 20)
+            
+            col_split = (max_left_x2 + min_right_x1) // 2
+            return int(col_split)
+            
+    # 2. Fallback to gap-based split detection if binning is inconclusive (e.g. small block counts)
     x1_positions = sorted(b.bounding_box["x1"] for b in text_blocks)
     gaps = [(x1_positions[i+1] - x1_positions[i], x1_positions[i])
             for i in range(len(x1_positions) - 1)]
     if not gaps:
-        return 0
-    # Take the largest gap that occurs in the middle 20-80% of the page width,
-    # to avoid picking up incidental small-margin gaps at page edges.
+        return 300
     page_width = x1_positions[-1] - x1_positions[0] or 1
     candidate_gaps = [
         g for g in gaps
@@ -47,6 +75,10 @@ def merge_into_cells(blocks: List[TextBlock], y_gap_tolerance: int = 20) -> List
     cell when they are close enough vertically to be a wrapped label/value
     (not a new row). Returns list of {"text": str, "bbox": {...}, "blocks": [...]}.
     """
+    is_digital_page = all(b.confidence >= 1.0 for b in blocks) if blocks else False
+    if is_digital_page and y_gap_tolerance == 20:
+        y_gap_tolerance = 5
+
     blocks_sorted = sorted(blocks, key=lambda b: b.bounding_box["y1"])
     cells: List[Dict[str, Any]] = []
     for block in blocks_sorted:
@@ -491,32 +523,35 @@ class GemFieldExtractor(FieldExtractor):
                         clean_anchor = anchor.lower()
                         clean_text = strip_devanagari(text).lower()
                         if clean_text.startswith(clean_anchor):
-                            suffix = text[len(anchor):].strip()
-                            suffix = re.sub(r"^[:\-/\s\u0930\u093e\u093f\u0940\u0941\u0942\u0947\u0948\u094b\u094c\u0902]+", "", suffix).strip()
-                            if suffix:
-                                sch_num = None
-                                m_sch = re.search(r"Schedule\s*(\d+)", text, re.IGNORECASE)
-                                if not m_sch:
-                                    m_sch = re.search(r"अनुसूची\s*(\d+)", text)
-                                if m_sch:
-                                    sch_num = int(m_sch.group(1))
-                                
-                                candidates.setdefault(field_name, []).append({
-                                    "value": suffix,
-                                    "confidence": block.confidence * 0.85,
-                                    "source_page": page.page_number,
-                                    "schedule_number": sch_num,
-                                    "evidence": f"Same-block prefix match: '{text}'",
-                                    "source_blocks": [
-                                        SourceBlockRef(
-                                            page_number=page.page_number,
-                                            block_id=block.block_id,
-                                            text=block.text,
-                                            bounding_box=BoundingBox(**block.bounding_box)
-                                        )
-                                    ]
-                                })
-                                break
+                            # when anchor and value in same block
+                            idx = text.lower().find(anchor.lower())
+                            if idx != -1:
+                                suffix = text[idx + len(anchor):].strip()
+                                suffix = re.sub(r"^[:\-/\s\u0930\u093e\u093f\u0940\u0941\u0942\u0947\u0948\u094b\u094c\u0902]+", "", suffix).strip()
+                                if suffix:
+                                    sch_num = None
+                                    m_sch = re.search(r"Schedule\s*(\d+)", text, re.IGNORECASE)
+                                    if not m_sch:
+                                        m_sch = re.search(r"अनुसूची\s*(\d+)", text)
+                                    if m_sch:
+                                        sch_num = int(m_sch.group(1))
+                                    
+                                    candidates.setdefault(field_name, []).append({
+                                        "value": suffix,
+                                        "confidence": block.confidence * 0.85,
+                                        "source_page": page.page_number,
+                                        "schedule_number": sch_num,
+                                        "evidence": f"Same-block prefix match: '{text}'",
+                                        "source_blocks": [
+                                            SourceBlockRef(
+                                                page_number=page.page_number,
+                                                block_id=block.block_id,
+                                                text=block.text,
+                                                bounding_box=BoundingBox(**block.bounding_box)
+                                            )
+                                        ]
+                                    })
+                                    break
             # Segment text blocks by schedule
             segments = segment_by_schedule(page.layout_regions, page.text_blocks)
             for seg_num, seg_blocks in segments.items():
@@ -710,6 +745,44 @@ class GemFieldExtractor(FieldExtractor):
                 continue
                 
             field_cands = candidates.get(field_name, [])
+            if field_name == "tender_id":
+                valid_cands = [c for c in field_cands if validate_tender_id(c["value"])]
+                if valid_cands:
+                    field_cands = valid_cands
+                else:
+                    # Run fallback scan across all page block texts
+                    fallback_val = None
+                    fallback_page = 1
+                    fallback_block = None
+                    for page in pages:
+                        for b in page.text_blocks:
+                            m = TENDER_ID_RE.search(b.text)
+                            if m:
+                                fallback_val = m.group(0)
+                                fallback_page = page.page_number
+                                fallback_block = b
+                                break
+                        if fallback_val:
+                            break
+                    if fallback_val:
+                        field_cands = [{
+                            "value": fallback_val,
+                            "confidence": 1.0,
+                            "source_page": fallback_page,
+                            "schedule_number": None,
+                            "evidence": f"Fallback scan across block texts: '{fallback_val}'",
+                            "source_blocks": [
+                                SourceBlockRef(
+                                    page_number=fallback_page,
+                                    block_id=fallback_block.block_id,
+                                    text=fallback_block.text,
+                                    bounding_box=BoundingBox(**fallback_block.bounding_box)
+                                )
+                            ] if fallback_block else []
+                        }]
+                    else:
+                        field_cands = []
+
             if field_cands:
                 # Pick highest confidence candidate
                 best_cand = sorted(field_cands, key=lambda c: c["confidence"], reverse=True)[0]

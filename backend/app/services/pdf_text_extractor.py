@@ -86,6 +86,50 @@ def cluster_words_into_cells(words, gap_threshold=15):
         for cell in cells
     ]
 
+def build_text_blocks_from_words(words: list) -> list[dict]:
+    """
+    Groups PyMuPDF word-level tuples into line-level block dicts.
+    PyMuPDF get_text('words') returns tuples:
+    (x0, y0, x1, y1, word, block_no, line_no, word_no)
+    Returns list of dicts with keys: block_id, text, confidence, bounding_box, language_hint
+    """
+    lines_map = {}
+    for w in words:
+        # w comes as a tuple from PyMuPDF: (x0, y0, x1, y1, word, block_no, line_no, word_no)
+        try:
+            x0, y0, x1, y1, text, block_no, line_no, word_no = w
+        except Exception:
+            # If word is already a dict, adapt to its structure
+            text = w.get("text") if isinstance(w, dict) else str(w)
+            bbox = w.get("bbox") if isinstance(w, dict) else None
+            if bbox:
+                x0, y0, x1, y1 = bbox["x1"], bbox["y1"], bbox["x2"], bbox["y2"]
+            block_no = w.get("block_no", 0) if isinstance(w, dict) else 0
+            line_no = w.get("line_no", 0) if isinstance(w, dict) else 0
+
+        key = (block_no, line_no)
+        lines_map.setdefault(key, []).append({
+            "text": text,
+            "bounding_box": {"x1": x0, "y1": y0, "x2": x1, "y2": y1}
+        })
+
+    blocks = []
+    for idx, ((block_no, line_no), line_words) in enumerate(sorted(lines_map.items())):
+        line_words.sort(key=lambda w: w["bounding_box"]["x1"])
+        joined_text = " ".join(w["text"] for w in line_words)
+        x1 = int(round(min(w["bounding_box"]["x1"] for w in line_words)))
+        y1 = int(round(min(w["bounding_box"]["y1"] for w in line_words)))
+        x2 = int(round(max(w["bounding_box"]["x2"] for w in line_words)))
+        y2 = int(round(max(w["bounding_box"]["y2"] for w in line_words)))
+        blocks.append({
+            "block_id": f"native_{idx}",
+            "text": joined_text,
+            "confidence": 1.0,
+            "bounding_box": {"x1": x1, "y1": y1, "x2": x2, "y2": y2},
+            "language_hint": "en"
+        })
+    return blocks
+
 def extract_pdf_text_hybrid(pdf_path: str, pages_dir: Path) -> List[Dict[str, Any]]:
     import fitz
     """
@@ -118,7 +162,7 @@ def extract_pdf_text_hybrid(pdf_path: str, pages_dir: Path) -> List[Dict[str, An
                 
         if is_digital:
             native_words = page.get_text("words")
-            blocks = cluster_words_into_cells(native_words)
+            blocks = build_text_blocks_from_words(native_words)
             results.append({
                 "page": page_num + 1,
                 "text": native_text,

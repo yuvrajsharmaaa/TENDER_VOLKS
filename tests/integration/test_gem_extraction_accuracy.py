@@ -277,3 +277,38 @@ def test_gem_extraction_accuracy(bid_number, expected):
         
     assert field_map["bid_validity_days"].value == expected["bid_validity_days"]
     assert field_map["evaluation_method"].value == expected["evaluation_method"]
+
+
+def test_real_pdf_gail_vrla_extraction():
+    import os
+    import tempfile
+    import shutil
+    from pathlib import Path
+    from backend.app.services.pdf_parent_ingest import ingest_parent_tender_pdf
+
+    orig_pdf_path = "backend/app/storage/jobs/35580348-246b-49f7-86a0-175c1bfd64ca/GAIL VRLA Jamnagar.pdf"
+    if not os.path.exists(orig_pdf_path):
+        pytest.skip(f"GAIL Jamnagar PDF not found at {orig_pdf_path}")
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        pdf_path = Path(tmpdir) / "GAIL VRLA Jamnagar.pdf"
+        shutil.copy(orig_pdf_path, pdf_path)
+        
+        res = ingest_parent_tender_pdf(
+            job_id="test-real-pdf-gail",
+            pdf_path=pdf_path,
+            original_filename="GAIL VRLA Jamnagar.pdf"
+        )
+        
+        sections = res["infoSheetSections"]
+        field_map = {}
+        for sec in sections:
+            for f in sec.get("fields", []):
+                field_map[f["label"]] = f
+        
+        assert field_map["EMD Required"]["value"] is True
+        assert field_map["EMD Amount"]["value"] == 28546.0
+        assert field_map["PBG Percentage"]["value"] == 5.0
+        assert field_map["PBG Duration (Months)"]["value"] == 21
+        assert field_map["Bid Validity Period"]["value"] == 90
+        assert field_map["Reverse Auction Applicable"]["value"] is False  # "No"
