@@ -1,0 +1,42 @@
+--- DEBUGGING PAGE 2 BLOCKS & CELL PAIRING ---
+Page 2 has 56 blocks.
+Total paired cells on Page 2: 5
+  Label: 'व'
+  Value: 'ेता से मांगे Document required from seller/'
+------------------------------
+  Label: 'बड से .रवस% नीलामी स<'
+  Value: 'य <कया Bid to RA enabled/'
+------------------------------
+  Label: 'buyer/'
+  Value: 'ेता के िलए उपलFध ITC available to'
+    --> Matched field: atc_document_link_present
+------------------------------
+  Label: 'Required'
+  Value: '(By Empanelled'
+    --> Matched field: min_bids_to_disable_auto_extension
+------------------------------
+  Label: 'Percentage'
+  Value: '(%)/  4  (%) ePBG'
+    --> Matched field: mse_preference_max_qty_percent
+------------------------------
+
+--- RUNNING EXTRACTOR ---
+Extracted 60 fields.
+Field: buyer_added_text_atc_clauses, Value: '1. Buyer Added Bid Specific ATC\nBuyer uploaded ATC document Click here to view the file.' (Conf: 0.95)
+Field: emd_by_schedule, Value: {} (Conf: 0.0)
+Field: emd_total, Value: 0.0 (Conf: 0.0)
+Field: emd_required, Value: False (Conf: 0.0)
+Field: schedules, Value: [{'schedule_number': 1, 'consignee_name': 'Not Found', 'consignee_address': 'Not Found', 'quantity': 'Not Found', 'delivery_days': 'Not Found', 'item_description': 'Not Found', 'technical_specs': {}}] (Conf: 0.9)
+Field: tender_id, Value: 'मांक ( बड सं;या): Bid' (Conf: 92.3077)
+Field: bid_published_date, Value: '25-09-2024' (Conf: 100.0)
+Field: department_name, Value: 'Name/' (Conf: 100.0)
+Field: ministry_state_name, Value: 'State' (Conf: 100.0)
+Field: office_name, Value: 'r/   /. < [' (Conf: 100.0)
+Field: bid_end_datetime, Value: None (Conf: 100.0)
+Field: bid_validity_days, Value: None (Conf: 100.0)
+Field: min_bids_to_disable_auto_extension, Value: None (Conf: 100.0)
+Field: beneficiary_name, Value: 'Y :' (Conf: 100.0)
+Field: mse_preference_max_qty_percent, Value: 4.0 (Conf: 100.0)
+Field: atc_document_link_present, Value: False (Conf: 100.0)
+Field: land_border_clause_present, Value: False (Conf: 100.0)
+Field: pbg_required, Value: False (Conf: 0.9)
