@@ -266,6 +266,11 @@ fields:
 # Fields deliberately OUT OF SCOPE for Stage 1 (parent PDF does not contain
 # these — confirmed by direct comparison against GAIL_Ranchi_SMF__1_.pdf).
 # Route to Stage 2 (ATC PDF) or Stage 3 (GeM portal bid-summary page / manual).
+#
+# NOTE TO FUTURE ENGINEERS: These fields are intentionally deferred to Stage 2
+# parsing (against the ATC PDF document) or manual entry because they are not
+# part of the auto-generated GeM parent bid document. Do not attempt to add
+# extraction patterns for them in Stage 1.
 # =============================================================================
 out_of_scope_stage1:
   - field: tender_value_gst_inclusive

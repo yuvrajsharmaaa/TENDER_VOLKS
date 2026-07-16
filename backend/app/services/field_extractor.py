@@ -88,6 +88,10 @@ def extract_tender_fields(
         "emd_required": "EMD Required",
         "bid_validity_days": "Bid Validity Period",
         "reverse_auction_enabled": "Reverse Auction Applicable",
+        "ra_qualification_rule": "RA Qualification Rule",
+        "pbg_percentage": "PBG Percentage",
+        "pbg_duration_months": "PBG Duration (Months)",
+        "evaluation_method": "Commercial Evaluation Type",
         "NIT No": "Reference ID / NIT No",
         "bid_number": "Reference ID / NIT No",
         "tender_id": "Reference ID / NIT No",
@@ -122,7 +126,7 @@ def extract_tender_fields(
     label_to_field = {}
     for i, f in enumerate(extracted):
         label = label_mapping.get(f.field_name, f.field_name)
-        status = "missing" if (not f.value or f.value == "Not Found") else "extracted"
+        status = "missing" if (f.value is None or f.value == "Not Found") else "extracted"
         field_dict = {
             "id": f"f-{i}",
             "label": label,

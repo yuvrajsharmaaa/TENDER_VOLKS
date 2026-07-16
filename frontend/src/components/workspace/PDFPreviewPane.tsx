@@ -167,7 +167,9 @@ export const PDFPreviewPane: React.FC<PDFPreviewPaneProps> = ({ activeDoc, infoS
                           {field.label}
                         </td>
                         <td className="py-2 px-3 border-r border-divider text-text-primary break-all">
-                          {field.value || <span className="text-alert-text italic font-sans">[Missing]</span>}
+                          {field.value && typeof field.value !== "string"
+                            ? JSON.stringify(field.value)
+                            : (field.value || <span className="text-alert-text italic font-sans">[Missing]</span>)}
                         </td>
                         <td className="py-2 px-3 text-text-secondary font-sans font-medium">
                           <span className={field.confidence && field.confidence < 70 ? "text-warning-text font-bold" : "text-success-green"}>

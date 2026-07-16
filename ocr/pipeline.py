@@ -1,3 +1,4 @@
+from PIL.Image import logger
 import time
 from pathlib import Path
 from PIL import Image
@@ -47,9 +48,12 @@ def sort_blocks_by_reading_order(blocks: list[TextBlock], y_tolerance: int = 12)
         flattened.extend(line)
     return flattened
 
-def classify_document_type(page1_text: str) -> str:
-    if re.search(r'GEM/20\d{2}/[A-Z]/\d+', page1_text) or \
-       "Bid Document" in page1_text:
+def classify_document_type(page1: str | list[TextBlock]) -> str:
+    if isinstance(page1, str):
+        full_text = page1
+    else:
+        full_text = " ".join(b.text for b in page1)
+    if re.search(r'GEM/20\d{2}/[A-Z]/\d+', full_text, re.IGNORECASE) or "Bid Document" in full_text:
         return "gem_structured"
     return "generic_nit"
 
@@ -180,7 +184,17 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False) -> list
 
     
     # 4. Deterministic Field Extraction + Product/Item extraction
-    is_gem = is_gem_document(page_results)
+    page1_blocks = page_results[0].text_blocks if page_results else []
+    doc_type = classify_document_type(page1_blocks)
+    
+    import json
+    logger.info(json.dumps({
+        "event": "doc_type_classified",
+        "job_id": job_id,
+        "type": doc_type
+    }))
+    
+    is_gem = (doc_type == "gem_structured")
     if is_gem:
         extractor = GemFieldExtractor()
     else:
@@ -239,11 +253,6 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False) -> list
         for f in extracted_fields:
             if f.field_name == "required_documents" and isinstance(f.value, list):
                 needs_stage2 = any(item.get("needs_stage2") for item in f.value if isinstance(item, dict))
-
-    page1_text = ""
-    if page_results:
-        page1_text = "\n".join([tb.text for tb in page_results[0].text_blocks])
-    doc_type = classify_document_type(page1_text)
 
     # extracted_fields.json
     extracted_fields_resp = ExtractedFieldsResponse(
