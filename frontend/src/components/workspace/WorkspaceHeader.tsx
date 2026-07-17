@@ -82,7 +82,7 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
             <span
               className={`h-2 w-2 rounded-full ${
                 isBackendConnected
-                  ? "bg-success-green shadow-[0_0_0_2px_rgba(227,85,47,0.2)]"
+                  ? "bg-brand-orange shadow-[0_0_0_2px_rgba(232,89,12,0.2)]"
                   : "bg-alert-text"
               }`}
             />
@@ -104,7 +104,7 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
             type="button"
             onClick={onUploadClick}
             aria-label="Upload tender document"
-            className="bg-success-green hover:bg-cta-green text-panel-bg font-bold text-xs px-3.5 py-2
+            className="bg-brand-orange hover:bg-brand-orange-hover text-panel-bg font-bold text-xs px-3.5 py-2
               rounded-lg flex items-center gap-1.5 shadow-sm transition-colors
               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success-green/50 focus-visible:ring-offset-2"
           >

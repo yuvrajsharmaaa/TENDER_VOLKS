@@ -326,44 +326,44 @@ function App() {
                 {
                   label: "Live Tenders",
                   value: statsLive,
-                  icon: <Activity className="h-5 w-5" aria-hidden />,
-                  iconCls: "bg-selected-green-bg border-selected-green-border text-success-green",
+                  Icon: Activity,
+                  iconClass: "icon-live-tenders",
                 },
                 {
                   label: "Ingesting",
                   value: statsNew,
-                  icon: <Loader2 className="h-5 w-5 animate-spin" aria-hidden />,
-                  iconCls: "bg-blue-50 border-blue-200 text-blue-600",
+                  Icon: Loader2,
+                  iconClass: "icon-ingesting",
                 },
                 {
                   label: "Closing Soon",
                   value: statsClosing,
-                  icon: <Calendar className="h-5 w-5" aria-hidden />,
-                  iconCls: "bg-warning-bg border-warning-text/20 text-warning-text",
+                  Icon: Calendar,
+                  iconClass: "icon-closing-soon",
                 },
                 {
                   label: "High AI Match",
                   value: statsHighMatch,
-                  icon: <Sparkles className="h-5 w-5" aria-hidden />,
-                  iconCls: "bg-selected-green-bg border-success-green/20 text-success-green",
+                  Icon: Sparkles,
+                  iconClass: "icon-high-aimatch",
                 },
-              ].map(({ label, value, icon, iconCls }) => (
+              ].map(({ label, value, Icon, iconClass }) => (
                 <div
                   key={label}
-                  className="bg-card-bg border border-divider/60 rounded-2xl px-5 py-4
+                  className="bg-card-bg border border-divider/60 rounded-[12px] px-5 py-4
                     shadow-[0_1px_3px_rgba(0,0,0,0.02),0_4px_12px_rgba(0,0,0,0.03)]
                     flex items-center justify-between gap-3"
                 >
                   <div className="min-w-0">
-                    <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest leading-none mb-1.5 truncate">
+                    <p className="stat-label">
                       {label}
                     </p>
-                    <p className="text-2xl font-bold text-text-primary leading-none font-mono tabular-nums">
+                    <p className={`text-stat-number font-bold ${value === 0 ? 'text-zero-value' : 'text-text-primary'} leading-none`}>
                       {value}
                     </p>
                   </div>
-                  <div className={`h-10 w-10 shrink-0 flex items-center justify-center rounded-xl border ${iconCls}`}>
-                    {icon}
+                  <div className="h-10 w-10 shrink-0 flex items-center justify-center rounded-[10px]">
+                    <Icon className={`h-5 w-5 ${iconClass}`} aria-hidden />
                   </div>
                 </div>
               ))}

@@ -2,8 +2,8 @@
 
 @theme {
   /* Surfaces */
-  --color-app-bg: #F4F2EC;
-  --color-card-bg: #FBFAF7;
+  --color-app-bg: #F5F6F8;
+  --color-card-bg: #FFFFFF;
   --color-panel-bg: #FFFFFF;
   --color-section-tint: #F1EEE7;
   --color-divider: #E5E0D7;
@@ -15,11 +15,34 @@
   --color-text-muted: #8A867D;
   --color-text-disabled: #B7B2A8;
 
-  /* Brand Accent */
-  --color-success-green: #E3552F;
-  --color-cta-green: #C94424;
-  --color-selected-green-bg: #FFF1EC;
-  --color-selected-green-border: #F4B6A5;
+  /* Brand Accent - ORANGE (reserved for Upload Tender button and Pipeline Active pulse dot) */
+  --color-brand-orange: #E8590C;
+  --color-brand-orange-hover: #D9552F;
+
+  /* We need to redefine the success-green and cta-green to be gray-based for other uses */
+  /* Let's create new gray-based colors for buttons and borders that were previously green */
+  --color-success-green: #6B7280; /* gray-500 */
+  --color-cta-green: #4B5563; /* gray-600 */
+  --color-selected-green-bg: #F3F4F6; /* gray-50 */
+  --color-selected-green-border: #D1D5DB; /* gray-300 */
+
+  /* Status Badges */
+  --color-badge-open-bg: #EFF6FF;
+  --color-badge-open-text: #1D4ED8;
+  --color-badge-low-risk-bg: #ECFDF5;
+  --color-badge-low-risk-text: #047857;
+  --color-badge-aimatch-bg: #F5F3FF;
+  --color-badge-aimatch-text: #6D28D9;
+
+  /* Stat Card Icon Tints and Backgrounds */
+  --color-icon-live-tenders: #2563EB;
+  --color-icon-bg-live-tenders: #EFF6FF;
+  --color-icon-ingesting: #6B7280;
+  --color-icon-bg-ingesting: #F3F4F6;
+  --color-icon-closing-soon: #D97706;
+  --color-icon-bg-closing-soon: #FFFBEB;
+  --color-icon-high-aimatch: #7C3AED;
+  --color-icon-bg-high-aimatch: #F5F3FF;
 
   /* Commercial highlights */
   --color-gold-fill: #E4C98A;
@@ -84,4 +107,24 @@
 
 .animate-fadeIn {
   animation: fadeIn 0.15s ease-out forwards;
+}
+
+/* Utility classes for dashboard refinements */
+.text-stat-number {
+  @apply text-[28px] font-mono tabular-nums;
+}
+.stat-label {
+  @apply text-[10px] text-text-muted font-bold uppercase tracking-widest leading-none mb-1.5;
+}
+.icon-live-tenders {
+  @apply bg-[var(--color-icon-bg-live-tenders)] text-[var(--color-icon-live-tenders)] [stroke-width:2];
+}
+.icon-ingesting {
+  @apply bg-[var(--color-icon-bg-ingesting)] text-[var(--color-icon-ingesting)] [stroke-width:2];
+}
+.icon-closing-soon {
+  @apply bg-[var(--color-icon-bg-closing-soon)] text-[var(--color-icon-closing-soon)] [stroke-width:2];
+}
+.icon-high-aimatch {
+  @apply bg-[var(--color-icon-bg-high-aimatch)] text-[var(--color-icon-high-aimatch)] [stroke-width:2];
 }
