@@ -372,8 +372,8 @@ function App() {
             {/* ── Results toolbar ────────────────────────────────── */}
             <div className="flex items-center justify-between mb-4 shrink-0 select-none">
               <div>
-                <h2 className="text-sm font-bold text-text-primary font-sans tracking-tight">Tender Results</h2>
-                <p className="text-[11px] text-text-muted mt-0.5 font-mono">
+                <h2 className="text-sm font-medium text-text-primary font-sans tracking-[0.01em]">Tender Results</h2>
+                <p className="text-[11px] text-text-muted mt-0.5 font-mono numeric-nums">
                   {sortedTenders.length} tender{sortedTenders.length !== 1 ? "s" : ""} found
                 </p>
               </div>

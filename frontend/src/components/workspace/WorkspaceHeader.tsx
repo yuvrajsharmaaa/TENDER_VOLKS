@@ -70,8 +70,8 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
           <div className="h-4 w-px bg-divider hidden sm:block" />
 
           <nav className="hidden lg:flex items-center gap-4 text-xs font-semibold text-text-secondary" aria-label="Workspace navigation">
-            <span className="text-success-green cursor-pointer">Live Tenders</span>
-            <span className="hover:text-text-primary cursor-pointer transition-colors">Workspace Logs</span>
+            <span className="text-success-green cursor-pointer font-medium tracking-[0.01em]">Live Tenders</span>
+            <span className="hover:text-text-primary cursor-pointer transition-colors font-medium tracking-[0.01em]">Workspace Logs</span>
             <span className="hover:text-text-primary cursor-pointer transition-colors">Rule Auditing</span>
           </nav>
         </div>
@@ -123,7 +123,7 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
             role="tab"
             aria-selected={activeTab === tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-3 py-1 rounded text-xs font-bold transition-all capitalize
+            className={`px-3 py-1 rounded text-xs font-medium tracking-[0.01em] transition-all capitalize
               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success-green/40 ${
               activeTab === tab
                 ? "bg-section-tint text-text-primary"
@@ -147,10 +147,10 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
               id={`${uid}-search`}
               type="search"
               placeholder="Search by title, department, location, tender ID..."
-              className="w-full bg-input-bg border border-divider rounded-xl pl-11 pr-16 py-3 text-sm
+              className="w-full bg-input-bg border border-divider rounded-lg pl-11 pr-16 py-3 text-sm
                 text-text-primary placeholder-text-disabled
-                focus:outline-none focus:border-success-green focus:ring-2 focus:ring-success-green/20
-                transition-all font-sans shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
+                focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20
+                transition-[border-color,box-shadow] duration-150 ease font-sans shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
               autoComplete="off"
@@ -172,13 +172,14 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
               aria-expanded={isFiltersOpen}
               aria-controls={`${uid}-adv-filters`}
               aria-label={`Advanced filters${activeFiltersCount > 0 ? `, ${activeFiltersCount} active` : ""}`}
-              className={`px-4 py-3 border rounded-xl text-xs font-bold flex items-center gap-2
-                transition-all cursor-pointer shadow-[0_1px_2px_rgba(0,0,0,0.02)]
-                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success-green/40 ${
-                isFiltersOpen || activeFiltersCount > 0
-                  ? "bg-selected-green-bg border-selected-green-border text-success-green"
-                  : "bg-input-bg border-divider text-text-secondary hover:text-text-primary hover:border-text-muted"
-              }`}
+              className={`px-4 py-3 border rounded-lg text-xs font-bold flex items-center gap-2
+                transition-[background-color] duration-120 ease cursor-pointer shadow-[0_1px_2px_rgba(0,0,0,0.02)]
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success-green/40
+                ${
+                  isFiltersOpen || activeFiltersCount > 0
+                    ? "bg-selected-green-bg border-selected-green-border text-success-green"
+                    : "bg-input-bg border-divider text-text-secondary hover:bg-gray-100"
+                }`}
             >
               <SlidersHorizontal className="h-4 w-4" aria-hidden />
               Filters
@@ -195,8 +196,8 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
 
             <button
               type="button"
-              className="bg-success-green hover:bg-cta-green text-panel-bg font-bold text-xs
-                px-6 py-3 rounded-xl transition-colors shadow-sm cursor-pointer
+              className="bg-success-green hover:bg-gray-100 text-panel-bg font-bold text-xs
+                px-6 py-3 rounded-xl transition-[background-color] duration-120 ease shadow-sm cursor-pointer
                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success-green/50 focus-visible:ring-offset-2"
             >
               Search
@@ -219,11 +220,11 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
               type="button"
               aria-pressed={filters.tenderType === value}
               onClick={() => f("tenderType", value)}
-              className={`px-3 py-1 rounded-full text-xs font-bold border transition-all shrink-0
+              className={`px-3 py-1 rounded-full text-xs font-bold border transition-[background-color] duration-120 ease shrink-0
                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success-green/40 ${
                 filters.tenderType === value
                   ? `${active} shadow-sm`
-                  : "bg-card-bg border-divider text-text-secondary hover:text-text-primary"
+                  : "bg-card-bg border-divider text-text-secondary hover:bg-gray-100 hover:text-text-primary"
               }`}
             >
               {label}

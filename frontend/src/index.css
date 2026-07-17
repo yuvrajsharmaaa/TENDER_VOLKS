@@ -14,6 +14,13 @@
   --color-text-secondary: #5E5A52;
   --color-text-muted: #8A867D;
   --color-text-disabled: #B7B2A8;
+  --color-title-text: #111827;
+  --color-text-meta: #6B7280;
+  /* Price badge */
+  --color-price-bg: #FFFBEB;
+  --color-price-text: #B45309;
+  /* Grays */
+  --color-gray-50: #F9FAFB;
 
   /* Brand Accent - ORANGE (reserved for Upload Tender button and Pipeline Active pulse dot) */
   --color-brand-orange: #E8590C;
@@ -29,10 +36,16 @@
   /* Status Badges */
   --color-badge-open-bg: #EFF6FF;
   --color-badge-open-text: #1D4ED8;
+  --color-badge-open-border: #1D4ED8;
   --color-badge-low-risk-bg: #ECFDF5;
   --color-badge-low-risk-text: #047857;
+  --color-badge-low-risk-border: #047857;
   --color-badge-aimatch-bg: #F5F3FF;
   --color-badge-aimatch-text: #6D28D9;
+  --color-badge-aimatch-border: #6D28D9;
+  --color-badge-closing-bg: #FFFBEB;
+  --color-badge-closing-text: #D97706;
+  --color-badge-closing-border: #D97706;
 
   /* Stat Card Icon Tints and Backgrounds */
   --color-icon-live-tenders: #2563EB;
@@ -54,6 +67,9 @@
   --color-warning-text: #7A5B17;
   --color-alert-bg: #F7DFDF;
   --color-alert-text: #8B4A4A;
+
+  /* Grays */
+  --color-gray-50: #F9FAFB;
 
   /* Typography Fonts Override */
   --font-sans: 'Outfit', 'Inter', 'Manrope', sans-serif;
