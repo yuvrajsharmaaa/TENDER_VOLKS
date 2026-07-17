@@ -72,7 +72,7 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
           <nav className="hidden lg:flex items-center gap-4 text-xs font-semibold text-text-secondary" aria-label="Workspace navigation">
             <span className="text-success-green cursor-pointer font-medium tracking-[0.01em]">Live Tenders</span>
             <span className="hover:text-text-primary cursor-pointer transition-colors font-medium tracking-[0.01em]">Workspace Logs</span>
-            <span className="hover:text-text-primary cursor-pointer transition-colors">Rule Auditing</span>
+            <span className="hover:text-text-primary cursor-pointer transition-colors font-medium tracking-[0.01em]">Rule Auditing</span>
           </nav>
         </div>
 

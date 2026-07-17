@@ -130,7 +130,7 @@
   @apply text-[28px] font-mono tabular-nums;
 }
 .stat-label {
-  @apply text-[10px] text-text-muted font-bold uppercase tracking-widest leading-none mb-1.5;
+  @apply text-[10px] text-[var(--color-text-meta)] font-medium uppercase tracking-widest leading-none mb-1.5;
 }
 .icon-live-tenders {
   @apply bg-[var(--color-icon-bg-live-tenders)] text-[var(--color-icon-live-tenders)] [stroke-width:2];
@@ -143,4 +143,7 @@
 }
 .icon-high-aimatch {
   @apply bg-[var(--color-icon-bg-high-aimatch)] text-[var(--color-icon-high-aimatch)] [stroke-width:2];
+}
+.text-zero-value {
+  @apply text-[var(--color-text-disabled)];
 }
