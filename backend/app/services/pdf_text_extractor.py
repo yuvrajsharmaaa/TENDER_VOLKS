@@ -187,10 +187,32 @@ def extract_pdf_text_hybrid(pdf_path: str, pages_dir: Path) -> List[Dict[str, An
             # Preprocess image to enhance OCR accuracy
             preprocessed_path = preprocess_image_for_ocr(img_path)
             
-            # Run OCR on preprocessed image
-            blocks = ocr_engine.run(preprocessed_path)
-            ocr_text = "\n".join([b.text for b in blocks])
-            avg_conf = sum([b.confidence for b in blocks]) / len(blocks) if blocks else 0.0
+            # Run OCR on preprocessed image with safety fallback
+            try:
+                blocks = ocr_engine.run(preprocessed_path)
+                ocr_text = "\n".join([b.text for b in blocks])
+                avg_conf = sum([b.confidence for b in blocks]) / len(blocks) if blocks else 0.0
+                is_ocr_success = True
+            except Exception as ocr_err:
+                import logging
+                logging.getLogger("backend.app.services.pdf_text_extractor").warning(
+                    f"OCR execution failed on page {page_num + 1}: {ocr_err}. Falling back to native text extraction."
+                )
+                from backend.app.models.models import TextBlock
+                native_words = page.get_text("words")
+                blocks_data = build_text_blocks_from_words(native_words)
+                blocks = [
+                    TextBlock(
+                        block_id=b["block_id"],
+                        text=b["text"],
+                        confidence=b["confidence"],
+                        bounding_box=b["bounding_box"],
+                        language_hint=b.get("language_hint", "en")
+                    ) for b in blocks_data
+                ]
+                ocr_text = native_text
+                avg_conf = 1.0
+                is_ocr_success = False
             
             # Clean up temporary preprocessed image file
             if preprocessed_path != img_path:
@@ -202,7 +224,7 @@ def extract_pdf_text_hybrid(pdf_path: str, pages_dir: Path) -> List[Dict[str, An
             results.append({
                 "page": page_num + 1,
                 "text": ocr_text,
-                "source": "ocr",
+                "source": "ocr" if is_ocr_success else "native_fallback",
                 "confidence": round(avg_conf * 100, 2),
                 "blocks": [
                     {
