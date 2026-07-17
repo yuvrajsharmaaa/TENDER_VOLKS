@@ -27,46 +27,94 @@ def detect_column_split(text_blocks: List[TextBlock]) -> int:
     """
     Find the x-coordinate that best separates the label column from the
     value column.
+    
+    Strategy:
+      1. Filter out blocks that span too wide (likely titles, footers, full-width notes)
+         to prevent them from skewing the column boundary detection.
+      2. Bin block x1 positions into 20px-wide buckets.
+      3. Pick the two most populated bins that are >= 4 bins (80px) apart.
+      4. Compute a preliminary split from the geometric gap between the
+         left-group right edge and the right-group left edge.
+      5. **Balance guard**: if the split puts >85% of blocks in one side (i.e. <15% on the other),
+         reject it and fall through to gap-based detection.
+      6. Gap-based fallback: find the largest x1 gap that satisfies the 15% balance guard.
     """
     if not text_blocks:
         return 300
+
+    total = len(text_blocks)
     
-    # 1. Try x1 binning to identify the two column start boundaries
-    bins = {}
-    for b in text_blocks:
+    # Filter out blocks that span too wide (e.g. full width text/paragraphs)
+    max_x = max(b.bounding_box["x2"] for b in text_blocks)
+    min_x = min(b.bounding_box["x1"] for b in text_blocks)
+    page_width = max_x - min_x or 1
+    
+    filtered_blocks = [
+        b for b in text_blocks
+        if (b.bounding_box["x2"] - b.bounding_box["x1"]) < 0.5 * page_width
+    ]
+    if not filtered_blocks:
+        filtered_blocks = text_blocks
+    
+    # ── 1. Try x1 binning ─────────────────────────────────────────────
+    bins: Dict[int, int] = {}
+    for b in filtered_blocks:
         key = b.bounding_box["x1"] // 20
         bins[key] = bins.get(key, 0) + 1
-        
+
     sorted_bins = sorted(bins.items(), key=lambda kv: kv[1], reverse=True)
-    
+
     if len(sorted_bins) >= 2:
-        # Check if the two most populated bins are sufficiently far apart (at least 80px / 4 bins)
-        # to represent distinct columns rather than variations within the same column.
         top2 = sorted(sorted_bins[:2], key=lambda kv: kv[0])
         bin1, bin2 = top2[0][0], top2[1][0]
         if bin2 - bin1 >= 4:
             mid_bin_x = (bin1 + bin2) * 10
-            left_col_blocks = [b for b in text_blocks if b.bounding_box["x1"] < mid_bin_x]
-            right_col_blocks = [b for b in text_blocks if b.bounding_box["x1"] >= mid_bin_x]
-            
+            left_col_blocks = [b for b in filtered_blocks if b.bounding_box["x1"] < mid_bin_x]
+            right_col_blocks = [b for b in filtered_blocks if b.bounding_box["x1"] >= mid_bin_x]
+
             max_left_x2 = max(b.bounding_box["x2"] for b in left_col_blocks) if left_col_blocks else (bin1 * 20 + 20)
             min_right_x1 = min(b.bounding_box["x1"] for b in right_col_blocks) if right_col_blocks else (bin2 * 20)
-            
+
             col_split = (max_left_x2 + min_right_x1) // 2
-            return int(col_split)
-            
-    # 2. Fallback to gap-based split detection if binning is inconclusive (e.g. small block counts)
-    x1_positions = sorted(b.bounding_box["x1"] for b in text_blocks)
+
+            # ── Balance guard: reject lopsided splits ──────
+            n_left = sum(1 for b in text_blocks if b.bounding_box["x1"] < col_split)
+            n_right = total - n_left
+            minority = min(n_left, n_right)
+            if minority / total >= 0.15:          # at least 15% on each side
+                return int(col_split)
+            # else: lopsided — fall through to gap-based detection
+
+    # ── 2. Gap-based fallback ──────────────────────────────────────────
+    # Use *unique* x1 positions to avoid duplicate-heavy bins biasing gaps
+    x1_positions = sorted(set(b.bounding_box["x1"] for b in filtered_blocks))
+    if len(x1_positions) < 2:
+        return 300
     gaps = [(x1_positions[i+1] - x1_positions[i], x1_positions[i])
             for i in range(len(x1_positions) - 1)]
-    if not gaps:
-        return 300
-    page_width = x1_positions[-1] - x1_positions[0] or 1
+    page_width_fallback = x1_positions[-1] - x1_positions[0] or 1
+    
+    # We check candidate gaps using the midpoint of the gap relative to page margins
     candidate_gaps = [
         g for g in gaps
-        if 0.2 * page_width < (g[1] - x1_positions[0]) < 0.8 * page_width
+        if 0.15 * page_width_fallback < (g[1] + g[0] // 2 - x1_positions[0]) < 0.85 * page_width_fallback
     ]
-    best_gap = max(candidate_gaps or gaps, key=lambda g: g[0])
+    
+    gaps_to_check = candidate_gaps or gaps
+    balanced_gaps = []
+    for gap_size, gap_start in gaps_to_check:
+        split = gap_start + gap_size // 2
+        n_left = sum(1 for b in text_blocks if b.bounding_box["x1"] < split)
+        n_right = total - n_left
+        minority = min(n_left, n_right)
+        if minority / total >= 0.15:
+            balanced_gaps.append((gap_size, gap_start))
+            
+    if balanced_gaps:
+        best_gap = max(balanced_gaps, key=lambda g: g[0])
+    else:
+        best_gap = max(gaps_to_check, key=lambda g: g[0])
+        
     return best_gap[1] + best_gap[0] // 2
 
 def merge_into_cells(blocks: List[TextBlock], y_gap_tolerance: int = 20) -> List[Dict[str, Any]]:
@@ -527,7 +575,7 @@ class GemFieldExtractor(FieldExtractor):
                             idx = text.lower().find(anchor.lower())
                             if idx != -1:
                                 suffix = text[idx + len(anchor):].strip()
-                                suffix = re.sub(r"^[:\-/\s\u0930\u093e\u093f\u0940\u0941\u0942\u0947\u0948\u094b\u094c\u0902]+", "", suffix).strip()
+                                suffix = re.sub(r"^[:\-/\s\u0900-\u097F]+", "", suffix).strip()
                                 if suffix:
                                     sch_num = None
                                     m_sch = re.search(r"Schedule\s*(\d+)", text, re.IGNORECASE)
@@ -561,6 +609,83 @@ class GemFieldExtractor(FieldExtractor):
                 
                 left_cells = merge_into_cells(left_blocks)
                 right_cells = merge_into_cells(right_blocks)
+
+                # ── Fix 2: Same-cell prefix/suffix extraction on merged cells ──
+                for cell in left_cells + right_cells:
+                    cell_text = cell["text"].strip()
+                    # 1. Colon-based split
+                    parts = cell_text.split(":", 1)
+                    if len(parts) == 2 and parts[0].strip() and parts[1].strip():
+                        l_text, r_text = parts[0].strip(), parts[1].strip()
+                        field_name = match_field(l_text, None)
+                        if field_name:
+                            sch_num = None
+                            m_sch = re.search(r"Schedule\s*(\d+)", l_text, re.IGNORECASE)
+                            if not m_sch:
+                                m_sch = re.search(r"अनुसूची\s*(\d+)", l_text)
+                            if m_sch:
+                                sch_num = int(m_sch.group(1))
+                            elif seg_num > 0:
+                                sch_num = seg_num
+                            
+                            spec = FIELD_ANCHORS[field_name]
+                            best_score = 0
+                            for anchor in spec["anchors"]:
+                                score = fuzz.partial_ratio(anchor.lower(), strip_devanagari(l_text).lower())
+                                if score > best_score:
+                                    best_score = score
+                                    
+                            candidates.setdefault(field_name, []).append({
+                                "value": r_text,
+                                "confidence": (cell["blocks"][0].confidence if cell["blocks"] else 1.0) * (best_score / 100),
+                                "source_page": page.page_number,
+                                "schedule_number": sch_num,
+                                "evidence": f"Same-cell colon match: '{cell_text}'",
+                                "source_blocks": [
+                                    SourceBlockRef(
+                                        page_number=page.page_number,
+                                        block_id=b.block_id,
+                                        text=b.text,
+                                        bounding_box=BoundingBox(**b.bounding_box)
+                                    ) for b in cell["blocks"]
+                                ]
+                            })
+                    # 2. Prefix-based split (for strings like "EMD Amount/ 73880")
+                    for field_name, spec in FIELD_ANCHORS.items():
+                        for anchor in spec["anchors"]:
+                            clean_anchor = anchor.lower()
+                            clean_text = strip_devanagari(cell_text).lower()
+                            if clean_text.startswith(clean_anchor):
+                                idx = cell_text.lower().find(anchor.lower())
+                                if idx != -1:
+                                    suffix = cell_text[idx + len(anchor):].strip()
+                                    suffix = re.sub(r"^[:\-/\s\u0900-\u097F]+", "", suffix).strip()
+                                    if suffix:
+                                        sch_num = None
+                                        m_sch = re.search(r"Schedule\s*(\d+)", cell_text, re.IGNORECASE)
+                                        if not m_sch:
+                                            m_sch = re.search(r"अनुसूची\s*(\d+)", cell_text)
+                                        if m_sch:
+                                            sch_num = int(m_sch.group(1))
+                                        elif seg_num > 0:
+                                            sch_num = seg_num
+                                        
+                                        candidates.setdefault(field_name, []).append({
+                                            "value": suffix,
+                                            "confidence": (cell["blocks"][0].confidence if cell["blocks"] else 1.0) * 0.85,
+                                            "source_page": page.page_number,
+                                            "schedule_number": sch_num,
+                                            "evidence": f"Same-cell prefix match: '{cell_text}'",
+                                            "source_blocks": [
+                                                SourceBlockRef(
+                                                    page_number=page.page_number,
+                                                    block_id=b.block_id,
+                                                    text=b.text,
+                                                    bounding_box=BoundingBox(**b.bounding_box)
+                                                ) for b in cell["blocks"]
+                                            ]
+                                        })
+                                        break
                 
                 section_headers_y = []
                 for l_cell in left_cells:
