@@ -42,7 +42,7 @@ export const TenderTable: React.FC<TenderTableProps> = ({
     }
     if (reviewStatus === "completed") {
       return (
-        <span className="inline-flex items-center gap-1 bg-emerald-950 text-emerald-400 text-xs px-2.5 py-1 rounded-full font-medium border border-emerald-900/40">
+        <span className="inline-flex items-center gap-1 bg-selected-green-bg text-success-green text-xs px-2.5 py-1 rounded-full font-medium border border-selected-green-border">
           <CheckCircle2 className="h-3 w-3" />
           <span>Reviewed</span>
         </span>
@@ -58,7 +58,7 @@ export const TenderTable: React.FC<TenderTableProps> = ({
 
   const getConfidenceBadge = (score: number) => {
     if (score === 0) return <span className="text-slate-500 font-mono text-xs">--</span>;
-    let color = "text-emerald-400 bg-emerald-950/30 border-emerald-900/50";
+    let color = "text-success-green bg-selected-green-bg border-selected-green-border";
     if (score < 70) {
       color = "text-rose-400 bg-rose-950/30 border-rose-900/50";
     } else if (score < 85) {

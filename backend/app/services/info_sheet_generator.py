@@ -106,6 +106,68 @@ def render_layout(ws: Any, layout: List[Dict[str, Any]], data: Dict[str, str], s
     return current_row
 
 
+def render_flat_sections_sheet(wb: Workbook, sections: List[Dict[str, Any]], title: str = "Preview Fields") -> None:
+    ws = wb.create_sheet(title=title)
+    ws.views.sheetView[0].showGridLines = True
+
+    headers = [
+        "Row Number",
+        "Field Section",
+        "Field Name",
+        "Preview Value",
+        "Confidence",
+        "Status",
+        "Source Snippet",
+    ]
+    ws.append(headers)
+
+    row_num = 1
+    for sec in sections:
+        for field in sec.get("fields", []):
+            ws.append([
+                row_num,
+                clean_val(sec.get("title", "")),
+                clean_val(field.get("label", "")),
+                clean_val(field.get("value", "")),
+                clean_val(f"{field.get('confidence', 0)}%"),
+                clean_val(field.get("status", "extracted")),
+                clean_val(field.get("sourceSnippet", "")),
+            ])
+            row_num += 1
+
+    header_fill = PatternFill(start_color="1B5E20", end_color="1B5E20", fill_type="solid")
+    header_font = Font(name="Segoe UI", size=11, bold=True, color="FFFFFF")
+    cell_font = Font(name="Segoe UI", size=10)
+    thin_side = Side(border_style="thin", color="CCCCCC")
+    cell_border = Border(left=thin_side, right=thin_side, top=thin_side, bottom=thin_side)
+
+    for col_idx in range(1, len(headers) + 1):
+        cell = ws.cell(row=1, column=col_idx)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        cell.border = cell_border
+
+    for r_idx in range(2, row_num + 1):
+        for col_idx in range(1, len(headers) + 1):
+            cell = ws.cell(row=r_idx, column=col_idx)
+            cell.font = cell_font
+            cell.border = cell_border
+            cell.alignment = Alignment(
+                horizontal="center" if col_idx in (1, 5, 6) else "left",
+                vertical="center",
+                wrap_text=True,
+            )
+
+    ws.row_dimensions[1].height = 28
+    for col in ws.columns:
+        max_len = 0
+        col_letter = get_column_letter(col[0].column)
+        for cell in col:
+            max_len = max(max_len, len(str(cell.value or "")))
+        ws.column_dimensions[col_letter].width = min(max(max_len + 4, 12), 60)
+
+
 def generate_info_sheet_csv(data: Any, output_path: str) -> None:
     """
     Writes extracted fields into a standard XLSX sheet format using openpyxl.
@@ -117,6 +179,7 @@ def generate_info_sheet_csv(data: Any, output_path: str) -> None:
         wb.remove(wb["Sheet"])
 
     if isinstance(data, dict):
+        preview_sections = data.pop("_info_sheet_sections", None)
         # 1:1 key mapping validation
         data_copy = dict(data)
         missing_keys = set(INFOSHEET_DATA_KEYS) - set(data_copy.keys())
@@ -143,80 +206,12 @@ def generate_info_sheet_csv(data: Any, output_path: str) -> None:
         next_row += 1
         
         render_layout(ws, INFOSHEET_PAGE2_LAYOUT, data, start_row=next_row)
+
+        if isinstance(preview_sections, list) and preview_sections:
+            render_flat_sections_sheet(wb, preview_sections)
         
     else:
         # Fallback to the old list-of-sections flat format
-        ws = wb.create_sheet(title="InfoSheet")
-        ws.views.sheetView[0].showGridLines = True
-        
-        # Headers
-        headers = [
-            "Row Number",
-            "Field Section",
-            "Field Name (Column A)",
-            "Extracted Value (Column B)",
-            "Confidence (Column C)",
-            "Status",
-            "Source Snippet"
-        ]
-        ws.append(headers)
-        
-        row_num = 1
-        for sec in data:
-            for field in sec["fields"]:
-                ws.append([
-                    row_num,
-                    clean_val(sec["title"]),
-                    clean_val(field["label"]),
-                    clean_val(field["value"]),
-                    clean_val(f"{field.get('confidence', 0)}%"),
-                    clean_val(field.get("status", "extracted")),
-                    clean_val(field.get("sourceSnippet", ""))
-                ])
-                row_num += 1
-
-        # Style definitions
-        header_fill = PatternFill(start_color="1B5E20", end_color="1B5E20", fill_type="solid")
-        header_font = Font(name="Segoe UI", size=11, bold=True, color="FFFFFF")
-        cell_font = Font(name="Segoe UI", size=10)
-        
-        thin_side = Side(border_style="thin", color="CCCCCC")
-        cell_border = Border(left=thin_side, right=thin_side, top=thin_side, bottom=thin_side)
-        
-        # Apply header formatting
-        for col_idx in range(1, len(headers) + 1):
-            cell = ws.cell(row=1, column=col_idx)
-            cell.fill = header_fill
-            cell.font = header_font
-            cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
-            cell.border = cell_border
-            
-        # Apply cell formatting for data rows
-        for r_idx in range(2, row_num + 1):
-            for col_idx in range(1, len(headers) + 1):
-                cell = ws.cell(row=r_idx, column=col_idx)
-                cell.font = cell_font
-                cell.border = cell_border
-                
-                # Alignments
-                if col_idx in (1, 5, 6): # Row Number, Confidence, Status
-                    cell.alignment = Alignment(horizontal="center", vertical="center")
-                else:
-                    cell.alignment = Alignment(horizontal="left", vertical="center")
-
-        # Set row heights
-        ws.row_dimensions[1].height = 28
-        for r_idx in range(2, row_num + 1):
-            ws.row_dimensions[r_idx].height = 20
-
-        # Auto-adjust column widths with a margin
-        for col in ws.columns:
-            max_len = 0
-            col_letter = get_column_letter(col[0].column)
-            for cell in col:
-                val_str = str(cell.value or "")
-                if len(val_str) > max_len:
-                    max_len = len(val_str)
-            ws.column_dimensions[col_letter].width = min(max(max_len + 4, 12), 50)
+        render_flat_sections_sheet(wb, data, title="InfoSheet")
             
     wb.save(output_path)

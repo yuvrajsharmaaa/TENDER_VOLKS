@@ -15,11 +15,11 @@
   --color-text-muted: #8A867D;
   --color-text-disabled: #B7B2A8;
 
-  /* Accent Greens */
-  --color-success-green: #3E8E63;
-  --color-cta-green: #1FA36D;
-  --color-selected-green-bg: #E8F3EC;
-  --color-selected-green-border: #B9D8C3;
+  /* Brand Accent */
+  --color-success-green: #E3552F;
+  --color-cta-green: #C94424;
+  --color-selected-green-bg: #FFF1EC;
+  --color-selected-green-border: #F4B6A5;
 
   /* Commercial highlights */
   --color-gold-fill: #E4C98A;
@@ -69,10 +69,10 @@
 
 @keyframes pulse-glow-green {
   0%, 100% {
-    box-shadow: 0 0 0 1px rgba(62, 142, 99, 0.3);
+    box-shadow: 0 0 0 1px rgba(227, 85, 47, 0.3);
   }
   50% {
-    box-shadow: 0 0 0 3px rgba(62, 142, 99, 0.6);
+    box-shadow: 0 0 0 3px rgba(227, 85, 47, 0.6);
   }
 }
 

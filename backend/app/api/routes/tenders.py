@@ -3,6 +3,7 @@ import logging
 from typing import List, Optional
 from pydantic import BaseModel
 from fastapi import APIRouter, File, UploadFile, HTTPException, Depends, Form, BackgroundTasks
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from backend.app.services.storage import upload_file_to_minio, download_file_from_minio, StorageError
@@ -30,6 +31,45 @@ router = APIRouter(prefix="/tenders", tags=["tenders"])
 
 # Max file size constant (20 MB)
 MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024
+
+
+def _get_primary_pdf_filename(payload: dict) -> str:
+    source_docs = payload.get("documents", {}).get("sourceDocuments", [])
+    if source_docs:
+        primary_doc = next((d for d in source_docs if d.get("isPrimary")), source_docs[0])
+        return primary_doc.get("name", "original.pdf")
+    return "original.pdf"
+
+
+def _infosheet_filename(payload: dict) -> str:
+    original_filename = _get_primary_pdf_filename(payload)
+    if original_filename.lower().endswith(".pdf"):
+        original_filename = original_filename[:-4]
+    return f"{original_filename}_InfoSheet.xlsx"
+
+
+def _refresh_infosheet_output_links(payload: dict, job_id: str) -> None:
+    for output in payload.get("documents", {}).get("generatedOutputs", []):
+        if output.get("outputKind") == "info_sheet":
+            output["url"] = f"/tenders/workspace/{job_id}/infosheet/download"
+            output["downloadable"] = True
+            output["openable"] = True
+
+
+def _regenerate_infosheet_workbook(job_id: str, payload: dict) -> Path:
+    from backend.app.services.tender_mapper import build_infosheet_data
+    from backend.app.services.info_sheet_generator import generate_info_sheet_csv
+
+    job_dir = STORAGE_ROOT / "jobs" / job_id
+    job_dir.mkdir(parents=True, exist_ok=True)
+    xlsx_path = job_dir / _infosheet_filename(payload)
+    infosheet_data = build_infosheet_data(
+        payload.get("infoSheetSections", []),
+        payload.get("rawTextPages", []),
+    )
+    infosheet_data["_info_sheet_sections"] = payload.get("infoSheetSections", [])
+    generate_info_sheet_csv(infosheet_data, str(xlsx_path))
+    return xlsx_path
 
 @router.post("/upload")
 async def upload_tender(file: UploadFile = File(None)):
@@ -1062,6 +1102,7 @@ async def workspace_list_tenders():
                     payload["location_city"] = parts[0] if parts else ""
                     payload["location_state"] = parts[1] if len(parts) > 1 else ""
 
+                _refresh_infosheet_output_links(payload, job_id)
                 results.append(payload)
             except Exception as e:
                 logger.error(f"Failed to read tender_detail.json for job {job_id}: {e}")
@@ -1137,6 +1178,7 @@ async def workspace_get_tender(job_id: str):
             payload.setdefault("snippet", "")
             payload.setdefault("updated_at", job.get("completed_at", ""))
             payload.setdefault("department", "")
+            _refresh_infosheet_output_links(payload, job_id)
             return payload
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to read result: {e}")
@@ -1185,7 +1227,31 @@ async def workspace_get_tender(job_id: str):
     }
 
 
-from fastapi.responses import FileResponse
+@router.get("/workspace/{job_id}/infosheet/download")
+async def download_workspace_infosheet(job_id: str):
+    """
+    Regenerates the InfoSheet workbook from the reviewed frontend artifact
+    before download, so Excel matches the values currently shown in preview.
+    """
+    job_dir = STORAGE_ROOT / "jobs" / job_id
+    detail_path = job_dir / "tender_detail.json"
+    if not detail_path.exists():
+        raise HTTPException(status_code=404, detail="Tender detail not found")
+
+    try:
+        with open(detail_path, "r", encoding="utf-8") as f:
+            data = _json.load(f)
+        xlsx_path = _regenerate_infosheet_workbook(job_id, data)
+    except Exception as e:
+        logger.error(f"Failed to regenerate info sheet workbook for job {job_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to generate InfoSheet workbook")
+
+    return FileResponse(
+        path=str(xlsx_path),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        filename=xlsx_path.name,
+    )
+
 
 @router.get("/documents/{document_id}/download")
 async def download_extracted_document(document_id: str, db: Session = Depends(get_db)):
@@ -1321,23 +1387,8 @@ async def update_workspace_field(job_id: str, field_id: str, payload: FieldUpdat
         
     # Regenerate workbook
     try:
-        from backend.app.services.tender_mapper import build_infosheet_data
-        from backend.app.services.info_sheet_generator import generate_info_sheet_csv
-        
-        sections = data.get("infoSheetSections", [])
-        page_texts = data.get("rawTextPages", [])
-        
-        source_docs = data.get("documents", {}).get("sourceDocuments", [])
-        original_filename = "original.pdf"
-        if source_docs:
-            primary_doc = next((d for d in source_docs if d.get("isPrimary")), source_docs[0])
-            original_filename = primary_doc.get("name", "original.pdf")
-            
-        csv_filename = f"{original_filename.replace('.pdf', '')}_InfoSheet.xlsx"
-        csv_path = job_dir / csv_filename
-        
-        infosheet_data = build_infosheet_data(sections, page_texts)
-        generate_info_sheet_csv(infosheet_data, str(csv_path))
+        _regenerate_infosheet_workbook(job_id, data)
+        _refresh_infosheet_output_links(data, job_id)
     except Exception as e:
         logger.error(f"Failed to regenerate info sheet workbook for job {job_id}: {e}", exc_info=True)
         
@@ -1397,23 +1448,8 @@ async def verify_workspace_field(job_id: str, field_id: str):
         
     # Regenerate workbook
     try:
-        from backend.app.services.tender_mapper import build_infosheet_data
-        from backend.app.services.info_sheet_generator import generate_info_sheet_csv
-        
-        sections = data.get("infoSheetSections", [])
-        page_texts = data.get("rawTextPages", [])
-        
-        source_docs = data.get("documents", {}).get("sourceDocuments", [])
-        original_filename = "original.pdf"
-        if source_docs:
-            primary_doc = next((d for d in source_docs if d.get("isPrimary")), source_docs[0])
-            original_filename = primary_doc.get("name", "original.pdf")
-            
-        csv_filename = f"{original_filename.replace('.pdf', '')}_InfoSheet.xlsx"
-        csv_path = job_dir / csv_filename
-        
-        infosheet_data = build_infosheet_data(sections, page_texts)
-        generate_info_sheet_csv(infosheet_data, str(csv_path))
+        _regenerate_infosheet_workbook(job_id, data)
+        _refresh_infosheet_output_links(data, job_id)
     except Exception as e:
         logger.error(f"Failed to regenerate info sheet workbook for job {job_id}: {e}", exc_info=True)
         
@@ -1473,23 +1509,8 @@ async def review_workspace_tender(job_id: str, payload: ReviewCompleteRequest):
         
     # Regenerate workbook
     try:
-        from backend.app.services.tender_mapper import build_infosheet_data
-        from backend.app.services.info_sheet_generator import generate_info_sheet_csv
-        
-        sections = data.get("infoSheetSections", [])
-        page_texts = data.get("rawTextPages", [])
-        
-        source_docs = data.get("documents", {}).get("sourceDocuments", [])
-        original_filename = "original.pdf"
-        if source_docs:
-            primary_doc = next((d for d in source_docs if d.get("isPrimary")), source_docs[0])
-            original_filename = primary_doc.get("name", "original.pdf")
-            
-        csv_filename = f"{original_filename.replace('.pdf', '')}_InfoSheet.xlsx"
-        csv_path = job_dir / csv_filename
-        
-        infosheet_data = build_infosheet_data(sections, page_texts)
-        generate_info_sheet_csv(infosheet_data, str(csv_path))
+        _regenerate_infosheet_workbook(job_id, data)
+        _refresh_infosheet_output_links(data, job_id)
     except Exception as e:
         logger.error(f"Failed to regenerate info sheet workbook for job {job_id}: {e}", exc_info=True)
         
