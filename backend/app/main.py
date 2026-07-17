@@ -78,6 +78,30 @@ async def lifespan(app: FastAPI):
     # 3. Initialize storage buckets in S3 (MinIO)
     ensure_minio_buckets()
     
+    # 4. Automatically recover and resume stuck jobs (pending/processing)
+    try:
+        from backend.app.repositories.job_store import get_all_jobs
+        import asyncio
+        from backend.app.api.routes.tenders import _run_ingest_background
+        
+        async def resume_stuck_jobs():
+            await asyncio.sleep(2)
+            jobs = get_all_jobs()
+            for j in jobs:
+                if j.get("status") in ("pending", "processing"):
+                    logger.info(f"Resuming stuck job {j['job_id']} on startup")
+                    loop = asyncio.get_running_loop()
+                    loop.run_in_executor(
+                        None,
+                        _run_ingest_background,
+                        j["job_id"],
+                        j["pdf_path"],
+                        j["original_filename"]
+                    )
+        asyncio.create_task(resume_stuck_jobs())
+    except Exception as recovery_err:
+        logger.error(f"Failed to trigger startup job recovery: {recovery_err}", exc_info=True)
+
     yield
     # Shutdown Events
     logger.info("Shutting down VolksEnergies Tender OCR Backend")

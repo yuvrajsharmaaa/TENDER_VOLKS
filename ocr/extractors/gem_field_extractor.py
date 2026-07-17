@@ -216,7 +216,7 @@ FIELD_ANCHORS = {
     "emd_amount": {"section": None, "anchors": ["EMD Amount", "EMD Amount (In INR)"]},
     "emd_required": {"section": "EMD Detail", "anchors": ["Required", "Required/आवश्यकता"]},
     "pbg_percentage": {"section": None, "anchors": ["ePBG Percentage", "Percentage (%)", "ePBG Percentage(%)"]},
-    "pbg_duration_months": {"section": None, "anchors": ["Duration of ePBG required", "Duration of ePBG required (Months)"]},
+    "pbg_duration_months": {"section": None, "anchors": ["Duration of ePBG required", "Duration of ePBG required (Months)", "Duration of ePBG"]},
     # unnamespaced (single occurrence per document)
     "tender_id": {"section": None, "anchors": ["Bid Number", "Bid Number/बोली क्रमांक"]},
     "bid_end_datetime": {"section": None, "anchors": ["Bid End Date/Time", "Bid End Date", "Bid End Date/Time / बोली समाप्ति दिनांक/समय"]},
@@ -565,18 +565,22 @@ class GemFieldExtractor(FieldExtractor):
                                 )
                             ]
                         })
-                # 2. Prefix-based split (for strings like "Bid Validity Period 90 Days")
+                # 2. Prefix-based split (for strings like "Bid Validity Period 90 Days"
+                #    or mixed Devanagari+English like "ईपीबीजी 9ितशत (%)/ePBG Percentage(%) 3.00")
                 for field_name, spec in FIELD_ANCHORS.items():
-                    for anchor in spec["anchors"]:
+                    # Sort anchors by length descending so most specific matches are tried first
+                    for anchor in sorted(spec["anchors"], key=len, reverse=True):
                         clean_anchor = anchor.lower()
                         clean_text = strip_devanagari(text).lower()
-                        if clean_text.startswith(clean_anchor):
+                        # Use 'contains' instead of 'startswith' to handle blocks starting with Devanagari
+                        if clean_anchor in clean_text:
                             # when anchor and value in same block
                             idx = text.lower().find(anchor.lower())
                             if idx != -1:
                                 suffix = text[idx + len(anchor):].strip()
                                 suffix = re.sub(r"^[:\-/\s\u0900-\u097F]+", "", suffix).strip()
-                                if suffix:
+                                # Guard: skip long paragraphs — real field values are short
+                                if suffix and len(suffix) < 200:
                                     sch_num = None
                                     m_sch = re.search(r"Schedule\s*(\d+)", text, re.IGNORECASE)
                                     if not m_sch:
@@ -599,7 +603,6 @@ class GemFieldExtractor(FieldExtractor):
                                             )
                                         ]
                                     })
-                                    break
             # Segment text blocks by schedule
             segments = segment_by_schedule(page.layout_regions, page.text_blocks)
             for seg_num, seg_blocks in segments.items():
@@ -650,17 +653,21 @@ class GemFieldExtractor(FieldExtractor):
                                     ) for b in cell["blocks"]
                                 ]
                             })
-                    # 2. Prefix-based split (for strings like "EMD Amount/ 73880")
+                    # 2. Prefix-based split (for strings like "EMD Amount/ 73880"
+                    #    or mixed Devanagari+English merged cells)
                     for field_name, spec in FIELD_ANCHORS.items():
-                        for anchor in spec["anchors"]:
+                        # Sort anchors by length descending so most specific matches are tried first
+                        for anchor in sorted(spec["anchors"], key=len, reverse=True):
                             clean_anchor = anchor.lower()
                             clean_text = strip_devanagari(cell_text).lower()
-                            if clean_text.startswith(clean_anchor):
+                            # Use 'contains' instead of 'startswith' to handle cells starting with Devanagari
+                            if clean_anchor in clean_text:
                                 idx = cell_text.lower().find(anchor.lower())
                                 if idx != -1:
                                     suffix = cell_text[idx + len(anchor):].strip()
                                     suffix = re.sub(r"^[:\-/\s\u0900-\u097F]+", "", suffix).strip()
-                                    if suffix:
+                                    # Guard: skip long paragraphs — real field values are short
+                                    if suffix and len(suffix) < 200:
                                         sch_num = None
                                         m_sch = re.search(r"Schedule\s*(\d+)", cell_text, re.IGNORECASE)
                                         if not m_sch:
@@ -685,7 +692,6 @@ class GemFieldExtractor(FieldExtractor):
                                                 ) for b in cell["blocks"]
                                             ]
                                         })
-                                        break
                 
                 section_headers_y = []
                 for l_cell in left_cells:
@@ -909,8 +915,9 @@ class GemFieldExtractor(FieldExtractor):
                         field_cands = []
 
             if field_cands:
-                # Pick highest confidence candidate
-                best_cand = sorted(field_cands, key=lambda c: c["confidence"], reverse=True)[0]
+                # Prioritize candidates that pass validation
+                valid_cands = [c for c in field_cands if validate_field(field_name, c["value"].strip())]
+                best_cand = sorted(valid_cands if valid_cands else field_cands, key=lambda c: c["confidence"], reverse=True)[0]
                 val_raw = best_cand["value"]
                 
                 # Normalize and Validate
