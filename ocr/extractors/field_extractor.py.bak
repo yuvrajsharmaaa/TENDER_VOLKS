@@ -14,7 +14,7 @@ def get_intersection_area(boxA: Dict[str, int], boxB: Dict[str, int]) -> int:
     yA = max(boxA["y1"], boxB["y1"])
     xB = min(boxA["x2"], boxB["x2"])
     yB = min(boxA["y2"], boxB["y2"])
-
+    
     interWidth = max(0, xB - xA)
     interHeight = max(0, yB - yA)
     return interWidth * interHeight
@@ -41,12 +41,12 @@ def is_contained(boxA: Dict[str, int], boxB: Dict[str, int], threshold: float = 
 def group_blocks_into_rows(blocks: List[TextBlock], y_threshold: int = 15) -> List[List[TextBlock]]:
     if not blocks:
         return []
-
+    
     # Sort blocks primarily by top y-coordinate
     sorted_blocks = sorted(blocks, key=lambda b: b.bounding_box["y1"])
     rows = []
     current_row = [sorted_blocks[0]]
-
+    
     for block in sorted_blocks[1:]:
         # Compare current block y1 to the average y1 of the current row
         avg_y1 = sum(b.bounding_box["y1"] for b in current_row) / len(current_row)
@@ -64,8 +64,7 @@ class FieldExtractor:
         self.date_regex = re.compile(r'\b\d{2}[-/\.]\d{2}[-/\.]\d{4}(?:\s+\d{2}:\d{2}(?::\d{2})?)?\b')
         self.currency_regex = re.compile(
             r'(?:Rs\.?|INR|₹|rupees)\s*(\d{1,3}(?:,\d{2,3})*(?:\.\d+)?)(?:\s*(?:Lakh|Crore|Lacs|Cr|/-))?\b|'
-            r'\b(\d{1,3}(?:,\d{2,3})*(?:\.\d+)?)\s*(?:Lakh|Crore|Lacs|Cr)\b|'
-            r'\b(\d{1,3}(?:,\d{2,3})*(?:\.\d+)?)\b',
+            r'\b(\d{1,3}(?:,\d{2,3})*(?:\.\d+)?)\s*(?:Lakh|Crore|Lacs|Cr)\b',
             re.IGNORECASE
         )
         self.nit_regex = re.compile(
@@ -81,7 +80,7 @@ class FieldExtractor:
             r'\b(?:one|two|three|four|five|six|twelve)\s*(?:months|days|weeks|year|years)\b',
             re.IGNORECASE
         )
-
+        
         # Explicit out of scope fields for Stage 1 (confirmed missing in parent PDF)
         self.out_of_scope_stage1 = [
             "tender_value_gst_inclusive",
@@ -129,7 +128,7 @@ class FieldExtractor:
             },
             "Bid Submission End Date": {
                 "anchors": ["submission end", "submission last date", "submission closing", "last date of bid submission", "submission deadline"],
-                "hindi": ["बोली जमा करने की अंतिम तिथि", "निविदा जमा करने की अंतिम तिथि", "जमा करने का अंतिम समय"],
+                "hindi": ["बोली जमा करने की अंतिम तिथि", "निविदा जमा करने की अंतिम तिथि", "जमा करने की अंतिम समय"],
                 "type": "date"
             },
             "Bid Opening Date": {
@@ -167,7 +166,7 @@ class FieldExtractor:
                 "hindi": ["कार्य की अवधि", "समाप्ति अवधि", "कार्य अवधि"],
                 "type": "period"
             },
-
+            
             # New Target Fields
             "bid_number": {
                 "anchors": ["bid number", "bid no", "gem bid number", "gem bid no", "tender number", "tender no", "bid ref", "tender ref", "boli number", "boli no"],
@@ -526,7 +525,7 @@ class FieldExtractor:
         text_clean = text.strip()
         if not text_clean:
             return None
-
+            
         if field_type == "date":
             m = self.date_regex.search(text_clean)
             return m.group(0) if m else None
@@ -698,7 +697,7 @@ class FieldExtractor:
     def extract_fields(self, pages: List[PageResult]) -> List[ExtractedFieldSchema]:
         extracted = []
         print(f"\n[FIELD_EXTRACTOR_DEBUG] Starting field extraction on {len(pages)} page(s).", flush=True)
-
+        
         for field_name, rule in self.rules.items():
             # 1. Custom Multi-Instance Field Processing
             if field_name == "emd_by_schedule":
@@ -735,7 +734,7 @@ class FieldExtractor:
                                         ))
                                     except ValueError:
                                         pass
-
+                
                 # Also search table rows for Schedule N EMD Amount
                 for page in pages:
                     table_regions = [r for r in page.layout_regions if r.region_type.lower() == "table"]
@@ -796,23 +795,23 @@ class FieldExtractor:
                     page_num = page.page_number
                     blocks = page.text_blocks
                     regions = page.layout_regions
-
+                    
                     table_regions = [r for r in regions if r.region_type.lower() == "table"]
                     for table in table_regions:
                         table_blocks = [b for b in blocks if is_contained(b.bounding_box, table.bounding_box)]
                         if not table_blocks:
                             continue
-
+                        
                         rows = group_blocks_into_rows(table_blocks)
                         col_indices = {}
-
+                        
                         header_row_idx = -1
                         for idx, row in enumerate(rows):
                             row_texts = [b.text.lower() for b in row]
                             has_consignee = any("consignee" in txt or "reporting" in txt or "officer" in txt for txt in row_texts)
                             has_qty = any("quantity" in txt or "मात्रा" in txt for txt in row_texts)
                             has_days = any("delivery" in txt or "days" in txt for txt in row_texts)
-
+                            
                             if has_consignee and (has_qty or has_days):
                                 header_row_idx = idx
                                 for col_idx, block in enumerate(row):
@@ -826,7 +825,7 @@ class FieldExtractor:
                                     elif "delivery" in txt or "days" in txt:
                                         col_indices["delivery_days"] = col_idx
                                 break
-
+                        
                         if header_row_idx != -1 and col_indices:
                             schedule_num = 1
                             table_bbox = table.bounding_box
@@ -837,13 +836,13 @@ class FieldExtractor:
                                     if m_sch:
                                         schedule_num = int(m_sch.group(1))
                                         break
-
+                            
                             for row in rows[header_row_idx + 1:]:
                                 if len(row) < len(col_indices) - 1:
                                     continue
                                 if any("total" in b.text.lower() or "योग" in b.text.lower() for b in row):
                                     continue
-
+                                
                                 entry = {
                                     "schedule_number": schedule_num,
                                     "consignee_name": "Not Found",
@@ -853,7 +852,7 @@ class FieldExtractor:
                                     "item_description": "Not Found",
                                     "technical_specs": "Not Found"
                                 }
-
+                                
                                 for field, col_idx in col_indices.items():
                                     if col_idx < len(row):
                                         val = row[col_idx].text.strip()
@@ -866,7 +865,7 @@ class FieldExtractor:
                                                     pass
                                         else:
                                             entry[field] = val
-
+                                
                                 desc = "Not Found"
                                 specs = {}
                                 for block in blocks:
@@ -877,13 +876,13 @@ class FieldExtractor:
                                                 specs[parts[0].strip()] = parts[1].strip()
                                         if "pieces" in block.text or "quantity" in block.text.lower() or "schedule" in block.text.lower():
                                             desc = block.text.strip()
-
+                                
                                 entry["item_description"] = desc
                                 if specs:
                                     entry["technical_specs"] = str(specs)
-
+                                
                                 schedules_data.setdefault(schedule_num, []).append(entry)
-
+                
                 if schedules_data:
                     flat_schedules = []
                     for sch_num, entries in sorted(schedules_data.items()):
@@ -912,12 +911,12 @@ class FieldExtractor:
             # 2. Standard Rule-Based Field Processing
             candidates: List[Dict[str, Any]] = []
             print(f"[FIELD_EXTRACTOR_DEBUG] Processing rule '{field_name}' (expected type: '{rule['type']}')", flush=True)
-
+            
             for page in pages:
                 page_num = page.page_number
                 blocks = page.text_blocks
                 regions = page.layout_regions
-
+                
                 # Pre-process tables
                 table_regions = [r for r in regions if r.region_type.lower() == "table"]
                 for table in table_regions:
@@ -1072,7 +1071,7 @@ class FieldExtractor:
                                 ]
                             })
                             continue
-
+                        
                         # 2. Check next block
                         if idx + 1 < len(blocks):
                             next_block = blocks[idx+1]
@@ -1104,25 +1103,25 @@ class FieldExtractor:
                                         ]
                                     })
                                     continue
-
+                                    
                         # 3. Nearest-neighbor
                         cx_a = (block.bounding_box["x1"] + block.bounding_box["x2"]) / 2
                         cy_a = (block.bounding_box["y1"] + block.bounding_box["y2"]) / 2
-
+                        
                         best_neighbor = None
                         best_neighbor_val = None
                         min_dist = float('inf')
-
+                        
                         for other_block in blocks:
                             if other_block == block:
                                 continue
-
+                            
                             cx_o = (other_block.bounding_box["x1"] + other_block.bounding_box["x2"]) / 2
                             cy_o = (other_block.bounding_box["y1"] + other_block.bounding_box["y2"]) / 2
-
+                            
                             is_right = other_block.bounding_box["x1"] >= block.bounding_box["x1"] and abs(cy_o - cy_a) < 30
                             is_below = other_block.bounding_box["y1"] >= block.bounding_box["y2"] and abs(cx_o - cx_a) < 150
-
+                            
                             if is_right or is_below:
                                 dist = math.sqrt((cx_o - cx_a)**2 + (cy_o - cy_a)**2)
                                 if dist < 150 and dist < min_dist:
@@ -1131,7 +1130,7 @@ class FieldExtractor:
                                         min_dist = dist
                                         best_neighbor = other_block
                                         best_neighbor_val = val
-
+                                        
                         if best_neighbor:
                             print(f"  [FIELD_EXTRACTOR_DEBUG] Spatial neighbor match: {ascii(block.text)} -> {ascii(best_neighbor.text)} -> {ascii(best_neighbor_val)}", flush=True)
                             conf = anchor_score + 0.35 + 0.15
@@ -1156,7 +1155,7 @@ class FieldExtractor:
                                     )
                                 ]
                             })
-
+                            
             if candidates:
                 # Drop value candidates that are clearly paragraphs/sentences rather
                 # than discrete field values (e.g., an org value that continues as
@@ -1206,7 +1205,7 @@ class FieldExtractor:
                     evidence=evidence,
                     source_blocks=[]
                 ))
-
+                
         # Compute derived EMD fields if emd_by_schedule was processed
         emd_by_sch_field = next((f for f in extracted if f.field_name == "emd_by_schedule"), None)
         if emd_by_sch_field and emd_by_sch_field.value not in ("Not Found", "Out of Scope (Stage 1)"):
