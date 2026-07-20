@@ -16,7 +16,7 @@ def extract_tender_fields(
     Unified extractor entrypoint for the background pipeline.
     Routes raw PyMuPDF text pages through the appropriate extractor based on document type.
     """
-    is_gem = document_type and document_type.lower() in ["gem", "ge_m", "government_e_marketplace"]
+    is_gem = document_type and document_type.lower() in ["gem", "ge_m", "government_e_marketplace", "gem_structured"]
     logger.info("Routing %d pages through %s extractor...", len(pages), "GemFieldExtractor" if is_gem else "FieldExtractor")
 
     # 1. Map raw text to PageResults for the spatial engine

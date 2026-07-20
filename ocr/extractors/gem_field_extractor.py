@@ -437,10 +437,10 @@ class GemFieldExtractor(FieldExtractor):
                             "item_description": "Not Found",
                             "technical_specs": {}
                         })
-                    clean_param = re.sub(r"^[^a-zA-Z0-9\s]+", "", c1_text)
-                    clean_param = re.sub(r"^[/\\_.:\-]+\s*", "", clean_param).strip()
-                    schedules_data[current_schedule_num]["technical_specs"][clean_param] = c2_text.strip()
-                    continue
+                        clean_param = re.sub(r"^[^a-zA-Z0-9\s]+", "", c1_text)
+                        clean_param = re.sub(r"^[/\\_.:\-]+\s*", "", clean_param).strip()
+                        schedules_data[current_schedule_num]["technical_specs"][clean_param] = c2_text.strip()
+                        continue
 
                 row_texts_lower = [b.text.lower() for b in row]
                 has_consignee = any("consignee" in txt or "reporting" in txt or "officer" in txt for txt in row_texts_lower)
