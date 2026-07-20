@@ -1,79 +1,64 @@
 from pathlib import Path
 
-import pytesseract
+import numpy as np
 from PIL import Image
+from paddleocr import PaddleOCR
 
 from backend.app.models.models import TextBlock
 
 
 class OcrEngine:
     """
-    Line-level OCR using Tesseract (via pytesseract).
+    Line-level OCR using PaddleOCR.
 
-    The original implementation used PaddleOCR, but paddleocr's dependency
-    chain pulls in `imgaug`, which is permanently blocked by Replit's
-    package firewall (last published release, 0.4.0, is flagged and no
-    newer version exists) with no viable escape hatch. Tesseract is a real,
-    widely-used OCR engine (not a mock) and is installed as a system
-    package, so this swap keeps the pipeline fully functional without a
-    fake/mocked OCR step. Output shape (`TextBlock` list) is unchanged, so
-    downstream layout detection and field extraction are unaffected.
+    Output shape (`TextBlock` list) matches the previous Tesseract-based
+    implementation, so downstream layout detection and field extraction
+    are unaffected.
     """
 
     # Class-level cache to share raw OCR results and avoid double-processing in layout detection
-    _cache: dict[str, dict] = {}
+    _cache: dict[str, list] = {}
 
-    def __init__(self, lang: str = "eng"):
+    # Class-level model cache — PaddleOCR model loading is expensive (seconds),
+    # so load once per language and reuse across all OcrEngine instances.
+    _models: dict[str, PaddleOCR] = {}
+
+    def __init__(self, lang: str = "en"):
         self.lang = lang
+        if lang not in OcrEngine._models:
+            OcrEngine._models[lang] = PaddleOCR(
+                use_angle_cls=True,  # handles rotated/skewed scanned text
+                lang=lang,
+                use_gpu=False,
+                show_log=False,
+            )
+        self.ocr = OcrEngine._models[lang]
 
     def run(self, image_path: Path) -> list[TextBlock]:
-        cache_key = str(image_path)
+        cache_key = f"{image_path}:{self.lang}"
         if cache_key in OcrEngine._cache:
-            data = OcrEngine._cache[cache_key]
+            raw_lines = OcrEngine._cache[cache_key]
         else:
-            img = Image.open(image_path).convert("RGB")
-            data = pytesseract.image_to_data(
-                img, lang=self.lang, output_type=pytesseract.Output.DICT
-            )
-            OcrEngine._cache[cache_key] = data
-
-
-        # Group Tesseract's word-level boxes into line-level blocks (grouped
-        # by block/paragraph/line index) so downstream anchor/regex matching
-        # in ocr/extractors/field_extractor.py sees whole lines, matching the
-        # granularity the rest of the pipeline expects.
-        lines: dict[tuple, dict] = {}
-        n = len(data["text"])
-        for i in range(n):
-            text = data["text"][i].strip()
-            if not text:
-                continue
-            key = (data["block_num"][i], data["par_num"][i], data["line_num"][i])
-            x, y, w, h = data["left"][i], data["top"][i], data["width"][i], data["height"][i]
-            conf_raw = data["conf"][i]
-            try:
-                conf = max(float(conf_raw), 0.0) / 100.0
-            except (TypeError, ValueError):
-                conf = 0.0
-
-            line = lines.setdefault(key, {
-                "words": [], "confs": [], "x1": x, "y1": y, "x2": x + w, "y2": y + h
-            })
-            line["words"].append(text)
-            line["confs"].append(conf)
-            line["x1"] = min(line["x1"], x)
-            line["y1"] = min(line["y1"], y)
-            line["x2"] = max(line["x2"], x + w)
-            line["y2"] = max(line["y2"], y + h)
+            img = np.array(Image.open(image_path).convert("RGB"))
+            result = self.ocr.ocr(img, cls=True)
+            raw_lines = result[0] if result and result[0] else []
+            OcrEngine._cache[cache_key] = raw_lines
 
         text_blocks = []
-        for idx, (key, line) in enumerate(sorted(lines.items())):
-            avg_conf = sum(line["confs"]) / len(line["confs"]) if line["confs"] else 0.0
+        for idx, line in enumerate(raw_lines):
+            box_points, (text, confidence) = line
+            if not text.strip():
+                continue
+            xs = [p[0] for p in box_points]
+            ys = [p[1] for p in box_points]
             text_blocks.append(TextBlock(
                 block_id=f"blk_{idx+1:04d}",
-                text=" ".join(line["words"]),
-                confidence=round(avg_conf, 4),
-                bounding_box={"x1": line["x1"], "y1": line["y1"], "x2": line["x2"], "y2": line["y2"]},
+                text=text,
+                confidence=round(float(confidence), 4),
+                bounding_box={
+                    "x1": int(min(xs)), "y1": int(min(ys)),
+                    "x2": int(max(xs)), "y2": int(max(ys)),
+                },
                 language_hint=self.lang,
             ))
         return text_blocks

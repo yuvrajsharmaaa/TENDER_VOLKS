@@ -445,7 +445,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     processing_fee_mode_display = resolve_field("Processing Fee Mode", r"Processing Fee Mode[:\-\s]+([^\n]+)")
 
     # 10. Tender Fees
-    tender_fee_amount_display = field_lookup.get("Tender Fee")
+    tender_fee_amount_display = field_lookup.get("Tender Fee Amount")
     if not tender_fee_amount_display or tender_fee_amount_display == "NA":
         tender_fee_amount_display = extract_regex(r"Tender Fee Amount[:\-\s]+([^\n]+)")
     if not tender_fee_amount_display or tender_fee_amount_display == "NA":

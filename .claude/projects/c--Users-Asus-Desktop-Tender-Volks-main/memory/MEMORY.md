@@ -1,0 +1,1 @@
+- [Vercel Deployment Configuration](vercel-deploy-config.md) — Added Vercel deployment configuration for FastAPI backend
