@@ -313,3 +313,135 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
             deduped_links.append(l)
 
     return deduped_links, mentions
+
+
+def resolve_atc_hyperlink_target(pdf_path: str, output_dir: Path) -> Tuple[Optional[str], Optional[Path]]:
+    """
+    Dedicated helper to discover and resolve ATC child document hyperlinks from PDF link annotations.
+    
+    Steps:
+    1. Loop pages and inspect page.get_links() for fitz.LINK_URI.
+    2. Retrieve link rectangle text via page.get_textbox(l["from"]).
+    3. Check for ATC anchor phrases ("buyer uploaded atc document", "buyer added bid specific atc", "click here to view the file", "click here", "atc").
+    4. If visible phrase exists on page but no link annotation found/resolved, log ATC_LINK_NOT_FOUND.
+    5. Validate URL target, download file, verify PDF magic bytes (%PDF-), and return (atc_url, local_pdf_path).
+    6. If download fails, log ATC_DOWNLOAD_FAILED and return (atc_url, None).
+    """
+    import logging
+    logger = logging.getLogger("backend.app.services.pdf_link_extractor")
+    
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    try:
+        doc = fitz.open(pdf_path)
+    except Exception as e:
+        logger.error(f"[ATC_RESOLVER] Could not open PDF {pdf_path}: {e}")
+        return None, None
+        
+    atc_phrases = [
+        "buyer uploaded atc document",
+        "buyer added bid specific atc",
+        "click here to view the file",
+        "click here",
+        "atc"
+    ]
+    
+    candidate_url = None
+    candidate_anchor = None
+    found_phrase_on_page = False
+    
+    try:
+        for page_num in range(len(doc)):
+            page = doc[page_num]
+            page_text = page.get_text().lower()
+            
+            has_atc_text = any(phrase in page_text for phrase in atc_phrases)
+            if has_atc_text:
+                found_phrase_on_page = True
+                
+            page_links = page.get_links()
+            logger.info(f"[ATC_RESOLVER] Page {page_num + 1}: Found {len(page_links)} link annotations in PyMuPDF metadata.")
+            
+            for l in page_links:
+                if l.get("kind") == fitz.LINK_URI:
+                    uri = l.get("uri", "").strip()
+                    if not uri:
+                        continue
+                        
+                    rect_coords = l.get("from")
+                    anchor_text = ""
+                    if rect_coords:
+                        try:
+                            anchor_text = page.get_textbox(rect_coords).strip()
+                        except Exception:
+                            pass
+                        if not anchor_text:
+                            rect = fitz.Rect(rect_coords)
+                            words = page.get_text("words")
+                            anchor_words = [w[4] for w in words if fitz.Rect(w[:4]).intersects(rect)]
+                            anchor_text = " ".join(anchor_words).strip()
+                            
+                    anchor_lower = anchor_text.lower()
+                    is_atc_match = (
+                        any(phrase in anchor_lower for phrase in atc_phrases)
+                        or has_atc_text
+                        or any(keyword in uri.lower() for keyword in ["atc", "download", "buyer_atc", "file"])
+                    )
+                    
+                    if is_atc_match:
+                        logger.info(f"[ATC_RESOLVER] ATC anchor phrase detected: '{anchor_text or 'Page Link'}' on Page {page_num + 1}")
+                        logger.info(f"[ATC_RESOLVER] Hyperlink URL resolved: '{uri}'")
+                        logger.info(f"[ATC_RESOLVER] Anchor text extracted from link rectangle: '{anchor_text}'")
+                        candidate_url = uri
+                        candidate_anchor = anchor_text
+                        break
+            if candidate_url:
+                break
+                
+        if not candidate_url:
+            if found_phrase_on_page:
+                logger.warning("[ATC_RESOLVER] ATC_LINK_NOT_FOUND: ATC anchor phrase detected in visible text, but no usable hyperlink annotation or URI target was found in PDF link metadata.")
+            else:
+                logger.info("[ATC_RESOLVER] No ATC anchor phrase or link annotation detected in main tender.")
+            doc.close()
+            return None, None
+            
+        logger.info(f"[ATC_RESOLVER] Downloading ATC child document from URL: '{candidate_url}'")
+        try:
+            import urllib.request
+            import ssl
+            
+            filename = candidate_url.split("/")[-1].split("?")[0] or f"atc_child_p1.pdf"
+            if not filename.lower().endswith((".pdf", ".xlsx", ".xls", ".doc", ".docx", ".zip")):
+                filename = f"{filename}.pdf"
+                
+            unique_filename = f"atc_{filename}"
+            req = urllib.request.Request(
+                candidate_url,
+                headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+            )
+            context = ssl._create_unverified_context()
+            with urllib.request.urlopen(req, context=context, timeout=5) as response:
+                file_bytes = response.read()
+                content_type = response.headers.get("Content-Type", "")
+                
+            is_pdf = file_bytes.startswith(b"%PDF") or "pdf" in content_type.lower()
+            out_path = output_dir / unique_filename
+            with open(out_path, "wb") as f:
+                f.write(file_bytes)
+            logger.info(f"[ATC_RESOLVER] ATC child PDF downloaded and saved to: '{out_path}'")
+            doc.close()
+            return candidate_url, out_path
+        except Exception as dl_err:
+            logger.warning(f"[ATC_RESOLVER] ATC_DOWNLOAD_FAILED: Failed to download ATC child document from '{candidate_url}': {dl_err}. Continuing with main tender parsing only.")
+            doc.close()
+            return candidate_url, None
+
+    except Exception as ex:
+        logger.error(f"[ATC_RESOLVER] Error during ATC link resolution: {ex}")
+        try:
+            doc.close()
+        except Exception:
+            pass
+        return None, None
+
