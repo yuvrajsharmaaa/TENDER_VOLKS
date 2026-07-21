@@ -127,35 +127,63 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                             filename = uri.split("/")[-1].split("?")[0] or f"linked_file_p{page_num+1}.pdf"
                             if not filename.lower().endswith((".pdf", ".xlsx", ".xls", ".doc", ".docx", ".zip")):
                                 filename = f"{filename}.pdf" # fallback suffix
-                                
+
+                            anchor_lower = anchor_text.lower()
+                            is_atc_anchor = any(phrase in anchor_lower for phrase in [
+                                "buyer uploaded atc document",
+                                "buyer added bid specific atc",
+                                "click here to view the file",
+                                "click here",
+                                "atc"
+                            ])
+
+                            import logging
+                            logger = logging.getLogger("backend.app.services.pdf_link_extractor")
+                            if is_atc_anchor:
+                                logger.info(f"[ATC_RESOLVER] ATC anchor phrase detected: '{anchor_text}' on Page {page_num + 1}")
+                                logger.info(f"[ATC_RESOLVER] Hyperlink URL resolved: '{uri}'")
+
                             links.append({
                                 "name": filename,
                                 "url": uri,
                                 "sourcePage": page_num + 1,
                                 "anchorText": anchor_text or f"Clickable Hyperlink: {uri}",
-                                "extractionConfidence": 95.0
+                                "extractionConfidence": 95.0,
+                                "is_atc_anchor": is_atc_anchor
                             })
 
-                            # Save linked child PDF locally
-                            if uri.startswith("http") and any(ext in uri.lower() for ext in [".pdf", ".xlsx", ".xls", ".doc", ".docx", ".zip"]):
+                            # Save linked child PDF locally if URI is HTTP/HTTPS or matches document pattern
+                            should_download = uri.startswith("http") and (
+                                is_atc_anchor or any(ext in uri.lower() for ext in [".pdf", ".xlsx", ".xls", ".doc", ".docx", ".zip", "atc", "download", "file"])
+                            )
+                            if should_download:
                                 try:
                                     import ssl
+                                    logger.info(f"[ATC_RESOLVER] Downloading ATC child document from URL: '{uri}'")
                                     unique_filename = f"page{page_num+1}_{filename}"
                                     req = urllib.request.Request(
                                         uri,
                                         headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
                                     )
                                     context = ssl._create_unverified_context()
-                                    with urllib.request.urlopen(req, context=context, timeout=3) as response:
+                                    with urllib.request.urlopen(req, context=context, timeout=5) as response:
                                         file_bytes = response.read()
-                                    out_path = output_dir / unique_filename
-                                    with open(out_path, "wb") as f:
-                                        f.write(file_bytes)
-                                    saved_paths.append(str(out_path))
-                                    external_count += 1
-                                    links[-1]["local_path"] = str(out_path)
+                                        content_type = response.headers.get("Content-Type", "")
+
+                                    # Validate PDF magic bytes (%PDF)
+                                    is_pdf = file_bytes.startswith(b"%PDF") or "pdf" in content_type.lower()
+                                    if is_pdf or is_atc_anchor:
+                                        out_path = output_dir / unique_filename
+                                        with open(out_path, "wb") as f:
+                                            f.write(file_bytes)
+                                        saved_paths.append(str(out_path))
+                                        external_count += 1
+                                        links[-1]["local_path"] = str(out_path)
+                                        logger.info(f"[ATC_RESOLVER] ATC child PDF saved to: '{out_path}'")
+                                    else:
+                                        logger.warning(f"[ATC_RESOLVER] Downloaded content from '{uri}' is not a valid PDF file. Skipping ATC child parse.")
                                 except Exception as dl_err:
-                                    print(f"[DEBUG] Failed to download/save external link {uri}: {dl_err}")
+                                    logger.warning(f"[ATC_RESOLVER] Failed to resolve/download ATC child PDF from URL '{uri}': {dl_err}. Continuing with main tender parsing only.")
 
                     # Support GotoE (Embedded Document Links) or GoToR (Remote Document Links)
                     elif l.get("kind") in (fitz.LINK_GOTO, fitz.LINK_GOTOR, fitz.LINK_LAUNCH):

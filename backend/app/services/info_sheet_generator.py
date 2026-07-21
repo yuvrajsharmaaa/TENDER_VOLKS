@@ -18,7 +18,7 @@ from backend.app.services.csv_schema import (
     INFOSHEET_DATA_KEYS,
 )
 
-def apply_cell_style(cell: Any, style_name: str, cell_def: Dict[str, Any]) -> None:
+def apply_cell_style(cell: Any, style_name: str, cell_def: Dict[str, Any], is_atc_override: bool = False) -> None:
     # Base font
     font_name = "Segoe UI"
     font_size = 10
@@ -27,7 +27,11 @@ def apply_cell_style(cell: Any, style_name: str, cell_def: Dict[str, Any]) -> No
     
     # Fills
     fill = None
-    if style_name == "section_header":
+    if is_atc_override:
+        fill = PatternFill(start_color="E8F8F5", end_color="E8F8F5", fill_type="solid")
+        font_color = "0E6251"
+        bold = True
+    elif style_name == "section_header":
         fill = PatternFill(start_color="34495E", end_color="34495E", fill_type="solid")
         font_color = "FFFFFF"
         font_size = 11
@@ -71,7 +75,8 @@ def apply_cell_style(cell: Any, style_name: str, cell_def: Dict[str, Any]) -> No
     cell.border = Border(left=thin_side, right=thin_side, top=thin_side, bottom=thin_side)
 
 
-def render_layout(ws: Any, layout: List[Dict[str, Any]], data: Dict[str, str], start_row: int = 1) -> int:
+def render_layout(ws: Any, layout: List[Dict[str, Any]], data: Dict[str, str], field_sources: Dict[str, str] = None, start_row: int = 1) -> int:
+    field_sources = field_sources or {}
     current_row = start_row
     for row_def in layout:
         ws.row_dimensions[current_row].height = row_def.get("height", 20)
@@ -84,6 +89,7 @@ def render_layout(ws: Any, layout: List[Dict[str, Any]], data: Dict[str, str], s
             
             # Resolve value
             val = ""
+            key = None
             if cell_def["kind"] in ("label", "header"):
                 val = cell_def.get("text") or ""
             elif cell_def["kind"] == "value":
@@ -95,11 +101,14 @@ def render_layout(ws: Any, layout: List[Dict[str, Any]], data: Dict[str, str], s
             # Write to top-left cell
             ws.cell(row=current_row, column=c_idx, value=clean_val(val))
             
+            # Check if this cell is an ATC override
+            is_atc = (cell_def["kind"] == "value" and key and field_sources.get(key) == "atc")
+            
             # Apply styling to all cells in the merged range
             for col in range(c_idx, c_idx + colspan):
                 cell = ws.cell(row=current_row, column=col)
                 style_name = cell_def.get("style", "plain")
-                apply_cell_style(cell, style_name, cell_def)
+                apply_cell_style(cell, style_name, cell_def, is_atc_override=is_atc)
                 
             c_idx += colspan
         current_row += 1
@@ -117,6 +126,7 @@ def render_flat_sections_sheet(wb: Workbook, sections: List[Dict[str, Any]], tit
         "Preview Value",
         "Confidence",
         "Status",
+        "Document Source",
         "Source Snippet",
     ]
     ws.append(headers)
@@ -124,6 +134,18 @@ def render_flat_sections_sheet(wb: Workbook, sections: List[Dict[str, Any]], tit
     row_num = 1
     for sec in sections:
         for field in sec.get("fields", []):
+            src_tag = field.get("source") or "MAIN"
+            if src_tag in ("main_tender", "MAIN"):
+                src_str = "MAIN"
+            elif src_tag in ("atc", "ATC"):
+                src_str = "ATC"
+            elif src_tag == "ambiguous_preserved":
+                src_str = "AMBIGUOUS_PRESERVED"
+            elif src_tag == "derived":
+                src_str = "DERIVED"
+            else:
+                src_str = str(src_tag).upper()
+
             ws.append([
                 row_num,
                 clean_val(sec.get("title", "")),
@@ -131,6 +153,7 @@ def render_flat_sections_sheet(wb: Workbook, sections: List[Dict[str, Any]], tit
                 clean_val(field.get("value", "")),
                 clean_val(f"{field.get('confidence', 0)}%"),
                 clean_val(field.get("status", "extracted")),
+                clean_val(src_str),
                 clean_val(field.get("sourceSnippet", "")),
             ])
             row_num += 1
@@ -154,7 +177,7 @@ def render_flat_sections_sheet(wb: Workbook, sections: List[Dict[str, Any]], tit
             cell.font = cell_font
             cell.border = cell_border
             cell.alignment = Alignment(
-                horizontal="center" if col_idx in (1, 5, 6) else "left",
+                horizontal="center" if col_idx in (1, 5, 6, 7) else "left",
                 vertical="center",
                 wrap_text=True,
             )
@@ -180,6 +203,8 @@ def generate_info_sheet_csv(data: Any, output_path: str) -> None:
 
     if isinstance(data, dict):
         preview_sections = data.pop("_info_sheet_sections", None)
+        field_sources = data.pop("_info_sheet_sources", {})
+        
         # 1:1 key mapping validation
         data_copy = dict(data)
         missing_keys = set(INFOSHEET_DATA_KEYS) - set(data_copy.keys())
@@ -199,13 +224,13 @@ def generate_info_sheet_csv(data: Any, output_path: str) -> None:
             col_letter = get_column_letter(col_idx)
             ws.column_dimensions[col_letter].width = width
             
-        next_row = render_layout(ws, INFOSHEET_PAGE1_LAYOUT, data, start_row=1)
+        next_row = render_layout(ws, INFOSHEET_PAGE1_LAYOUT, data, field_sources=field_sources, start_row=1)
         
         # Spacer row between pages
         ws.row_dimensions[next_row].height = 15
         next_row += 1
         
-        render_layout(ws, INFOSHEET_PAGE2_LAYOUT, data, start_row=next_row)
+        render_layout(ws, INFOSHEET_PAGE2_LAYOUT, data, field_sources=field_sources, start_row=next_row)
 
         if isinstance(preview_sections, list) and preview_sections:
             render_flat_sections_sheet(wb, preview_sections)

@@ -17,8 +17,28 @@ class OcrEngine:
     # Class-level cache to share raw OCR results and avoid double-processing in layout detection
     _cache: dict[str, dict] = {}
 
-    def __init__(self, lang: str = "eng"):
-        self.lang = lang
+    def __init__(self, lang: str = "eng+hin"):
+        self.lang = self._verify_languages(lang)
+
+    @staticmethod
+    def _verify_languages(lang: str) -> str:
+        """System diagnostic: verifies that requested Tesseract language packs exist before initializing engine."""
+        try:
+            available = set(pytesseract.get_languages())
+            requested = lang.split("+")
+            missing = [l for l in requested if l not in available]
+            if missing:
+                import logging
+                logging.getLogger("ocr.ocr_engine").warning(
+                    f"[OCR_DIAGNOSTICS] Missing requested Tesseract language pack(s): {missing}. "
+                    f"Available languages: {available}. Ensure 'tesseract-ocr-hin' is installed on system."
+                )
+                valid = [l for l in requested if l in available]
+                return "+".join(valid) if valid else "eng"
+        except Exception as e:
+            import logging
+            logging.getLogger("ocr.ocr_engine").debug(f"[OCR_DIAGNOSTICS] Language verification skipped: {e}")
+        return lang
 
     def run(self, image_path: Path) -> list[TextBlock]:
         cache_key = str(image_path)

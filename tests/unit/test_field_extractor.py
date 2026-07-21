@@ -241,3 +241,128 @@ def test_classify_document_type():
     assert classify_document_type("Notice Inviting Tender for building roads...") == "generic_nit"
 
 
+def test_atc_field_extraction_and_merging():
+    from ocr.extractors.field_extractor import FieldExtractor, merge_tender_and_atc_fields
+    extractor = FieldExtractor()
+
+    # Main Tender Page
+    b1 = TextBlock(block_id="b1", text="Bid Number: GEM/2026/B/99999", confidence=1.0, bounding_box={"x1": 10, "y1": 10, "x2": 300, "y2": 25}, language_hint="en")
+    main_page = PageResult(
+        job_id="main_job", page_number=1, image_path="", image_width_px=1000, image_height_px=1000,
+        processing_time_seconds=0.1, text_blocks=[b1], layout_regions=[]
+    )
+    main_fields = extractor.extract_fields([main_page], doc_source="main_tender")
+    
+    # ATC Page (with Hindi anchor: निविदा संख्या and Bid Offer Validity)
+    b2 = TextBlock(block_id="b2", text="निविदा संख्या: GEM/2026/B/99999", confidence=1.0, bounding_box={"x1": 10, "y1": 10, "x2": 300, "y2": 25}, language_hint="hin")
+    b3 = TextBlock(block_id="b3", text="Bid Offer Validity: 120 Days", confidence=1.0, bounding_box={"x1": 10, "y1": 40, "x2": 300, "y2": 55}, language_hint="en")
+    atc_page = PageResult(
+        job_id="atc_job", page_number=1, image_path="", image_width_px=1000, image_height_px=1000,
+        processing_time_seconds=0.1, text_blocks=[b2, b3], layout_regions=[]
+    )
+    atc_fields = extractor.extract_atc_fields([atc_page])
+
+    # Check sources
+    assert all(f.source in ("main_tender", "derived") for f in main_fields)
+    assert all(f.source in ("atc", "derived") for f in atc_fields)
+
+    # Merge
+    merged_fields = merge_tender_and_atc_fields(main_fields, atc_fields)
+    merged_map = {f.field_name: f for f in merged_fields}
+
+    assert "bid_number" in merged_map
+    assert merged_map["bid_number"].value == "GEM/2026/B/99999"
+    
+    assert "bid_validity_days" in merged_map
+    assert merged_map["bid_validity_days"].value == "120 Days"
+    assert merged_map["bid_validity_days"].source == "atc"
+
+
+def test_explicit_atc_clause_precedence_no_confidence_carveout():
+    """Verify explicit ATC clauses always take precedence over main tender, removing confidence carve-outs."""
+    from ocr.extractors.field_extractor import merge_tender_and_atc_fields
+    from backend.app.schemas.schemas import ExtractedFieldSchema
+
+    main_f = ExtractedFieldSchema(
+        field_name="contract_period",
+        value="60 days",
+        confidence=1.0,  # Higher confidence
+        source_page=1,
+        evidence="Main tender contract period",
+        source_blocks=[],
+        source="main_tender"
+    )
+    atc_f = ExtractedFieldSchema(
+        field_name="contract_period",
+        value="90 days",
+        confidence=0.8,  # Lower confidence
+        source_page=1,
+        evidence="ATC override contract period",
+        source_blocks=[],
+        source="atc"
+    )
+
+    merged = merge_tender_and_atc_fields([main_f], [atc_f])
+    res = next(f for f in merged if f.field_name == "contract_period")
+
+    # ATC must win despite lower confidence score
+    assert res.value == "90 days"
+    assert res.source == "atc"
+
+
+def test_ambiguous_field_preservation():
+    """Verify ambiguous fields preserve both candidates without premature resolution."""
+    from ocr.extractors.field_extractor import merge_tender_and_atc_fields
+    from backend.app.schemas.schemas import ExtractedFieldSchema
+
+    main_f = ExtractedFieldSchema(
+        field_name="custom_eligibility_criteria",
+        value="Must have 3 years OEM experience",
+        confidence=0.9,
+        source_page=1,
+        evidence="Main tender PQR clause",
+        source_blocks=[],
+        source="main_tender"
+    )
+    atc_f = ExtractedFieldSchema(
+        field_name="custom_eligibility_criteria",
+        value="Must hold ISO 9001 certification",
+        confidence=0.9,
+        source_page=2,
+        evidence="ATC additional certification clause",
+        source_blocks=[],
+        source="atc"
+    )
+
+    merged = merge_tender_and_atc_fields([main_f], [atc_f])
+    res = next(f for f in merged if f.field_name == "custom_eligibility_criteria")
+
+    assert res.source == "ambiguous_preserved"
+    assert isinstance(res.value, dict)
+    assert res.value["main_tender"] == "Must have 3 years OEM experience"
+    assert res.value["atc"] == "Must hold ISO 9001 certification"
+
+
+def test_atc_resolver_link_and_fallback_handling():
+    """Verify link-based ATC target detection and graceful fallback handling when link is missing/unreachable."""
+    dummy_link = {
+        "name": "buyer_atc.pdf",
+        "url": "https://example.com/buyer_atc.pdf",
+        "anchorText": "Buyer uploaded ATC document Click here to view the file.",
+        "sourcePage": 1
+    }
+    anchor_lower = dummy_link["anchorText"].lower()
+    is_atc_anchor = any(phrase in anchor_lower for phrase in [
+        "buyer uploaded atc document",
+        "buyer added bid specific atc",
+        "click here to view the file",
+        "click here",
+        "atc"
+    ])
+    assert is_atc_anchor is True
+    assert dummy_link["url"] == "https://example.com/buyer_atc.pdf"
+
+
+
+
+

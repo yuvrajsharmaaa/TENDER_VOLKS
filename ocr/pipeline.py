@@ -1,3 +1,4 @@
+from typing import Optional, List, Dict, Any
 from PIL.Image import logger
 import time
 from pathlib import Path
@@ -95,7 +96,7 @@ def is_gem_document(page_results: list[PageResult]) -> bool:
             return True
     return False
 
-def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False) -> list[PageResult]:
+def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False, atc_pdf_path: Optional[Path] = None) -> list[PageResult]:
     start_pipeline_time = time.time()
     job_dir = pdf_path.parent
     pages_dir = job_dir / "pages"
@@ -104,7 +105,7 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False) -> list
     image_paths = convert_pdf_to_images(pdf_path, pages_dir)
     
     # 2. Init models
-    ocr = OcrEngine()
+    ocr = OcrEngine(lang="eng+hin")
     layout = LayoutDetector()
     layoutlm = LayoutLmStage() if run_layoutlm else None
     
@@ -182,8 +183,30 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False) -> list
     with open(job_dir / "llm_layout_text.txt", "w", encoding="utf-8") as f:
         f.write("\n\n".join(llm_xml_lines))
 
-    
-    # 4. Deterministic Field Extraction + Product/Item extraction
+    # 4. Automated ATC Link Detection & Downloading via pdf_link_extractor
+    atc_link_present = False
+    atc_link_url = None
+    try:
+        logger.info("[ATC_RESOLVER] Scanning main tender PDF for ATC document hyperlink annotations...")
+        from backend.app.services.pdf_link_extractor import extract_links_and_mentions
+        links, mentions = extract_links_and_mentions(str(pdf_path))
+        for l in links:
+            anchor = l.get("anchorText", "").lower()
+            name = l.get("name", "").lower()
+            if "click here" in anchor or "atc" in anchor or "atc" in name or l.get("is_atc_anchor"):
+                atc_link_present = True
+                atc_link_url = l.get("url")
+                logger.info(f"[ATC_RESOLVER] Hyperlink URL resolved: '{atc_link_url}' (anchorText='{l.get('anchorText')}')")
+                if not atc_pdf_path and l.get("local_path") and Path(l["local_path"]).exists():
+                    atc_pdf_path = Path(l["local_path"])
+                    logger.info(f"[ATC_RESOLVER] Child PDF downloaded path: '{atc_pdf_path}'")
+                break
+        if not atc_link_present:
+            logger.info("[ATC_RESOLVER] No ATC document hyperlink annotation detected in main tender.")
+    except Exception as e:
+        logger.warning(f"[ATC_RESOLVER] Failed to resolve ATC hyperlink from main tender: {e}. Continuing with main tender parsing only.")
+
+    # 5. Deterministic Field Extraction + Product/Item extraction
     page1_blocks = page_results[0].text_blocks if page_results else []
     doc_type = classify_document_type(page1_blocks)
     
@@ -200,11 +223,51 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False) -> list
     else:
         extractor = FieldExtractor()
         
-    extracted_fields = extractor.extract_fields(page_results)
+    extracted_fields = extractor.extract_fields(page_results, doc_source="main_tender")
     extracted_products = extractor.extract_products(page_results)
 
-    # 5. Build and serialize Pydantic response models
-    # raw_ocr.json
+    # 6. ATC Child PDF Processing & Field Merging if ATC PDF is available
+    if atc_pdf_path and atc_pdf_path.exists():
+        try:
+            logger.info(f"[ATC_RESOLVER] Parsing ATC child PDF '{atc_pdf_path}' with per-page hybrid native-text + Tesseract OCR (lang='eng+hin')...")
+            atc_pages_dir = job_dir / "atc_pages"
+            atc_image_paths = convert_pdf_to_images(atc_pdf_path, atc_pages_dir)
+            atc_page_results = []
+            
+            for i, img_path in enumerate(atc_image_paths):
+                from backend.app.services.pdf_text_extractor import preprocess_image_for_ocr
+                preprocessed_path = preprocess_image_for_ocr(img_path)
+                text_blocks = ocr.run(preprocessed_path)
+                layout_regions = layout.detect(preprocessed_path)
+                if preprocessed_path != img_path:
+                    try:
+                        preprocessed_path.unlink()
+                    except Exception:
+                        pass
+                with Image.open(img_path) as img:
+                    w, h = img.size
+                atc_pr = PageResult(
+                    job_id=f"{job_id}_atc",
+                    page_number=i+1,
+                    image_path=str(img_path),
+                    image_width_px=w,
+                    image_height_px=h,
+                    processing_time_seconds=0.0,
+                    text_blocks=text_blocks,
+                    layout_regions=layout_regions
+                )
+                atc_page_results.append(atc_pr)
+
+            atc_extractor = FieldExtractor()
+            atc_fields = atc_extractor.extract_atc_fields(atc_page_results)
+            logger.info(f"[ATC_RESOLVER] ATC parse successful: {len(atc_fields)} fields extracted from child PDF.")
+            
+            from ocr.extractors.field_extractor import merge_tender_and_atc_fields
+            extracted_fields = merge_tender_and_atc_fields(extracted_fields, atc_fields)
+        except Exception as atc_err:
+            logger.warning(f"[ATC_RESOLVER] Failed to process ATC child PDF '{atc_pdf_path}': {atc_err}. Continuing with main tender parsing only.")
+
+    # Build and serialize Pydantic response models
     raw_ocr_pages = {}
     for pr in page_results:
         raw_ocr_pages[str(pr.page_number)] = [
@@ -224,7 +287,6 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False) -> list
         pages=raw_ocr_pages
     )
     
-    # layout.json
     layout_pages = {}
     for pr in page_results:
         layout_pages[str(pr.page_number)] = [
@@ -254,7 +316,6 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False) -> list
             if f.field_name == "required_documents" and isinstance(f.value, list):
                 needs_stage2 = any(item.get("needs_stage2") for item in f.value if isinstance(item, dict))
 
-    # extracted_fields.json
     extracted_fields_resp = ExtractedFieldsResponse(
         job_id=job_id,
         original_filename=pdf_path.name,
@@ -264,7 +325,9 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False) -> list
             ProductItemSchema(**p) for p in extracted_products
         ],
         needs_stage2_atc_parse=needs_stage2,
-        document_type=doc_type
+        document_type=doc_type,
+        atc_document_link_present=atc_link_present,
+        atc_link_url=atc_link_url
     )
 
     # Save files to disk
