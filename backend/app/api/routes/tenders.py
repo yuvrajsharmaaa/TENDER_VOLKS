@@ -72,89 +72,28 @@ def _regenerate_infosheet_workbook(job_id: str, payload: dict) -> Path:
     generate_info_sheet_csv(infosheet_data, str(xlsx_path))
     return xlsx_path
 
-@router.post("/upload")
-async def upload_tender(file: UploadFile = File(None)):
+from backend.app.schemas.tender_project import (
+    TenderProjectCreate,
+    TenderProjectResponse,
+    TenderProjectDetailResponse,
+    DocumentResponse,
+    TenderUploadResponse,
+    TenderProcessRequest,
+    TenderProcessResponse
+)
+
+@router.post("/upload", status_code=201, response_model=TenderUploadResponse)
+async def upload_tender(
+    file: UploadFile = File(...),
+    background_tasks: BackgroundTasks = None
+):
     """
-    Day 3 endpoint: Validates an uploaded PDF file, saves it to MinIO storage,
-    and returns its generated file ID and original filename.
+    Validates an uploaded PDF file, saves it, creates job records,
+    and returns unified job_id, file_id, and tender_id.
     """
-    # Step 1 — Validate file presence and content type
-    if file is None or not file.filename:
-        raise HTTPException(
-            status_code=400,
-            detail={"error": "no_file", "message": "A PDF file is required"}
-        )
-        
-    if file.content_type != "application/pdf":
-        raise HTTPException(
-            status_code=400,
-            detail={
-                "error": "invalid_type",
-                "message": "Only PDF files are accepted",
-                "received": file.content_type
-            }
-        )
-        
-    # Step 2 — Read file bytes
-    file_bytes = await file.read()
-    if len(file_bytes) == 0:
-        raise HTTPException(
-            status_code=400,
-            detail={"error": "empty_file", "message": "Uploaded file is empty"}
-        )
-        
-    logger.debug(
-        "Read uploaded file bytes",
-        extra={
-            "custom_fields": {
-                "original_filename": file.filename,
-                "content_type": file.content_type,
-                "size_bytes": len(file_bytes)
-            }
-        }
-    )
-    
-    # Step 3 — Upload to MinIO
-    try:
-        file_id = upload_file_to_minio(file_bytes, file.content_type, file.filename)
-    except StorageError as e:
-        logger.error(
-            f"Storage failure during upload of {file.filename}: {e}",
-            exc_info=True,
-            extra={
-                "custom_fields": {
-                    "original_filename": file.filename
-                }
-            }
-        )
-        raise HTTPException(
-            status_code=500,
-            detail={
-                "error": "storage_failure",
-                "message": "Failed to store file. Please try again."
-            }
-        )
-        
-    # Step 5 — Log the successful upload (logged prior to response return)
-    bucket_name = settings.MINIO_BUCKET
-    logger.info(
-        "tender_upload_success",
-        extra={
-            "custom_fields": {
-                "event": "tender_upload_success",
-                "file_id": file_id,
-                "original_filename": file.filename,
-                "size_bytes": len(file_bytes),
-                "bucket": bucket_name
-            }
-        }
-    )
-    
-    # Step 4 — Return success
-    return {
-        "file_id": file_id,
-        "original_filename": file.filename
-    }
+    from backend.app.api.upload import upload_pdf
+    return await upload_pdf(file=file, background_tasks=background_tasks)
+
 
 
 @router.post("", response_model=TenderProjectResponse)
@@ -1015,53 +954,18 @@ def _run_ingest_background(job_id: str, pdf_path: str, original_filename: str):
             logger.error(f"Failed to write FAILED state to database for job {job_id}: {write_err}", exc_info=True)
 
 
-@router.post("/workspace/ingest", status_code=201)
+@router.post("/workspace/ingest", status_code=201, response_model=TenderUploadResponse)
 async def workspace_ingest(
     file: UploadFile = File(...),
     background_tasks: BackgroundTasks = None
 ):
     """
-    Single-call endpoint: uploads a parent tender PDF and immediately
-    enqueues background processing via the parent ingest pipeline.
-    Returns a job_id the frontend can poll.
+    Single-call workspace ingest endpoint: uploads PDF and immediately
+    enqueues background OCR / ingestion processing.
     """
-    logger.info(f"[OBSERVABILITY] upload accepted for file: {file.filename}")
-    
-    # Validate
-    if not file.filename:
-        raise HTTPException(status_code=400, detail="A PDF file is required")
-    if file.content_type != "application/pdf":
-        raise HTTPException(status_code=400, detail="Only PDF files are accepted")
+    from backend.app.api.upload import upload_pdf
+    return await upload_pdf(file=file, background_tasks=background_tasks)
 
-    file_bytes = await file.read()
-    if len(file_bytes) == 0:
-        raise HTTPException(status_code=400, detail="Uploaded file is empty")
-
-    # Create job directory and save file
-    job_id = str(uuid.uuid4())
-    job_dir = STORAGE_ROOT / "jobs" / job_id
-    job_dir.mkdir(parents=True, exist_ok=True)
-    pdf_path = job_dir / file.filename
-    with open(pdf_path, "wb") as f:
-        f.write(file_bytes)
-
-    # Register job in SQLite store
-    from backend.app.repositories.job_store import create_job
-    create_job(job_id=job_id, filename=file.filename, pdf_path=str(pdf_path))
-    logger.info(f"[OBSERVABILITY] job created with id {job_id}")
-
-    # Enqueue background processing
-    background_tasks.add_task(
-        _run_ingest_background, job_id, str(pdf_path), file.filename
-    )
-
-    logger.info(f"Workspace ingest queued for job {job_id}, file: {file.filename}")
-
-    return {
-        "job_id": job_id,
-        "status": "pending",
-        "original_filename": file.filename
-    }
 
 
 @router.get("/workspace/list")
