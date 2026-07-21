@@ -10,14 +10,8 @@ class OcrEngine:
     """
     Line-level OCR using Tesseract (via pytesseract).
 
-    The original implementation used PaddleOCR, but paddleocr's dependency
-    chain pulls in `imgaug`, which is permanently blocked by Replit's
-    package firewall (last published release, 0.4.0, is flagged and no
-    newer version exists) with no viable escape hatch. Tesseract is a real,
-    widely-used OCR engine (not a mock) and is installed as a system
-    package, so this swap keeps the pipeline fully functional without a
-    fake/mocked OCR step. Output shape (`TextBlock` list) is unchanged, so
-    downstream layout detection and field extraction are unaffected.
+    Executes line-level character recognition and extracts word/line bounding
+    boxes into standardized TextBlock outputs for layout detection and field extraction.
     """
 
     # Class-level cache to share raw OCR results and avoid double-processing in layout detection
