@@ -16,3 +16,12 @@ Every extracted field object (`ExtractedFieldSchema`) produced during processing
 
 ## System Dependencies & Multi-Language OCR
 - Setting `lang="eng+hin"` in `pytesseract` requires system dependency `tesseract-ocr-hin` (Hindi `hin.traineddata`). Ensure system diagnostics verify language pack availability before initializing OCR engines.
+
+## Link-Based ATC Discovery & Resolver Standards
+1. **Annotation-Based URL Resolution**: ATC target discovery must not rely on visible text alone. The pipeline must call `page.get_links()`, inspect `kind == fitz.LINK_URI`, match bounding box text via `page.get_textbox(l["from"])` or intersecting words, and extract the underlying URI annotation target.
+2. **Download & Validation**: Downloaded targets must be validated as PDFs via magic bytes (`%PDF-`) or `Content-Type: application/pdf`.
+3. **Structured Event Logging & Fallback**:
+   - Log `ATC_LINK_NOT_FOUND` if anchor phrases exist without resolvable URI annotations.
+   - Log `ATC_DOWNLOAD_FAILED` if target HTTP/HTTPS download fails.
+   - Fallback gracefully to main tender parsing without crashing the job.
+

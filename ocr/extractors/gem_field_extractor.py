@@ -375,7 +375,7 @@ class GemFieldExtractor(FieldExtractor):
         self.fields_spec = self.spec.get("fields", {})
         self.out_of_scope_spec = self.spec.get("out_of_scope_stage1", [])
 
-    def extract_fields(self, pages: List[PageResult]) -> List[ExtractedFieldSchema]:
+    def extract_fields(self, pages: List[PageResult], doc_source: str = "main_tender") -> List[ExtractedFieldSchema]:
         extracted = []
         logger.info(f"Starting GeM field extraction on {len(pages)} page(s).")
 

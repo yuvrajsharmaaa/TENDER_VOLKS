@@ -1,9 +1,11 @@
 import re
 import os
-from typing import List, Dict, Any, Tuple
+import logging
+from pathlib import Path
+from typing import List, Dict, Any, Tuple, Optional
+import fitz
 
 def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
-    import fitz
     """
     Hardened layer-based link extractor for tender PDFs.
     Layer 1: Standard machine-readable page links via page.get_links()
@@ -12,7 +14,6 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
     Layer 4: Deduplication, confidence scoring, and mapping
     """
     import urllib.request
-    from pathlib import Path
     
     parent_dir = Path(pdf_path).parent
     output_dir = parent_dir / "extracted_children"
@@ -73,26 +74,36 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
         # Fallback using pypdf if PyMuPDF count is 0
         if emb_count == 0:
             try:
-                from pypdf import PdfReader
-                reader = PdfReader(pdf_path)
-                if reader.attachments:
-                    for name, content_list in reader.attachments.items():
-                        for content in content_list:
-                            out_path = output_dir / name
-                            with open(out_path, "wb") as f:
-                                f.write(content)
-                            saved_paths.append(str(out_path))
-                            embedded_count += 1
-                            links.append({
-                                "name": name,
-                                "url": f"embedded://{name}",
-                                "sourcePage": 1,
-                                "anchorText": f"Embedded file attachment (pypdf fallback): {name}",
-                                "extractionConfidence": 98.0,
-                                "local_path": str(out_path)
-                            })
-            except ImportError:
-                print("[WARNING] pypdf library is not installed, skipping fallback extraction.")
+                import importlib
+                pypdf_mod = None
+                try:
+                    pypdf_mod = importlib.import_module("pypdf")
+                except ImportError:
+                    try:
+                        pypdf_mod = importlib.import_module("PyPDF2")
+                    except ImportError:
+                        pypdf_mod = None
+
+                if pypdf_mod is not None:
+                    PdfReader = getattr(pypdf_mod, "PdfReader", None)
+                    if PdfReader is not None:
+                        reader = PdfReader(pdf_path)
+                        if getattr(reader, "attachments", None):
+                            for name, content_list in reader.attachments.items():
+                                for content in content_list:
+                                    out_path = output_dir / name
+                                    with open(out_path, "wb") as f:
+                                        f.write(content)
+                                    saved_paths.append(str(out_path))
+                                    embedded_count += 1
+                                    links.append({
+                                        "name": name,
+                                        "url": f"embedded://{name}",
+                                        "sourcePage": 1,
+                                        "anchorText": f"Embedded file attachment (pypdf fallback): {name}",
+                                        "extractionConfidence": 98.0,
+                                        "local_path": str(out_path)
+                                    })
             except Exception as pe:
                 print(f"[DEBUG] pypdf extraction failed: {pe}")
 
@@ -140,7 +151,7 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                             import logging
                             logger = logging.getLogger("backend.app.services.pdf_link_extractor")
                             if is_atc_anchor:
-                                logger.info(f"[ATC_RESOLVER] ATC anchor phrase detected: '{anchor_text}' on Page {page_num + 1}")
+                                logger.info(f"[TC_RESOLVER] ATC anchor phrase detected: '{anchor_text}' on Page {page_num + 1}")
                                 logger.info(f"[ATC_RESOLVER] Hyperlink URL resolved: '{uri}'")
 
                             links.append({
@@ -360,14 +371,17 @@ def resolve_atc_hyperlink_target(pdf_path: str, output_dir: Path) -> Tuple[Optio
                 found_phrase_on_page = True
                 
             page_links = page.get_links()
-            logger.info(f"[ATC_RESOLVER] Page {page_num + 1}: Found {len(page_links)} link annotations in PyMuPDF metadata.")
-            
             for l in page_links:
                 if l.get("kind") == fitz.LINK_URI:
                     uri = l.get("uri", "").strip()
                     if not uri:
                         continue
-                        
+
+                    # Skip generic portal homepage URLs
+                    clean_uri = uri.rstrip("/").lower()
+                    if clean_uri in ("https://gem.gov.in", "http://gem.gov.in", "https://mkp.gem.gov.in", "http://mkp.gem.gov.in"):
+                        continue
+
                     rect_coords = l.get("from")
                     anchor_text = ""
                     if rect_coords:
@@ -377,15 +391,16 @@ def resolve_atc_hyperlink_target(pdf_path: str, output_dir: Path) -> Tuple[Optio
                             pass
                         if not anchor_text:
                             rect = fitz.Rect(rect_coords)
+                            rect_padded = fitz.Rect(rect.x0 - 5, rect.y0 - 5, rect.x1 + 5, rect.y1 + 5)
                             words = page.get_text("words")
-                            anchor_words = [w[4] for w in words if fitz.Rect(w[:4]).intersects(rect)]
+                            anchor_words = [w[4] for w in words if fitz.Rect(w[:4]).intersects(rect_padded)]
                             anchor_text = " ".join(anchor_words).strip()
                             
                     anchor_lower = anchor_text.lower()
                     is_atc_match = (
                         any(phrase in anchor_lower for phrase in atc_phrases)
-                        or has_atc_text
-                        or any(keyword in uri.lower() for keyword in ["atc", "download", "buyer_atc", "file"])
+                        or any(keyword in uri.lower() for keyword in ["atc", "download", "buyer_atc", "show_atc", "file", ".pdf"])
+                        or (has_atc_text and any(term in anchor_lower for term in ["click", "here", "view", "file", "download", "atc"]))
                     )
                     
                     if is_atc_match:
