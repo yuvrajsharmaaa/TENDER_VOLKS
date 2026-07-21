@@ -147,6 +147,38 @@ class GemFieldExtractor(FieldExtractor):
                             except ValueError:
                                 pass
 
+        # Fallback for global EMD if no schedule EMD is found
+        if not emd_dict:
+            for page in pages:
+                col_split = 750 if page.image_width_px > 1000 else 260
+                left_blocks = [b for b in page.text_blocks if b.bounding_box["x1"] < col_split]
+                right_blocks = [b for b in page.text_blocks if b.bounding_box["x1"] >= col_split]
+                left_cells = merge_blocks_into_cells(left_blocks)
+                right_cells = merge_blocks_into_cells(right_blocks)
+                for l_cell in left_cells:
+                    if "emd" in l_cell["text"].lower() and "amount" in l_cell["text"].lower():
+                        r_cell = find_paired_right_cell(l_cell, right_cells)
+                        if r_cell:
+                            val_str = self._match_value_pattern(r_cell["text"], "currency")
+                            if val_str:
+                                clean_val = re.sub(r"[^\d.]", "", val_str)
+                                if clean_val:
+                                    try:
+                                        global_emd_val = float(clean_val)
+                                        emd_dict[1] = global_emd_val
+                                        emd_evidence_parts.append(f"Global EMD: {clean_val}")
+                                        emd_source_blocks.append(SourceBlockRef(
+                                            page_number=page.page_number,
+                                            block_id=l_cell["blocks"][0].block_id,
+                                            text=l_cell["text"],
+                                            bounding_box=BoundingBox(**l_cell["blocks"][0].bounding_box)
+                                        ))
+                                        break
+                                    except ValueError:
+                                        pass
+                if emd_dict:
+                    break
+
         if emd_dict:
             extracted.append(ExtractedFieldSchema(
                 field_name="emd_by_schedule",
@@ -337,6 +369,90 @@ class GemFieldExtractor(FieldExtractor):
             if field_name in ("emd_by_schedule", "emd_total", "emd_required", "schedules"):
                 continue
                 
+            if field_name == "buyer_added_text_atc_clauses":
+                clauses = []
+                found_heading = False
+                target_page_idx = -1
+                heading_block_idx = -1
+                
+                for p_idx, page in enumerate(pages):
+                    sorted_blocks = sorted(page.text_blocks, key=lambda b: (b.bounding_box["y1"], b.bounding_box["x1"]))
+                    for b_idx, block in enumerate(sorted_blocks):
+                        block_text_lower = block.text.lower()
+                        if any(h in block_text_lower for h in [
+                            "buyer added bid specific terms and conditions",
+                            "buyer added text based atc clauses",
+                            "buyer added bid specific atc"
+                        ]):
+                            found_heading = True
+                            target_page_idx = p_idx
+                            heading_block_idx = b_idx
+                            break
+                    if found_heading:
+                        break
+                        
+                if found_heading:
+                    curr_page_idx = target_page_idx
+                    start_block_idx = heading_block_idx + 1
+                    gathering = True
+                    evidence_blocks = []
+                    
+                    while curr_page_idx < len(pages) and gathering:
+                        page = pages[curr_page_idx]
+                        sorted_blocks = sorted(page.text_blocks, key=lambda b: (b.bounding_box["y1"], b.bounding_box["x1"]))
+                        
+                        for b_idx in range(start_block_idx, len(sorted_blocks)):
+                            block = sorted_blocks[b_idx]
+                            block_text = block.text.strip()
+                            block_text_lower = block_text.lower()
+                            
+                            if "disclaimer" in block_text_lower:
+                                gathering = False
+                                break
+                            if "this bid is also governed by" in block_text_lower:
+                                gathering = False
+                                break
+                            m_head = re.match(r"^(\d+)\.\s+[A-Z]", block_text)
+                            if m_head:
+                                sec_num = int(m_head.group(1))
+                                if sec_num > 9:
+                                    gathering = False
+                                    break
+                                    
+                            if block_text:
+                                clauses.append(block_text)
+                                evidence_blocks.append(SourceBlockRef(
+                                    page_number=page.page_number,
+                                    block_id=block.block_id,
+                                    text=block.text,
+                                    bounding_box=BoundingBox(**block.bounding_box)
+                                ))
+                                
+                        curr_page_idx += 1
+                        start_block_idx = 0
+                        
+                if clauses:
+                    extracted.append(ExtractedFieldSchema(
+                        field_name="buyer_added_text_atc_clauses",
+                        value="\n".join(clauses),
+                        confidence=0.95,
+                        source_page=pages[target_page_idx].page_number,
+                        evidence=f"Extracted {len(clauses)} clauses under Buyer Added ATC section.",
+                        source_blocks=evidence_blocks,
+                        source="gem_parent_pdf"
+                    ))
+                else:
+                    extracted.append(ExtractedFieldSchema(
+                        field_name="buyer_added_text_atc_clauses",
+                        value=None,
+                        confidence=0.0,
+                        source_page=1,
+                        evidence="Buyer Added ATC section not found or empty.",
+                        source_blocks=[],
+                        source="gem_parent_pdf"
+                    ))
+                continue
+                
             anchors = spec.get("anchor_labels", [])
             field_type = spec.get("type", "text")
             pattern = spec.get("pattern")
@@ -506,6 +622,27 @@ class GemFieldExtractor(FieldExtractor):
                     source_blocks=[],
                     source="gem_parent_pdf"
                 ))
+
+        # Derive pbg_required
+        pbg_pct_val = 0.0
+        pbg_pct_field = next((f for f in extracted if f.field_name == "pbg_percentage"), None)
+        if pbg_pct_field and pbg_pct_field.value is not None:
+            try:
+                clean_pct = re.sub(r"[^\d.]", "", str(pbg_pct_field.value))
+                if clean_pct:
+                    pbg_pct_val = float(clean_pct)
+            except ValueError:
+                pass
+                
+        extracted.append(ExtractedFieldSchema(
+            field_name="pbg_required",
+            value=pbg_pct_val > 0.0,
+            confidence=0.9,
+            source_page=1,
+            evidence=f"Derived from pbg_percentage: {pbg_pct_val}",
+            source_blocks=[],
+            source="derived"
+        ))
 
         logger.info(f"Finished GeM field extraction. Total fields: {len(extracted)}")
         return extracted

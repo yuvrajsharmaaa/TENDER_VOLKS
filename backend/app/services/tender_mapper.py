@@ -355,11 +355,44 @@ def map_extraction_to_tender_information(extracted: dict, tender_id: int) -> dic
     return map_internal_to_db_payload(normalized, tender_id)
 
 
-def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[str, Any]] = None) -> Dict[str, str]:
+def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[str, Any]] = None, job_id: str = "Unknown") -> Dict[str, str]:
     """
     Flattens the extracted sections and runs regex match fallbacks on the raw page texts
     to resolve all Visual Layout variables defined in INFOSHEET_DATA_KEYS.
     """
+    def _is_missing(val):
+        return val is None or val == "" or val == "NA"
+
+    def format_currency(val: Any) -> str:
+        if val is None or val == "" or val == "NA":
+            return "NA"
+        try:
+            num = float(val)
+            s = f"{int(round(num))}"
+            if len(s) <= 3:
+                return f"₹{s}"
+            else:
+                last_three = s[-3:]
+                remaining = s[:-3]
+                groups = []
+                while remaining:
+                    groups.append(remaining[-2:])
+                    remaining = remaining[:-2]
+                groups.reverse()
+                return f"₹{','.join(groups)},{last_three}"
+        except Exception:
+            return f"₹{val}"
+
+    def normalize_evaluation_method(raw: str) -> str:
+        if not raw or _is_missing(raw):
+            return raw
+        raw_lower = raw.lower()
+        if "item" in raw_lower:
+            return "Item wise"
+        if "total" in raw_lower or "value" in raw_lower:
+            return "Total value wise"
+        return raw
+
     field_lookup = {}
     for sec in sections:
         for f in sec.get("fields", []):
@@ -377,7 +410,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     # Helper to extract using regex from full_text
     import re
     def extract_regex(pattern, default="NA"):
-        if not full_text:
+        if not full_text or not pattern:
             return default
             
         # Intercept legacy pattern and rewrite to robust tabular pattern
@@ -408,7 +441,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             keys = [keys]
         for key in keys:
             val = field_lookup.get(key)
-            if val and val != "NA" and val != "Not Found":
+            if not _is_missing(val) and val != "Not Found":
                 return val
         return extract_regex(regex_pattern, default)
 
@@ -456,17 +489,35 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     # 11. Tender Fees (in form of)
     tender_fee_mode_display = resolve_field("Tender Fee Mode", r"Tender Fee Mode[:\-\s]+([^\n]+)")
 
-    # 12. EMD
-    emd_amount_display = field_lookup.get("EMD Amount")
-    if not emd_amount_display or emd_amount_display == "NA":
-        emd_amount_display = extract_regex(r"EMD Amount[:\-\s]+([^\n]+)")
-    if not emd_amount_display or emd_amount_display == "NA":
-        emd_amount_display = extract_regex(r"EMD[:\-\s]+([^\n]+)")
-    if emd_amount_display != "NA" and not re.search(r"\d|no|nil|exempt", emd_amount_display, re.IGNORECASE):
-        emd_amount_display = "NA"
-
     # 13. EMD required
-    emd_required_display = resolve_field("EMD Required", r"EMD Required[:\-\s]+([^\n]+)")
+    emd_required_raw = resolve_field("EMD Required", r"EMD Required[:\-\s]+([^\n]+)", None)
+    if _is_missing(emd_required_raw):
+        emd_required = None
+    else:
+        emd_required = str(emd_required_raw).strip().lower() in ("true", "yes", "required", "y")
+        
+    if _is_missing(emd_required):
+        emd_required_display = "NA"
+    else:
+        emd_required_display = "Yes" if emd_required else "No"
+
+    # 12. EMD
+    emd_amount_raw = field_lookup.get("EMD Amount")
+    if _is_missing(emd_amount_raw):
+        emd_amount_raw = extract_regex(r"EMD Amount[:\-\s]+([^\n]+)", None)
+    if _is_missing(emd_amount_raw):
+        emd_amount_raw = extract_regex(r"EMD[:\-\s]+([^\n]+)", None)
+        
+    if not _is_missing(emd_amount_raw):
+        from backend.app.services.normalizer import parse_money
+        emd_total = parse_money(emd_amount_raw) or 0.0
+    else:
+        emd_total = 0.0
+        
+    if emd_required_display == "Yes":
+        emd_amount_display = format_currency(emd_total)
+    else:
+        emd_amount_display = "No"
 
     # 14. Tender Value (GST Inclusive)
     tender_value_display = resolve_field("Estimated Tender Value", r"Tender Value \(GST Inclusive\)[:\-\s]+([^\n]+)")
@@ -475,17 +526,40 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     emd_mode_display = resolve_field("EMD Mode", r"EMD Mode[:\-\s]+([^\n]+)")
 
     # 16. Bid Validity
-    bid_validity_days_display = resolve_field("Bid Validity Period", r"Bid Validity \(Days\)[:\-\s]+([^\n]+)")
-    if bid_validity_days_display and bid_validity_days_display != "NA":
+    bid_validity_days_display = resolve_field("Bid Validity Period", r"Bid Validity \(Days\)[:\-\s]+([^\n]+)", None)
+    if not _is_missing(bid_validity_days_display):
         clean_num = re.sub(r"\D", "", str(bid_validity_days_display))
         if clean_num:
             bid_validity_days_display = f"{clean_num} Days"
+        else:
+            bid_validity_days_display = "NA"
+    else:
+        bid_validity_days_display = "NA"
+        
+    if _is_missing(bid_validity_days_display) or bid_validity_days_display == "NA":
+        logger.warning(
+            f"CRITICAL: Bid Validity missing for job {job_id} — "
+            f"this field is mandatory in every GeM parent document. "
+            f"Flag for manual review, do not treat as a normal data gap."
+        )
 
     # 17. Commercial Evaluation
-    commercial_evaluation_display = resolve_field(["Commercial Evaluation", "Commercial Evaluation Type"], r"Commercial Evaluation Type[:\-\s]+([^\n]+)")
+    commercial_evaluation_raw = resolve_field(["Commercial Evaluation", "Commercial Evaluation Type"], r"Commercial Evaluation Type[:\-\s]+([^\n]+)", None)
+    commercial_evaluation_display = normalize_evaluation_method(commercial_evaluation_raw)
+    if _is_missing(commercial_evaluation_display):
+        commercial_evaluation_display = "NA"
 
     # 18. RA Applicable
-    reverse_auction_applicable_display = resolve_field("Reverse Auction Applicable", r"Reverse Auction Applicable[:\-\s]+([^\n]+)")
+    reverse_auction_raw = resolve_field("Reverse Auction Applicable", r"Reverse Auction Applicable[:\-\s]+([^\n]+)", None)
+    if _is_missing(reverse_auction_raw):
+        reverse_auction = None
+    else:
+        reverse_auction = str(reverse_auction_raw).strip().lower() in ("true", "yes", "required", "y")
+        
+    if _is_missing(reverse_auction):
+        reverse_auction_applicable_display = "NA"
+    else:
+        reverse_auction_applicable_display = "Yes" if reverse_auction else "No"
 
     # 19. MAF required
     maf_required_display = resolve_field("MAF Required", r"MAF Required[:\-\s]+([^\n]+)")
@@ -518,14 +592,54 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     # 27. Max LD %age
     max_ld_percentage_display = resolve_field("Max LD Percentage", r"Max LD Percentage[:\-\s]+([^\n]+)")
 
+    # PBG Required (NEW)
+    pbg_required_raw = resolve_field("PBG Required", None, None)
+    if _is_missing(pbg_required_raw):
+        pbg_required = None
+    else:
+        pbg_required = str(pbg_required_raw).strip().lower() in ("true", "yes", "required", "y")
+        
+    if _is_missing(pbg_required):
+        pbg_required_display = "NA"
+    else:
+        pbg_required_display = "Yes" if pbg_required else "No"
+
     # 28. PBG %age
-    pbg_percentage_display = resolve_field("PBG Percentage", r"PBG Percentage[:\-\s]+([^\n]+)")
+    pbg_pct_raw = resolve_field("PBG Percentage", r"PBG Percentage[:\-\s]+([^\n]+)", None)
+    if pbg_required_display == "No":
+        pbg_percentage_display = "Not Applicable"
+    else:
+        if not _is_missing(pbg_pct_raw):
+            try:
+                clean_pct = re.sub(r"[^\d.]", "", str(pbg_pct_raw))
+                if clean_pct:
+                    pbg_percentage_display = f"{float(clean_pct)}%"
+                else:
+                    pbg_percentage_display = "NA" if pbg_required_display == "Yes" else "Not Applicable"
+            except Exception:
+                pbg_percentage_display = "NA" if pbg_required_display == "Yes" else "Not Applicable"
+        else:
+            pbg_percentage_display = "NA" if pbg_required_display == "Yes" else "Not Applicable"
 
     # 29. Security Deposit
     sd_percentage_display = resolve_field("Security Deposit %", r"Security Deposit %[:\-\s]+([^\n]+)")
 
     # 30. PBG Duration
-    pbg_duration_display = resolve_field("PBG Duration (Months)", r"PBG Duration \(Months\)[:\-\s]+([^\n]+)")
+    pbg_duration_raw = resolve_field("PBG Duration (Months)", r"PBG Duration \(Months\)[:\-\s]+([^\n]+)", None)
+    if pbg_required_display == "No":
+        pbg_duration_display = "Not Applicable"
+    else:
+        if not _is_missing(pbg_duration_raw):
+            try:
+                clean_dur = re.sub(r"\D", "", str(pbg_duration_raw))
+                if clean_dur:
+                    pbg_duration_display = f"{int(clean_dur)} Months"
+                else:
+                    pbg_duration_display = "NA" if pbg_required_display == "Yes" else "Not Applicable"
+            except Exception:
+                pbg_duration_display = "NA" if pbg_required_display == "Yes" else "Not Applicable"
+        else:
+            pbg_duration_display = "NA" if pbg_required_display == "Yes" else "Not Applicable"
 
     # 31. SD Duration
     sd_duration_display = resolve_field("SD Duration (Months)", r"SD Duration \(Months\)[:\-\s]+([^\n]+)")
@@ -721,6 +835,8 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             elif idx == 1: schedule_2_details_display = detail
             elif idx == 2: schedule_3_details_display = detail
 
+    custom_eligibility_criteria_display = resolve_field("Custom Eligibility Criteria", None, "NA")
+
     return {
         "organization": organization,
         "tender_name": tender_name,
@@ -749,6 +865,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         "sd_mode_display": sd_mode_display,
         "ld_percentage_display": ld_percentage_display,
         "max_ld_percentage_display": max_ld_percentage_display,
+        "pbg_required_display": pbg_required_display,
         "pbg_percentage_display": pbg_percentage_display,
         "sd_percentage_display": sd_percentage_display,
         "pbg_duration_display": pbg_duration_display,
@@ -767,6 +884,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         "po_selected_documents_display": po_selected_documents_display,
         "solvency_certificate_type_display": solvency_certificate_type_display,
         "solvency_certificate_value_display": solvency_certificate_value_display,
+        "custom_eligibility_criteria_display": custom_eligibility_criteria_display,
         "commercial_eligibility_documents_display": commercial_eligibility_documents_display,
         "client_name_1_display": client_name_1_display,
         "client_email_1_display": client_email_1_display,
