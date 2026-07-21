@@ -126,14 +126,11 @@ app.add_middleware(
 )
 
 # Ensure local storage directory exists before mounting
-try:
-    STORAGE_ROOT.mkdir(parents=True, exist_ok=True)
-except Exception as e:
-    logger.warning(f"Unable to pre-create STORAGE_ROOT: {e}")
+STORAGE_ROOT.mkdir(parents=True, exist_ok=True)
 
-# Mount local storage directory for static file access if directory exists or was created
-if STORAGE_ROOT.exists():
-    app.mount("/storage", StaticFiles(directory=str(STORAGE_ROOT)), name="storage")
+# Mount local storage directory for static file access
+app.mount("/storage", StaticFiles(directory=str(STORAGE_ROOT)), name="storage")
+
 
 
 # Include API Routers

@@ -52,6 +52,8 @@ class LocalObjectStore:
             logger.warning(f"Unable to create storage root directory {self.root}: {e}")
 
     def _bucket_dir(self, bucket_name: str) -> Path:
+        if not bucket_name or "/" in bucket_name or "\\" in bucket_name or bucket_name in (".", "..") or bucket_name.startswith("."):
+            raise ValueError(f"Invalid bucket name: {bucket_name!r}")
         return self.root / bucket_name
 
     def _safe_object_path(self, bucket_name: str, object_name: str) -> Path:
@@ -97,7 +99,11 @@ class LocalObjectStore:
         dest = self._safe_object_path(bucket_name, object_name)
         dest.parent.mkdir(parents=True, exist_ok=True)
         with open(dest, "wb") as f:
-            f.write(data.read())
+            if length is not None and length > 0:
+                f.write(data.read(length))
+            else:
+                f.write(data.read())
+
 
     def list_objects(self, bucket_name: str, prefix: str = "", recursive: bool = True) -> Iterable[_ObjectInfo]:
         bucket_dir = self._bucket_dir(bucket_name)
