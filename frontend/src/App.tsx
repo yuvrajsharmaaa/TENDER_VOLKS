@@ -326,44 +326,44 @@ function App() {
                 {
                   label: "Live Tenders",
                   value: statsLive,
-                  Icon: Activity,
-                  iconClass: "icon-live-tenders",
+                  icon: <Activity className="h-5 w-5" aria-hidden />,
+                  iconCls: "bg-selected-green-bg border-selected-green-border text-success-green",
                 },
                 {
                   label: "Ingesting",
                   value: statsNew,
-                  Icon: Loader2,
-                  iconClass: "icon-ingesting",
+                  icon: <Loader2 className="h-5 w-5 animate-spin" aria-hidden />,
+                  iconCls: "bg-blue-50 border-blue-200 text-blue-600",
                 },
                 {
                   label: "Closing Soon",
                   value: statsClosing,
-                  Icon: Calendar,
-                  iconClass: "icon-closing-soon",
+                  icon: <Calendar className="h-5 w-5" aria-hidden />,
+                  iconCls: "bg-warning-bg border-warning-text/20 text-warning-text",
                 },
                 {
                   label: "High AI Match",
                   value: statsHighMatch,
-                  Icon: Sparkles,
-                  iconClass: "icon-high-aimatch",
+                  icon: <Sparkles className="h-5 w-5" aria-hidden />,
+                  iconCls: "bg-selected-green-bg border-success-green/20 text-success-green",
                 },
-              ].map(({ label, value, Icon, iconClass }) => (
+              ].map(({ label, value, icon, iconCls }) => (
                 <div
                   key={label}
-                  className="bg-card-bg border border-divider/60 rounded-[12px] px-5 py-4
+                  className="bg-card-bg border border-divider/60 rounded-2xl px-5 py-4
                     shadow-[0_1px_3px_rgba(0,0,0,0.02),0_4px_12px_rgba(0,0,0,0.03)]
                     flex items-center justify-between gap-3"
                 >
                   <div className="min-w-0">
-                    <p className="stat-label">
+                    <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest leading-none mb-1.5 truncate">
                       {label}
                     </p>
-                    <p className={`text-stat-number font-bold ${value === 0 ? 'text-zero-value' : 'text-text-primary'} leading-none`}>
+                    <p className="text-2xl font-bold text-text-primary leading-none font-mono tabular-nums">
                       {value}
                     </p>
                   </div>
-                  <div className="h-10 w-10 shrink-0 flex items-center justify-center rounded-[10px]">
-                    <Icon className={`h-5 w-5 ${iconClass}`} aria-hidden />
+                  <div className={`h-10 w-10 shrink-0 flex items-center justify-center rounded-xl border ${iconCls}`}>
+                    {icon}
                   </div>
                 </div>
               ))}
@@ -372,8 +372,8 @@ function App() {
             {/* ── Results toolbar ────────────────────────────────── */}
             <div className="flex items-center justify-between mb-4 shrink-0 select-none">
               <div>
-                <h2 className="text-sm font-medium text-text-primary font-sans tracking-[0.01em]">Tender Results</h2>
-                <p className="text-[11px] text-text-muted mt-0.5 font-mono numeric-nums">
+                <h2 className="text-sm font-bold text-text-primary font-sans tracking-tight">Tender Results</h2>
+                <p className="text-[11px] text-text-muted mt-0.5 font-mono">
                   {sortedTenders.length} tender{sortedTenders.length !== 1 ? "s" : ""} found
                 </p>
               </div>

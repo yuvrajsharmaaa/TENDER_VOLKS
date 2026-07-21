@@ -5,13 +5,13 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
 from rapidfuzz import fuzz
 
-from ocr.extractors.field_extractor import FieldExtractor, group_blocks_into_rows, is_contained
+from ocr.extractors.field_extractor import FieldExtractor, group_blocks_into_rows
 from backend.app.models.models import PageResult, TextBlock, LayoutRegion
 from backend.app.schemas.schemas import ExtractedFieldSchema, SourceBlockRef, BoundingBox
 
 logger = logging.getLogger("tender_ocr")
 
-DEVANAGARI_RANGE = re.compile(r'[ऀ-ॿ]+')
+DEVANAGARI_RANGE = re.compile(r'[\u0900-\u097F]+')
 TENDER_ID_RE = re.compile(r"GEM/20\d{2}/[A-Z]/\d+")
 
 def validate_tender_id(candidate: str | None) -> bool:
@@ -27,7 +27,7 @@ def detect_column_split(text_blocks: List[TextBlock]) -> int:
     """
     Find the x-coordinate that best separates the label column from the
     value column.
-
+    
     Strategy:
       1. Filter out blocks that span too wide (likely titles, footers, full-width notes)
          to prevent them from skewing the column boundary detection.
@@ -43,19 +43,19 @@ def detect_column_split(text_blocks: List[TextBlock]) -> int:
         return 300
 
     total = len(text_blocks)
-
+    
     # Filter out blocks that span too wide (e.g. full width text/paragraphs)
     max_x = max(b.bounding_box["x2"] for b in text_blocks)
     min_x = min(b.bounding_box["x1"] for b in text_blocks)
     page_width = max_x - min_x or 1
-
+    
     filtered_blocks = [
         b for b in text_blocks
         if (b.bounding_box["x2"] - b.bounding_box["x1"]) < 0.5 * page_width
     ]
     if not filtered_blocks:
         filtered_blocks = text_blocks
-
+    
     # ── 1. Try x1 binning ─────────────────────────────────────────────
     bins: Dict[int, int] = {}
     for b in filtered_blocks:
@@ -93,13 +93,13 @@ def detect_column_split(text_blocks: List[TextBlock]) -> int:
     gaps = [(x1_positions[i+1] - x1_positions[i], x1_positions[i])
             for i in range(len(x1_positions) - 1)]
     page_width_fallback = x1_positions[-1] - x1_positions[0] or 1
-
+    
     # We check candidate gaps using the midpoint of the gap relative to page margins
     candidate_gaps = [
         g for g in gaps
         if 0.15 * page_width_fallback < (g[1] + g[0] // 2 - x1_positions[0]) < 0.85 * page_width_fallback
     ]
-
+    
     gaps_to_check = candidate_gaps or gaps
     balanced_gaps = []
     for gap_size, gap_start in gaps_to_check:
@@ -109,12 +109,12 @@ def detect_column_split(text_blocks: List[TextBlock]) -> int:
         minority = min(n_left, n_right)
         if minority / total >= 0.15:
             balanced_gaps.append((gap_size, gap_start))
-
+            
     if balanced_gaps:
         best_gap = max(balanced_gaps, key=lambda g: g[0])
     else:
         best_gap = max(gaps_to_check, key=lambda g: g[0])
-
+        
     return best_gap[1] + best_gap[0] // 2
 
 def merge_into_cells(blocks: List[TextBlock], y_gap_tolerance: int = 20) -> List[Dict[str, Any]]:
@@ -251,7 +251,7 @@ FIELD_ANCHORS = {
     "required_documents": {"section": None, "anchors": ["Document required from seller"]},
     "atc_document_link_present": {"section": None, "anchors": ["Buyer uploaded ATC document"]},
     "land_border_clause_present": {"section": None, "anchors": ["Restrictions on procurement from a bidder of a country which shares a land border with India"]},
-
+    
     # Out of scope mappings
     "tender_value_gst_inclusive": {"section": None, "anchors": ["Estimated Bid Value", "Tender Value (GST Inclusive)", "Estimated Bid Value / अनुमानित बिड मूल्य"]},
     "eligibility_criterion_years": {"section": None, "anchors": ["Minimum Experience (Years)"]},
@@ -365,7 +365,6 @@ def segment_by_schedule(layout_regions: List[LayoutRegion], text_blocks: List[Te
         ]
     return segments
 
-
 class GemFieldExtractor(FieldExtractor):
     def __init__(self):
         super().__init__()
@@ -404,17 +403,17 @@ class GemFieldExtractor(FieldExtractor):
         for page in pages:
             sorted_blocks = sorted(page.text_blocks, key=lambda b: (b.bounding_box["y1"], b.bounding_box["x1"]))
             all_rows = group_blocks_into_rows(sorted_blocks)
-
+            
             current_schedule_num = 1
             consignee_headers = None
-
+            
             for row_idx, row in enumerate(all_rows):
                 row_text = " ".join(b.text for b in row)
-
+                
                 m_sch = re.search(r"Schedule\s*(\d+)", row_text, re.IGNORECASE)
                 if m_sch:
                     current_schedule_num = int(m_sch.group(1))
-
+                    
                 is_tech_spec = False
                 if len(row) >= 2:
                     c1_text = row[0].text.strip()
@@ -426,27 +425,27 @@ class GemFieldExtractor(FieldExtractor):
                     if any(kw in c1_text.lower() for kw in spec_keywords):
                         if not any(k in c1_text.lower() for k in ["dated", "schedule", "consignee", "delivery"]):
                             is_tech_spec = True
-
-                    if is_tech_spec:
-                        schedules_data.setdefault(current_schedule_num, {
-                            "schedule_number": current_schedule_num,
-                            "consignee_name": "Not Found",
-                            "consignee_address": "Not Found",
-                            "quantity": "Not Found",
-                            "delivery_days": "Not Found",
-                            "item_description": "Not Found",
-                            "technical_specs": {}
-                        })
-                        clean_param = re.sub(r"^[^a-zA-Z0-9\s]+", "", c1_text)
-                        clean_param = re.sub(r"^[/\\_.:\-]+\s*", "", clean_param).strip()
-                        schedules_data[current_schedule_num]["technical_specs"][clean_param] = c2_text.strip()
-                        continue
-
+                            
+                if is_tech_spec:
+                    schedules_data.setdefault(current_schedule_num, {
+                        "schedule_number": current_schedule_num,
+                        "consignee_name": "Not Found",
+                        "consignee_address": "Not Found",
+                        "quantity": "Not Found",
+                        "delivery_days": "Not Found",
+                        "item_description": "Not Found",
+                        "technical_specs": {}
+                    })
+                    clean_param = re.sub(r"^[^a-zA-Z0-9\s]+", "", c1_text)
+                    clean_param = re.sub(r"^[/\\_.:\-]+\s*", "", clean_param).strip()
+                    schedules_data[current_schedule_num]["technical_specs"][clean_param] = c2_text.strip()
+                    continue
+                    
                 row_texts_lower = [b.text.lower() for b in row]
                 has_consignee = any("consignee" in txt or "reporting" in txt or "officer" in txt for txt in row_texts_lower)
                 has_qty = any("quantity" in txt or "मात्रा" in txt for txt in row_texts_lower)
                 has_days = any("delivery" in txt or "days" in txt for txt in row_texts_lower)
-
+                
                 if has_consignee and (has_qty or has_days):
                     consignee_headers = {}
                     for col_idx, block in enumerate(row):
@@ -460,12 +459,12 @@ class GemFieldExtractor(FieldExtractor):
                         elif "delivery" in txt or "days" in txt:
                             consignee_headers["delivery_days"] = col_idx
                     continue
-
+                    
                 if consignee_headers and len(row) >= 2:
                     if any("total" in b.text.lower() or "योग" in b.text.lower() or "schedule" in b.text.lower() for b in row):
                         consignee_headers = None
                         continue
-
+                        
                     schedules_data.setdefault(current_schedule_num, {
                         "schedule_number": current_schedule_num,
                         "consignee_name": "Not Found",
@@ -475,7 +474,7 @@ class GemFieldExtractor(FieldExtractor):
                         "item_description": "Not Found",
                         "technical_specs": {}
                     })
-
+                    
                     entry = schedules_data[current_schedule_num]
                     for field, col_idx in consignee_headers.items():
                         if col_idx < len(row):
@@ -522,37 +521,103 @@ class GemFieldExtractor(FieldExtractor):
                 source="gem_parent_pdf"
             ))
 
-        # 3. Extract standard fields using table-aware spatial processing
+        # 3. Two-Stage Spatial Key-Value Extraction for Standard Fields & EMD Amounts
         candidates = {}  # field_name -> list of dicts
         emd_dict = {}    # schedule_number -> float
         global_emd_amount = None
 
         for page in pages:
-            # Identify table regions
-            table_regions = [r for r in page.layout_regions if r.region_type.lower() == "table"]
-            processed_block_ids = set()
-
-            # Process each table region
-            for region in table_regions:
-                # Get blocks contained in this table region
-                table_blocks = [b for b in page.text_blocks if is_contained(b.bounding_box, region.bounding_box)]
-                if not table_blocks:
-                    continue
-
-                # Compute column split for this table
-                col_split = detect_column_split(table_blocks)
-                left_blocks = [b for b in table_blocks if b.bounding_box["x1"] < col_split]
-                right_blocks = [b for b in table_blocks if b.bounding_box["x1"] >= col_split]
-
-                # Create cells
+            # Same-block label-value matches (e.g. colon split, prefix/suffix match fallback)
+            for block in page.text_blocks:
+                text = block.text.strip()
+                # 1. Colon-based split
+                parts = text.split(":", 1)
+                if len(parts) == 2 and parts[0].strip() and parts[1].strip():
+                    l_text, r_text = parts[0].strip(), parts[1].strip()
+                    field_name = match_field(l_text, None)
+                    if field_name:
+                        sch_num = None
+                        m_sch = re.search(r"Schedule\s*(\d+)", l_text, re.IGNORECASE)
+                        if not m_sch:
+                            m_sch = re.search(r"अनुसूची\s*(\d+)", l_text)
+                        if m_sch:
+                            sch_num = int(m_sch.group(1))
+                        
+                        spec = FIELD_ANCHORS[field_name]
+                        best_score = 0
+                        for anchor in spec["anchors"]:
+                            score = fuzz.partial_ratio(anchor.lower(), strip_devanagari(l_text).lower())
+                            if score > best_score:
+                                best_score = score
+                                
+                        candidates.setdefault(field_name, []).append({
+                            "value": r_text,
+                            "confidence": block.confidence * (best_score / 100),
+                            "source_page": page.page_number,
+                            "schedule_number": sch_num,
+                            "evidence": f"Same-block colon match: '{text}'",
+                            "source_blocks": [
+                                SourceBlockRef(
+                                    page_number=page.page_number,
+                                    block_id=block.block_id,
+                                    text=block.text,
+                                    bounding_box=BoundingBox(**block.bounding_box)
+                                )
+                            ]
+                        })
+                # 2. Prefix-based split (for strings like "Bid Validity Period 90 Days"
+                #    or mixed Devanagari+English like "ईपीबीजी 9ितशत (%)/ePBG Percentage(%) 3.00")
+                for field_name, spec in FIELD_ANCHORS.items():
+                    # Sort anchors by length descending so most specific matches are tried first
+                    for anchor in sorted(spec["anchors"], key=len, reverse=True):
+                        clean_anchor = anchor.lower()
+                        clean_text = strip_devanagari(text).lower()
+                        # Use 'contains' instead of 'startswith' to handle blocks starting with Devanagari
+                        if clean_anchor in clean_text:
+                            # when anchor and value in same block
+                            idx = text.lower().find(anchor.lower())
+                            if idx != -1:
+                                suffix = text[idx + len(anchor):].strip()
+                                suffix = re.sub(r"^[:\-/\s\u0900-\u097F]+", "", suffix).strip()
+                                # Guard: skip long paragraphs — real field values are short
+                                if suffix and len(suffix) < 200:
+                                    sch_num = None
+                                    m_sch = re.search(r"Schedule\s*(\d+)", text, re.IGNORECASE)
+                                    if not m_sch:
+                                        m_sch = re.search(r"अनुसूची\s*(\d+)", text)
+                                    if m_sch:
+                                        sch_num = int(m_sch.group(1))
+                                    
+                                    candidates.setdefault(field_name, []).append({
+                                        "value": suffix,
+                                        "confidence": block.confidence * 0.85,
+                                        "source_page": page.page_number,
+                                        "schedule_number": sch_num,
+                                        "evidence": f"Same-block prefix match: '{text}'",
+                                        "source_blocks": [
+                                            SourceBlockRef(
+                                                page_number=page.page_number,
+                                                block_id=block.block_id,
+                                                text=block.text,
+                                                bounding_box=BoundingBox(**block.bounding_box)
+                                            )
+                                        ]
+                                    })
+            # Segment text blocks by schedule
+            segments = segment_by_schedule(page.layout_regions, page.text_blocks)
+            for seg_num, seg_blocks in segments.items():
+                col_split = detect_column_split(seg_blocks)
+                left_blocks = [b for b in seg_blocks if b.bounding_box["x1"] < col_split]
+                right_blocks = [b for b in seg_blocks if b.bounding_box["x1"] >= col_split]
+                
                 left_cells = merge_into_cells(left_blocks)
                 right_cells = merge_into_cells(right_blocks)
 
-                # Same-block matches within table blocks
-                for block in table_blocks:
-                    text = block.text.strip()
-                    # Colon-based split
-                    parts = text.split(":", 1)
+                # ── Fix 2: Same-cell prefix/suffix extraction on merged cells ──
+                for cell in left_cells + right_cells:
+                    cell_text = cell["text"].strip()
+                    # 1. Colon-based split
+                    parts = cell_text.split(":", 1)
                     if len(parts) == 2 and parts[0].strip() and parts[1].strip():
                         l_text, r_text = parts[0].strip(), parts[1].strip()
                         field_name = match_field(l_text, None)
@@ -563,83 +628,88 @@ class GemFieldExtractor(FieldExtractor):
                                 m_sch = re.search(r"अनुसूची\s*(\d+)", l_text)
                             if m_sch:
                                 sch_num = int(m_sch.group(1))
-
+                            elif seg_num > 0:
+                                sch_num = seg_num
+                            
                             spec = FIELD_ANCHORS[field_name]
                             best_score = 0
                             for anchor in spec["anchors"]:
                                 score = fuzz.partial_ratio(anchor.lower(), strip_devanagari(l_text).lower())
                                 if score > best_score:
                                     best_score = score
-
-                            # Calculate confidence similar to cell-pair method
-                            label_conf = block.confidence  # Single block, so confidence is just the block's confidence
-                            value_conf = block.confidence  # Single block, so confidence is just the block's confidence
-                            ocr_conf = min(label_conf, value_conf)
-                            conf = round(ocr_conf * (best_score / 100), 4)
-
+                                    
                             candidates.setdefault(field_name, []).append({
                                 "value": r_text,
-                                "confidence": conf,
+                                "confidence": (cell["blocks"][0].confidence if cell["blocks"] else 1.0) * (best_score / 100),
                                 "source_page": page.page_number,
                                 "schedule_number": sch_num,
-                                "evidence": f"Same-block colon match: '{text}'",
+                                "evidence": f"Same-cell colon match: '{cell_text}'",
                                 "source_blocks": [
                                     SourceBlockRef(
                                         page_number=page.page_number,
-                                        block_id=block.block_id,
-                                        text=block.text,
-                                        bounding_box=BoundingBox(**block.bounding_box)
-                                    )
+                                        block_id=b.block_id,
+                                        text=b.text,
+                                        bounding_box=BoundingBox(**b.bounding_box)
+                                    ) for b in cell["blocks"]
                                 ]
                             })
-                    # Prefix-based split
+                    # 2. Prefix-based split (for strings like "EMD Amount/ 73880"
+                    #    or mixed Devanagari+English merged cells)
                     for field_name, spec in FIELD_ANCHORS.items():
+                        # Sort anchors by length descending so most specific matches are tried first
                         for anchor in sorted(spec["anchors"], key=len, reverse=True):
                             clean_anchor = anchor.lower()
-                            clean_text = strip_devanagari(text).lower()
+                            clean_text = strip_devanagari(cell_text).lower()
+                            # Use 'contains' instead of 'startswith' to handle cells starting with Devanagari
                             if clean_anchor in clean_text:
-                                idx = text.lower().find(anchor.lower())
+                                idx = cell_text.lower().find(anchor.lower())
                                 if idx != -1:
-                                    suffix = text[idx + len(anchor):].strip()
-                                    suffix = re.sub(r"^[:\-/\sऀ-ॿ]+", "", suffix).strip()
+                                    suffix = cell_text[idx + len(anchor):].strip()
+                                    suffix = re.sub(r"^[:\-/\s\u0900-\u097F]+", "", suffix).strip()
+                                    # Guard: skip long paragraphs — real field values are short
                                     if suffix and len(suffix) < 200:
                                         sch_num = None
-                                        m_sch = re.search(r"Schedule\s*(\d+)", text, re.IGNORECASE)
+                                        m_sch = re.search(r"Schedule\s*(\d+)", cell_text, re.IGNORECASE)
                                         if not m_sch:
-                                            m_sch = re.search(r"अनुसूची\s*(\d+)", text)
+                                            m_sch = re.search(r"अनुसूची\s*(\d+)", cell_text)
                                         if m_sch:
                                             sch_num = int(m_sch.group(1))
-
-                                        # Calculate confidence similar to cell-pair method
-                                        label_conf = block.confidence  # Single block
-                                        value_conf = block.confidence  # Single block
-                                        ocr_conf = min(label_conf, value_conf)
-                                        conf = round(ocr_conf * 0.85, 4)  # 0.85 factor for prefix match
-
+                                        elif seg_num > 0:
+                                            sch_num = seg_num
+                                        
                                         candidates.setdefault(field_name, []).append({
                                             "value": suffix,
-                                            "confidence": conf,
+                                            "confidence": (cell["blocks"][0].confidence if cell["blocks"] else 1.0) * 0.85,
                                             "source_page": page.page_number,
                                             "schedule_number": sch_num,
-                                            "evidence": f"Same-block prefix match: '{text}'",
+                                            "evidence": f"Same-cell prefix match: '{cell_text}'",
                                             "source_blocks": [
                                                 SourceBlockRef(
                                                     page_number=page.page_number,
-                                                    block_id=block.block_id,
-                                                    text=block.text,
-                                                    bounding_box=BoundingBox(**block.bounding_box)
-                                                )
+                                                    block_id=b.block_id,
+                                                    text=b.text,
+                                                    bounding_box=BoundingBox(**b.bounding_box)
+                                                ) for b in cell["blocks"]
                                             ]
                                         })
-
-                # Cell-pair matches
+                
+                section_headers_y = []
+                for l_cell in left_cells:
+                    l_text = l_cell["text"].strip()
+                    for sec_header in SECTION_HEADERS:
+                        score = fuzz.partial_ratio(sec_header.lower(), strip_devanagari(l_text).lower())
+                        if score >= 85:
+                            section_headers_y.append((l_cell["bbox"]["y1"], sec_header))
+                            break
+                section_headers_y.sort(key=lambda x: x[0])
+                
                 pairs = pair_cells_by_row(left_cells, right_cells)
                 sorted_pairs = sorted(pairs, key=lambda p: p[0]["bbox"]["y1"])
-
+                
                 for left, right in sorted_pairs:
                     l_text = left["text"].strip()
                     r_text = right["text"].strip()
-
+                    
                     # Skip section headers from standard field matching
                     is_header = False
                     for sec_header in SECTION_HEADERS:
@@ -649,21 +719,28 @@ class GemFieldExtractor(FieldExtractor):
                             break
                     if is_header:
                         continue
-
+                        
                     current_section = None
                     ly1 = left["bbox"]["y1"]
-                    # Determine current section from section headers (optional, keep simple and pass None)
-                    # For now we pass None; match_field will ignore section constraint if section is None
-                    field_name = match_field(l_text, None)
+                    for sy1, sec_name in section_headers_y:
+                        if sy1 < ly1:
+                            current_section = sec_name
+                        else:
+                            break
+                    
+                    # Match fields
+                    field_name = match_field(l_text, current_section)
                     if field_name:
-                        # Determine schedule number from label text
+                        # Determine schedule number
                         sch_num = None
                         m_sch = re.search(r"Schedule\s*(\d+)", l_text, re.IGNORECASE)
                         if not m_sch:
                             m_sch = re.search(r"अनुसूची\s*(\d+)", l_text)
                         if m_sch:
                             sch_num = int(m_sch.group(1))
-
+                        elif seg_num > 0:
+                            sch_num = seg_num
+                        
                         # Match score
                         spec = FIELD_ANCHORS[field_name]
                         best_score = 0
@@ -671,8 +748,8 @@ class GemFieldExtractor(FieldExtractor):
                             score = fuzz.partial_ratio(anchor.lower(), strip_devanagari(l_text).lower())
                             if score > best_score:
                                 best_score = score
-
-                        conf = field_confidence(left, right, int(best_score))
+                        
+                        conf = field_confidence(left, right, best_score)
                         candidates.setdefault(field_name, []).append({
                             "value": r_text,
                             "confidence": conf,
@@ -689,158 +766,7 @@ class GemFieldExtractor(FieldExtractor):
                             ]
                         })
 
-                # Mark these blocks as processed
-                for b in table_blocks:
-                    processed_block_ids.add(id(b))
-
-            # Process remaining blocks (not in any table) with a simple fallback
-            remaining_blocks = [b for b in page.text_blocks if id(b) not in processed_block_ids]
-            if remaining_blocks:
-                # Use page-wide column split as fallback (or we could skip column splitting and just use same-block/prefix/nearest)
-                col_split = detect_column_split(remaining_blocks)
-                left_blocks = [b for b in remaining_blocks if b.bounding_box["x1"] < col_split]
-                right_blocks = [b for b in remaining_blocks if b.bounding_box["x1"] >= col_split]
-
-                left_cells = merge_into_cells(left_blocks)
-                right_cells = merge_into_cells(right_blocks)
-
-                # Same-block matches
-                for block in remaining_blocks:
-                    text = block.text.strip()
-                    # Colon-based split
-                    parts = text.split(":", 1)
-                    if len(parts) == 2 and parts[0].strip() and parts[1].strip():
-                        l_text, r_text = parts[0].strip(), parts[1].strip()
-                        field_name = match_field(l_text, None)
-                        if field_name:
-                            sch_num = None
-                            m_sch = re.search(r"Schedule\s*(\d+)", l_text, re.IGNORECASE)
-                            if not m_sch:
-                                m_sch = re.search(r"अनुसूची\s*(\d+)", l_text)
-                            if m_sch:
-                                sch_num = int(m_sch.group(1))
-
-                            spec = FIELD_ANCHORS[field_name]
-                            best_score = 0
-                            for anchor in spec["anchors"]:
-                                score = fuzz.partial_ratio(anchor.lower(), strip_devanagari(l_text).lower())
-                                if score > best_score:
-                                    best_score = score
-
-                            # Calculate confidence similar to cell-pair method
-                            label_conf = block.confidence  # Single block
-                            value_conf = block.confidence  # Single block
-                            ocr_conf = min(label_conf, value_conf)
-                            conf = round(ocr_conf * (best_score / 100), 4)
-
-                            candidates.setdefault(field_name, []).append({
-                                "value": r_text,
-                                "confidence": conf,
-                                "source_page": page.page_number,
-                                "schedule_number": sch_num,
-                                "evidence": f"Same-block colon match: '{text}'",
-                                "source_blocks": [
-                                    SourceBlockRef(
-                                        page_number=page.page_number,
-                                        block_id=block.block_id,
-                                        text=block.text,
-                                        bounding_box=BoundingBox(**block.bounding_box)
-                                    )
-                                ]
-                            })
-                    # Prefix-based split
-                    for field_name, spec in FIELD_ANCHORS.items():
-                        for anchor in sorted(spec["anchors"], key=len, reverse=True):
-                            clean_anchor = anchor.lower()
-                            clean_text = strip_devanagari(text).lower()
-                            if clean_anchor in clean_text:
-                                idx = text.lower().find(anchor.lower())
-                                if idx != -1:
-                                    suffix = text[idx + len(anchor):].strip()
-                                    suffix = re.sub(r"^[:\-/\sऀ-ॿ]+", "", suffix).strip()
-                                    if suffix and len(suffix) < 200:
-                                        sch_num = None
-                                        m_sch = re.search(r"Schedule\s*(\d+)", text, re.IGNORECASE)
-                                        if not m_sch:
-                                            m_sch = re.search(r"अनुसूची\s*(\d+)", text)
-                                        if m_sch:
-                                            sch_num = int(m_sch.group(1))
-
-                                        # Calculate confidence similar to cell-pair method
-                                        label_conf = block.confidence  # Single block
-                                        value_conf = block.confidence  # Single block
-                                        ocr_conf = min(label_conf, value_conf)
-                                        conf = round(ocr_conf * 0.85, 4)  # 0.85 factor for prefix match
-
-                                        candidates.setdefault(field_name, []).append({
-                                            "value": suffix,
-                                            "confidence": conf,
-                                            "source_page": page.page_number,
-                                            "schedule_number": sch_num,
-                                            "evidence": f"Same-block prefix match: '{text}'",
-                                            "source_blocks": [
-                                                SourceBlockRef(
-                                                    page_number=page.page_number,
-                                                    block_id=block.block_id,
-                                                    text=block.text,
-                                                    bounding_box=BoundingBox(**block.bounding_box)
-                                                )
-                                            ]
-                                        })
-
-                # Cell-pair matches for remaining blocks
-                pairs = pair_cells_by_row(left_cells, right_cells)
-                sorted_pairs = sorted(pairs, key=lambda p: p[0]["bbox"]["y1"])
-
-                for left, right in sorted_pairs:
-                    l_text = left["text"].strip()
-                    r_text = right["text"].strip()
-
-                    is_header = False
-                    for sec_header in SECTION_HEADERS:
-                        score = fuzz.partial_ratio(sec_header.lower(), strip_devanagari(l_text).lower())
-                        if score >= 85:
-                            is_header = True
-                            break
-                    if is_header:
-                        continue
-
-                    current_section = None
-                    ly1 = left["bbox"]["y1"]
-                    field_name = match_field(l_text, None)
-                    if field_name:
-                        sch_num = None
-                        m_sch = re.search(r"Schedule\s*(\d+)", l_text, re.IGNORECASE)
-                        if not m_sch:
-                            m_sch = re.search(r"अनुसूची\s*(\d+)", l_text)
-                        if m_sch:
-                            sch_num = int(m_sch.group(1))
-
-                        spec = FIELD_ANCHORS[field_name]
-                        best_score = 0
-                        for anchor in spec["anchors"]:
-                            score = fuzz.partial_ratio(anchor.lower(), strip_devanagari(l_text).lower())
-                            if score > best_score:
-                                best_score = score
-
-                        conf = field_confidence(left, right, int(best_score))
-                        candidates.setdefault(field_name, []).append({
-                            "value": r_text,
-                            "confidence": conf,
-                            "source_page": page.page_number,
-                            "schedule_number": sch_num,
-                            "evidence": f"Cell-pair match: Label '{l_text}' -> Value '{r_text}'",
-                            "source_blocks": [
-                                SourceBlockRef(
-                                    page_number=page.page_number,
-                                    block_id=b.block_id,
-                                    text=b.text,
-                                    bounding_box=BoundingBox(**b.bounding_box)
-                                ) for b in left["blocks"] + right["blocks"]
-                            ]
-                        })
-
-        # Process EMD candidates (same as before)
+        # Process EMD candidates
         emd_cands = candidates.get("emd_amount", [])
         for cand in emd_cands:
             val_clean = normalize_indian_currency(cand["value"])
@@ -948,14 +874,14 @@ class GemFieldExtractor(FieldExtractor):
                 continue
             if field_name in out_of_scope_names:
                 continue
-
+                
             field_cands = candidates.get(field_name, [])
             if field_name == "tender_id":
                 valid_cands = [c for c in field_cands if validate_tender_id(c["value"])]
                 if valid_cands:
                     field_cands = valid_cands
                 else:
-                    # Fallback scan across all page block texts
+                    # Run fallback scan across all page block texts
                     fallback_val = None
                     fallback_page = 1
                     fallback_block = None
@@ -977,13 +903,13 @@ class GemFieldExtractor(FieldExtractor):
                             "schedule_number": None,
                             "evidence": f"Fallback scan across block texts: '{fallback_val}'",
                             "source_blocks": [
-                                    SourceBlockRef(
-                                        page_number=fallback_page,
-                                        block_id=fallback_block.block_id,
-                                        text=fallback_block.text,
-                                        bounding_box=BoundingBox(**fallback_block.bounding_box)
-                                    )
-                                ] if fallback_block else []
+                                SourceBlockRef(
+                                    page_number=fallback_page,
+                                    block_id=fallback_block.block_id,
+                                    text=fallback_block.text,
+                                    bounding_box=BoundingBox(**fallback_block.bounding_box)
+                                )
+                            ] if fallback_block else []
                         }]
                     else:
                         field_cands = []
@@ -993,17 +919,18 @@ class GemFieldExtractor(FieldExtractor):
                 valid_cands = [c for c in field_cands if validate_field(field_name, c["value"].strip())]
                 best_cand = sorted(valid_cands if valid_cands else field_cands, key=lambda c: c["confidence"], reverse=True)[0]
                 val_raw = best_cand["value"]
-
+                
                 # Normalize and Validate
                 spec = self.fields_spec.get(field_name, {})
                 field_type = spec.get("type", "text")
                 val_clean = val_raw.strip()
-
+                
                 if field_name in ("tender_value_gst_inclusive", "annual_avg_turnover_value", "working_capital_value", "net_worth_type_value", "solvency_certificate_value", "tender_fee_amount", "processing_fee_amount"):
                     val_clean = normalize_indian_currency(val_clean)
-
+                
                 validation_passed = validate_field(field_name, val_clean)
-
+                needs_review = not validation_passed
+                
                 val_cast = None
                 if validation_passed:
                     try:
@@ -1030,8 +957,9 @@ class GemFieldExtractor(FieldExtractor):
                         else:
                             val_cast = val_clean
                     except Exception:
+                        needs_review = True
                         val_cast = None
-
+                
                 extracted.append(ExtractedFieldSchema(
                     field_name=field_name,
                     value=val_cast,
@@ -1039,7 +967,8 @@ class GemFieldExtractor(FieldExtractor):
                     source_page=best_cand["source_page"],
                     evidence=best_cand["evidence"],
                     source_blocks=best_cand["source_blocks"],
-                    source="gem_parent_pdf"
+                    source="gem_parent_pdf",
+                    needs_review=needs_review
                 ))
             else:
                 # Stub out field as None
