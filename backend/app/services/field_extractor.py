@@ -8,9 +8,6 @@ from ocr.extractors.gem_field_extractor import GemFieldExtractor
 
 logger = logging.getLogger(__name__)
 
-def _is_missing(val):
-    return val is None or val == "" or val == "NA"
-
 def extract_tender_fields(
     pages: List[Dict[str, Any]],
     filename_title: str,
@@ -27,29 +24,31 @@ def extract_tender_fields(
     for p in pages:
         lines = p.get("text", "").split('\n')
         blocks = []
-        blocks_data = p.get("blocks")
-        
-        if blocks_data:
-            for idx, b in enumerate(blocks_data):
-                bbox = b.get("bounding_box", {"x1": 0, "y1": 0, "x2": 0, "y2": 0})
+        # Use real blocks from page_data if available
+        raw_blocks = p.get("blocks", [])
+        if raw_blocks and all(isinstance(b, dict) and "bounding_box" in b for b in raw_blocks):
+            for b in raw_blocks:
+                text = b.get("text", "").strip()
+                if not text:
+                    continue
                 blocks.append(TextBlock(
-                    block_id=str(b.get("block_id", idx)),
-                    text=b.get("text", ""),
+                    block_id=b.get("block_id", f"native_{len(blocks)}"),
+                    text=text,
                     confidence=b.get("confidence", 1.0),
                     language_hint=b.get("language_hint", "en"),
-                    bounding_box=bbox
+                    bounding_box=b["bounding_box"]
                 ))
         else:
+            # Fallback synthetic boxes only when no block data
             for i, line in enumerate(lines):
                 line_str = line.strip()
-                if not line_str: 
+                if not line_str:
                     continue
                 blocks.append(TextBlock(
                     block_id=f"line_{i}",
                     text=line_str,
                     confidence=1.0,
                     language_hint="en",
-                    # Synthetic bounding boxes mapping lines vertically
                     bounding_box={"x1": 0, "y1": i * 20, "x2": 500, "y2": (i * 20) + 15}
                 ))
         mock_results.append(PageResult(
@@ -74,7 +73,7 @@ def extract_tender_fields(
             if re.search(r'gem/20\d{2}/[a-z]/\d+', text):
                 is_gem = True
                 break
- 
+
     if is_gem:
         extractor = GemFieldExtractor()
     else:
@@ -91,11 +90,10 @@ def extract_tender_fields(
         "emd_required": "EMD Required",
         "bid_validity_days": "Bid Validity Period",
         "reverse_auction_enabled": "Reverse Auction Applicable",
-        "pbg_required": "PBG Required",
+        "ra_qualification_rule": "RA Qualification Rule",
         "pbg_percentage": "PBG Percentage",
         "pbg_duration_months": "PBG Duration (Months)",
         "evaluation_method": "Commercial Evaluation Type",
-        "buyer_added_text_atc_clauses": "Custom Eligibility Criteria",
         "NIT No": "Reference ID / NIT No",
         "bid_number": "Reference ID / NIT No",
         "tender_id": "Reference ID / NIT No",
@@ -130,7 +128,7 @@ def extract_tender_fields(
     label_to_field = {}
     for i, f in enumerate(extracted):
         label = label_mapping.get(f.field_name, f.field_name)
-        status = "missing" if (_is_missing(f.value) or f.value == "Not Found") else "extracted"
+        status = "missing" if (f.value is None or f.value == "Not Found") else "extracted"
         field_dict = {
             "id": f"f-{i}",
             "label": label,

@@ -146,7 +146,7 @@ export const TenderCard: React.FC<TenderCardProps> = ({ tender, onOpen, onDelete
         cursor-pointer select-none outline-none
         shadow-[0_1px_3px_rgba(0,0,0,0.02),0_4px_12px_rgba(0,0,0,0.03)]
         hover:border-success-green/40 hover:-translate-y-0.5
-        hover:shadow-[0_8px_24px_rgba(62,142,99,0.06)]
+        hover:shadow-[0_8px_24px_rgba(227,85,47,0.08)]
         focus-visible:ring-2 focus-visible:ring-success-green/50 focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg
         transition-all duration-200
         @media(prefers-reduced-motion:reduce){transition:none}"

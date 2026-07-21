@@ -318,6 +318,28 @@ async function isBackendReachable(): Promise<boolean> {
  * Adapts a raw backend JSON payload into a complete TenderDetail object
  * by filling in frontend-only fields with sensible defaults.
  */
+/** Converts any non-string field value to its JSON string representation.
+ *  The GEM extractor can return `field.value` as an array of schedule objects
+ *  (e.g. [{schedule_number, consignee_name, …}]).  Rendering that directly in
+ *  JSX throws "Objects are not valid as a React child", so we serialise it here
+ *  at the data boundary before it ever reaches a component.
+ */
+function sanitiseInfoSheetSections(sections: any[]): any[] {
+  if (!Array.isArray(sections)) return [];
+  return sections.map((sec) => ({
+    ...sec,
+    fields: Array.isArray(sec.fields)
+      ? sec.fields.map((f: any) => ({
+          ...f,
+          value:
+            f.value !== null && f.value !== undefined && typeof f.value !== "string"
+              ? JSON.stringify(f.value)
+              : f.value,
+        }))
+      : [],
+  }));
+}
+
 function adaptBackendPayload(raw: Record<string, unknown>): TenderDetail {
   const r = raw as Record<string, any>;
   return {
@@ -337,7 +359,7 @@ function adaptBackendPayload(raw: Record<string, unknown>): TenderDetail {
       extractedLinkedPdfs: r.documents?.extractedLinkedPdfs ?? [],
       mentionedAttachments: r.documents?.mentionedAttachments ?? [],
     },
-    infoSheetSections: r.infoSheetSections ?? [],
+    infoSheetSections: sanitiseInfoSheetSections(r.infoSheetSections ?? []),
     rawTextPages: r.rawTextPages ?? [],
     raw_ocr_text: r.raw_ocr_text ?? "",
     parse_status: r.parse_status ?? "pending",

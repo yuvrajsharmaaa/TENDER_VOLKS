@@ -222,6 +222,6 @@ def test_gem_real_pdf_integration_fallback():
             assert len(pages) > 0
             assert is_gem_document(pages) is True
     except Exception as e:
-        if "tesseract" in str(e).lower() or "tesseractnotfounderror" in str(type(e)).lower():
-            pytest.skip("Tesseract is not installed or not in PATH. Skipping integration test.")
+        if "tesseract" in str(e).lower():
+            pytest.skip(f"Tesseract not available: {e}")
         pytest.fail(f"GeM PDF processing failed: {e}")

@@ -11,15 +11,37 @@ router = APIRouter()
 # Simplified Automated API Routes (New Flow)
 # ==============================================================================
 
-@router.get("/jobs/{job_id}")
+from backend.app.schemas.tender_project import JobStatusResponse
+
+@router.get("/jobs/{job_id}", response_model=JobStatusResponse)
 async def get_job_status_new(job_id: str):
     """
-    Checks the status of an automated job task.
+    Checks the status of an automated job task and returns linked identifiers.
     """
     job = get_job(job_id)
-    if not job:
+    job_dir = STORAGE_ROOT / "jobs" / job_id
+    
+    if not job and not job_dir.exists():
         raise HTTPException(status_code=404, detail="Job not found")
-    return job
+        
+    filename = job.get("original_filename") if job else "original.pdf"
+    status = job.get("status", "pending") if job else "pending"
+    created_at = job.get("created_at") if job else None
+    completed_at = job.get("completed_at") if job else None
+    error_message = job.get("error_message") if job else None
+
+    return JobStatusResponse(
+        job_id=job_id,
+        file_id=job_id,
+        tender_id=job_id,
+        status=status,
+        original_filename=filename,
+        created_at=created_at,
+        completed_at=completed_at,
+        workspace_url=f"/tenders/workspace/{job_id}",
+        error_message=error_message
+    )
+
 
 @router.get("/jobs/{job_id}/download")
 async def download_job_results_new(job_id: str, format: str = "summary"):

@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: yuvi@2006
       POSTGRES_DB: tender_db
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -65,6 +65,9 @@ services:
     environment:
       - ENV_FILE=/app/.env.dev
       - PYTHONPATH=/app
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/tender_db
+      - REDIS_URL=redis://redis:6379/0
+      - MINIO_ENDPOINT=minio:9000
     env_file:
       - ../.env.dev
     command: uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload

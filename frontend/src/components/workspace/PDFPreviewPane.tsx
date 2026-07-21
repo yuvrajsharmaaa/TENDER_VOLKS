@@ -34,7 +34,7 @@ export const PDFPreviewPane: React.FC<PDFPreviewPaneProps> = ({ activeDoc, infoS
       <div className="bg-card-bg px-4 py-2.5 border-b border-divider flex items-center justify-between gap-4 shrink-0 select-none">
         <div className="flex items-center gap-2 overflow-hidden">
           {isXlsxOutput ? (
-            <Table className="h-4 w-4 text-emerald-600 shrink-0" />
+            <Table className="h-4 w-4 text-success-green shrink-0" />
           ) : (
             <FileText className="h-4 w-4 text-success-green shrink-0" />
           )}
@@ -133,7 +133,7 @@ export const PDFPreviewPane: React.FC<PDFPreviewPaneProps> = ({ activeDoc, infoS
             {/* Sheet Tabs Header */}
             <div className="bg-card-bg border-b border-divider px-4 py-2.5 flex items-center justify-between text-xs text-text-secondary">
               <span className="font-bold flex items-center gap-1.5">
-                <Table className="h-4.5 w-4.5 text-emerald-600" />
+                <Table className="h-4.5 w-4.5 text-success-green" />
                 <span>Spreadsheet Artifact Preview — extracted_fields_schema</span>
               </span>
               <span className="text-[10px] text-text-muted font-mono">Format: Microsoft Excel (.xlsx)</span>
@@ -167,7 +167,9 @@ export const PDFPreviewPane: React.FC<PDFPreviewPaneProps> = ({ activeDoc, infoS
                           {field.label}
                         </td>
                         <td className="py-2 px-3 border-r border-divider text-text-primary break-all">
-                          {field.value || <span className="text-alert-text italic font-sans">[Missing]</span>}
+                          {field.value && typeof field.value !== "string"
+                            ? JSON.stringify(field.value)
+                            : (field.value || <span className="text-alert-text italic font-sans">[Missing]</span>)}
                         </td>
                         <td className="py-2 px-3 text-text-secondary font-sans font-medium">
                           <span className={field.confidence && field.confidence < 70 ? "text-warning-text font-bold" : "text-success-green"}>
@@ -183,7 +185,7 @@ export const PDFPreviewPane: React.FC<PDFPreviewPaneProps> = ({ activeDoc, infoS
             
             {/* Sheet footer tabs */}
             <div className="bg-card-bg border-t border-divider px-4 py-2 flex gap-4 text-[10px] font-sans font-bold text-text-secondary select-none">
-              <span className="text-emerald-600 border-b-2 border-emerald-600 px-2 py-0.5">InfoSheet</span>
+              <span className="text-success-green border-b-2 border-success-green px-2 py-0.5">InfoSheet</span>
               <span className="text-text-disabled cursor-not-allowed px-2 py-0.5">RawData</span>
               <span className="text-text-disabled cursor-not-allowed px-2 py-0.5">EvidenceLogs</span>
             </div>

@@ -18,7 +18,7 @@ export const InfoSheetPanel: React.FC<InfoSheetPanelProps> = ({
 
   const handleStartEdit = (field: InfoSheetField) => {
     setEditingFieldId(field.id);
-    setEditValue(field.value || "");
+    setEditValue(typeof field.value === "object" ? JSON.stringify(field.value) : (field.value || ""));
   };
 
   const handleSaveEdit = (fieldId: string) => {
@@ -130,9 +130,7 @@ export const InfoSheetPanel: React.FC<InfoSheetPanelProps> = ({
                         </div>
                       ) : (
                         <div className="text-xs font-mono text-text-primary mt-1 select-all break-all whitespace-pre-wrap">
-                          {typeof field.value === "object" && field.value !== null
-                            ? JSON.stringify(field.value, null, 2)
-                            : field.value}
+                          {typeof field.value === "object" ? JSON.stringify(field.value, null, 2) : field.value}
                         </div>
                       )}
 

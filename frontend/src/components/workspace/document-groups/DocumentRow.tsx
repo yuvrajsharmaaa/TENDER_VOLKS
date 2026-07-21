@@ -18,7 +18,7 @@ export const DocumentRow: React.FC<DocumentRowProps> = ({
 
   const getIcon = () => {
     if (doc.origin === "generated") {
-      return <FileCheck className={`h-4.5 w-4.5 shrink-0 ${isSelected ? "text-success-green" : "text-emerald-600"}`} />;
+      return <FileCheck className="h-4.5 w-4.5 shrink-0 text-success-green" />;
     }
     if (doc.origin === "linked") {
       return <Link2 className={`h-4 w-4 shrink-0 ${isSelected ? "text-success-green" : "text-text-secondary"}`} />;

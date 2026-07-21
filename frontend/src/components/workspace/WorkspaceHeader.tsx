@@ -1,5 +1,6 @@
 import React, { useId, useState } from "react";
 import { Search, Plus, RefreshCw, SlidersHorizontal, ChevronDown, ChevronUp } from "lucide-react";
+import volksLogo from "../../assets/logovolks.png";
 
 export interface FiltersState {
   withinKeywords: string;
@@ -63,9 +64,7 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
       <header className="px-6 py-3 border-b border-divider flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <div className="bg-success-green px-3 py-1 rounded text-panel-bg font-bold text-xs tracking-wider uppercase">
-              Volks
-            </div>
+            <img src={volksLogo} alt="Volks" className="h-8 w-auto object-contain" />
             <span className="font-semibold text-base text-text-primary tracking-tight">Tender OCR</span>
           </div>
           <div className="h-4 w-px bg-divider hidden sm:block" />
@@ -83,7 +82,7 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
             <span
               className={`h-2 w-2 rounded-full ${
                 isBackendConnected
-                  ? "bg-success-green shadow-[0_0_0_2px_rgba(62,142,99,0.2)]"
+                  ? "bg-success-green shadow-[0_0_0_2px_rgba(227,85,47,0.2)]"
                   : "bg-alert-text"
               }`}
             />

@@ -1,8 +1,10 @@
 import uuid
 import logging
+from pathlib import Path
 from typing import List, Optional
 from pydantic import BaseModel
 from fastapi import APIRouter, File, UploadFile, HTTPException, Depends, Form, BackgroundTasks
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from backend.app.services.storage import upload_file_to_minio, download_file_from_minio, StorageError
@@ -31,89 +33,67 @@ router = APIRouter(prefix="/tenders", tags=["tenders"])
 # Max file size constant (20 MB)
 MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024
 
-@router.post("/upload")
-async def upload_tender(file: UploadFile = File(None)):
-    """
-    Day 3 endpoint: Validates an uploaded PDF file, saves it to MinIO storage,
-    and returns its generated file ID and original filename.
-    """
-    # Step 1 — Validate file presence and content type
-    if file is None or not file.filename:
-        raise HTTPException(
-            status_code=400,
-            detail={"error": "no_file", "message": "A PDF file is required"}
-        )
-        
-    if file.content_type != "application/pdf":
-        raise HTTPException(
-            status_code=400,
-            detail={
-                "error": "invalid_type",
-                "message": "Only PDF files are accepted",
-                "received": file.content_type
-            }
-        )
-        
-    # Step 2 — Read file bytes
-    file_bytes = await file.read()
-    if len(file_bytes) == 0:
-        raise HTTPException(
-            status_code=400,
-            detail={"error": "empty_file", "message": "Uploaded file is empty"}
-        )
-        
-    logger.debug(
-        "Read uploaded file bytes",
-        extra={
-            "custom_fields": {
-                "original_filename": file.filename,
-                "content_type": file.content_type,
-                "size_bytes": len(file_bytes)
-            }
-        }
+
+def _get_primary_pdf_filename(payload: dict) -> str:
+    source_docs = payload.get("documents", {}).get("sourceDocuments", [])
+    if source_docs:
+        primary_doc = next((d for d in source_docs if d.get("isPrimary")), source_docs[0])
+        return primary_doc.get("name", "original.pdf")
+    return "original.pdf"
+
+
+def _infosheet_filename(payload: dict) -> str:
+    original_filename = _get_primary_pdf_filename(payload)
+    if original_filename.lower().endswith(".pdf"):
+        original_filename = original_filename[:-4]
+    return f"{original_filename}_InfoSheet.xlsx"
+
+
+def _refresh_infosheet_output_links(payload: dict, job_id: str) -> None:
+    for output in payload.get("documents", {}).get("generatedOutputs", []):
+        if output.get("outputKind") == "info_sheet":
+            output["url"] = f"/tenders/workspace/{job_id}/infosheet/download"
+            output["downloadable"] = True
+            output["openable"] = True
+
+
+def _regenerate_infosheet_workbook(job_id: str, payload: dict) -> Path:
+    from backend.app.services.tender_mapper import build_infosheet_data
+    from backend.app.services.info_sheet_generator import generate_info_sheet_csv
+
+    job_dir = STORAGE_ROOT / "jobs" / job_id
+    job_dir.mkdir(parents=True, exist_ok=True)
+    xlsx_path = job_dir / _infosheet_filename(payload)
+    infosheet_data = build_infosheet_data(
+        payload.get("infoSheetSections", []),
+        payload.get("rawTextPages", []),
     )
-    
-    # Step 3 — Upload to MinIO
-    try:
-        file_id = upload_file_to_minio(file_bytes, file.content_type, file.filename)
-    except StorageError as e:
-        logger.error(
-            f"Storage failure during upload of {file.filename}: {e}",
-            exc_info=True,
-            extra={
-                "custom_fields": {
-                    "original_filename": file.filename
-                }
-            }
-        )
-        raise HTTPException(
-            status_code=500,
-            detail={
-                "error": "storage_failure",
-                "message": "Failed to store file. Please try again."
-            }
-        )
-        
-    # Step 5 — Log the successful upload (logged prior to response return)
-    bucket_name = settings.MINIO_BUCKET
-    logger.info(
-        "tender_upload_success",
-        extra={
-            "custom_fields": {
-                "event": "tender_upload_success",
-                "file_id": file_id,
-                "original_filename": file.filename,
-                "size_bytes": len(file_bytes),
-                "bucket": bucket_name
-            }
-        }
-    )
-    
-    # Step 4 — Return success
-    return {
-        "file_id": file_id,
-        "original_filename": file.filename
-    }
+    infosheet_data["_info_sheet_sections"] = payload.get("infoSheetSections", [])
+    generate_info_sheet_csv(infosheet_data, str(xlsx_path))
+    return xlsx_path
+
+from backend.app.schemas.tender_project import (
+    TenderProjectCreate,
+    TenderProjectResponse,
+    TenderProjectDetailResponse,
+    DocumentResponse,
+    TenderUploadResponse,
+    TenderProcessRequest,
+    TenderProcessResponse
+)
+
+@router.post("/upload", status_code=201, response_model=TenderUploadResponse)
+async def upload_tender(
+    file: UploadFile = File(...),
+    background_tasks: BackgroundTasks = None
+):
+    """
+    Validates an uploaded PDF file, saves it, creates job records,
+    and returns unified job_id, file_id, and tender_id.
+    """
+    from backend.app.api.upload import upload_pdf
+    return await upload_pdf(file=file, background_tasks=background_tasks)
+
 
 
 @router.post("", response_model=TenderProjectResponse)
@@ -974,53 +954,18 @@ def _run_ingest_background(job_id: str, pdf_path: str, original_filename: str):
             logger.error(f"Failed to write FAILED state to database for job {job_id}: {write_err}", exc_info=True)
 
 
-@router.post("/workspace/ingest", status_code=201)
+@router.post("/workspace/ingest", status_code=201, response_model=TenderUploadResponse)
 async def workspace_ingest(
     file: UploadFile = File(...),
     background_tasks: BackgroundTasks = None
 ):
     """
-    Single-call endpoint: uploads a parent tender PDF and immediately
-    enqueues background processing via the parent ingest pipeline.
-    Returns a job_id the frontend can poll.
+    Single-call workspace ingest endpoint: uploads PDF and immediately
+    enqueues background OCR / ingestion processing.
     """
-    logger.info(f"[OBSERVABILITY] upload accepted for file: {file.filename}")
-    
-    # Validate
-    if not file.filename:
-        raise HTTPException(status_code=400, detail="A PDF file is required")
-    if file.content_type != "application/pdf":
-        raise HTTPException(status_code=400, detail="Only PDF files are accepted")
+    from backend.app.api.upload import upload_pdf
+    return await upload_pdf(file=file, background_tasks=background_tasks)
 
-    file_bytes = await file.read()
-    if len(file_bytes) == 0:
-        raise HTTPException(status_code=400, detail="Uploaded file is empty")
-
-    # Create job directory and save file
-    job_id = str(uuid.uuid4())
-    job_dir = STORAGE_ROOT / "jobs" / job_id
-    job_dir.mkdir(parents=True, exist_ok=True)
-    pdf_path = job_dir / file.filename
-    with open(pdf_path, "wb") as f:
-        f.write(file_bytes)
-
-    # Register job in SQLite store
-    from backend.app.repositories.job_store import create_job
-    create_job(job_id=job_id, filename=file.filename, pdf_path=str(pdf_path))
-    logger.info(f"[OBSERVABILITY] job created with id {job_id}")
-
-    # Enqueue background processing
-    background_tasks.add_task(
-        _run_ingest_background, job_id, str(pdf_path), file.filename
-    )
-
-    logger.info(f"Workspace ingest queued for job {job_id}, file: {file.filename}")
-
-    return {
-        "job_id": job_id,
-        "status": "pending",
-        "original_filename": file.filename
-    }
 
 
 @router.get("/workspace/list")
@@ -1062,6 +1007,7 @@ async def workspace_list_tenders():
                     payload["location_city"] = parts[0] if parts else ""
                     payload["location_state"] = parts[1] if len(parts) > 1 else ""
 
+                _refresh_infosheet_output_links(payload, job_id)
                 results.append(payload)
             except Exception as e:
                 logger.error(f"Failed to read tender_detail.json for job {job_id}: {e}")
@@ -1137,6 +1083,7 @@ async def workspace_get_tender(job_id: str):
             payload.setdefault("snippet", "")
             payload.setdefault("updated_at", job.get("completed_at", ""))
             payload.setdefault("department", "")
+            _refresh_infosheet_output_links(payload, job_id)
             return payload
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to read result: {e}")
@@ -1185,7 +1132,31 @@ async def workspace_get_tender(job_id: str):
     }
 
 
-from fastapi.responses import FileResponse
+@router.get("/workspace/{job_id}/infosheet/download")
+async def download_workspace_infosheet(job_id: str):
+    """
+    Regenerates the InfoSheet workbook from the reviewed frontend artifact
+    before download, so Excel matches the values currently shown in preview.
+    """
+    job_dir = STORAGE_ROOT / "jobs" / job_id
+    detail_path = job_dir / "tender_detail.json"
+    if not detail_path.exists():
+        raise HTTPException(status_code=404, detail="Tender detail not found")
+
+    try:
+        with open(detail_path, "r", encoding="utf-8") as f:
+            data = _json.load(f)
+        xlsx_path = _regenerate_infosheet_workbook(job_id, data)
+    except Exception as e:
+        logger.error(f"Failed to regenerate info sheet workbook for job {job_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to generate InfoSheet workbook")
+
+    return FileResponse(
+        path=str(xlsx_path),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        filename=xlsx_path.name,
+    )
+
 
 @router.get("/documents/{document_id}/download")
 async def download_extracted_document(document_id: str, db: Session = Depends(get_db)):
@@ -1321,23 +1292,8 @@ async def update_workspace_field(job_id: str, field_id: str, payload: FieldUpdat
         
     # Regenerate workbook
     try:
-        from backend.app.services.tender_mapper import build_infosheet_data
-        from backend.app.services.info_sheet_generator import generate_info_sheet_csv
-        
-        sections = data.get("infoSheetSections", [])
-        page_texts = data.get("rawTextPages", [])
-        
-        source_docs = data.get("documents", {}).get("sourceDocuments", [])
-        original_filename = "original.pdf"
-        if source_docs:
-            primary_doc = next((d for d in source_docs if d.get("isPrimary")), source_docs[0])
-            original_filename = primary_doc.get("name", "original.pdf")
-            
-        csv_filename = f"{original_filename.replace('.pdf', '')}_InfoSheet.xlsx"
-        csv_path = job_dir / csv_filename
-        
-        infosheet_data = build_infosheet_data(sections, page_texts)
-        generate_info_sheet_csv(infosheet_data, str(csv_path))
+        _regenerate_infosheet_workbook(job_id, data)
+        _refresh_infosheet_output_links(data, job_id)
     except Exception as e:
         logger.error(f"Failed to regenerate info sheet workbook for job {job_id}: {e}", exc_info=True)
         
@@ -1397,23 +1353,8 @@ async def verify_workspace_field(job_id: str, field_id: str):
         
     # Regenerate workbook
     try:
-        from backend.app.services.tender_mapper import build_infosheet_data
-        from backend.app.services.info_sheet_generator import generate_info_sheet_csv
-        
-        sections = data.get("infoSheetSections", [])
-        page_texts = data.get("rawTextPages", [])
-        
-        source_docs = data.get("documents", {}).get("sourceDocuments", [])
-        original_filename = "original.pdf"
-        if source_docs:
-            primary_doc = next((d for d in source_docs if d.get("isPrimary")), source_docs[0])
-            original_filename = primary_doc.get("name", "original.pdf")
-            
-        csv_filename = f"{original_filename.replace('.pdf', '')}_InfoSheet.xlsx"
-        csv_path = job_dir / csv_filename
-        
-        infosheet_data = build_infosheet_data(sections, page_texts)
-        generate_info_sheet_csv(infosheet_data, str(csv_path))
+        _regenerate_infosheet_workbook(job_id, data)
+        _refresh_infosheet_output_links(data, job_id)
     except Exception as e:
         logger.error(f"Failed to regenerate info sheet workbook for job {job_id}: {e}", exc_info=True)
         
@@ -1473,23 +1414,8 @@ async def review_workspace_tender(job_id: str, payload: ReviewCompleteRequest):
         
     # Regenerate workbook
     try:
-        from backend.app.services.tender_mapper import build_infosheet_data
-        from backend.app.services.info_sheet_generator import generate_info_sheet_csv
-        
-        sections = data.get("infoSheetSections", [])
-        page_texts = data.get("rawTextPages", [])
-        
-        source_docs = data.get("documents", {}).get("sourceDocuments", [])
-        original_filename = "original.pdf"
-        if source_docs:
-            primary_doc = next((d for d in source_docs if d.get("isPrimary")), source_docs[0])
-            original_filename = primary_doc.get("name", "original.pdf")
-            
-        csv_filename = f"{original_filename.replace('.pdf', '')}_InfoSheet.xlsx"
-        csv_path = job_dir / csv_filename
-        
-        infosheet_data = build_infosheet_data(sections, page_texts)
-        generate_info_sheet_csv(infosheet_data, str(csv_path))
+        _regenerate_infosheet_workbook(job_id, data)
+        _refresh_infosheet_output_links(data, job_id)
     except Exception as e:
         logger.error(f"Failed to regenerate info sheet workbook for job {job_id}: {e}", exc_info=True)
         

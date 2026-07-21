@@ -310,7 +310,7 @@ class FieldExtractor:
             "pbg_percentage": {
                 "anchors": ["ePBG Percentage(%)", "ePBG Percentage"],
                 "hindi": [],
-                "type": "currency"
+                "type": "percentage"
             },
             "pbg_duration_months": {
                 "anchors": ["Duration of ePBG required (Months)"],
@@ -592,6 +592,18 @@ class FieldExtractor:
         elif field_type == "yes_no":
             m = re.search(r'\b(?:yes|no|required|not required|हाँ|नहीं)\b', text_clean, re.IGNORECASE)
             return m.group(0) if m else None
+        elif field_type == "percentage":
+            # Match decimal values optionally followed by %
+            m = re.search(r'\b\d+(?:\.\d+)?\s*%?\b', text_clean)
+            if m:
+                val = m.group(0)
+                try:
+                    clean_num = re.sub(r'[^\d.]', '', val)
+                    if clean_num and float(clean_num) <= 100:
+                        return val
+                except ValueError:
+                    pass
+            return None
         elif field_type == "org":
             words = text_clean.strip()
             if len(words) > 3 and len(words) < 150:

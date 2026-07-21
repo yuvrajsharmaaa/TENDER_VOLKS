@@ -156,8 +156,10 @@ function App() {
     });
   };
 
-  const getNumericValue = (valStr: string) => {
-    const cleaned = valStr.toLowerCase().replace(/,/g, "").trim();
+  const getNumericValue = (valStr: any) => {
+    if (typeof valStr === "number") return valStr;
+    if (!valStr) return 0;
+    const cleaned = String(valStr).toLowerCase().replace(/,/g, "").trim();
     if (cleaned.includes("crore") || cleaned.includes("cr")) {
       return parseFloat(cleaned) * 10000000;
     }
@@ -173,9 +175,9 @@ function App() {
     const query = searchTerm.toLowerCase();
     const matchesSearch =
       !query ||
-      tender.title.toLowerCase().includes(query) ||
-      tender.id.toLowerCase().includes(query) ||
-      tender.authorityName.toLowerCase().includes(query) ||
+      (tender.title || "").toLowerCase().includes(query) ||
+      (tender.id || "").toLowerCase().includes(query) ||
+      (tender.authorityName || "").toLowerCase().includes(query) ||
       (tender.department?.toLowerCase() || "").includes(query);
 
     if (!matchesSearch) return false;
@@ -184,8 +186,8 @@ function App() {
     if (filters.withinKeywords) {
       const k = filters.withinKeywords.toLowerCase();
       const hasKeyword =
-        tender.title.toLowerCase().includes(k) ||
-        tender.snippet.toLowerCase().includes(k) ||
+        (tender.title || "").toLowerCase().includes(k) ||
+        (tender.snippet || "").toLowerCase().includes(k) ||
         (tender.raw_ocr_text || "").toLowerCase().includes(k);
       if (!hasKeyword) return false;
     }
@@ -194,24 +196,24 @@ function App() {
     if (filters.notInKeyword) {
       const k = filters.notInKeyword.toLowerCase();
       const hasExcludedKeyword =
-        tender.title.toLowerCase().includes(k) ||
-        tender.snippet.toLowerCase().includes(k) ||
+        (tender.title || "").toLowerCase().includes(k) ||
+        (tender.snippet || "").toLowerCase().includes(k) ||
         (tender.raw_ocr_text || "").toLowerCase().includes(k);
       if (hasExcludedKeyword) return false;
     }
 
     // 4. City filter
-    if (filters.city && tender.location_city.toLowerCase() !== filters.city.toLowerCase()) {
+    if (filters.city && (tender.location_city || "").toLowerCase() !== filters.city.toLowerCase()) {
       return false;
     }
 
     // 5. State filter
-    if (filters.state && tender.location_state.toLowerCase() !== filters.state.toLowerCase()) {
+    if (filters.state && (tender.location_state || "").toLowerCase() !== filters.state.toLowerCase()) {
       return false;
     }
 
     // 6. Sector filter
-    if (filters.sector && tender.sector.toLowerCase() !== filters.sector.toLowerCase()) {
+    if (filters.sector && (tender.sector || "").toLowerCase() !== filters.sector.toLowerCase()) {
       return false;
     }
 
@@ -264,8 +266,10 @@ function App() {
   const activeTender = tenders.find((t) => t.id === selectedTenderId);
 
   // Sort filtered results
-  const getNumericValueRaw = (valStr: string) => {
-    const c = (valStr || "").toLowerCase().replace(/,/g, "").trim();
+  const getNumericValueRaw = (valStr: any) => {
+    if (typeof valStr === "number") return valStr;
+    if (!valStr) return 0;
+    const c = String(valStr).toLowerCase().replace(/,/g, "").trim();
     if (c.includes("crore") || c.includes("cr")) return parseFloat(c) * 1e7;
     if (c.includes("lakh") || c.includes("l")) return parseFloat(c) * 1e5;
     return parseFloat(c) || 0;

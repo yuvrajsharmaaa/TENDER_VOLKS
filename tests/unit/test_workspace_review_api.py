@@ -1,6 +1,7 @@
 import pytest
 import json
 from pathlib import Path
+from openpyxl import load_workbook
 from fastapi.testclient import TestClient
 from backend.app.main import app
 from backend.app.core.constants import STORAGE_ROOT
@@ -34,7 +35,19 @@ def mock_tender_detail():
                     "isPrimary": True
                 }
             ],
-            "generatedOutputs": [],
+            "generatedOutputs": [
+                {
+                    "id": f"out-{job_id}",
+                    "name": "original_InfoSheet.xlsx",
+                    "kind": "xlsx",
+                    "origin": "generated",
+                    "url": f"/storage/jobs/{job_id}/original_InfoSheet.xlsx",
+                    "downloadable": True,
+                    "openable": True,
+                    "generator": "ocr",
+                    "outputKind": "info_sheet"
+                }
+            ],
             "extractedLinkedPdfs": [],
             "mentionedAttachments": []
         },
@@ -104,6 +117,20 @@ def test_update_workspace_field(mock_tender_detail):
     
     xlsx_path = detail_file.parent / "original_InfoSheet.xlsx"
     assert xlsx_path.exists()
+
+    wb = load_workbook(xlsx_path, data_only=True)
+    assert "Preview Fields" in wb.sheetnames
+    values = [cell.value for ws in wb.worksheets for row in ws.iter_rows() for cell in row]
+    assert "12.00 Lakh" in values
+
+    download_response = client.get(f"/tenders/workspace/{job_id}/infosheet/download")
+    assert download_response.status_code == 200
+    assert download_response.headers["content-type"].startswith(
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    data = response.json()
+    info_sheet_output = data["documents"]["generatedOutputs"][0]
+    assert info_sheet_output["url"] == f"/tenders/workspace/{job_id}/infosheet/download"
 
 def test_verify_workspace_field(mock_tender_detail):
     job_id, detail_file = mock_tender_detail

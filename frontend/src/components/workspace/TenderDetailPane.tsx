@@ -378,7 +378,7 @@ export const TenderDetailPane: React.FC<TenderDetailPaneProps> = ({
                     {linkedInfoSheetFile && (
                       <div className="bg-card-bg border border-divider rounded-lg p-3.5 flex items-center justify-between select-none shadow-sm border-l-4 border-l-success-green">
                         <div className="flex items-center gap-3">
-                          <Table className="h-5 w-5 text-emerald-600 shrink-0" />
+                          <Table className="h-5 w-5 text-success-green shrink-0" />
                           <div className="leading-tight">
                             <p className="text-xs font-bold text-text-primary truncate max-w-[200px] md:max-w-xs">{linkedInfoSheetFile.name}</p>
                             <p className="text-[9px] text-text-muted mt-0.5">OCR Generated Output • Confidence: {tender.parse_confidence}%</p>
