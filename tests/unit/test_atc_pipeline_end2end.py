@@ -190,3 +190,46 @@ def test_full_pipeline_with_atc_child_pdf(tmp_path):
 
     fields = data.get("extracted_fields", [])
     assert len(fields) > 0
+
+
+def test_bug1_and_bug2_unverified_anchor_confidence(tmp_path):
+    # Simulate a page where text is scrambled, but URI link exists
+    pdf_path = tmp_path / "scanned_atc_link.pdf"
+    doc = fitz.open()
+    page = doc.new_page(width=595, height=842)
+    page.insert_text((50, 50), "(cid:1)(cid:2)(cid:3)(cid:4)(cid:5)(cid:6)(cid:7)", fontsize=12)
+    link_rect = fitz.Rect(100, 100, 300, 130)
+    page.insert_link({
+        "kind": fitz.LINK_URI,
+        "from": link_rect,
+        "uri": "https://mkp.gem.gov.in/buyer-atc/ep/atc/doc/scanned_12345.pdf"
+    })
+    doc.save(str(pdf_path))
+    doc.close()
+
+    links, _ = extract_links_and_mentions(str(pdf_path))
+    assert len(links) >= 1
+    link = links[0]
+    assert link["url"] == "https://mkp.gem.gov.in/buyer-atc/ep/atc/doc/scanned_12345.pdf"
+    # Extraction confidence is tagged appropriately
+    assert link["extractionConfidence"] in (70.0, 95.0)
+
+
+def test_bug3_and_bug4_precedence_constants_and_sections(tmp_path):
+    from backend.app.services.pdf_parent_ingest import (
+        ATC_SOURCED_LABELS,
+        MAIN_SOURCED_LABELS,
+        AMBIGUOUS_LABELS,
+        ingest_parent_tender_pdf
+    )
+    # Check BUG 3 constants
+    assert "Tender Fee" in ATC_SOURCED_LABELS
+    assert "EMD Amount" in ATC_SOURCED_LABELS
+    assert "PBG Percentage" in MAIN_SOURCED_LABELS
+    assert "Installation Inclusive" in AMBIGUOUS_LABELS
+
+    main_pdf = tmp_path / "test_tender_ingest.pdf"
+    create_mock_tender_pdf(str(main_pdf), include_atc_link=True)
+
+    res = ingest_parent_tender_pdf("job-bug3-bug4", main_pdf, "test_tender_ingest.pdf")
+    assert "id" in res and "infoSheetSections" in res
