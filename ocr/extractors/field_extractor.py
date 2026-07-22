@@ -1316,7 +1316,7 @@ def merge_tender_and_atc_fields(
         main_f = merged_map.get(fn)
 
         if not main_f:
-            merged_map[fn] = atc_f
+            win_field = atc_f
         else:
             main_valid = main_f.value not in (None, "Not Found", "Out of Scope (Stage 1)")
             atc_valid = atc_f.value not in (None, "Not Found", "Out of Scope (Stage 1)")
@@ -1344,13 +1344,13 @@ def merge_tender_and_atc_fields(
             else:
                 win_field = main_f
 
-            merged_map[fn] = win_field
+        merged_map[fn] = win_field
 
-            text_src = "native/ocr"
-            page_num = win_field.source_page
-            logger.info(
-                f"[FIELD_MERGE] Field: {fn} | Winning Source: {win_field.source} | "
-                f"Text Source: {text_src} | Page: {page_num} | Value: {win_field.value}"
-            )
+        text_src = "native/ocr"
+        page_num = win_field.source_page
+        logger.info(
+            f"[FIELD_MERGE] Field: {fn} | Winning Source: {win_field.source} | "
+            f"Text Source: {text_src} | Page: {page_num} | Value: {win_field.value}"
+        )
 
     return list(merged_map.values())

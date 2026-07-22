@@ -1,11 +1,9 @@
 import re
 import os
-import logging
-from pathlib import Path
-from typing import List, Dict, Any, Tuple, Optional
-import fitz
+from typing import List, Dict, Any, Tuple
 
 def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    import fitz
     """
     Hardened layer-based link extractor for tender PDFs.
     Layer 1: Standard machine-readable page links via page.get_links()
@@ -14,6 +12,7 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
     Layer 4: Deduplication, confidence scoring, and mapping
     """
     import urllib.request
+    from pathlib import Path
     
     parent_dir = Path(pdf_path).parent
     output_dir = parent_dir / "extracted_children"
@@ -74,36 +73,26 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
         # Fallback using pypdf if PyMuPDF count is 0
         if emb_count == 0:
             try:
-                import importlib
-                pypdf_mod = None
-                try:
-                    pypdf_mod = importlib.import_module("pypdf")
-                except ImportError:
-                    try:
-                        pypdf_mod = importlib.import_module("PyPDF2")
-                    except ImportError:
-                        pypdf_mod = None
-
-                if pypdf_mod is not None:
-                    PdfReader = getattr(pypdf_mod, "PdfReader", None)
-                    if PdfReader is not None:
-                        reader = PdfReader(pdf_path)
-                        if getattr(reader, "attachments", None):
-                            for name, content_list in reader.attachments.items():
-                                for content in content_list:
-                                    out_path = output_dir / name
-                                    with open(out_path, "wb") as f:
-                                        f.write(content)
-                                    saved_paths.append(str(out_path))
-                                    embedded_count += 1
-                                    links.append({
-                                        "name": name,
-                                        "url": f"embedded://{name}",
-                                        "sourcePage": 1,
-                                        "anchorText": f"Embedded file attachment (pypdf fallback): {name}",
-                                        "extractionConfidence": 98.0,
-                                        "local_path": str(out_path)
-                                    })
+                from pypdf import PdfReader  # type: ignore
+                reader = PdfReader(pdf_path)
+                if reader.attachments:
+                    for name, content_list in reader.attachments.items():
+                        for content in content_list:
+                            out_path = output_dir / name
+                            with open(out_path, "wb") as f:
+                                f.write(content)
+                            saved_paths.append(str(out_path))
+                            embedded_count += 1
+                            links.append({
+                                "name": name,
+                                "url": f"embedded://{name}",
+                                "sourcePage": 1,
+                                "anchorText": f"Embedded file attachment (pypdf fallback): {name}",
+                                "extractionConfidence": 98.0,
+                                "local_path": str(out_path)
+                            })
+            except ImportError:
+                print("[WARNING] pypdf library is not installed, skipping fallback extraction.")
             except Exception as pe:
                 print(f"[DEBUG] pypdf extraction failed: {pe}")
 
@@ -113,45 +102,85 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                 page = doc.load_page(page_num)
             except Exception:
                 continue
-                
+
+            page_text_raw = page.get_text()
+            page_text_lower = page_text_raw.lower()
+
+            # Check if any ATC anchor phrase is present on this page
+            atc_anchor_phrases = [
+                "buyer uploaded atc document",
+                "buyer added bid specific atc",
+                "click here to view the file",
+                "click here",
+                "atc"
+            ]
+            page_has_atc_phrase = any(phrase in page_text_lower for phrase in atc_anchor_phrases[:3]) or "atc" in page_text_lower
+
             # Layer 1: page.get_links()
             try:
                 page_links = page.get_links()
             except Exception:
                 page_links = []
-                
+
+            found_atc_uri_on_page = False
             for l in page_links:
                 try:
                     # Check LINK_URI
                     if l.get("kind") == fitz.LINK_URI:
-                        uri = l.get("uri", "")
+                        uri = l.get("uri", "").strip()
                         if uri:
-                            # Reconstruct anchor text by reading words in link bounding box
-                            rect_coords = l.get("from")
+                            # Reconstruct anchor text by reading words in padded link bounding box
+                            rect_coords = l.get("from") or l.get("rect")
                             anchor_text = ""
                             if rect_coords:
                                 rect = fitz.Rect(rect_coords)
-                                words = page.get_text("words")
-                                anchor_words = [w[4] for w in words if fitz.Rect(w[:4]).intersects(rect)]
-                                anchor_text = " ".join(anchor_words).strip()
-                            
+                                # Apply padding tolerance (5 points) because PDF annotations are often sloppy
+                                padded_rect = rect + fitz.Rect(-5, -5, 5, 5)
+                                try:
+                                    anchor_text = page.get_textbox(padded_rect).strip()
+                                except Exception:
+                                    anchor_text = ""
+                                if not anchor_text:
+                                    words = page.get_text("words")
+                                    anchor_words = [w[4] for w in words if fitz.Rect(w[:4]).intersects(padded_rect)]
+                                    anchor_text = " ".join(anchor_words).strip()
+
+                            anchor_lower = anchor_text.lower()
+                            is_atc_anchor = page_has_atc_phrase or any(phrase in anchor_lower for phrase in atc_anchor_phrases)
+
+                            # Reject generic portal/homepage URLs
+                            def is_generic_homepage(url_str: str) -> bool:
+                                if not url_str:
+                                    return True
+                                clean_url = url_str.strip().lower().rstrip("/")
+                                generic_domains = [
+                                    "https://gem.gov.in", "http://gem.gov.in",
+                                    "https://mkp.gem.gov.in", "http://mkp.gem.gov.in",
+                                    "https://eprocure.gov.in", "http://eprocure.gov.in"
+                                ]
+                                if clean_url in generic_domains:
+                                    return True
+                                from urllib.parse import urlparse
+                                parsed = urlparse(clean_url)
+                                if parsed.netloc in ["gem.gov.in", "mkp.gem.gov.in", "eprocure.gov.in"] and (not parsed.path or parsed.path in ["", "/"]) and not parsed.query:
+                                    return True
+                                return False
+
+                            if is_generic_homepage(uri):
+                                import logging
+                                logger = logging.getLogger("backend.app.services.pdf_link_extractor")
+                                logger.info(f"[ATC_RESOLVER] Rejected generic portal homepage URL: '{uri}' on Page {page_num + 1}")
+                                continue
+
+                            found_atc_uri_on_page = True
                             filename = uri.split("/")[-1].split("?")[0] or f"linked_file_p{page_num+1}.pdf"
                             if not filename.lower().endswith((".pdf", ".xlsx", ".xls", ".doc", ".docx", ".zip")):
                                 filename = f"{filename}.pdf" # fallback suffix
 
-                            anchor_lower = anchor_text.lower()
-                            is_atc_anchor = any(phrase in anchor_lower for phrase in [
-                                "buyer uploaded atc document",
-                                "buyer added bid specific atc",
-                                "click here to view the file",
-                                "click here",
-                                "atc"
-                            ])
-
                             import logging
                             logger = logging.getLogger("backend.app.services.pdf_link_extractor")
                             if is_atc_anchor:
-                                logger.info(f"[TC_RESOLVER] ATC anchor phrase detected: '{anchor_text}' on Page {page_num + 1}")
+                                logger.info(f"[ATC_RESOLVER] ATC anchor phrase detected: '{anchor_text or 'ATC Link'}' on Page {page_num + 1}")
                                 logger.info(f"[ATC_RESOLVER] Hyperlink URL resolved: '{uri}'")
 
                             links.append({
@@ -177,11 +206,11 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                                         headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
                                     )
                                     context = ssl._create_unverified_context()
-                                    with urllib.request.urlopen(req, context=context, timeout=5) as response:
+                                    with urllib.request.urlopen(req, context=context, timeout=8) as response:
                                         file_bytes = response.read()
                                         content_type = response.headers.get("Content-Type", "")
 
-                                    # Validate PDF magic bytes (%PDF)
+                                    # Validate PDF magic bytes (%PDF) or Content-Type
                                     is_pdf = file_bytes.startswith(b"%PDF") or "pdf" in content_type.lower()
                                     if is_pdf or is_atc_anchor:
                                         out_path = output_dir / unique_filename
@@ -192,9 +221,9 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                                         links[-1]["local_path"] = str(out_path)
                                         logger.info(f"[ATC_RESOLVER] ATC child PDF saved to: '{out_path}'")
                                     else:
-                                        logger.warning(f"[ATC_RESOLVER] Downloaded content from '{uri}' is not a valid PDF file. Skipping ATC child parse.")
+                                        logger.warning(f"[ATC_RESOLVER] Downloaded content from '{uri}' is not a valid PDF file (magic bytes check failed). Skipping ATC child parse.")
                                 except Exception as dl_err:
-                                    logger.warning(f"[ATC_RESOLVER] Failed to resolve/download ATC child PDF from URL '{uri}': {dl_err}. Continuing with main tender parsing only.")
+                                    logger.warning(f"[ATC_RESOLVER] ATC_DOWNLOAD_FAILED: Failed to download ATC child PDF from URL '{uri}': {dl_err}. Continuing with main tender parsing only.")
 
                     # Support GotoE (Embedded Document Links) or GoToR (Remote Document Links)
                     elif l.get("kind") in (fitz.LINK_GOTO, fitz.LINK_GOTOR, fitz.LINK_LAUNCH):
@@ -210,6 +239,11 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                             })
                 except Exception:
                     pass
+
+            if page_has_atc_phrase and not found_atc_uri_on_page:
+                import logging
+                logger = logging.getLogger("backend.app.services.pdf_link_extractor")
+                logger.warning(f"[ATC_RESOLVER] ATC_LINK_NOT_FOUND: Anchor phrase detected on Page {page_num + 1}, but no resolvable URI link annotation found.")
             
             # Layer 2b: Annotation-aware link harvesting
             try:
@@ -324,139 +358,3 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
             deduped_links.append(l)
 
     return deduped_links, mentions
-
-
-def resolve_atc_hyperlink_target(pdf_path: str, output_dir: Path) -> Tuple[Optional[str], Optional[Path]]:
-    """
-    Dedicated helper to discover and resolve ATC child document hyperlinks from PDF link annotations.
-    
-    Steps:
-    1. Loop pages and inspect page.get_links() for fitz.LINK_URI.
-    2. Retrieve link rectangle text via page.get_textbox(l["from"]).
-    3. Check for ATC anchor phrases ("buyer uploaded atc document", "buyer added bid specific atc", "click here to view the file", "click here", "atc").
-    4. If visible phrase exists on page but no link annotation found/resolved, log ATC_LINK_NOT_FOUND.
-    5. Validate URL target, download file, verify PDF magic bytes (%PDF-), and return (atc_url, local_pdf_path).
-    6. If download fails, log ATC_DOWNLOAD_FAILED and return (atc_url, None).
-    """
-    import logging
-    logger = logging.getLogger("backend.app.services.pdf_link_extractor")
-    
-    output_dir.mkdir(parents=True, exist_ok=True)
-    
-    try:
-        doc = fitz.open(pdf_path)
-    except Exception as e:
-        logger.error(f"[ATC_RESOLVER] Could not open PDF {pdf_path}: {e}")
-        return None, None
-        
-    atc_phrases = [
-        "buyer uploaded atc document",
-        "buyer added bid specific atc",
-        "click here to view the file",
-        "click here",
-        "atc"
-    ]
-    
-    candidate_url = None
-    candidate_anchor = None
-    found_phrase_on_page = False
-    
-    try:
-        for page_num in range(len(doc)):
-            page = doc[page_num]
-            page_text = page.get_text().lower()
-            
-            has_atc_text = any(phrase in page_text for phrase in atc_phrases)
-            if has_atc_text:
-                found_phrase_on_page = True
-                
-            page_links = page.get_links()
-            for l in page_links:
-                if l.get("kind") == fitz.LINK_URI:
-                    uri = l.get("uri", "").strip()
-                    if not uri:
-                        continue
-
-                    # Skip generic portal homepage URLs
-                    clean_uri = uri.rstrip("/").lower()
-                    if clean_uri in ("https://gem.gov.in", "http://gem.gov.in", "https://mkp.gem.gov.in", "http://mkp.gem.gov.in"):
-                        continue
-
-                    rect_coords = l.get("from")
-                    anchor_text = ""
-                    if rect_coords:
-                        try:
-                            anchor_text = page.get_textbox(rect_coords).strip()
-                        except Exception:
-                            pass
-                        if not anchor_text:
-                            rect = fitz.Rect(rect_coords)
-                            rect_padded = fitz.Rect(rect.x0 - 5, rect.y0 - 5, rect.x1 + 5, rect.y1 + 5)
-                            words = page.get_text("words")
-                            anchor_words = [w[4] for w in words if fitz.Rect(w[:4]).intersects(rect_padded)]
-                            anchor_text = " ".join(anchor_words).strip()
-                            
-                    anchor_lower = anchor_text.lower()
-                    is_atc_match = (
-                        any(phrase in anchor_lower for phrase in atc_phrases)
-                        or any(keyword in uri.lower() for keyword in ["atc", "download", "buyer_atc", "show_atc", "file", ".pdf"])
-                        or (has_atc_text and any(term in anchor_lower for term in ["click", "here", "view", "file", "download", "atc"]))
-                    )
-                    
-                    if is_atc_match:
-                        logger.info(f"[ATC_RESOLVER] ATC anchor phrase detected: '{anchor_text or 'Page Link'}' on Page {page_num + 1}")
-                        logger.info(f"[ATC_RESOLVER] Hyperlink URL resolved: '{uri}'")
-                        logger.info(f"[ATC_RESOLVER] Anchor text extracted from link rectangle: '{anchor_text}'")
-                        candidate_url = uri
-                        candidate_anchor = anchor_text
-                        break
-            if candidate_url:
-                break
-                
-        if not candidate_url:
-            if found_phrase_on_page:
-                logger.warning("[ATC_RESOLVER] ATC_LINK_NOT_FOUND: ATC anchor phrase detected in visible text, but no usable hyperlink annotation or URI target was found in PDF link metadata.")
-            else:
-                logger.info("[ATC_RESOLVER] No ATC anchor phrase or link annotation detected in main tender.")
-            doc.close()
-            return None, None
-            
-        logger.info(f"[ATC_RESOLVER] Downloading ATC child document from URL: '{candidate_url}'")
-        try:
-            import urllib.request
-            import ssl
-            
-            filename = candidate_url.split("/")[-1].split("?")[0] or f"atc_child_p1.pdf"
-            if not filename.lower().endswith((".pdf", ".xlsx", ".xls", ".doc", ".docx", ".zip")):
-                filename = f"{filename}.pdf"
-                
-            unique_filename = f"atc_{filename}"
-            req = urllib.request.Request(
-                candidate_url,
-                headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
-            )
-            context = ssl._create_unverified_context()
-            with urllib.request.urlopen(req, context=context, timeout=5) as response:
-                file_bytes = response.read()
-                content_type = response.headers.get("Content-Type", "")
-                
-            is_pdf = file_bytes.startswith(b"%PDF") or "pdf" in content_type.lower()
-            out_path = output_dir / unique_filename
-            with open(out_path, "wb") as f:
-                f.write(file_bytes)
-            logger.info(f"[ATC_RESOLVER] ATC child PDF downloaded and saved to: '{out_path}'")
-            doc.close()
-            return candidate_url, out_path
-        except Exception as dl_err:
-            logger.warning(f"[ATC_RESOLVER] ATC_DOWNLOAD_FAILED: Failed to download ATC child document from '{candidate_url}': {dl_err}. Continuing with main tender parsing only.")
-            doc.close()
-            return candidate_url, None
-
-    except Exception as ex:
-        logger.error(f"[ATC_RESOLVER] Error during ATC link resolution: {ex}")
-        try:
-            doc.close()
-        except Exception:
-            pass
-        return None, None
-

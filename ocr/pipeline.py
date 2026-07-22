@@ -3,6 +3,7 @@ from PIL.Image import logger
 import time
 from pathlib import Path
 from PIL import Image
+import fitz
 
 from ocr.pdf_converter import convert_pdf_to_images
 from ocr.ocr_engine import OcrEngine
@@ -119,7 +120,27 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False, atc_pdf
         from backend.app.services.pdf_text_extractor import preprocess_image_for_ocr
         preprocessed_path = preprocess_image_for_ocr(img_path)
         
-        text_blocks = ocr.run(preprocessed_path)
+        try:
+            text_blocks = ocr.run(preprocessed_path)
+        except Exception as ocr_err:
+            logger.warning(f"OCR execution failed on page {i + 1}: {ocr_err}. Falling back to native text extraction.")
+            doc = fitz.open(pdf_path)
+            try:
+                p_page = doc.load_page(i)
+                native_words = p_page.get_text("words")
+            finally:
+                doc.close()
+            from backend.app.services.pdf_text_extractor import build_text_blocks_from_words
+            blocks_data = build_text_blocks_from_words(native_words)
+            text_blocks = [
+                TextBlock(
+                    block_id=b["block_id"],
+                    text=b["text"],
+                    confidence=b["confidence"],
+                    bounding_box=b["bounding_box"],
+                    language_hint=b.get("language_hint", "en")
+                ) for b in blocks_data
+            ]
         layout_regions = layout.detect(preprocessed_path)
         
         # Clean up temp preprocessed file
@@ -186,21 +207,23 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False, atc_pdf
     # 4. Automated ATC Link Detection & Downloading via pdf_link_extractor
     atc_link_present = False
     atc_link_url = None
-    links, mentions = [], []
     try:
-        logger.info("[ATC_RESOLVER] Scanning main tender PDF for document hyperlinks and mentions...")
-        from backend.app.services.pdf_link_extractor import extract_links_and_mentions, resolve_atc_hyperlink_target
+        logger.info("[ATC_RESOLVER] Scanning main tender PDF for ATC document hyperlink annotations...")
+        from backend.app.services.pdf_link_extractor import extract_links_and_mentions
         links, mentions = extract_links_and_mentions(str(pdf_path))
-        with open(job_dir / "links_and_mentions.json", "w", encoding="utf-8") as f:
-            import json
-            json.dump({"links": links, "mentions": mentions}, f, indent=2)
-
-        resolved_url, resolved_path = resolve_atc_hyperlink_target(str(pdf_path), job_dir / "extracted_children")
-        if resolved_url:
-            atc_link_present = True
-            atc_link_url = resolved_url
-            if resolved_path and resolved_path.exists():
-                atc_pdf_path = resolved_path
+        for l in links:
+            anchor = l.get("anchorText", "").lower()
+            name = l.get("name", "").lower()
+            if "click here" in anchor or "atc" in anchor or "atc" in name or l.get("is_atc_anchor"):
+                atc_link_present = True
+                atc_link_url = l.get("url")
+                logger.info(f"[ATC_RESOLVER] Hyperlink URL resolved: '{atc_link_url}' (anchorText='{l.get('anchorText')}')")
+                if not atc_pdf_path and l.get("local_path") and Path(l["local_path"]).exists():
+                    atc_pdf_path = Path(l["local_path"])
+                    logger.info(f"[ATC_RESOLVER] Child PDF downloaded path: '{atc_pdf_path}'")
+                break
+        if not atc_link_present:
+            logger.info("[ATC_RESOLVER] No ATC document hyperlink annotation detected in main tender.")
     except Exception as e:
         logger.warning(f"[ATC_RESOLVER] Failed to resolve ATC hyperlink from main tender: {e}. Continuing with main tender parsing only.")
 
@@ -227,48 +250,91 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False, atc_pdf
     # 6. ATC Child PDF Processing & Field Merging if ATC PDF is available
     if atc_pdf_path and atc_pdf_path.exists():
         try:
-            logger.info(f"[ATC_RESOLVER] Parsing ATC child PDF '{atc_pdf_path}' with per-page hybrid native-text + Tesseract OCR (lang='eng+hin')...")
-            from backend.app.services.pdf_text_extractor import extract_pdf_text_hybrid
+            logger.info(f"[ATC_RESOLVER] Parsing ATC child PDF '{atc_pdf_path}' page-by-page (native text first, Tesseract eng+hin OCR fallback)...")
+            from backend.app.services.pdf_text_extractor import is_text_scrambled_or_garbage, build_text_blocks_from_words, preprocess_image_for_ocr
+
             atc_pages_dir = job_dir / "atc_pages"
-            atc_page_texts = extract_pdf_text_hybrid(str(atc_pdf_path), atc_pages_dir)
+            atc_image_paths = convert_pdf_to_images(atc_pdf_path, atc_pages_dir)
+            atc_doc = fitz.open(str(atc_pdf_path))
             atc_page_results = []
-            
-            for pt in atc_page_texts:
-                page_num = pt.get("page", 1)
-                blocks_data = pt.get("blocks", [])
-                text_blocks = [
-                    TextBlock(
-                        block_id=b.get("block_id", f"atc_b_{idx}"),
-                        text=b.get("text", ""),
-                        confidence=b.get("confidence", 1.0),
-                        bounding_box=b.get("bounding_box", {"x1": 0, "y1": 0, "x2": 100, "y2": 100}),
-                        language_hint=b.get("language_hint", "en")
-                    ) for idx, b in enumerate(blocks_data)
-                ]
-                img_path = atc_pages_dir / f"page_{page_num:04d}.png"
-                w, h = 1000, 1000
-                if img_path.exists():
+
+            for page_num, img_path in enumerate(atc_image_paths):
+                page = atc_doc.load_page(page_num)
+                native_text = page.get_text()
+                stripped = native_text.strip()
+                words = stripped.split()
+                word_count = len(words)
+
+                is_digital = False
+                if len(stripped) > 5 and word_count > 0:
+                    if word_count > 5:
+                        avg_word_len = len(stripped) / word_count
+                        if 3.0 <= avg_word_len <= 15.0 and not is_text_scrambled_or_garbage(native_text):
+                            is_digital = True
+                    else:
+                        if not is_text_scrambled_or_garbage(native_text):
+                            is_digital = True
+
+                with Image.open(img_path) as img:
+                    w, h = img.size
+
+                if is_digital:
+                    logger.info(f"[ATC_RESOLVER] Page {page_num + 1} of ATC child PDF parsed using native text pass.")
+                    native_words = page.get_text("words")
+                    blocks_data = build_text_blocks_from_words(native_words)
+                    text_blocks = [
+                        TextBlock(
+                            block_id=b["block_id"],
+                            text=b["text"],
+                            confidence=b["confidence"],
+                            bounding_box=b["bounding_box"],
+                            language_hint=b.get("language_hint", "en")
+                        ) for b in blocks_data
+                    ]
+                    layout_regions = layout.detect(img_path)
+                else:
+                    logger.info(f"[ATC_RESOLVER] Page {page_num + 1} of ATC child PDF parsed using Tesseract OCR (lang='eng+hin') fallback pass.")
+                    preprocessed_path = preprocess_image_for_ocr(img_path)
                     try:
-                        with Image.open(img_path) as img:
-                            w, h = img.size
-                    except Exception:
-                        pass
+                        text_blocks = ocr.run(preprocessed_path)
+                    except Exception as ocr_err:
+                        logger.warning(f"ATC OCR execution failed on page {page_num + 1}: {ocr_err}. Falling back to native text extraction.")
+                        native_words = page.get_text("words")
+                        blocks_data = build_text_blocks_from_words(native_words)
+                        text_blocks = [
+                            TextBlock(
+                                block_id=b["block_id"],
+                                text=b["text"],
+                                confidence=b["confidence"],
+                                bounding_box=b["bounding_box"],
+                                language_hint=b.get("language_hint", "en")
+                            ) for b in blocks_data
+                        ]
+                    layout_regions = layout.detect(preprocessed_path)
+                    if preprocessed_path != img_path:
+                        try:
+                            preprocessed_path.unlink()
+                        except Exception:
+                            pass
+
                 atc_pr = PageResult(
                     job_id=f"{job_id}_atc",
-                    page_number=page_num,
-                    image_path=str(img_path) if img_path.exists() else str(atc_pdf_path),
+                    page_number=page_num + 1,
+                    image_path=str(img_path),
                     image_width_px=w,
                     image_height_px=h,
                     processing_time_seconds=0.0,
                     text_blocks=text_blocks,
-                    layout_regions=[]
+                    layout_regions=layout_regions
                 )
                 atc_page_results.append(atc_pr)
+
+            atc_doc.close()
 
             atc_extractor = FieldExtractor()
             atc_fields = atc_extractor.extract_atc_fields(atc_page_results)
             logger.info(f"[ATC_RESOLVER] ATC parse successful: {len(atc_fields)} fields extracted from child PDF.")
-            
+
             from ocr.extractors.field_extractor import merge_tender_and_atc_fields
             extracted_fields = merge_tender_and_atc_fields(extracted_fields, atc_fields)
         except Exception as atc_err:

@@ -95,6 +95,41 @@ def ingest_parent_tender_pdf(
     
     sections = extract_tender_fields(page_texts, title_raw, document_type=doc_type)
 
+    # 3b. ATC Child PDF Processing if downloaded
+    atc_path = None
+    for l in links:
+        if l.get("local_path") and Path(l["local_path"]).exists():
+            if l.get("is_atc_anchor") or "atc" in l.get("name", "").lower() or "atc" in l.get("anchorText", "").lower():
+                atc_path = Path(l["local_path"])
+                break
+
+    if atc_path:
+        try:
+            logger.info(f"[ATC_RESOLVER] Ingest pipeline parsing downloaded ATC child PDF: '{atc_path}'...")
+            atc_pages_dir = job_dir / "atc_pages"
+            atc_page_texts = extract_pdf_text_hybrid(str(atc_path), atc_pages_dir)
+            atc_sections = extract_tender_fields(atc_page_texts, f"{title_raw} ATC", document_type="generic_nit")
+            
+            # Merge ATC fields into primary sections
+            main_sec = sections[0] if sections else {"id": "sec-unified", "title": "Unified Extraction", "fields": []}
+            existing_labels = {f["label"]: f for f in main_sec.get("fields", [])}
+            
+            for atc_sec in atc_sections:
+                for f in atc_sec.get("fields", []):
+                    lbl = f.get("label")
+                    val = f.get("value")
+                    if val not in (None, "Not Found", "Out of Scope (Stage 1)"):
+                        existing = existing_labels.get(lbl)
+                        if not existing or existing.get("status") == "missing":
+                            f["source"] = "atc"
+                            existing_labels[lbl] = f
+                            logger.info(f"[FIELD_MERGE] Field: {lbl} | Winning Source: atc | Text Source: native/ocr | Page: {f.get('sourcePage', 1)} | Value: {val}")
+
+            main_sec["fields"] = list(existing_labels.values())
+            sections = [main_sec]
+        except Exception as atc_err:
+            logger.warning(f"[ATC_RESOLVER] Failed parsing ATC PDF in parent ingest: {atc_err}. Continuing with main tender.")
+
     # 4. Generate XLSX Spreadsheet Info Sheet
     csv_filename = f"{original_filename.replace('.pdf', '')}_InfoSheet.xlsx"
     csv_path = job_dir / csv_filename

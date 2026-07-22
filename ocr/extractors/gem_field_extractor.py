@@ -967,7 +967,7 @@ class GemFieldExtractor(FieldExtractor):
                     source_page=best_cand["source_page"],
                     evidence=best_cand["evidence"],
                     source_blocks=best_cand["source_blocks"],
-                    source="gem_parent_pdf",
+                    source=doc_source,
                     needs_review=needs_review
                 ))
             else:
@@ -979,7 +979,7 @@ class GemFieldExtractor(FieldExtractor):
                     source_page=1,
                     evidence="No matching values found in document.",
                     source_blocks=[],
-                    source="gem_parent_pdf"
+                    source=doc_source
                 ))
 
         logger.info(f"Finished GeM field extraction. Total fields: {len(extracted)}")
