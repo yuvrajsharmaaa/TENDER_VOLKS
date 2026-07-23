@@ -275,7 +275,11 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                                         'Referer': 'https://bidplus.gem.gov.in/'
                                     }
                                     req = urllib.request.Request(uri, headers=headers)
-                                    context = ssl._create_unverified_context()
+                                    # Use default SSL context with certificate verification
+                                    # If specific certificates fail, handle individually rather than disabling all verification
+                                    context = None  # Uses default secure SSL context
+                                    try:
+                                        with urllib.request.urlopen(req, context=context, timeout=8) as response:
                                     with urllib.request.urlopen(req, context=context, timeout=8) as response:
                                         status_code = getattr(response, "status", 200)
                                         resp_headers = dict(response.headers)
