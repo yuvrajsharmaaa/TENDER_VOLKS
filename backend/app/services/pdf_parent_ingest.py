@@ -236,19 +236,16 @@ def ingest_parent_tender_pdf(
     # 3b. Normalize Financial Exemption status if Financial Criteria is NOT APPLICABLE
     all_text_combined = " ".join([p.get("text", "") for p in page_texts]).lower()
     if "financial criteria" in all_text_combined and "not applicable" in all_text_combined:
-        fin_field_labels = {
-            "Avg Annual Turnover Value", "Working Capital Value", "Solvency Certificate Value", "Net Worth Value",
-            "Avg Annual Turnover Type", "Working Capital Type", "Solvency Certificate Type", "Net Worth Type",
-            "Avg Annual Turnover", "Working Capital", "Solvency Certificate", "Net Worth"
-        }
+        fin_keywords = {"turnover", "solvency", "net worth", "working capital", "financial"}
         for sec in sections:
-            if "Financial" in sec.get("title", ""):
-                for f in sec.get("fields", []):
-                    if f.get("label") in fin_field_labels or "Value" in f.get("label", ""):
-                        f["value"] = "Exempt / Not Applicable"
-                        f["status"] = "exempt"
-                        f["confidence"] = 99.0
-                        f["sourceSnippet"] = "Financial Criteria explicitly declared NOT APPLICABLE in Tender BEC (Section-II)"
+            is_fin_sec = any(kw in sec.get("title", "").lower() for kw in fin_keywords)
+            for f in sec.get("fields", []):
+                lbl = (f.get("label") or f.get("id") or "").lower()
+                if is_fin_sec or any(kw in lbl for kw in fin_keywords):
+                    f["value"] = "Exempt / Not Applicable"
+                    f["status"] = "exempt"
+                    f["confidence"] = 99.0
+                    f["sourceSnippet"] = "Financial Criteria explicitly declared NOT APPLICABLE in Tender BEC (Section-II)"
 
     # 4. Generate XLSX Spreadsheet Info Sheet
     csv_filename = f"{original_filename.replace('.pdf', '')}_InfoSheet.xlsx"
