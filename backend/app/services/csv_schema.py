@@ -301,6 +301,12 @@ INFOSHEET_PAGE1_LAYOUT = [
         _cell(1, "value", key="reverse_auction_applicable_display"),
     ]),
     _row([
+        _cell(1, "label", "Bid Type"),
+        _cell(1, "value", key="bid_type_display"),
+        _cell(2, "label", "ATC Document Link", style=STYLE_LABEL_YELLOW, bold=True),
+        _cell(2, "value", key="atc_document_link_display", style=STYLE_VALUE_YELLOW),
+    ]),
+    _row([
         _cell(1, "label", "MAF required"),
         _cell(1, "value", key="maf_required_display"),
         _cell(1, "label", "Delivery Time (Supply/Total)"),
@@ -511,6 +517,7 @@ INFOSHEET_DATA_KEYS = [
     "tender_fee_amount_display", "tender_fee_mode_display",
     "emd_amount_display", "emd_required_display", "tender_value_display", "emd_mode_display",
     "bid_validity_days_display", "commercial_evaluation_display", "reverse_auction_applicable_display",
+    "bid_type_display", "atc_document_link_display",
     "maf_required_display", "delivery_time_supply_display", "delivery_time_installation_display",
     "pbg_mode_display", "payment_terms_supply_display", "payment_terms_installation_display",
     "sd_mode_display", "ld_percentage_display", "max_ld_percentage_display",

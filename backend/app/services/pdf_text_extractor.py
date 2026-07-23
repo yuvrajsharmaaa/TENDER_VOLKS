@@ -173,7 +173,7 @@ def extract_pdf_text_hybrid(pdf_path: str, pages_dir: Path) -> List[Dict[str, An
         else:
             # Scanned page detected -> render to image
             if not ocr_engine:
-                ocr_engine = OcrEngine()
+                ocr_engine = OcrEngine(lang="eng+hin")
                 
             zoom = 4.16  # ~300 DPI for high-precision character matching
             mat = fitz.Matrix(zoom, zoom)

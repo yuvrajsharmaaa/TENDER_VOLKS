@@ -74,7 +74,14 @@ def extract_tender_fields(
                 is_gem = True
                 break
 
-    if is_gem:
+    GEM_DOC_TYPES = {"gem_structured", "gem_parent", "gem"}
+    if document_type in GEM_DOC_TYPES:
+        extractor = GemFieldExtractor()
+    elif document_type is not None:
+        # Explicit caller document_type wins over content-sniffing heuristic
+        extractor = FieldExtractor()
+    elif is_gem:
+        # Fallback to content-sniffing ONLY when caller passed document_type=None
         extractor = GemFieldExtractor()
     else:
         extractor = FieldExtractor()
@@ -107,7 +114,18 @@ def extract_tender_fields(
         "department_name": "Organisation",
         "office_name": "Organisation",
         "Tender Fee": "Tender Fee",
-        "tender_fee_amount": "Tender Fee"
+        "tender_fee_amount": "Tender Fee",
+        "prs_ld": "Price Reduction Schedule (PRS)",
+        "price_reduction_schedule": "Price Reduction Schedule (PRS)",
+        "prs_rate": "LD Percentage per Week",
+        "prs_max": "Max LD Percentage",
+        "payment_terms": "Payment Terms",
+        "payment_terms_supply_percent": "Payment Terms %",
+        "client_contact_person": "Client Contacts",
+        "client_contacts": "Client Contacts",
+        "full_courier_address_with_pincode": "Courier Address",
+        "courier_address": "Courier Address",
+        "courier_info": "Courier Information"
     }
     
     fields = []

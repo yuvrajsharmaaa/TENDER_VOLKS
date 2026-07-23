@@ -1,14 +1,8 @@
 """
 Local-disk object storage shim.
 
-The original codebase depended on a real MinIO server (docker-compose sidecar).
-Replit has no such service, and standing one up would mean running an extra
-long-lived process for an MVP that just needs "save this PDF, read it back
-later" — so this module keeps the exact call sites used elsewhere
-(backend/app/services/storage.py, backend/app/api/routes/{tenders,health}.py,
-backend/app/main.py) working unchanged by re-implementing the small subset of
-the `minio.Minio` client surface they actually use, backed by files on disk
-under STORAGE_ROOT/objects/<bucket>/<key>.
+Re-implements the subset of the `minio.Minio` client surface used by the application,
+backed by files on disk under STORAGE_ROOT/objects/<bucket>/<key>.
 """
 import logging
 from dataclasses import dataclass

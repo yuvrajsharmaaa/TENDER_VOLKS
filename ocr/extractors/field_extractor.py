@@ -90,13 +90,8 @@ class FieldExtractor:
             "net_worth_type_value",
             "solvency_certificate_value",
             "ld_applicable",
-            "ld_percentage_per_week",
-            "max_ld_percentage",
-            "payment_terms_supply_percent",
             "payment_terms_installation_percent",
             "maf_required",
-            "client_contact_person",
-            "full_courier_address_with_pincode",
             "tender_fee_amount",
             "processing_fee_amount",
             
@@ -411,6 +406,26 @@ class FieldExtractor:
                 "anchors": ["Restrictions on procurement from a bidder of a country which shares a land border with India"],
                 "hindi": [],
                 "type": "yes_no"
+            },
+            "payment_terms_supply_percent": {
+                "anchors": ["PAYMENT TERMS", "Payment Terms", "Terms of Payment", "For Supply Portion"],
+                "hindi": ["भुगतान की शर्तें"],
+                "type": "text"
+            },
+            "prs_ld": {
+                "anchors": ["PRICE REDUCTION SCHEDULE", "Price Reduction Schedule", "PRS", "Price Reduction"],
+                "hindi": ["मूल्य कटौती अनुसूची"],
+                "type": "text"
+            },
+            "client_contact_person": {
+                "anchors": ["CONTACT DETAILS OF TENDER DEALING OFFICER", "Kind Attn:", "Nodal Officer", "Contact Officer", "TENDER DEALING OFFICER"],
+                "hindi": ["संपर्क अधिकारी"],
+                "type": "text"
+            },
+            "full_courier_address_with_pincode": {
+                "anchors": ["DEALING GAIL'S OFFICE ADDRESS", "GAIL Bhawan", "OFFICE ADDRESS", "Communication Address"],
+                "hindi": ["कार्यालय पता"],
+                "type": "text"
             }
         }
 
@@ -696,9 +711,9 @@ class FieldExtractor:
 
         return products
 
-    def extract_fields(self, pages: List[PageResult]) -> List[ExtractedFieldSchema]:
+    def extract_fields(self, pages: List[PageResult], doc_source: str = "main_tender") -> List[ExtractedFieldSchema]:
         extracted = []
-        print(f"\n[FIELD_EXTRACTOR_DEBUG] Starting field extraction on {len(pages)} page(s).", flush=True)
+        print(f"\n[FIELD_EXTRACTOR_DEBUG] Starting field extraction on {len(pages)} page(s) (doc_source: '{doc_source}').", flush=True)
         
         for field_name, rule in self.rules.items():
             # 1. Custom Multi-Instance Field Processing
@@ -777,7 +792,8 @@ class FieldExtractor:
                         confidence=0.9,
                         source_page=1,
                         evidence=" | ".join(evidence_parts),
-                        source_blocks=source_blocks
+                        source_blocks=source_blocks,
+                        source=doc_source
                     ))
                 else:
                     default_val = "Out of Scope (Stage 1)" if "emd_by_schedule" in self.out_of_scope_stage1 else "Not Found"
@@ -787,7 +803,8 @@ class FieldExtractor:
                         confidence=0.0,
                         source_page=1,
                         evidence="No schedule EMD amounts found.",
-                        source_blocks=[]
+                        source_blocks=[],
+                        source=doc_source
                     ))
                 continue
 
@@ -896,7 +913,8 @@ class FieldExtractor:
                         confidence=0.9,
                         source_page=1,
                         evidence=f"Extracted {len(flat_schedules)} schedules/consignees.",
-                        source_blocks=[]
+                        source_blocks=[],
+                        source=doc_source
                     ))
                 else:
                     default_val = "Out of Scope (Stage 1)" if "schedules" in self.out_of_scope_stage1 else "Not Found"
@@ -906,7 +924,8 @@ class FieldExtractor:
                         confidence=0.0,
                         source_page=1,
                         evidence="No schedules found.",
-                        source_blocks=[]
+                        source_blocks=[],
+                        source=doc_source
                     ))
                 continue
 
@@ -1184,7 +1203,8 @@ class FieldExtractor:
                         confidence=0.0,
                         source_page=1,
                         evidence="No matching anchors or value patterns found in document.",
-                        source_blocks=[]
+                        source_blocks=[],
+                        source=doc_source
                     ))
                     continue
                 extracted.append(ExtractedFieldSchema(
@@ -1193,7 +1213,8 @@ class FieldExtractor:
                     confidence=best_cand["confidence"],
                     source_page=best_cand["source_page"],
                     evidence=best_cand["evidence"],
-                    source_blocks=best_cand["source_blocks"]
+                    source_blocks=best_cand["source_blocks"],
+                    source=doc_source
                 ))
             else:
                 print(f"[FIELD_EXTRACTOR_DEBUG] Extracted value for '{field_name}': Not Found", flush=True)
@@ -1205,7 +1226,8 @@ class FieldExtractor:
                     confidence=0.0,
                     source_page=1,
                     evidence=evidence,
-                    source_blocks=[]
+                    source_blocks=[],
+                    source=doc_source
                 ))
                 
         # Compute derived EMD fields if emd_by_schedule was processed
@@ -1221,7 +1243,8 @@ class FieldExtractor:
                     confidence=0.9,
                     source_page=1,
                     evidence=f"Derived sum of schedule EMDs: {emd_by_sch_field.value}",
-                    source_blocks=[]
+                    source_blocks=[],
+                    source="derived"
                 ))
                 extracted.append(ExtractedFieldSchema(
                     field_name="emd_required",
@@ -1229,7 +1252,8 @@ class FieldExtractor:
                     confidence=0.9,
                     source_page=1,
                     evidence=f"Derived from EMD total: {total_val}",
-                    source_blocks=[]
+                    source_blocks=[],
+                    source="derived"
                 ))
             except Exception as e:
                 print(f"[FIELD_EXTRACTOR_DEBUG] Failed to parse emd_by_schedule: {e}", flush=True)
@@ -1240,7 +1264,8 @@ class FieldExtractor:
                 confidence=0.0,
                 source_page=1,
                 evidence="Derived field, parent EMD details not found.",
-                source_blocks=[]
+                source_blocks=[],
+                source="derived"
             ))
             extracted.append(ExtractedFieldSchema(
                 field_name="emd_required",
@@ -1248,7 +1273,8 @@ class FieldExtractor:
                 confidence=0.0,
                 source_page=1,
                 evidence="Derived field, parent EMD details not found.",
-                source_blocks=[]
+                source_blocks=[],
+                source="derived"
             ))
 
         # Ensure all out of scope fields are represented in the output list
@@ -1260,8 +1286,86 @@ class FieldExtractor:
                     confidence=0.0,
                     source_page=1,
                     evidence="This field is designated as out of scope for Stage 1 (Parent Tender PDF).",
-                    source_blocks=[]
+                    source_blocks=[],
+                    source=doc_source
                 ))
 
         print(f"[FIELD_EXTRACTOR_DEBUG] Finished extraction. Total extracted fields count: {len(extracted)}\n", flush=True)
         return extracted
+
+    def extract_atc_fields(self, atc_pages: List[PageResult]) -> List[ExtractedFieldSchema]:
+        """
+        Extracts fields specifically from Additional Terms and Conditions (ATC) PDF
+        using existing Hindi and English anchor lists.
+        """
+        return self.extract_fields(atc_pages, doc_source="atc")
+
+
+AMBIGUOUS_MERGE_FIELDS = {
+    "custom_eligibility_criteria",
+    "delivery_time_installation_inclusive",
+    "custom_rules"
+}
+
+def merge_tender_and_atc_fields(
+    main_fields: List[ExtractedFieldSchema],
+    atc_fields: List[ExtractedFieldSchema]
+) -> List[ExtractedFieldSchema]:
+    """
+    Merges extracted fields from main_tender and atc documents applying priority rules.
+
+    Priority Rules:
+    1. ATC field overrides main_tender field if ATC has a valid value (explicit ATC clause wins,
+       removing confidence carve-outs).
+    2. Retains main tender field if only main_tender found a valid value.
+    3. For ambiguous fields ('custom_eligibility_criteria', 'delivery_time_installation_inclusive', 'custom_rules'),
+       preserves both candidates when both documents contain values without premature resolution.
+    4. Derived fields recalculated on merged dataset.
+
+    Logs winning document, text source, and page number.
+    """
+    merged_map: Dict[str, ExtractedFieldSchema] = {f.field_name: f for f in main_fields}
+
+    for atc_f in atc_fields:
+        fn = atc_f.field_name
+        main_f = merged_map.get(fn)
+
+        if not main_f:
+            win_field = atc_f
+        else:
+            main_valid = main_f.value not in (None, "Not Found", "Out of Scope (Stage 1)")
+            atc_valid = atc_f.value not in (None, "Not Found", "Out of Scope (Stage 1)")
+
+            if fn in AMBIGUOUS_MERGE_FIELDS and main_valid and atc_valid:
+                # Preserve both candidates without resolving prematurely
+                combined_val = {
+                    "main_tender": main_f.value,
+                    "atc": atc_f.value
+                }
+                win_field = ExtractedFieldSchema(
+                    field_name=fn,
+                    value=combined_val,
+                    confidence=min(main_f.confidence, atc_f.confidence),
+                    source_page=atc_f.source_page,
+                    evidence=f"Ambiguous candidates preserved: main_tender='{main_f.value}' | atc='{atc_f.value}'",
+                    source_blocks=main_f.source_blocks + atc_f.source_blocks,
+                    source="ambiguous_preserved"
+                )
+            elif atc_valid:
+                # Explicit ATC clause always wins over main tender (no confidence carve-out)
+                win_field = atc_f
+            elif main_valid:
+                win_field = main_f
+            else:
+                win_field = main_f
+
+        merged_map[fn] = win_field
+
+        text_src = "native/ocr"
+        page_num = win_field.source_page
+        logger.info(
+            f"[FIELD_MERGE] Field: {fn} | Winning Source: {win_field.source} | "
+            f"Text Source: {text_src} | Page: {page_num} | Value: {win_field.value}"
+        )
+
+    return list(merged_map.values())

@@ -10,6 +10,28 @@ from backend.app.core.logging import get_logger
 logger = get_logger(__name__)
 
 
+# BUG 3 FIX: Field precedence constants defining field ownership rules
+ATC_SOURCED_LABELS = {
+    "Payment Terms", "Payment Terms %", "Price Reduction Schedule (PRS)",
+    "LD Percentage per Week", "Max LD Percentage", "Commercial Evaluation Type",
+    "Reverse Auction Applicable", "Delivery Time", "Client Contacts",
+    "Courier Address", "Courier Information", "SD Required", "SD %", "SD Duration",
+    "SD Mode", "PBG Mode"
+}
+
+MAIN_SOURCED_LABELS = {
+    "EMD Amount", "EMD Amount / Total", "EMD Required",
+    "PBG Required", "PBG Percentage", "PBG Duration", "PBG Duration (Months)",
+    "Eligibility Criterion (Years)", "Bid Validity (Days)", "Bid Validity Period",
+    "Tender Name / Title", "Reference ID / NIT No", "Estimated Tender Value",
+    "Tender Value", "Organisation", "Department", "Authority Agency"
+}
+
+AMBIGUOUS_LABELS = {
+    "Installation Inclusive", "Custom Eligibility Criteria", "Custom Rules"
+}
+
+
 def _resolve_top_level_fields(sections: List[Dict[str, Any]]) -> Dict[str, str]:
     """
     Walks info-sheet sections and maps field labels to top-level tender values.
@@ -94,6 +116,120 @@ def ingest_parent_tender_pdf(
     doc_type = classify_document_type(page1_text)
     
     sections = extract_tender_fields(page_texts, title_raw, document_type=doc_type)
+
+    # 3a. Bridge resolved ATC link URL to sections atc_document_link_present field
+    matched_atc_link = None
+    for l in links:
+        url_str = l.get("url", "")
+        name_str = l.get("name", "")
+        anchor_str = l.get("anchorText", "")
+        if l.get("is_atc_anchor") or any("atc" in s.lower() for s in (url_str, name_str, anchor_str)):
+            matched_atc_link = l
+            break
+
+    if matched_atc_link and matched_atc_link.get("url"):
+        target_url = matched_atc_link["url"]
+        anchor_snippet = matched_atc_link.get("anchorText") or "ATC Hyperlink Annotation"
+        for sec in sections:
+            for f in sec.get("fields", []):
+                if f.get("label") == "atc_document_link_present":
+                    f["value"] = target_url
+                    f["status"] = "extracted"
+                    f["sourceSnippet"] = anchor_snippet
+
+    # 3b. ATC Child PDF Processing if downloaded
+    atc_path = None
+    for l in links:
+        if l.get("local_path") and Path(l["local_path"]).exists():
+            if l.get("is_atc_anchor") or "atc" in l.get("name", "").lower() or "atc" in l.get("anchorText", "").lower():
+                atc_path = Path(l["local_path"])
+                break
+
+    merged_atc_field_count = 0
+    if atc_path:
+        try:
+            logger.info(f"[ATC_RESOLVER] Ingest pipeline parsing downloaded ATC child PDF: '{atc_path}'...")
+            atc_pages_dir = job_dir / "atc_pages"
+            atc_page_texts = extract_pdf_text_hybrid(str(atc_path), atc_pages_dir)
+            atc_sections = extract_tender_fields(atc_page_texts, f"{title_raw} ATC", document_type="generic_nit")
+            
+            # BUG 4 FIX: Build label -> (section_index, field_index) map to preserve section layout
+            label_to_loc = {}
+            for sec_idx, sec in enumerate(sections):
+                for f_idx, field in enumerate(sec.get("fields", [])):
+                    lbl = field.get("label")
+                    if lbl and lbl not in label_to_loc:
+                        label_to_loc[lbl] = (sec_idx, f_idx)
+
+            atc_new_fields = []
+            for atc_sec in atc_sections:
+                for f in atc_sec.get("fields", []):
+                    lbl = f.get("label")
+                    val = f.get("value")
+                    # Check if ATC value is valid (non-empty, non-zero, non-stub)
+                    is_val_valid = val not in (None, "", "Not Found", "Out of Scope (Stage 1)", 0, 0.0, "0", "0.0", "0.00")
+                    if is_val_valid:
+                        # BUG 3 FIX: MAIN_SOURCED_LABELS are never overridden by ATC
+                        if lbl in MAIN_SOURCED_LABELS:
+                            continue
+
+                        f_copy = dict(f)
+                        f_copy["source"] = "atc"
+
+                        if lbl in label_to_loc:
+                            sec_idx, field_idx = label_to_loc[lbl]
+                            existing_field = sections[sec_idx]["fields"][field_idx]
+                            old_val = existing_field.get("value")
+
+                            if lbl in ATC_SOURCED_LABELS:
+                                # BUG 3 FIX: ATC_SOURCED_LABELS always override main doc
+                                sections[sec_idx]["fields"][field_idx] = f_copy
+                                merged_atc_field_count += 1
+                                logger.info(
+                                    f"[FIELD_MERGE] Field: {lbl} | Old value: {old_val!r} | "
+                                    f"New value (atc): {val!r} | Reason: atc-authoritative-override"
+                                )
+                            else:
+                                # BUG 3 FIX: AMBIGUOUS_LABELS & unlisted labels use fill-if-missing
+                                if existing_field.get("status") == "missing" or not old_val or old_val in ("Not Found", "Out of Scope (Stage 1)"):
+                                    sections[sec_idx]["fields"][field_idx] = f_copy
+                                    merged_atc_field_count += 1
+                                    logger.info(
+                                        f"[FIELD_MERGE] Field: {lbl} | Old value: {old_val!r} | "
+                                        f"New value (atc): {val!r} | Reason: atc-fill-if-missing"
+                                    )
+                        else:
+                            # BUG 4 FIX: Genuinely new field from ATC -> add to ATC-Sourced Fields section
+                            atc_new_fields.append(f_copy)
+                            merged_atc_field_count += 1
+                            logger.info(
+                                f"[FIELD_MERGE] Field: {lbl} | Old value: None | "
+                                f"New value (atc): {val!r} | Reason: atc-new-field"
+                            )
+
+            # BUG 4 FIX: Append genuinely new ATC fields into a dedicated section instead of flattening
+            if atc_new_fields:
+                atc_sec_idx = None
+                for idx, sec in enumerate(sections):
+                    if sec.get("title") == "ATC-Sourced Fields":
+                        atc_sec_idx = idx
+                        break
+
+                if atc_sec_idx is not None:
+                    sections[atc_sec_idx]["fields"].extend(atc_new_fields)
+                else:
+                    sections.append({
+                        "id": "sec-atc-sourced",
+                        "title": "ATC-Sourced Fields",
+                        "fields": atc_new_fields
+                    })
+
+            if merged_atc_field_count > 0:
+                logger.info(f"[ATC_RESOLVER] ATC_PARSE_SUCCESS: Merged {merged_atc_field_count} fields from ATC PDF '{atc_path}'.")
+            else:
+                logger.warning(f"[ATC_RESOLVER] ATC_PARSE_NO_FIELDS: ATC PDF '{atc_path}' parsed successfully but yielded 0 mergeable fields.")
+        except Exception as atc_err:
+            logger.warning(f"[ATC_RESOLVER] ATC_PARSE_FAILED: Error processing ATC PDF '{atc_path}': {atc_err}. Continuing with main tender parsing only.")
 
     # 4. Generate XLSX Spreadsheet Info Sheet
     csv_filename = f"{original_filename.replace('.pdf', '')}_InfoSheet.xlsx"

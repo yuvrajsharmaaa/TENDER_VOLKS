@@ -375,7 +375,7 @@ class GemFieldExtractor(FieldExtractor):
         self.fields_spec = self.spec.get("fields", {})
         self.out_of_scope_spec = self.spec.get("out_of_scope_stage1", [])
 
-    def extract_fields(self, pages: List[PageResult]) -> List[ExtractedFieldSchema]:
+    def extract_fields(self, pages: List[PageResult], doc_source: str = "main_tender") -> List[ExtractedFieldSchema]:
         extracted = []
         logger.info(f"Starting GeM field extraction on {len(pages)} page(s).")
 
@@ -967,7 +967,7 @@ class GemFieldExtractor(FieldExtractor):
                     source_page=best_cand["source_page"],
                     evidence=best_cand["evidence"],
                     source_blocks=best_cand["source_blocks"],
-                    source="gem_parent_pdf",
+                    source=doc_source,
                     needs_review=needs_review
                 ))
             else:
@@ -979,7 +979,7 @@ class GemFieldExtractor(FieldExtractor):
                     source_page=1,
                     evidence="No matching values found in document.",
                     source_blocks=[],
-                    source="gem_parent_pdf"
+                    source=doc_source
                 ))
 
         logger.info(f"Finished GeM field extraction. Total fields: {len(extracted)}")
