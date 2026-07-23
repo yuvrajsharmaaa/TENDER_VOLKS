@@ -174,7 +174,7 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                                         if tmp_img_path.exists():
                                             try: tmp_img_path.unlink()
                                             except Exception: pass
-                                        if preprocessed_tmp.exists() and preprocessed_tmp != tmp_img_path:
+                                        if preprocessed_tmp and preprocessed_tmp.exists() and preprocessed_tmp != tmp_img_path:
                                             try: preprocessed_tmp.unlink()
                                             except Exception: pass
 
