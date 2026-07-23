@@ -114,9 +114,13 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
             atc_anchor_phrases = [
                 "buyer uploaded atc document",
                 "buyer added bid specific atc",
-                "click here to view the file"
+                "click here to view the file",
+                "click here",
+                "atc"
             ]
-            page_has_native_atc_phrase = is_native_reliable and any(phrase in page_text_lower for phrase in atc_anchor_phrases)
+            page_has_native_atc_phrase = is_native_reliable and (
+                any(phrase in page_text_lower for phrase in atc_anchor_phrases[:3]) or "atc" in page_text_lower
+            )
 
             # Layer 1: page.get_links()
             try:
@@ -149,7 +153,7 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                                     anchor_text = " ".join(anchor_words).strip()
 
                             anchor_lower = anchor_text.lower()
-                            is_atc_anchor = any(phrase in anchor_lower for phrase in atc_anchor_phrases)
+                            is_atc_anchor = page_has_native_atc_phrase or any(phrase in anchor_lower for phrase in atc_anchor_phrases)
                             anchor_detection_method = "native text" if is_atc_anchor else None
 
                             # BUG 1 FIX: Lazy OCR fallback on scanned/image-heavy pages when native text is unreliable
