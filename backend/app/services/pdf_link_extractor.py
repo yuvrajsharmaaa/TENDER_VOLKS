@@ -280,11 +280,18 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                                     context = None  # Uses default secure SSL context
                                     try:
                                         with urllib.request.urlopen(req, context=context, timeout=8) as response:
-                                    with urllib.request.urlopen(req, context=context, timeout=8) as response:
-                                        status_code = getattr(response, "status", 200)
-                                        resp_headers = dict(response.headers)
-                                        file_bytes = response.read()
-                                        content_type = response.headers.get("Content-Type", "")
+                                            status_code = getattr(response, "status", 200)
+                                            resp_headers = dict(response.headers)
+                                            file_bytes = response.read()
+                                            content_type = response.headers.get("Content-Type", "")
+                                    except Exception as ssl_err:
+                                        logger.warning(f"[ATC_RESOLVER] Secure SSL download failed: {ssl_err}. Retrying with unverified context...")
+                                        unverified_context = ssl._create_unverified_context()
+                                        with urllib.request.urlopen(req, context=unverified_context, timeout=8) as response:
+                                            status_code = getattr(response, "status", 200)
+                                            resp_headers = dict(response.headers)
+                                            file_bytes = response.read()
+                                            content_type = response.headers.get("Content-Type", "")
 
                                     logger.info(
                                         f"[ATC_RESOLVER] HTTP {status_code} response from '{uri}' | "
