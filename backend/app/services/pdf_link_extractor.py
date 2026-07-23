@@ -153,7 +153,12 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                                     anchor_text = " ".join(anchor_words).strip()
 
                             anchor_lower = anchor_text.lower()
-                            is_atc_anchor = page_has_native_atc_phrase or any(phrase in anchor_lower for phrase in atc_anchor_phrases)
+                            uri_lower = uri.lower()
+                            is_atc_anchor = (
+                                page_has_native_atc_phrase
+                                or any(phrase in anchor_lower for phrase in atc_anchor_phrases)
+                                or any(kw in uri_lower for kw in ["/buyer-atc/", "/atc/doc/", "download_atc", "buyer_documents"])
+                            )
                             anchor_detection_method = "native text" if is_atc_anchor else None
 
                             # BUG 1 FIX: Lazy OCR fallback on scanned/image-heavy pages when native text is unreliable

@@ -137,11 +137,13 @@ def ingest_parent_tender_pdf(
                     f["status"] = "extracted"
                     f["sourceSnippet"] = anchor_snippet
 
-    # 3b. ATC Child PDF Processing if downloaded
     atc_path = None
     for l in links:
         if l.get("local_path") and Path(l["local_path"]).exists():
-            if l.get("is_atc_anchor") or "atc" in l.get("name", "").lower() or "atc" in l.get("anchorText", "").lower():
+            url_s = l.get("url", "").lower()
+            name_s = l.get("name", "").lower()
+            anchor_s = l.get("anchorText", "").lower()
+            if l.get("is_atc_anchor") or any("atc" in s for s in (url_s, name_s, anchor_s)):
                 atc_path = Path(l["local_path"])
                 break
 
