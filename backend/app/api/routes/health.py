@@ -48,6 +48,7 @@ def get_cpu_load() -> float:
         return 0.0
 
 @router.get("/health", status_code=200)
+@router.get("/api/health", status_code=200)
 async def health_check() -> Dict[str, Any]:
     """
     Day 2 health endpoint checking database, caching, storage and resources.

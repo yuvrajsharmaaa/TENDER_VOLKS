@@ -10,6 +10,7 @@ if backend_dir not in sys.path:
 from urllib.parse import urlparse
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.core.minio import minio_client
 
@@ -139,3 +140,16 @@ app.include_router(upload.router)
 app.include_router(jobs.router)
 app.include_router(visualizer.router)
 app.include_router(tenders_router)
+
+# Mount Built React Frontend & SPA Fallback Route for Production LAN Access
+frontend_dist = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
+if frontend_dist.exists():
+    app.mount("/assets", StaticFiles(directory=str(frontend_dist / "assets")), name="frontend_assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        file_path = frontend_dist / full_path
+        if full_path and file_path.exists() and file_path.is_file():
+            return FileResponse(file_path)
+        return FileResponse(frontend_dist / "index.html")
+
