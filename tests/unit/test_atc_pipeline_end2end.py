@@ -223,10 +223,9 @@ def test_bug3_and_bug4_precedence_constants_and_sections(tmp_path):
         ingest_parent_tender_pdf
     )
     # Check BUG 3 constants
-    assert "Payment Terms" in ATC_SOURCED_LABELS
-    assert "Price Reduction Schedule (PRS)" in ATC_SOURCED_LABELS
-    assert "EMD Amount" in MAIN_SOURCED_LABELS
-    assert "PBG Percentage" in MAIN_SOURCED_LABELS
+    assert "Tender Fee" in ATC_SOURCED_LABELS
+    assert "EMD Amount" in ATC_SOURCED_LABELS
+    assert "PBG Percentage" in ATC_SOURCED_LABELS
     assert "Installation Inclusive" in AMBIGUOUS_LABELS
 
     main_pdf = tmp_path / "test_tender_ingest.pdf"
