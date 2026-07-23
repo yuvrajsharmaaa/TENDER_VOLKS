@@ -90,13 +90,8 @@ class FieldExtractor:
             "net_worth_type_value",
             "solvency_certificate_value",
             "ld_applicable",
-            "ld_percentage_per_week",
-            "max_ld_percentage",
-            "payment_terms_supply_percent",
             "payment_terms_installation_percent",
             "maf_required",
-            "client_contact_person",
-            "full_courier_address_with_pincode",
             "tender_fee_amount",
             "processing_fee_amount",
             
@@ -411,6 +406,26 @@ class FieldExtractor:
                 "anchors": ["Restrictions on procurement from a bidder of a country which shares a land border with India"],
                 "hindi": [],
                 "type": "yes_no"
+            },
+            "payment_terms_supply_percent": {
+                "anchors": ["PAYMENT TERMS", "Payment Terms", "Terms of Payment", "For Supply Portion"],
+                "hindi": ["भुगतान की शर्तें"],
+                "type": "text"
+            },
+            "prs_ld": {
+                "anchors": ["PRICE REDUCTION SCHEDULE", "Price Reduction Schedule", "PRS", "Price Reduction"],
+                "hindi": ["मूल्य कटौती अनुसूची"],
+                "type": "text"
+            },
+            "client_contact_person": {
+                "anchors": ["CONTACT DETAILS OF TENDER DEALING OFFICER", "Kind Attn:", "Nodal Officer", "Contact Officer", "TENDER DEALING OFFICER"],
+                "hindi": ["संपर्क अधिकारी"],
+                "type": "text"
+            },
+            "full_courier_address_with_pincode": {
+                "anchors": ["DEALING GAIL'S OFFICE ADDRESS", "GAIL Bhawan", "OFFICE ADDRESS", "Communication Address"],
+                "hindi": ["कार्यालय पता"],
+                "type": "text"
             }
         }
 

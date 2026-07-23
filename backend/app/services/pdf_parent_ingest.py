@@ -12,15 +12,15 @@ logger = get_logger(__name__)
 
 # BUG 3 FIX: Field precedence constants defining field ownership rules
 ATC_SOURCED_LABELS = {
-    "Processing Fee", "Tender Fee", "EMD Amount", "Payment Terms %", "Payment Terms",
-    "Commercial Evaluation Type", "Reverse Auction Applicable", "Delivery Time",
-    "PBG Mode", "SD Required", "SD Mode", "SD %", "SD Duration",
-    "LD Applicable", "LD Percentage", "LD Max", "Courier Information", "Client Contacts",
-    "Processing Fee Amount", "Tender Fee Amount", "EMD Amount / Total", "PBG Percentage",
-    "SD Percentage", "LD Percentage per Week", "Max LD Percentage", "Courier Address"
+    "Payment Terms", "Payment Terms %", "Price Reduction Schedule (PRS)",
+    "LD Percentage per Week", "Max LD Percentage", "Commercial Evaluation Type",
+    "Reverse Auction Applicable", "Delivery Time", "Client Contacts",
+    "Courier Address", "Courier Information", "SD Required", "SD %", "SD Duration",
+    "SD Mode", "PBG Mode"
 }
 
 MAIN_SOURCED_LABELS = {
+    "EMD Amount", "EMD Amount / Total", "EMD Required",
     "PBG Required", "PBG Percentage", "PBG Duration", "PBG Duration (Months)",
     "Eligibility Criterion (Years)", "Bid Validity (Days)", "Bid Validity Period",
     "Tender Name / Title", "Reference ID / NIT No", "Estimated Tender Value",

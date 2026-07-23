@@ -35,3 +35,25 @@ Every extracted field object (`ExtractedFieldSchema`) produced during processing
    - Log `ATC_DOWNLOAD_INVALID` if target returns non-PDF content.
    - Log `ATC_PARSE_NO_FIELDS` if ATC PDF parses successfully but yields 0 mergeable fields.
    - Fallback gracefully to main tender parsing without crashing the job.
+
+## ATC Field Lookup & Clause-Level Anchor Standards
+
+### Anchor Strategy (Clause & Section Level)
+1. **Stable Anchor Headers**:
+   - `"BIDDING DATA SHEET (BDS)"`: Locate the **second** occurrence of this header in Section-III (ignoring TOC list near front). Slice text to next `SECTION-` marker.
+   - `"BID EVALUATION CRITERIA"`: Located under `SECTION-II` for technical eligibility criteria.
+2. **Contract-Type Variance Fallback**:
+   - Detect contract type from title (`"AMC"` / `"Annual Maintenance"` → Services; `"SITC"` / `"Supply, Installation"` → Goods+Install; default → Goods).
+   - Attempt clause-number fast path per contract type (e.g. PRS at Clause 26.0 for Goods/SITC vs Clause 2.22 for Services; Payment Terms at Clause 9.0/3.1 for Goods/SITC vs Clause 21 for Services).
+   - **Fallback**: Always fallback to plain section header text search (`"PRICE REDUCTION SCHEDULE"`, `"TERMS OF PAYMENT"` / `"PAYMENT TERMS"`, `"CONTRACT PERFORMANCE SECURITY"`) if clause-number fast path misses.
+
+### Checkbox & Value Field Rules
+1. **Paired Value Ground Truth**: For any APPLICABLE / NOT APPLICABLE checkbox row (e.g., EMD, PBG), text extractions print both labels regardless of which is checked. **Treat the paired value/amount field as ground truth**, ignoring the raw text label state.
+2. **EMD Amount Anchor**: Read EMD amount from IFB Summary Row `(E)` / `(D)` in Section-I (pages 2-3). Do **NOT** rely on Clause 16 ("EARNEST MONEY DEPOSIT") which is procedural boilerplate.
+3. **PRS / LD Search Term**: Always search for `"Price Reduction Schedule"` or `"PRS"`. Never rely on the literal phrase `"Liquidated Damages"`.
+
+### Label Ownership Reference
+- **ATC Authoritative**: `Payment Terms` (when split exists), `PRS / LD Rate & Max` (0.5% / 5%), `Client Contacts` (Nodal Officer BDS 39.2/39.3), `Courier Address` (BDS 8.1 / 22.2).
+- **Main Document Ownership**: `Bid Validity Period`, `PBG Duration`, `Tender Title`, `NIT No`.
+- **Excluded / Non-Existent in ATC**: `Processing Fee Amount` / `Tender Fee Amount` (0 occurrences in ATC).
+
