@@ -8,7 +8,7 @@ backend_dir = str(Path(__file__).resolve().parent.parent)
 if backend_dir not in sys.path:
     sys.path.insert(0, backend_dir)
 from urllib.parse import urlparse
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -148,6 +148,9 @@ if frontend_dist.exists():
 
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
+        api_prefixes = ("api/", "tenders/", "jobs/", "job/", "storage/", "health", "visualizer", "docs", "openapi.json", "redoc")
+        if any(full_path.startswith(p) for p in api_prefixes):
+            raise HTTPException(status_code=404, detail="Not found")
         file_path = frontend_dist / full_path
         if full_path and file_path.exists() and file_path.is_file():
             return FileResponse(file_path)

@@ -51,7 +51,6 @@ async def list_jobs():
 
 
 @router.get("/visualizer")
-@router.get("/")
 async def get_visualizer():
     static_file = Path(__file__).resolve().parent.parent.parent.parent / "frontend_legacy" / "visualizer.html"
     if not static_file.exists():

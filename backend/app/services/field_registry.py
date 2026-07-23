@@ -129,6 +129,60 @@ FIELD_REGISTRY: Dict[str, FieldDefinition] = {
         ],
         "hindi": ["अनुभव", "पूर्व अनुभव"],
     },
+    "solvency_certificate": {
+        "keywords": [
+            "solvency certificate", "solvency requirement", "bank solvency", "banker solvency certificate",
+            "solvency value", "solvency criteria",
+        ],
+        "hindi": ["शोधन क्षमता प्रमाण पत्र", "सॉल्वेंसी प्रमाण पत्र"],
+    },
+    "working_capital": {
+        "keywords": [
+            "working capital requirement", "working capital", "fund based line of credit", "line of credit",
+            "working capital value", "working capital criteria",
+        ],
+        "hindi": ["कार्यशील पूंजी", "वर्किंग कैपिटल"],
+    },
+    "net_worth": {
+        "keywords": [
+            "net worth requirement", "net worth value", "positive net worth", "bidder net worth",
+            "minimum net worth",
+        ],
+        "hindi": ["नेट वर्थ", "निवल मूल्य"],
+    },
+    "liquidated_damages": {
+        "keywords": [
+            "price reduction schedule", "prs", "liquidated damages", "delay in delivery penalty",
+            "prs clause", "ld percentage", "max ld percentage",
+        ],
+        "hindi": ["मूल्य कटौती अनुसूची", "नुकसानी"],
+    },
+    "payment_terms": {
+        "keywords": [
+            "payment terms", "terms of payment", "payment schedule", "mode of payment",
+            "stage-wise payment", "payment terms supply", "payment terms installation",
+        ],
+        "hindi": ["भुगतान की शर्तें", "भुगतान अनुसूची"],
+    },
+    "maf_requirement": {
+        "keywords": [
+            "manufacturer authorization form", "maf required", "oem authorization",
+            "manufacturer authorization", "oem authorization letter",
+        ],
+        "hindi": ["निर्माता प्राधिकरण पत्र"],
+    },
+    "courier_address": {
+        "keywords": [
+            "courier information", "courier address", "cut-out slip", "dealing gail's office address",
+            "physical document submission address", "consignee address",
+        ],
+    },
+    "financial_exemption": {
+        "keywords": [
+            "financial criteria not applicable", "financial bec not applicable", "financial criteria: not applicable",
+            "relaxation of prior turnover", "financial criteria exempt",
+        ],
+    },
 }
 
 

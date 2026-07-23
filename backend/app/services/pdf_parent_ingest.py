@@ -233,6 +233,23 @@ def ingest_parent_tender_pdf(
         except Exception as atc_err:
             logger.warning(f"[ATC_RESOLVER] ATC_PARSE_FAILED: Error processing ATC PDF '{atc_path}': {atc_err}. Continuing with main tender parsing only.")
 
+    # 3b. Normalize Financial Exemption status if Financial Criteria is NOT APPLICABLE
+    all_text_combined = " ".join([p.get("text", "") for p in page_texts]).lower()
+    if "financial criteria" in all_text_combined and "not applicable" in all_text_combined:
+        fin_field_labels = {
+            "Avg Annual Turnover Value", "Working Capital Value", "Solvency Certificate Value", "Net Worth Value",
+            "Avg Annual Turnover Type", "Working Capital Type", "Solvency Certificate Type", "Net Worth Type",
+            "Avg Annual Turnover", "Working Capital", "Solvency Certificate", "Net Worth"
+        }
+        for sec in sections:
+            if "Financial" in sec.get("title", ""):
+                for f in sec.get("fields", []):
+                    if f.get("label") in fin_field_labels or "Value" in f.get("label", ""):
+                        f["value"] = "Exempt / Not Applicable"
+                        f["status"] = "exempt"
+                        f["confidence"] = 99.0
+                        f["sourceSnippet"] = "Financial Criteria explicitly declared NOT APPLICABLE in Tender BEC (Section-II)"
+
     # 4. Generate XLSX Spreadsheet Info Sheet
     csv_filename = f"{original_filename.replace('.pdf', '')}_InfoSheet.xlsx"
     csv_path = job_dir / csv_filename

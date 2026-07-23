@@ -8,12 +8,12 @@ export default defineConfig({
     port: 5173,
     allowedHosts: true,
     proxy: {
-      '/api':      { target: 'http://127.0.0.1:5000', changeOrigin: true },
-      '/tenders':  { target: 'http://127.0.0.1:5000', changeOrigin: true },
-      '/job':      { target: 'http://127.0.0.1:5000', changeOrigin: true },
-      '/jobs':     { target: 'http://127.0.0.1:5000', changeOrigin: true },
-      '/storage':  { target: 'http://127.0.0.1:5000', changeOrigin: true },
-      '/health':   { target: 'http://127.0.0.1:5000', changeOrigin: true },
+      '/api':      { target: 'http://127.0.0.1:8000', changeOrigin: true },
+      '/tenders':  { target: 'http://127.0.0.1:8000', changeOrigin: true },
+      '/job':      { target: 'http://127.0.0.1:8000', changeOrigin: true },
+      '/jobs':     { target: 'http://127.0.0.1:8000', changeOrigin: true },
+      '/storage':  { target: 'http://127.0.0.1:8000', changeOrigin: true },
+      '/health':   { target: 'http://127.0.0.1:8000', changeOrigin: true },
     },
   },
 })

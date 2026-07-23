@@ -5,7 +5,7 @@ import type { TenderDetail, SourceDocumentItem } from "../types/tender";
 // Configuration
 // ============================================================================
 
-const BACKEND_URL = "http://localhost:8000";
+const BACKEND_URL = "";
 const STORAGE_KEY = "tender_volks_mock_data_v3";
 
 // ============================================================================
@@ -304,9 +304,9 @@ let _backendReachable: boolean | null = null;
  * Caches the result to avoid repeated pings.
  */
 async function isBackendReachable(): Promise<boolean> {
-  if (_backendReachable !== null) return _backendReachable;
+  if (_backendReachable === true) return true;
   try {
-    const res = await fetch(`${BACKEND_URL}/health`, { method: "GET", signal: AbortSignal.timeout(2000) });
+    const res = await fetch(`${BACKEND_URL}/health`, { method: "GET", signal: AbortSignal.timeout(5000) });
     _backendReachable = res.ok;
   } catch {
     _backendReachable = false;
