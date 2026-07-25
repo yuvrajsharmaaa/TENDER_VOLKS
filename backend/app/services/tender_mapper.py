@@ -19,6 +19,23 @@ from backend.app.services.evidence_collector import resolve_best_value, compile_
 
 logger = logging.getLogger(__name__)
 
+import re
+
+def normalize_bec_order_value(value_str: str) -> Optional[int]:
+    if not value_str:
+        return None
+    # Matches digits (optional comma/dots) followed by lakh, crore, lac, cr
+    m = re.search(r"([\d,]+(?:\.\d+)?)\s*(lakh|crore|lac|cr)s?", value_str, re.IGNORECASE)
+    if m:
+        try:
+            val_num = float(m.group(1).replace(",", ""))
+            unit = m.group(2).lower()
+            multiplier = 100000 if "lakh" in unit or "lac" in unit else 10000000
+            return int(val_num * multiplier)
+        except Exception:
+            pass
+    return None
+
 # Field category mappings for the page scorer
 FIELD_CATEGORIES = {
     "tender_id": "identity",
@@ -509,21 +526,41 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
 
     # 12. EMD
     emd_amount_raw = field_lookup.get("EMD Amount") or field_lookup.get("emd_amount")
-    if _is_missing(emd_amount_raw):
-        emd_amount_raw = extract_regex(r"EMD Amount[:\-\s]+([^\n]+)", None)
-    if _is_missing(emd_amount_raw):
-        emd_amount_raw = extract_regex(r"EMD[:\-\s]+([^\n]+)", None)
-        
-    if not _is_missing(emd_amount_raw):
-        from backend.app.services.normalizer import parse_money
-        emd_total = parse_money(emd_amount_raw) or 0.0
-    else:
-        emd_total = 0.0
-        
-    if emd_required_display == "Yes":
-        emd_amount_display = format_currency(emd_total)
-    else:
-        emd_amount_display = "No"
+    emd_amount_display = "NA"
+    emd_total = 0.0
+    
+    # 12. EMD Amount Anchor: BDS Tag (E) primary, IFB summary row fallback
+    tag_e_match = re.search(
+        r"\(E\)\s*BID\s*SECURITY\s*/?\s*EARNEST\s*MONEY\s*DEPOSIT\s*\(EMD\)(.*?)(?=\([A-Z0-9]{1,3}\)|\Z)",
+        full_text, re.IGNORECASE | re.DOTALL
+    )
+    if tag_e_match:
+        e_text = tag_e_match.group(1)
+        amt_match = re.search(r"Amount[:\-\s]+Rs\.?\s*([\d,]+(?:\.\d+)?)", e_text, re.IGNORECASE)
+        if amt_match:
+            from backend.app.services.normalizer import parse_money
+            emd_parsed = parse_money(amt_match.group(1))
+            if emd_parsed is not None and emd_parsed > 0:
+                emd_total = emd_parsed
+                emd_required_display = "Yes"
+                emd_amount_display = format_currency(emd_total)
+                logger.info(f"[ATC_ANCHOR] Resolved field 'emd_amount' via BDS_TAG: (E) BID SECURITY / EARNEST MONEY DEPOSIT ({emd_total})")
+
+    if emd_amount_display == "NA":
+        emd_amount_raw = field_lookup.get("EMD Amount") or field_lookup.get("emd_amount")
+        if _is_missing(emd_amount_raw):
+            emd_amount_raw = extract_regex(r"EMD Amount[:\-\s]+([^\n]+)", None)
+        if _is_missing(emd_amount_raw):
+            emd_amount_raw = extract_regex(r"EMD[:\-\s]+([^\n]+)", None)
+            
+        if not _is_missing(emd_amount_raw):
+            from backend.app.services.normalizer import parse_money
+            emd_total = parse_money(emd_amount_raw) or 0.0
+            
+        if emd_required_display == "Yes":
+            emd_amount_display = format_currency(emd_total)
+        else:
+            emd_amount_display = "No"
 
     # 14. Tender Value
     tender_value_display = resolve_field(["Estimated Tender Value", "Tender Value (GST Inclusive)", "tender_value"], r"Tender Value \(GST Inclusive\)[:\-\s]+([^\n]+)", "NA")
@@ -536,7 +573,14 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             tender_value_display = "NA"
 
     # 15. EMD Mode (Clause 16.1 & 16.2 instrument mapping: DD, BT, SB, FDR, BG)
-    emd_mode_display = resolve_field(["EMD Mode", "emd_mode", "emd_advisory_bank"], r"EMD Mode[:\-\s]+([^\n]+)")
+    # BUG FIX 5: Exclude bank name cell-pair leaks (e.g. "State Bank of India" / Advisory Bank)
+    BANK_NAME_EXCLUSIONS = {"state bank of india", "icici bank", "hdfc bank", "axis bank", "canara bank", "punjab national bank", "advisory bank"}
+    
+    emd_mode_display = resolve_field(["EMD Mode", "emd_mode"], r"EMD Mode[:\-\s]+([^\n]+)")
+    if emd_mode_display and any(b in str(emd_mode_display).lower() for b in BANK_NAME_EXCLUSIONS):
+        logger.warning(f"[BUG_FIX] Excluded bank name/advisory leak from emd_mode_display: {emd_mode_display!r}")
+        emd_mode_display = "NA"
+
     if _is_missing(emd_mode_display) or emd_mode_display == "NA":
         modes_found = []
         full_lower = full_text.lower()
@@ -547,6 +591,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         if "bank guarantee" in full_lower or "bg" in full_lower: modes_found.append("BG")
         if modes_found:
             emd_mode_display = "/".join(modes_found)
+            logger.info(f"[ATC_ANCHOR] Resolved field 'emd_mode' via CLAUSE_NUMBER_FALLBACK: Clause 16.1 ({emd_mode_display})")
 
     # 16. Bid Validity
     bid_validity_days_display = resolve_field(["Bid Validity Period", "bid_validity_days", "Bid Validity"], r"Bid Validity \(Days\)[:\-\s]+([^\n]+)", None)
@@ -574,6 +619,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
                 commercial_evaluation_display = "Overall L1 / Total value wise"
             elif "item-wise" in eval_snippet or "item wise" in eval_snippet:
                 commercial_evaluation_display = "Item-wise L1"
+            logger.info(f"[ATC_ANCHOR] Resolved field 'commercial_evaluation' via SECTION_HEADING: EVALUATION METHODOLOGY ({commercial_evaluation_display})")
         else:
             commercial_evaluation_display = "NA"
 
@@ -615,6 +661,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         req_docs_raw = str(field_lookup.get("required_documents") or field_lookup.get("Document required from seller") or "")
         if re.search(bec_maf_pattern, full_text, re.IGNORECASE) or any(kw in req_docs_raw.lower() for kw in ["oem authorization", "manufacturer authorization", "authorization certificate", "maf"]):
             maf_required_display = "Yes"
+            logger.info("[ATC_ANCHOR] Resolved field 'maf_required' via SECTION_HEADING: BEC Technical Criteria Sl. 1")
         else:
             maf_required_display = "No"
 
@@ -623,15 +670,46 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     bds_del_match = re.search(r"(?:CONTRACTUAL DELIVERY DATE|DELIVERY SCHEDULE|COMPLETION PERIOD)[:\-\s]+([^\n]+)", full_text, re.IGNORECASE)
     if bds_del_match:
         delivery_time_supply_display = bds_del_match.group(1).strip()
+        logger.info(f"[ATC_ANCHOR] Resolved field 'delivery_time_supply' via BDS_TAG: CONTRACTUAL DELIVERY DATE/DELIVERY SCHEDULE ({delivery_time_supply_display})")
 
     # 21. Delivery Time (Installation)
     delivery_time_installation_display = resolve_field(["Delivery Time Installation (Days)", "delivery_time_installation_days"], r"Delivery Time Installation \(Days\)[:\-\s]+([^\n]+)")
     scope_match = re.search(r"(?:\(A\)\s*SCOPE OF SUPPLY|SCOPE OF SUPPLY|SCOPE OF PROCUREMENT).*?(?:SITC|Supply,\s*Installation,\s*Testing\s+and\s+Commissioning|Installation)", full_text, re.IGNORECASE | re.DOTALL)
     if scope_match and (_is_missing(delivery_time_installation_display) or delivery_time_installation_display == "NA"):
         delivery_time_installation_display = "Inclusive (SITC Scope)"
+        logger.info("[ATC_ANCHOR] Resolved field 'delivery_time_installation' via SECTION_HEADING: Scope of Supply SITC")
 
     # 22. PBG (in form of)
-    pbg_mode_display = resolve_field(["PBG Mode", "pbg_mode", "pbg_advisory_bank", "Advisory Bank", "ePBG Advisory Bank"], r"PBG Mode[:\-\s]+([^\n]+)")
+    # BUG FIX 5: Exclude bank name cell-pair leaks (e.g. "State Bank of India" / Advisory Bank)
+    pbg_mode_display = resolve_field(["PBG Mode", "pbg_mode"], r"PBG Mode[:\-\s]+([^\n]+)")
+    if pbg_mode_display and any(b in str(pbg_mode_display).lower() for b in BANK_NAME_EXCLUSIONS):
+        logger.warning(f"[BUG_FIX] Excluded bank name/advisory leak from pbg_mode_display: {pbg_mode_display!r}")
+        pbg_mode_display = "NA"
+
+    if _is_missing(pbg_mode_display) or pbg_mode_display == "NA":
+        pbg_clause_match = re.search(
+            r"(?:Clause\s*(?:38|39)|Contract\s+Performance\s+Security|Performance\s+Bank\s+Guarantee|Security\s+Deposit|CPBG)(.*?)(?=\n\s*(?:Clause\s*(?:39|40)|SECTION|\d+\.\d+|\Z))",
+            full_text, re.IGNORECASE | re.DOTALL
+        )
+        pbg_block = pbg_clause_match.group(1).lower() if pbg_clause_match else full_text.lower()
+        modes_found = []
+        if "demand draft" in pbg_block or " dd " in pbg_block:
+            modes_found.append("DD")
+        if any(k in pbg_block for k in ["imps", "neft", "rtgs", "online banking", "online transfer", "online payment"]):
+            modes_found.append("Online Transfer")
+        if "surety bond" in pbg_block or "insurance surety" in pbg_block:
+            modes_found.append("Insurance Surety Bond")
+        if "fixed deposit" in pbg_block or "fdr" in pbg_block:
+            modes_found.append("FDR")
+        if "bank guarantee" in pbg_block or "bg" in pbg_block:
+            modes_found.append("Bank Guarantee")
+        
+        if modes_found:
+            pbg_mode_display = " / ".join(modes_found)
+            logger.info(f"[ATC_ANCHOR] Resolved field 'pbg_mode' via CLAUSE_NUMBER_FALLBACK: Clause 38.5 ({pbg_mode_display})")
+        else:
+            pbg_mode_display = "Bank Guarantee / DD / FDR / Online Transfer / Insurance Surety Bond"
+            logger.info("[ATC_ANCHOR] Resolved field 'pbg_mode' via CLAUSE_NUMBER_FALLBACK: Clause 38.5")
 
     # 23-24. Payment Terms (Scope of Work / SCC / GCC specific)
     payment_terms_supply_display = resolve_field(["Payment Terms Supply", "payment_terms_supply"], r"Payment Terms Supply \((?:%|\w+)\)[:\-\s]+([^\n]+)")
@@ -655,33 +733,56 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         # Guard: only accept if the captured value is unambiguously numeric (%)
         if s_pct and re.search(r"\d", s_pct.group(1)) and (_is_missing(payment_terms_supply_display) or payment_terms_supply_display == "NA"):
             payment_terms_supply_display = f"{s_pct.group(1)}%"
+            logger.info(f"[ATC_ANCHOR] Resolved field 'payment_terms_supply' via SECTION_HEADING: TERMS OF PAYMENT ({payment_terms_supply_display})")
         if i_pct and re.search(r"\d", i_pct.group(1)) and (_is_missing(payment_terms_installation_display) or payment_terms_installation_display == "NA"):
             payment_terms_installation_display = f"{i_pct.group(1)}%"
+            logger.info(f"[ATC_ANCHOR] Resolved field 'payment_terms_installation' via SECTION_HEADING: TERMS OF PAYMENT ({payment_terms_installation_display})")
 
     # 25. SD (in form of)
     sd_mode_display = resolve_field(["Security Deposit Mode", "sd_mode"], r"Security Deposit Mode[:\-\s]+([^\n]+)")
     if _is_missing(sd_mode_display) or sd_mode_display == "NA":
         if re.search(r"(?:CONTRACT PERFORMANCE SECURITY|SECURITY DEPOSIT|CPS/SD)", full_text, re.IGNORECASE):
             sd_mode_display = "Bank Guarantee / DD / FDR / Online Transfer / Insurance Surety Bond"
+            logger.info("[ATC_ANCHOR] Resolved field 'sd_mode' via SECTION_HEADING: CONTRACT PERFORMANCE SECURITY")
 
     # 26. LD/PRS %age (per week) & 27. Max LD %age
+    # Task 4: Primary search by section heading "PRICE REDUCTION SCHEDULE (PRS) FOR DELAYED DELIVERY", secondary by clause number
     ld_percentage_display = resolve_field(["LD Percentage Per Week", "ld_percentage_per_week"], r"LD Percentage Per Week[:\-\s]+([^\n]+)")
     max_ld_percentage_display = resolve_field(["Max LD Percentage", "max_ld_percentage"], r"Max LD Percentage[:\-\s]+([^\n]+)")
 
-    prs_clause_match = re.search(r"(?:PRICE REDUCTION SCHEDULE|PRS).*?(\d+/\d+|\d+(?:\.\d+)?)\%.*?per week.*?maximum\s*(\d+(?:\.\d+)?)\%", full_text, re.IGNORECASE | re.DOTALL)
-    if prs_clause_match:
-        rate_raw = prs_clause_match.group(1)
-        max_raw = prs_clause_match.group(2)
-        rate_val = 0.5 if rate_raw == "1/2" else float(rate_raw)
-        ld_percentage_display = f"{rate_val}% per week"
-        max_ld_percentage_display = f"{float(max_raw)}%"
-    elif re.search(r"(?:PRICE REDUCTION SCHEDULE|PRS)", full_text, re.IGNORECASE):
-        if _is_missing(ld_percentage_display) or ld_percentage_display == "NA":
+    prs_heading_match = re.search(
+        r"(?:PRICE REDUCTION SCHEDULE\s*\(PRS\)\s*FOR DELAYED DELIVERY|PRICE REDUCTION SCHEDULE|PRS\s+FOR\s+DELAYED\s+DELIVERY)(.*?)(?=\n\s*(?:SECTION|CLAUSE|\d+\.\d+|\Z))",
+        full_text, re.IGNORECASE | re.DOTALL
+    )
+    if prs_heading_match:
+        prs_body = prs_heading_match.group(1)
+        prs_m = re.search(
+            r"(\xbd|1/2|\d+(?:\.\d+)?)\s*%\s*(?:per\s+complete\s+week|per\s+week).*?maximum\s*(?:of\s*)?(\d+(?:\.\d+)?)\s*%",
+            prs_body, re.IGNORECASE | re.DOTALL
+        )
+        if prs_m:
+            rate_raw = prs_m.group(1)
+            max_raw = prs_m.group(2)
+            rate_val = 0.5 if rate_raw in ("\xbd", "1/2") else float(rate_raw)
+            ld_percentage_display = f"{rate_val}% per week"
+            max_ld_percentage_display = f"{float(max_raw)}%"
+            logger.info(f"[ATC_ANCHOR] Resolved field 'prs_ld' via SECTION_HEADING: PRICE REDUCTION SCHEDULE ({ld_percentage_display}, max {max_ld_percentage_display})")
+    
+    if _is_missing(ld_percentage_display) or ld_percentage_display == "NA":
+        prs_clause_match = re.search(r"(?:PRICE REDUCTION SCHEDULE|PRS).*?(\xbd|1/2|\d+(?:\.\d+)?)\%.*?per week.*?maximum\s*(\d+(?:\.\d+)?)\%", full_text, re.IGNORECASE | re.DOTALL)
+        if prs_clause_match:
+            rate_raw = prs_clause_match.group(1)
+            max_raw = prs_clause_match.group(2)
+            rate_val = 0.5 if rate_raw in ("\xbd", "1/2") else float(rate_raw)
+            ld_percentage_display = f"{rate_val}% per week"
+            max_ld_percentage_display = f"{float(max_raw)}%"
+            logger.info(f"[ATC_ANCHOR] Resolved field 'prs_ld' via CLAUSE_NUMBER_FALLBACK: Clause 26.0 ({ld_percentage_display}, max {max_ld_percentage_display})")
+        elif re.search(r"(?:PRICE REDUCTION SCHEDULE|PRS)", full_text, re.IGNORECASE):
             ld_percentage_display = "0.5% per week"
-        if _is_missing(max_ld_percentage_display) or max_ld_percentage_display == "NA":
             max_ld_percentage_display = "5%"
+            logger.info("[ATC_ANCHOR] Resolved field 'prs_ld' via SECTION_HEADING: PRS Keyword Fallback (0.5% per week, max 5%)")
 
-    # PBG Required
+    # PBG Required & Checkbox Matching
     pbg_required_raw = resolve_field(
         ["PBG Required", "pbg_required", "pbg_percentage", "ePBG Percentage"],
         r"ePBG Percentage[:\-\s]+([^\n]+)",
@@ -697,6 +798,18 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             pbg_required_display = "Yes"
         else:
             pbg_required_display = str(pbg_required_raw)
+
+    pbg_cb_match = re.search(
+        r"Contract\s+Performance\s+Security\s*/?\s*Security\s+Deposit[:\-\s]+(APPLICABLE|NOT\s+APPLICABLE)",
+        full_text, re.IGNORECASE
+    )
+    if pbg_cb_match:
+        cb_val = pbg_cb_match.group(1).upper()
+        if cb_val == "APPLICABLE":
+            pbg_required_display = "Yes"
+        elif cb_val == "NOT APPLICABLE":
+            pbg_required_display = "No"
+        logger.info(f"[ATC_ANCHOR] Resolved field 'pbg_required' via BDS_TAG: Checkbox {cb_val}")
 
     # 28. PBG %age
     pbg_pct_raw = resolve_field(
@@ -754,12 +867,35 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     # 33. Physical Docs Submission Deadline
     physical_docs_deadline_display = resolve_field("Physical Docs Deadline", r"Physical Docs Deadline[:\-\s]+([^\n]+)")
 
-    # 34. Age (in yrs)
-    experience_years_val = field_lookup.get("Minimum Experience (Years)")
-    if experience_years_val and experience_years_val != "NA":
-        age_in_yrs = experience_years_val
+    # 34. Age (in yrs) / Experience Years (BEC Sl. 1)
+    word_to_num = {
+        "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
+        "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10
+    }
+    bec_block_match = re.search(
+        r"(?:Technical\s+BEC\s+Criteria|BID\s+EVALUATION\s+CRITERIA\s+&\s+EVALUATION\s+METHODOLOGY)(.*?)(?=SECTION-III|BIDDING\s+DATA\s+SHEET|\Z)",
+        full_text, re.IGNORECASE | re.DOTALL
+    )
+    bec_text = bec_block_match.group(1) if bec_block_match else full_text
+
+    yrs_m = re.search(
+        r"(?:previous|past)\s+(?:(one|two|three|four|five|six|seven|eight|nine|ten|\(?\d{1,2}\)?))\s*\(?\d{0,2}\)?\s*years?",
+        bec_text, re.IGNORECASE
+    )
+    if yrs_m:
+        raw_yr = yrs_m.group(1).lower().strip("()")
+        if raw_yr in word_to_num:
+            age_in_yrs = str(word_to_num[raw_yr])
+        else:
+            clean_y = re.sub(r"\D", "", raw_yr)
+            age_in_yrs = str(int(clean_y)) if clean_y else "NA"
+        logger.info(f"[ATC_ANCHOR] Resolved field 'eligibility_criterion_years' via SECTION_HEADING: BEC Technical Criteria Sl. 1 ({age_in_yrs})")
     else:
-        age_in_yrs = extract_regex(r"Eligibility Criterion \(Years\)[:\-\s]+([^\n]+)")
+        experience_years_val = field_lookup.get("Minimum Experience (Years)")
+        if experience_years_val and experience_years_val != "NA":
+            age_in_yrs = experience_years_val
+        else:
+            age_in_yrs = extract_regex(r"Eligibility Criterion \(Years\)[:\-\s]+([^\n]+)")
 
     # 35. 3 Works Value
     order_value_1_display = resolve_field("3 Works Value", r"3 Works Value[:\-\s]+([^\n]+)")
@@ -816,27 +952,83 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     # 44. Documents for Commercial Eligibility
     commercial_eligibility_documents_display = extract_regex(r"Documents for Commercial Eligibility[:\-\s]+([^\n]+)")
 
-    # 45. Client details
-    client_match = re.search(r"Requested Details[:\-\s]+([^\n]+)[:\-\s]+([^\n]+)[:\-\s]+([^\n]+)", full_text, re.IGNORECASE)
-    if client_match:
-        client_name_1_display = client_match.group(1).strip()
-        client_email_1_display = client_match.group(3).strip()
-        client_phone_1_display = client_match.group(2).strip()
-    else:
-        officer_block_match = re.search(r"(?:CONTACT DETAILS OF TENDER DEALING OFFICER|TENDER DEALING OFFICER)(.*?)(?:SECTION|ANNEXURE|3\.0|4\.0|\Z)", full_text, re.IGNORECASE | re.DOTALL)
-        officer_text = officer_block_match.group(1) if officer_block_match else full_text
-        
-        name_m = re.search(r"Name[:\-\s]+(Sh\.\s*[^\n]+|[A-Za-z\.\s]{3,40})", officer_text, re.IGNORECASE)
-        email_m = re.search(r"E-?mail(?:\s*ID)?[:\-\s]+([a-zA-Z0-9\._%+\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,})", officer_text, re.IGNORECASE)
-        phone_m = re.search(r"(?:Phone|Tel|Mobile)(?:\s*No|\s*and\s*Extn)?[:\-\s]+([0-9\-\/\(\)\sExtn\.]+)", officer_text, re.IGNORECASE)
+    # Custom Eligibility Criteria / Order Value Lakhs to INR conversion
+    custom_eligibility_criteria_value_normalized = None
+    custom_eligibility_criteria_display = resolve_field("Custom Eligibility Criteria", None, "NA")
+    if not _is_missing(custom_eligibility_criteria_display) and custom_eligibility_criteria_display != "NA":
+        total_inr = normalize_bec_order_value(custom_eligibility_criteria_display)
+        if total_inr:
+            custom_eligibility_criteria_value_normalized = total_inr
+
+    if _is_missing(custom_eligibility_criteria_display) or custom_eligibility_criteria_display == "NA":
+        order_val_m = re.search(
+            r"(?:valuing\s+not\s+less\s+than|value\s+not\s+less\s+than|single\s+order\s+of)\s*Rs\.?\s*([\d,]+(?:\.\d+)?)\s*(lakh|crore)s?",
+            bec_text, re.IGNORECASE
+        )
+        if order_val_m:
+            val_num = float(order_val_m.group(1).replace(",", ""))
+            unit_str = order_val_m.group(2).lower()
+            multiplier = 100000 if "lakh" in unit_str else 10000000
+            total_inr = int(val_num * multiplier)
+            custom_eligibility_criteria_value_normalized = total_inr
+            custom_eligibility_criteria_display = (
+                f"Minimum Qualifying Order Value: Rs. {order_val_m.group(1)} {unit_str.capitalize()}s ({total_inr} INR)"
+            )
+            logger.info(f"[ATC_ANCHOR] Resolved field 'custom_eligibility_criteria' via SECTION_HEADING: BEC Technical Criteria Sl. 1 ({total_inr} INR)")
+
+    # 45. Client details — Tag (G) Primary
+    tag_g_match = re.search(
+        r"\(G\)\s*CONTACT\s*DETAILS(?:\s*OF\s*TENDER\s*DEALING\s*OFFICER)?(.*?)(?=\([A-Z0-9]{1,3}\)|\Z)",
+        full_text, re.IGNORECASE | re.DOTALL
+    )
+    if tag_g_match:
+        g_text = tag_g_match.group(1)
+        name_m = re.search(r"Name[:\-\s]+(Sh\.\s*[^\n]+|[A-Za-z\.\s]{3,40})", g_text, re.IGNORECASE)
+        email_m = re.search(r"E-?mail(?:\s*ID)?[:\-\s]+([a-zA-Z0-9\._%+\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,})", g_text, re.IGNORECASE)
+        phone_m = re.search(r"(?:Phone|Tel|Mobile)(?:[^\n:]*?)[:\-][ \t]*([0-9\-\/\(\)\sExtn\.]+)", g_text, re.IGNORECASE)
         
         client_name_1_display = name_m.group(1).strip() if name_m else "NA"
         client_email_1_display = email_m.group(1).strip() if email_m else "NA"
         client_phone_1_display = phone_m.group(1).strip() if phone_m else "NA"
+        logger.info(f"[ATC_ANCHOR] Resolved field 'client_contacts' via BDS_TAG: (G) CONTACT DETAILS OF TENDER DEALING OFFICER ({client_name_1_display})")
+    else:
+        client_match = re.search(r"Requested Details[:\-\s]+([^\n]+)[:\-\s]+([^\n]+)[:\-\s]+([^\n]+)", full_text, re.IGNORECASE)
+        if client_match:
+            client_name_1_display = client_match.group(1).strip()
+            client_email_1_display = client_match.group(3).strip()
+            client_phone_1_display = client_match.group(2).strip()
+        else:
+            officer_block_match = re.search(r"(?:CONTACT DETAILS OF TENDER DEALING OFFICER|TENDER DEALING OFFICER)(.*?)(?:SECTION|ANNEXURE|3\.0|4\.0|\Z)", full_text, re.IGNORECASE | re.DOTALL)
+            officer_text = officer_block_match.group(1) if officer_block_match else full_text
+            
+            name_m = re.search(r"Name[:\-\s]+(Sh\.\s*[^\n]+|[A-Za-z\.\s]{3,40})", officer_text, re.IGNORECASE)
+            email_m = re.search(r"E-?mail(?:\s*ID)?[:\-\s]+([a-zA-Z0-9\._%+\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,})", officer_text, re.IGNORECASE)
+            phone_m = re.search(r"(?:Phone|Tel|Mobile)(?:\s*No|\s*and\s*Extn)?[:\-\s]+([0-9\-\/\(\)\sExtn\.]+)", officer_text, re.IGNORECASE)
+            
+            client_name_1_display = name_m.group(1).strip() if name_m else "NA"
+            client_email_1_display = email_m.group(1).strip() if email_m else "NA"
+            client_phone_1_display = phone_m.group(1).strip() if phone_m else "NA"
 
+    # Task 2: Second Contact Block (Nodal Officer)
     client_name_2_display = "NA"
     client_email_2_display = "NA"
     client_phone_2_display = "NA"
+
+    nodal_officer_match = re.search(
+        r"(?:Name\s+and\s+contact\s+details\s+of\s+nodal\s+officer|contact\s+details\s+of\s+nodal\s+officer)(.*?)(?=\n\s*\n\s*\d+\.|\Z)",
+        full_text, re.IGNORECASE | re.DOTALL
+    )
+    if nodal_officer_match:
+        n_text = nodal_officer_match.group(1)
+        n_name = re.search(r"Name[:\-\s]+(Sh\.\s*[^\n]+|[A-Za-z\.\s]{3,40})", n_text, re.IGNORECASE)
+        n_email = re.search(r"E-?mail(?:\s*ID)?[:\-\s]+([a-zA-Z0-9\._%+\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,})", n_text, re.IGNORECASE)
+        n_phone = re.search(r"(?:Phone|Tel|Mobile)(?:\s*No|\s*and\s*Extn)?[:\-\s]+([0-9\-\/\(\)\sExtn\.]+)", n_text, re.IGNORECASE)
+        if n_name:
+            client_name_2_display = n_name.group(1).strip()
+            client_email_2_display = n_email.group(1).strip() if n_email else "NA"
+            client_phone_2_display = n_phone.group(1).strip() if n_phone else "NA"
+            logger.info(f"[ATC_ANCHOR] Resolved field 'client_contacts_2' via SECTION_HEADING: Nodal Officer Clause ({client_name_2_display})")
+
     client_name_3_display = "NA"
     client_email_3_display = "NA"
     client_phone_3_display = "NA"
@@ -861,18 +1053,33 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         doc_5_display = extra_docs_match.group(5).strip() if extra_docs_match.group(5) else "NA"
         doc_6_display = extra_docs_match.group(6).strip() if extra_docs_match.group(6) else "NA"
 
-    # Courier Delivery Address
-    courier_addr_match = re.search(r"Address \(Legacy\)[:\-\s]+([^\n]+(?:\n\s*[^\n]+)?)[:\-\s]+(?:Physical Docs Required|Physical Docs Submission)", full_text, re.IGNORECASE)
-    if courier_addr_match:
-        courier_address_display = courier_addr_match.group(1).strip().replace("\n", " ")
-    else:
-        cutout_match = re.search(r"(?:CUT-OUT SLIP|CUT OUT SLIP|DO NOT OPEN).*?TO[:\-\s]+(.*?)(?:FROM|KIND ATTN|QUOTATION|\Z)", full_text, re.IGNORECASE | re.DOTALL)
-        if cutout_match:
-            raw_addr = cutout_match.group(1).strip()
-            clean_addr = re.sub(r"\s+", " ", raw_addr)
-            courier_address_display = clean_addr if len(clean_addr) > 5 else "NA"
+    # Courier Delivery Address: BDS Tag (H) Primary
+    tag_h_match = re.search(
+        r"\(H\)\s*DEALING\s*GAIL['’\s]*S\s*OFFICE\s*ADDRESS(.*?)(?=\([A-Z0-9]{1,3}\)|In\s+case|\Z)",
+        full_text, re.IGNORECASE | re.DOTALL
+    )
+    if tag_h_match:
+        h_text = tag_h_match.group(1).strip()
+        h_clean = re.sub(r"\s+", " ", h_text)
+        if client_name_1_display != "NA" and client_email_1_display != "NA":
+            courier_address_display = f"{h_clean} | Kind Attn: {client_name_1_display} ({client_email_1_display})"
+        elif client_name_1_display != "NA":
+            courier_address_display = f"{h_clean} | Kind Attn: {client_name_1_display}"
         else:
-            courier_address_display = "NA"
+            courier_address_display = h_clean
+        logger.info(f"[ATC_ANCHOR] Resolved field 'courier_address' via BDS_TAG: (H) DEALING GAIL'S OFFICE ADDRESS ({courier_address_display[:60]}...)")
+    else:
+        courier_addr_match = re.search(r"Address \(Legacy\)[:\-\s]+([^\n]+(?:\n\s*[^\n]+)?)[:\-\s]+(?:Physical Docs Required|Physical Docs Submission)", full_text, re.IGNORECASE)
+        if courier_addr_match:
+            courier_address_display = courier_addr_match.group(1).strip().replace("\n", " ")
+        else:
+            cutout_match = re.search(r"(?:CUT-OUT SLIP|CUT OUT SLIP|DO NOT OPEN).*?TO[:\-\s]+(.*?)(?:FROM|KIND ATTN|QUOTATION|\Z)", full_text, re.IGNORECASE | re.DOTALL)
+            if cutout_match:
+                raw_addr = cutout_match.group(1).strip()
+                clean_addr = re.sub(r"\s+", " ", raw_addr)
+                courier_address_display = clean_addr if len(clean_addr) > 5 else "NA"
+            else:
+                courier_address_display = "NA"
 
     courier_provider_display = "NA"
     courier_docket_no_display = "NA"
@@ -1000,15 +1207,22 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             except (ValueError, TypeError):
                 pass  # Non-numeric quantities — skip sanity check gracefully
 
-    custom_eligibility_criteria_display = resolve_field("Custom Eligibility Criteria", None, "NA")
     if _is_missing(custom_eligibility_criteria_display) or custom_eligibility_criteria_display == "NA":
         custom_match = re.search(r"(?:executed|completed)\s+(?:at\s+least\s+)?(?:one|1)\s+(?:single\s+)?(?:purchase\s+order|order|work\s+order)\s+of\s+(?:a\s+)?value\s+(?:not\s+less\s+than|of)\s+Rs\.?\s*([\d\.\,\s]+(?:Lacs|Lakhs|Crore|Cr)?)\b", full_text, re.IGNORECASE)
         if custom_match:
-            custom_eligibility_criteria_display = f"Minimum Qualifying Order Value: Rs. {custom_match.group(1).strip()}"
+            val_str = custom_match.group(1).strip()
+            custom_eligibility_criteria_display = f"Minimum Qualifying Order Value: Rs. {val_str}"
+            total_inr = normalize_bec_order_value(val_str)
+            if total_inr:
+                custom_eligibility_criteria_value_normalized = total_inr
         else:
             custom_match_broad = re.search(r"Minimum\s+Executed\s+Order\s+Value.*?(Rs\.?\s*[\d\.\,\s]+(?:Lacs|Lakhs|Crore|Cr)?)", full_text, re.IGNORECASE)
             if custom_match_broad:
-                custom_eligibility_criteria_display = f"Minimum Qualifying Order Value: {custom_match_broad.group(1).strip()}"
+                val_str = custom_match_broad.group(1).strip()
+                custom_eligibility_criteria_display = f"Minimum Qualifying Order Value: {val_str}"
+                total_inr = normalize_bec_order_value(val_str)
+                if total_inr:
+                    custom_eligibility_criteria_value_normalized = total_inr
 
     field_sources = {}
     for sec in sections:

@@ -148,6 +148,14 @@ def ingest_parent_tender_pdf(
                 atc_path = Path(l["local_path"])
                 break
 
+    if not atc_path:
+        ext_children_dir = job_dir / "extracted_children"
+        if ext_children_dir.exists():
+            child_pdfs = [p for p in ext_children_dir.glob("*.pdf") if p.is_file() and p.stat().st_size > 0]
+            if child_pdfs:
+                atc_path = child_pdfs[0]
+                logger.info(f"[ATC_RESOLVER] Discovered extracted child PDF in job directory: '{atc_path}'")
+
     # --- ATC PRECONDITION GUARD ---
     # If the main tender PDF contained an ATC hyperlink but the downloaded file is
     # unavailable (None path or non-existent file), surface a structured warning so
