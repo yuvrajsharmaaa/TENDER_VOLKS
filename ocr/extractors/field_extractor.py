@@ -1307,6 +1307,13 @@ AMBIGUOUS_MERGE_FIELDS = {
     "custom_rules"
 }
 
+MAIN_SOURCED_FIELD_NAMES = {
+    "PBG Required", "PBG Percentage", "PBG Duration", "PBG Duration (Months)",
+    "Eligibility Criterion (Years)", "Bid Validity (Days)", "Bid Validity Period",
+    "Tender Name / Title", "Reference ID / NIT No", "Estimated Tender Value",
+    "Organisation", "Authority Agency", "bid_number", "bid_validity_days", "tender_value"
+}
+
 def merge_tender_and_atc_fields(
     main_fields: List[ExtractedFieldSchema],
     atc_fields: List[ExtractedFieldSchema]
@@ -1317,7 +1324,7 @@ def merge_tender_and_atc_fields(
     Priority Rules:
     1. ATC field overrides main_tender field if ATC has a valid value (explicit ATC clause wins,
        removing confidence carve-outs).
-    2. Retains main tender field if only main_tender found a valid value.
+    2. Retains main tender field if only main_tender found a valid value or field belongs to MAIN_SOURCED_FIELD_NAMES.
     3. For ambiguous fields ('custom_eligibility_criteria', 'delivery_time_installation_inclusive', 'custom_rules'),
        preserves both candidates when both documents contain values without premature resolution.
     4. Derived fields recalculated on merged dataset.
@@ -1333,10 +1340,12 @@ def merge_tender_and_atc_fields(
         if not main_f:
             win_field = atc_f
         else:
-            main_valid = main_f.value not in (None, "Not Found", "Out of Scope (Stage 1)")
-            atc_valid = atc_f.value not in (None, "Not Found", "Out of Scope (Stage 1)")
+            main_valid = main_f.value not in (None, "", "Not Found", "Out of Scope (Stage 1)", 0, 0.0, "0", "0.0", "0.00")
+            atc_valid = atc_f.value not in (None, "", "Not Found", "Out of Scope (Stage 1)", 0, 0.0, "0", "0.0", "0.00")
 
-            if fn in AMBIGUOUS_MERGE_FIELDS and main_valid and atc_valid:
+            if fn in MAIN_SOURCED_FIELD_NAMES and main_valid:
+                win_field = main_f
+            elif fn in AMBIGUOUS_MERGE_FIELDS and main_valid and atc_valid:
                 # Preserve both candidates without resolving prematurely
                 combined_val = {
                     "main_tender": main_f.value,

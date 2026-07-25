@@ -28,7 +28,8 @@ MAIN_SOURCED_LABELS = {
 }
 
 AMBIGUOUS_LABELS = {
-    "Installation Inclusive", "Custom Eligibility Criteria", "Custom Rules"
+    "Installation Inclusive", "Custom Eligibility Criteria", "Custom Rules",
+    "delivery_time_installation_inclusive", "custom_eligibility_criteria", "custom_rules"
 }
 
 
@@ -147,6 +148,40 @@ def ingest_parent_tender_pdf(
                 atc_path = Path(l["local_path"])
                 break
 
+    # --- ATC PRECONDITION GUARD ---
+    # If the main tender PDF contained an ATC hyperlink but the downloaded file is
+    # unavailable (None path or non-existent file), surface a structured warning so
+    # the infosheet clearly signals that ATC-sourced fields may be incomplete.
+    atc_link_was_detected = matched_atc_link is not None
+    atc_pdf_was_ingested = atc_path is not None
+    if atc_link_was_detected and not atc_pdf_was_ingested:
+        logger.warning(
+            "[ATC_RESOLVER] ATC_NOT_FETCHED: ATC hyperlink detected in tender "
+            f"'{original_filename}' but no local ATC PDF is available. "
+            "ATC-sourced fields (Payment Terms, LD/PRS, Contacts, Courier) "
+            "will remain at main-document values."
+        )
+        # Inject a visible warning field into the first section
+        warning_field = {
+            "id": "atc-not-fetched-warning",
+            "label": "ATC Not Fetched Warning",
+            "value": (
+                f"ATC hyperlink detected (URL: {matched_atc_link.get('url', 'unknown')}) "
+                "but ATC PDF was not downloaded or supplied. "
+                "Payment Terms %, LD/PRS, Client Contacts and Courier Address "
+                "may be incomplete — reprocess with ATC PDF attached."
+            ),
+            "status": "warning",
+            "confidence": 0.0,
+            "critical": True,
+            "source": "derived",
+            "sourceSnippet": "ATC_NOT_FETCHED guard: atc_link_detected=True, atc_pdf_ingested=False",
+        }
+        if sections:
+            sections[0].setdefault("fields", []).insert(0, warning_field)
+        else:
+            sections.append({"id": "sec-warnings", "title": "Pipeline Warnings", "fields": [warning_field]})
+
     merged_atc_field_count = 0
     if atc_path:
         try:
@@ -183,6 +218,21 @@ def ingest_parent_tender_pdf(
                             existing_field = sections[sec_idx]["fields"][field_idx]
                             old_val = existing_field.get("value")
 
+                            if lbl in AMBIGUOUS_LABELS:
+                                old_valid = old_val not in (None, "", "Not Found", "Out of Scope (Stage 1)", 0, 0.0, "0", "0.0", "0.00")
+                                if old_valid:
+                                    amb_copy = dict(existing_field)
+                                    amb_copy["value"] = {"main_tender": old_val, "atc": val}
+                                    amb_copy["source"] = "ambiguous_preserved"
+                                    amb_copy["status"] = "extracted"
+                                    sections[sec_idx]["fields"][field_idx] = amb_copy
+                                    merged_atc_field_count += 1
+                                    logger.info(
+                                        f"[FIELD_MERGE] Field: {lbl} | Old value: {old_val!r} | "
+                                        f"New value (atc): {val!r} | Reason: ambiguous-preserved"
+                                    )
+                                    continue
+
                             if lbl in ATC_SOURCED_LABELS:
                                 # BUG 3 FIX: ATC_SOURCED_LABELS always override main doc
                                 sections[sec_idx]["fields"][field_idx] = f_copy
@@ -192,7 +242,7 @@ def ingest_parent_tender_pdf(
                                     f"New value (atc): {val!r} | Reason: atc-authoritative-override"
                                 )
                             else:
-                                # BUG 3 FIX: AMBIGUOUS_LABELS & unlisted labels use fill-if-missing
+                                # Unlisted labels use fill-if-missing
                                 if existing_field.get("status") == "missing" or not old_val or old_val in ("Not Found", "Out of Scope (Stage 1)"):
                                     sections[sec_idx]["fields"][field_idx] = f_copy
                                     merged_atc_field_count += 1
@@ -330,11 +380,14 @@ def ingest_parent_tender_pdf(
             "resolved": False
         })
 
-    # 8. Count issues: missing critical fields + unresolved mentions
+    # 8. Count issues: missing critical fields + unresolved mentions + ATC warnings
     issues = 0
     for sec in sections:
         for f in sec.get("fields", []):
             if f.get("critical") and f.get("status") == "missing":
+                issues += 1
+            elif f.get("critical") and f.get("status") == "warning":
+                # ATC_NOT_FETCHED and other pipeline warnings count as actionable issues
                 issues += 1
             elif f.get("critical") and f.get("confidence", 100) < 70:
                 issues += 1

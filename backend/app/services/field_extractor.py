@@ -139,7 +139,8 @@ def extract_tender_fields(
         "critical": False,
         "sourcePage": 1,
         "sourceSnippet": f"Filename Title fallback: {filename_title}",
-        "status": "extracted"
+        "status": "extracted",
+        "source": "main_tender"
     })
     
     # Deduplicate fields by label, prioritizing valid values and higher confidence
@@ -147,6 +148,16 @@ def extract_tender_fields(
     for i, f in enumerate(extracted):
         label = label_mapping.get(f.field_name, f.field_name)
         status = "missing" if (f.value is None or f.value == "Not Found") else "extracted"
+        
+        # Determine and normalize source tag per canonical set
+        raw_source = getattr(f, "source", None) or "main_tender"
+        if raw_source in ("gem_parent_pdf", "not_available_stage1"):
+            canonical_source = "main_tender"
+        elif raw_source in ("main_tender", "atc", "derived", "ambiguous_preserved"):
+            canonical_source = raw_source
+        else:
+            canonical_source = "main_tender"
+
         field_dict = {
             "id": f"f-{i}",
             "label": label,
@@ -155,7 +166,8 @@ def extract_tender_fields(
             "critical": getattr(f, "critical", False),
             "sourcePage": getattr(f, "page", getattr(f, "source_page", 1)),
             "sourceSnippet": getattr(f, "source_snippet", getattr(f, "evidence", "")),
-            "status": status
+            "status": status,
+            "source": canonical_source
         }
         existing = label_to_field.get(label)
         if not existing:
@@ -166,7 +178,7 @@ def extract_tender_fields(
             elif field_dict["status"] == existing["status"]:
                 if field_dict["confidence"] > existing["confidence"]:
                     label_to_field[label] = field_dict
-
+ 
     for label, field_dict in label_to_field.items():
         fields.append(field_dict)
         
@@ -181,7 +193,8 @@ def extract_tender_fields(
             "critical": False,
             "sourcePage": p.get("page_number", 1),
             "sourceSnippet": p.get("evidence", ""),
-            "status": "extracted"
+            "status": "extracted",
+            "source": "main_tender"
         })
 
     return [{"id": "sec-unified", "title": "Unified Extraction", "fields": fields}]

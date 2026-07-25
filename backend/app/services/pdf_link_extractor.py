@@ -278,6 +278,13 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                                     import urllib.error
                                     logger.info(f"[ATC_RESOLVER] Downloading ATC child document from URL: '{uri}' (verified_anchor={is_atc_anchor})")
                                     unique_filename = f"page{page_num+1}_{filename}"
+                                    out_path = output_dir / unique_filename
+                                    if out_path.exists() and out_path.stat().st_size > 0:
+                                        logger.info(f"[ATC_RESOLVER] Using existing local child file at: '{out_path}'")
+                                        saved_paths.append(str(out_path))
+                                        external_count += 1
+                                        links[-1]["local_path"] = str(out_path)
+                                        continue
                                     headers = {
                                         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                                         'Accept': 'application/pdf,application/octet-stream,*/*',

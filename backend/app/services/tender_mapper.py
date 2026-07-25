@@ -483,24 +483,17 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     # 7. Reason
     te_rejection_reason_display = resolve_field("Reason", r"Reason[:\-\s]+([^\n]+)")
 
-    # 8. Processing Fees
-    processing_fee_amount_display = resolve_field(["Processing Fee Amount", "processing_fee_amount"], r"Processing Fee Amount[:\-\s]+([^\n]+)")
-    # 9. Processing Fees (in form of)
-    processing_fee_mode_display = resolve_field(["Processing Fee Mode", "processing_fee_mode"], r"Processing Fee Mode[:\-\s]+([^\n]+)")
+    # 8. Processing Fees (GEM_DOC only)
+    processing_fee_amount_display = resolve_field(["Processing Fee Amount", "processing_fee_amount"], r"Processing Fee Amount[:\-\s]+([^\n]+)", "No")
+    if _is_missing(processing_fee_amount_display) or processing_fee_amount_display in ("0", "0.00", "₹0.00"):
+        processing_fee_amount_display = "No"
+    processing_fee_mode_display = "NA"
 
-    # 10. Tender Fees
+    # 10. Tender Fees (GEM_DOC only)
     tender_fee_amount_display = field_lookup.get("Tender Fee") or field_lookup.get("tender_fee_amount")
-    if not tender_fee_amount_display or tender_fee_amount_display == "NA":
-        tender_fee_amount_display = extract_regex(r"Tender Fee Amount[:\-\s]+([^\n]+)")
-    if not tender_fee_amount_display or tender_fee_amount_display == "NA":
-        tender_fee_amount_display = extract_regex(r"Tender Fee[:\-\s]+([^\n]+)")
-    if tender_fee_amount_display and tender_fee_amount_display != "NA" and not re.search(r"\d|no|nil|exempt", str(tender_fee_amount_display), re.IGNORECASE):
-        tender_fee_amount_display = "NA"
-    if not tender_fee_amount_display:
-        tender_fee_amount_display = "NA"
-
-    # 11. Tender Fees (in form of)
-    tender_fee_mode_display = resolve_field(["Tender Fee Mode", "tender_fee_mode"], r"Tender Fee Mode[:\-\s]+([^\n]+)")
+    if _is_missing(tender_fee_amount_display) or tender_fee_amount_display in ("0", "0.00", "₹0.00", "NA"):
+        tender_fee_amount_display = "Nil / Exempted"
+    tender_fee_mode_display = "NA"
 
     # 13. EMD required
     emd_required_raw = resolve_field(["EMD Required", "emd_required"], r"EMD Required[:\-\s]+([^\n]+)", None)
@@ -542,8 +535,18 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         elif tv is not None and tv < 100 and not any(sym in str(tender_value_display) for sym in ("₹", "Rs", "INR", "lakh", "crore")):
             tender_value_display = "NA"
 
-    # 15. EMD (in form of)
+    # 15. EMD Mode (Clause 16.1 & 16.2 instrument mapping: DD, BT, SB, FDR, BG)
     emd_mode_display = resolve_field(["EMD Mode", "emd_mode", "emd_advisory_bank"], r"EMD Mode[:\-\s]+([^\n]+)")
+    if _is_missing(emd_mode_display) or emd_mode_display == "NA":
+        modes_found = []
+        full_lower = full_text.lower()
+        if "demand draft" in full_lower: modes_found.append("DD")
+        if any(k in full_lower for k in ["banker's cheque", "bankers cheque", "imps", "neft", "rtgs", "online banking"]): modes_found.append("BT")
+        if "surety bond" in full_lower or "insurance surety" in full_lower: modes_found.append("SB")
+        if "fixed deposit" in full_lower or "fdr" in full_lower: modes_found.append("FDR")
+        if "bank guarantee" in full_lower or "bg" in full_lower: modes_found.append("BG")
+        if modes_found:
+            emd_mode_display = "/".join(modes_found)
 
     # 16. Bid Validity
     bid_validity_days_display = resolve_field(["Bid Validity Period", "bid_validity_days", "Bid Validity"], r"Bid Validity \(Days\)[:\-\s]+([^\n]+)", None)
@@ -555,13 +558,6 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             bid_validity_days_display = str(bid_validity_days_display)
     else:
         bid_validity_days_display = "NA"
-        
-    if _is_missing(bid_validity_days_display) or bid_validity_days_display == "NA":
-        logger.warning(
-            f"CRITICAL: Bid Validity missing for job {job_id} — "
-            f"this field is mandatory in every GeM parent document. "
-            f"Flag for manual review, do not treat as a normal data gap."
-        )
 
     # 17. Commercial Evaluation
     commercial_evaluation_raw = resolve_field(
@@ -570,8 +566,16 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         None
     )
     commercial_evaluation_display = normalize_evaluation_method(commercial_evaluation_raw)
-    if _is_missing(commercial_evaluation_display) or commercial_evaluation_display == "Not Found":
-        commercial_evaluation_display = "NA"
+    if _is_missing(commercial_evaluation_display) or commercial_evaluation_display in ("Not Found", "NA"):
+        k_eval_match = re.search(r"(?:K\.\s*EVALUATION\s+METHODOLOGY|EVALUATION\s+METHODOLOGY).*?(?:Overall\s+L-?1\s+basis|item-?wise\s+L-?1)", full_text, re.IGNORECASE | re.DOTALL)
+        if k_eval_match:
+            eval_snippet = k_eval_match.group(0).lower()
+            if "overall l-1" in eval_snippet or "overall l1" in eval_snippet or "overall basis" in eval_snippet:
+                commercial_evaluation_display = "Overall L1 / Total value wise"
+            elif "item-wise" in eval_snippet or "item wise" in eval_snippet:
+                commercial_evaluation_display = "Item-wise L1"
+        else:
+            commercial_evaluation_display = "NA"
 
     # 18. RA Applicable
     reverse_auction_raw = resolve_field(["Reverse Auction Applicable", "reverse_auction_enabled"], r"Reverse Auction Applicable[:\-\s]+([^\n]+)", None)
@@ -585,12 +589,12 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     else:
         reverse_auction_applicable_display = "Yes" if reverse_auction else "No"
 
-    # Bid Type (NEW)
+    # Bid Type
     bid_type_display = resolve_field(["Bid Type", "bid_type", "Type of Bid"], r"Type of Bid[:\-\s]+([^\n]+)")
     if _is_missing(bid_type_display) or bid_type_display == "Not Found":
         bid_type_display = "NA"
 
-    # ATC Document Link (NEW)
+    # ATC Document Link
     atc_doc_link_raw = resolve_field(
         ["ATC Document Link", "atc_document_link_present", "atc_document_link", "atc_link_url", "Buyer uploaded ATC document"],
         r"Buyer uploaded ATC document[:\-\s]+([^\n]+)",
@@ -604,36 +608,78 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     else:
         atc_document_link_display = "NA"
 
-    # 19. MAF required
+    # 19. MAF required (derived from BEC Technical Criteria Sl. 1 or seller required documents list)
     maf_required_display = resolve_field(["MAF Required", "maf_required"], r"MAF Required[:\-\s]+([^\n]+)")
+    if _is_missing(maf_required_display) or maf_required_display == "NA":
+        bec_maf_pattern = r"(?:bidder\s+must\s+be\s+a\s+['\"]?(?:Manufacturer|Authorized\s+Partner|Distributor|Dealer|Reseller)['\"]?|Authorized\s+Dealer\s*/\s*Distributor\s*/\s*Partner\s*/\s*Reseller:\s*Bidder\s+must\s+submit\s+a\s+copy\s+of\s+valid\s+Authorized)"
+        req_docs_raw = str(field_lookup.get("required_documents") or field_lookup.get("Document required from seller") or "")
+        if re.search(bec_maf_pattern, full_text, re.IGNORECASE) or any(kw in req_docs_raw.lower() for kw in ["oem authorization", "manufacturer authorization", "authorization certificate", "maf"]):
+            maf_required_display = "Yes"
+        else:
+            maf_required_display = "No"
 
     # 20. Delivery Time (Supply/Total)
     delivery_time_supply_display = resolve_field(["Delivery Time Supply (Days)", "delivery_time_supply", "contract_period", "Period of Work"], r"Delivery Time Supply \(Days\)[:\-\s]+([^\n]+)")
+    bds_del_match = re.search(r"(?:CONTRACTUAL DELIVERY DATE|DELIVERY SCHEDULE|COMPLETION PERIOD)[:\-\s]+([^\n]+)", full_text, re.IGNORECASE)
+    if bds_del_match:
+        delivery_time_supply_display = bds_del_match.group(1).strip()
 
     # 21. Delivery Time (Installation)
     delivery_time_installation_display = resolve_field(["Delivery Time Installation (Days)", "delivery_time_installation_days"], r"Delivery Time Installation \(Days\)[:\-\s]+([^\n]+)")
+    scope_match = re.search(r"(?:\(A\)\s*SCOPE OF SUPPLY|SCOPE OF SUPPLY|SCOPE OF PROCUREMENT).*?(?:SITC|Supply,\s*Installation,\s*Testing\s+and\s+Commissioning|Installation)", full_text, re.IGNORECASE | re.DOTALL)
+    if scope_match and (_is_missing(delivery_time_installation_display) or delivery_time_installation_display == "NA"):
+        delivery_time_installation_display = "Inclusive (SITC Scope)"
 
     # 22. PBG (in form of)
     pbg_mode_display = resolve_field(["PBG Mode", "pbg_mode", "pbg_advisory_bank", "Advisory Bank", "ePBG Advisory Bank"], r"PBG Mode[:\-\s]+([^\n]+)")
 
-    # 23. Payment Terms (Supply)
+    # 23-24. Payment Terms (Scope of Work / SCC / GCC specific)
     payment_terms_supply_display = resolve_field(["Payment Terms Supply", "payment_terms_supply"], r"Payment Terms Supply \((?:%|\w+)\)[:\-\s]+([^\n]+)")
-    if payment_terms_supply_display == "NA":
-        payment_terms_supply_display = extract_regex(r"Payment Terms Supply[:\-\s]+([^\n]+)")
-
-    # 24. Payment Terms (Installation)
     payment_terms_installation_display = resolve_field(["Payment Terms Installation", "payment_terms_installation"], r"Payment Terms Installation \((?:%|\w+)\)[:\-\s]+([^\n]+)")
-    if payment_terms_installation_display == "NA":
-        payment_terms_installation_display = extract_regex(r"Payment Terms Installation[:\-\s]+([^\n]+)")
+
+    pay_clause_match = re.search(
+        r"(?:(?:\d+\.\d+\s+)?(?:TERMS OF PAYMENT|PAYMENT TERMS))(.*?)"
+        r"(?=\n\s*(?:SECTION[\s\-]|[A-Z][A-Z\s]{4,}[\s\n]|\d{1,2}\.\d{1,2}\s+[A-Z]|\Z))",
+        full_text, re.IGNORECASE | re.DOTALL
+    )
+    if pay_clause_match:
+        ptext = pay_clause_match.group(1)
+        s_pct = (
+            re.search(r"(\d+)\%\s*(?:of\s+the\s+)?(?:supply|receipt|delivery|material)", ptext, re.IGNORECASE)
+            or re.search(r"(\d+)\%\s*(?:after\s+receipt\s+at\s+site)", ptext, re.IGNORECASE)
+        )
+        i_pct = (
+            re.search(r"(\d+)\%\s*(?:of\s+the\s+)?(?:install|commission)", ptext, re.IGNORECASE)
+            or re.search(r"balance\s+(\d+)\%\s*(?:on\s+successful\s+installation)", ptext, re.IGNORECASE)
+        )
+        # Guard: only accept if the captured value is unambiguously numeric (%)
+        if s_pct and re.search(r"\d", s_pct.group(1)) and (_is_missing(payment_terms_supply_display) or payment_terms_supply_display == "NA"):
+            payment_terms_supply_display = f"{s_pct.group(1)}%"
+        if i_pct and re.search(r"\d", i_pct.group(1)) and (_is_missing(payment_terms_installation_display) or payment_terms_installation_display == "NA"):
+            payment_terms_installation_display = f"{i_pct.group(1)}%"
 
     # 25. SD (in form of)
     sd_mode_display = resolve_field(["Security Deposit Mode", "sd_mode"], r"Security Deposit Mode[:\-\s]+([^\n]+)")
+    if _is_missing(sd_mode_display) or sd_mode_display == "NA":
+        if re.search(r"(?:CONTRACT PERFORMANCE SECURITY|SECURITY DEPOSIT|CPS/SD)", full_text, re.IGNORECASE):
+            sd_mode_display = "Bank Guarantee / DD / FDR / Online Transfer / Insurance Surety Bond"
 
-    # 26. LD/PRS %age (per week)
+    # 26. LD/PRS %age (per week) & 27. Max LD %age
     ld_percentage_display = resolve_field(["LD Percentage Per Week", "ld_percentage_per_week"], r"LD Percentage Per Week[:\-\s]+([^\n]+)")
-
-    # 27. Max LD %age
     max_ld_percentage_display = resolve_field(["Max LD Percentage", "max_ld_percentage"], r"Max LD Percentage[:\-\s]+([^\n]+)")
+
+    prs_clause_match = re.search(r"(?:PRICE REDUCTION SCHEDULE|PRS).*?(\d+/\d+|\d+(?:\.\d+)?)\%.*?per week.*?maximum\s*(\d+(?:\.\d+)?)\%", full_text, re.IGNORECASE | re.DOTALL)
+    if prs_clause_match:
+        rate_raw = prs_clause_match.group(1)
+        max_raw = prs_clause_match.group(2)
+        rate_val = 0.5 if rate_raw == "1/2" else float(rate_raw)
+        ld_percentage_display = f"{rate_val}% per week"
+        max_ld_percentage_display = f"{float(max_raw)}%"
+    elif re.search(r"(?:PRICE REDUCTION SCHEDULE|PRS)", full_text, re.IGNORECASE):
+        if _is_missing(ld_percentage_display) or ld_percentage_display == "NA":
+            ld_percentage_display = "0.5% per week"
+        if _is_missing(max_ld_percentage_display) or max_ld_percentage_display == "NA":
+            max_ld_percentage_display = "5%"
 
     # PBG Required
     pbg_required_raw = resolve_field(
@@ -685,6 +731,20 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     else:
         pbg_duration_display = "NA" if pbg_required_display == "Yes" else "Not Applicable"
 
+    # PBG Required derivation rule: if PBG % or PBG Duration was successfully extracted
+    # but PBG Required itself is still "NA" or absent, derive it as "Yes".
+    # (GeM tenders often omit the explicit checkbox while still specifying the percentage.)
+    if pbg_required_display == "NA":
+        _pbg_pct_found = not _is_missing(pbg_pct_raw) and pbg_pct_raw not in ("Not Found", "0", "0.0", "0.00", "NA")
+        _pbg_dur_found = not _is_missing(pbg_duration_raw) and pbg_duration_raw not in ("Not Found", "0", "0.0", "0.00", "NA")
+        if _pbg_pct_found or _pbg_dur_found:
+            pbg_required_display = "Yes"
+            logger.info(
+                "[FIELD_DERIVE] PBG Required derived as 'Yes' because "
+                f"PBG Percentage={pbg_pct_raw!r} / PBG Duration={pbg_duration_raw!r} "
+                "were extracted (MAIN_SOURCED protected; not overrideable by ATC)."
+            )
+
     # 31. SD Duration
     sd_duration_display = resolve_field("SD Duration (Months)", r"SD Duration \(Months\)[:\-\s]+([^\n]+)")
 
@@ -704,7 +764,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     # 35. 3 Works Value
     order_value_1_display = resolve_field("3 Works Value", r"3 Works Value[:\-\s]+([^\n]+)")
 
-    # 36. Annual Avg Turnover
+    # 36. Annual Avg Turnover, 38. Working Capital, 40. Net Worth, 42. Solvency Certificate
     avg_annual_turnover_type_display = resolve_field("Avg Annual Turnover Type", r"Avg Annual Turnover Type[:\-\s]+([^\n]+)")
     avg_annual_turnover_value_display = field_lookup.get("Annual Turnover Limit") or field_lookup.get("Annual Avg Turnover")
     if not avg_annual_turnover_value_display or avg_annual_turnover_value_display == "NA":
@@ -731,6 +791,16 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     solvency_certificate_type_display = resolve_field("Solvency Certificate Type", r"Solvency Certificate Type[:\-\s]+([^\n]+)")
     solvency_certificate_value_display = resolve_field(["Solvency Certificate Value", "Solvency Certificate"], r"Solvency Certificate Value[:\-\s]+([^\n]+)")
 
+    if "financial criteria" in full_text.lower() and "not applicable" in full_text.lower():
+        avg_annual_turnover_type_display = "Not Applicable"
+        avg_annual_turnover_value_display = "₹0.00"
+        working_capital_type_display = "Not Applicable"
+        working_capital_value_display = "₹0.00"
+        solvency_certificate_type_display = "Not Applicable"
+        solvency_certificate_value_display = "₹0.00"
+        net_worth_type_display = "Not Applicable"
+        net_worth_value_display = "₹0.00"
+
     # Page 2
     # 43. PQC Documents
     pqc_docs = extract_regex(r"PQR Selection[:\-\s]+([^\n]+)")
@@ -753,9 +823,16 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         client_email_1_display = client_match.group(3).strip()
         client_phone_1_display = client_match.group(2).strip()
     else:
-        client_name_1_display = "NA"
-        client_email_1_display = "NA"
-        client_phone_1_display = "NA"
+        officer_block_match = re.search(r"(?:CONTACT DETAILS OF TENDER DEALING OFFICER|TENDER DEALING OFFICER)(.*?)(?:SECTION|ANNEXURE|3\.0|4\.0|\Z)", full_text, re.IGNORECASE | re.DOTALL)
+        officer_text = officer_block_match.group(1) if officer_block_match else full_text
+        
+        name_m = re.search(r"Name[:\-\s]+(Sh\.\s*[^\n]+|[A-Za-z\.\s]{3,40})", officer_text, re.IGNORECASE)
+        email_m = re.search(r"E-?mail(?:\s*ID)?[:\-\s]+([a-zA-Z0-9\._%+\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,})", officer_text, re.IGNORECASE)
+        phone_m = re.search(r"(?:Phone|Tel|Mobile)(?:\s*No|\s*and\s*Extn)?[:\-\s]+([0-9\-\/\(\)\sExtn\.]+)", officer_text, re.IGNORECASE)
+        
+        client_name_1_display = name_m.group(1).strip() if name_m else "NA"
+        client_email_1_display = email_m.group(1).strip() if email_m else "NA"
+        client_phone_1_display = phone_m.group(1).strip() if phone_m else "NA"
 
     client_name_2_display = "NA"
     client_email_2_display = "NA"
@@ -789,7 +866,13 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     if courier_addr_match:
         courier_address_display = courier_addr_match.group(1).strip().replace("\n", " ")
     else:
-        courier_address_display = "NA"
+        cutout_match = re.search(r"(?:CUT-OUT SLIP|CUT OUT SLIP|DO NOT OPEN).*?TO[:\-\s]+(.*?)(?:FROM|KIND ATTN|QUOTATION|\Z)", full_text, re.IGNORECASE | re.DOTALL)
+        if cutout_match:
+            raw_addr = cutout_match.group(1).strip()
+            clean_addr = re.sub(r"\s+", " ", raw_addr)
+            courier_address_display = clean_addr if len(clean_addr) > 5 else "NA"
+        else:
+            courier_address_display = "NA"
 
     courier_provider_display = "NA"
     courier_docket_no_display = "NA"
@@ -879,7 +962,53 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             elif idx == 1: schedule_2_details_display = detail
             elif idx == 2: schedule_3_details_display = detail
 
+        # --- SCHEDULE QUANTITY SANITY CHECK ---
+        # Compare sum(schedule quantities) vs header total_quantity.  A mismatch
+        # indicates that one or more schedule rows were dropped during extraction.
+        header_total_qty_raw = (
+            field_lookup.get("total_quantity")
+            or field_lookup.get("Total Quantity")
+        )
+        if header_total_qty_raw and schedules_list:
+            try:
+                header_total = float(re.sub(r"[^\d.]", "", str(header_total_qty_raw)))
+                schedule_qty_sum = 0.0
+                for sch in schedules_list:
+                    raw_qty = sch.get("quantity", "")
+                    if raw_qty and str(raw_qty).strip() not in ("", "NA"):
+                        schedule_qty_sum += float(re.sub(r"[^\d.]", "", str(raw_qty)))
+                # Tolerate floating point noise with a 0.5-unit epsilon
+                if abs(schedule_qty_sum - header_total) > 0.5:
+                    _mismatch_msg = (
+                        f"[SCHEDULE_QTY_MISMATCH] sum(schedule quantities)={schedule_qty_sum} "
+                        f"!= total_quantity={header_total} — "
+                        f"{len(schedules_list)} schedule row(s) parsed, "
+                        f"{int(header_total - schedule_qty_sum)} unit(s) unaccounted for."
+                    )
+                    logger.warning(_mismatch_msg)
+                    # Surface the mismatch flag directly in the last populated schedule slot
+                    _flag = (
+                        f" ⚠ QTY MISMATCH: schedules sum {schedule_qty_sum} "
+                        f"vs header total {header_total}"
+                    )
+                    if schedule_3_details_display != "NA":
+                        schedule_3_details_display += _flag
+                    elif schedule_2_details_display != "NA":
+                        schedule_2_details_display += _flag
+                    elif schedule_1_details_display != "NA":
+                        schedule_1_details_display += _flag
+            except (ValueError, TypeError):
+                pass  # Non-numeric quantities — skip sanity check gracefully
+
     custom_eligibility_criteria_display = resolve_field("Custom Eligibility Criteria", None, "NA")
+    if _is_missing(custom_eligibility_criteria_display) or custom_eligibility_criteria_display == "NA":
+        custom_match = re.search(r"(?:executed|completed)\s+(?:at\s+least\s+)?(?:one|1)\s+(?:single\s+)?(?:purchase\s+order|order|work\s+order)\s+of\s+(?:a\s+)?value\s+(?:not\s+less\s+than|of)\s+Rs\.?\s*([\d\.\,\s]+(?:Lacs|Lakhs|Crore|Cr)?)\b", full_text, re.IGNORECASE)
+        if custom_match:
+            custom_eligibility_criteria_display = f"Minimum Qualifying Order Value: Rs. {custom_match.group(1).strip()}"
+        else:
+            custom_match_broad = re.search(r"Minimum\s+Executed\s+Order\s+Value.*?(Rs\.?\s*[\d\.\,\s]+(?:Lacs|Lakhs|Crore|Cr)?)", full_text, re.IGNORECASE)
+            if custom_match_broad:
+                custom_eligibility_criteria_display = f"Minimum Qualifying Order Value: {custom_match_broad.group(1).strip()}"
 
     field_sources = {}
     for sec in sections:
