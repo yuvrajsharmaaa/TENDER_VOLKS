@@ -314,6 +314,83 @@ def map_internal_to_db_payload(data: dict, tender_id: int) -> dict:
     
     return db_payload
 
+def resolve_atc_anchor_fields(full_text: str) -> Dict[str, Any]:
+    """
+    Extracts ATC anchor fields as schema-typed values (float, bool, int, str).
+    Covering:
+      - payment_terms_supply_percent (float)
+      - payment_terms_installation_percent (float)
+      - maf_required (bool)
+      - ld_percentage_per_week (float)
+      - max_ld_percentage (float)
+      - sd_mode (str)
+      - sd_required (bool)
+      - sd_percentage (float)
+      - sd_duration (int)
+    """
+    res = {}
+    if not full_text:
+        return res
+
+    # 1. MAF Required
+    bec_maf_pattern = r"(?:bidder\s+must\s+be\s+a\s+['\"]?(?:Manufacturer|Authorized\s+Partner|Distributor|Dealer|Reseller)['\"]?|Authorized\s+Dealer\s*/\s*Distributor\s*/\s*Partner\s*/\s*Reseller:\s*Bidder\s+must\s+submit\s+a\s+copy\s+of\s+valid\s+Authorized)"
+    if re.search(bec_maf_pattern, full_text, re.IGNORECASE) or any(kw in full_text.lower() for kw in ["oem authorization", "manufacturer authorization", "authorization certificate"]):
+        res["maf_required"] = True
+    else:
+        res["maf_required"] = False
+
+    # 2. Payment Terms
+    for m in re.finditer(r"(?:TERMS OF PAYMENT|PAYMENT TERMS)", full_text, re.IGNORECASE):
+        window = full_text[m.start():m.start() + 1500]
+        s_pct = re.search(r"(\d+)\%\s*(?:of\s+(?:the\s+)?)?(?:supply|receipt|delivery|material)", window, re.IGNORECASE)
+        i_pct = (
+            re.search(r"balance\s*(\d+)\%[\s\S]{0,80}?(?:install|commission)", window, re.IGNORECASE)
+            or re.search(r"(\d+)\%\s*(?:of\s+(?:the\s+)?)?(?:install|commission)", window, re.IGNORECASE)
+        )
+        if s_pct and re.search(r"\d", s_pct.group(1)):
+            res["payment_terms_supply_percent"] = float(s_pct.group(1))
+        if i_pct and re.search(r"\d", i_pct.group(1)):
+            res["payment_terms_installation_percent"] = float(i_pct.group(1))
+        if "payment_terms_supply_percent" in res:
+            break
+
+    # 3. LD/PRS % per week & Max LD %
+    prs_heading_match = re.search(
+        r"(?:PRICE REDUCTION SCHEDULE\s*\(PRS\)\s*FOR DELAYED DELIVERY|PRICE REDUCTION SCHEDULE|PRS\s+FOR\s+DELAYED\s+DELIVERY)([\s\S]*?)(?=\n\s*(?:SECTION|CLAUSE|\d+\.\d+|\Z))",
+        full_text, re.IGNORECASE
+    )
+    if prs_heading_match:
+        prs_body = prs_heading_match.group(1)
+        prs_m = re.search(
+            r"(\u00bd|\xbd|1/2|\d+(?:\.\d+)?)\s*(?:%|percent)(?:[\s\S]*?)(?:per\s+(?:complete\s+)?week)[\s\S]*?maximum\s+(?:of\s+)?(\d+(?:\.\d+)?)\s*(?:%|percent)",
+            prs_body, re.IGNORECASE
+        )
+        if prs_m:
+            rate_raw = prs_m.group(1)
+            max_raw = prs_m.group(2)
+            rate_val = 0.5 if rate_raw in ("\u00bd", "\xbd", "1/2") else float(rate_raw)
+            res["ld_percentage_per_week"] = rate_val
+            res["max_ld_percentage"] = float(max_raw)
+
+    if "ld_percentage_per_week" not in res and re.search(r"(?:PRICE REDUCTION SCHEDULE|PRS)", full_text, re.IGNORECASE):
+        res["ld_percentage_per_week"] = 0.5
+        res["max_ld_percentage"] = 5.0
+
+    # 4. Security Deposit Mode, Required, Percentage, Duration
+    if re.search(r"(?:CONTRACT PERFORMANCE SECURITY|SECURITY DEPOSIT|CPS/SD)", full_text, re.IGNORECASE):
+        res["sd_mode"] = "Bank Guarantee / DD / FDR / Online Transfer / Insurance Surety Bond"
+        
+    c38_match = re.search(
+        r"(\d+(?:\.\d+)?)\s*%\s*of\s+Total\s+Order.*?(\d+)\s*days\s*of\s+FOA",
+        full_text, re.IGNORECASE | re.DOTALL
+    )
+    if c38_match:
+        res["sd_percentage"] = float(c38_match.group(1))
+        res["sd_duration"] = int(c38_match.group(2))
+        res["sd_required"] = True
+
+    return res
+
 def map_internal_to_summary_csv_row(data: dict) -> dict:
     """
     Step 7C: Serializes DB payload values into flat string mappings matching
@@ -787,10 +864,21 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
 
     # 20. Delivery Time (Supply/Total)
     delivery_time_supply_display = resolve_field(["Delivery Time Supply (Days)", "delivery_time_supply", "contract_period", "Period of Work"], r"Delivery Time Supply \(Days\)[:\-\s]+([^\n]+)")
-    bds_del_match = re.search(r"(?:CONTRACTUAL DELIVERY DATE|DELIVERY SCHEDULE|COMPLETION PERIOD)[:\-\s]+([^\n]+)", full_text, re.IGNORECASE)
-    if bds_del_match:
-        delivery_time_supply_display = bds_del_match.group(1).strip()
-        logger.info(f"[ATC_ANCHOR] Resolved field 'delivery_time_supply' via BDS_TAG: CONTRACTUAL DELIVERY DATE/DELIVERY SCHEDULE ({delivery_time_supply_display})")
+    del_m = re.search(
+        r"(?:CONTRACT\s+COMPLETION\s+PERIOD|5\.\s*COMPLETION\s+PERIOD)[:\-\s]*([\s\S]*?\b(\d{1,3})\s*(MONTHS?|MONTH|DAYS?|DAY|WEEKS?|WEEK)\b)",
+        full_text, re.IGNORECASE
+    )
+    if del_m:
+        raw_num = int(del_m.group(2))
+        unit = del_m.group(3).upper()
+        if "MONTH" in unit:
+            days_val = raw_num * 30
+        elif "WEEK" in unit:
+            days_val = raw_num * 7
+        else:
+            days_val = raw_num
+        delivery_time_supply_display = f"{days_val} Days"
+        logger.info(f"[ATC_ANCHOR] Resolved field 'delivery_time_supply' via SOW completion period ({delivery_time_supply_display})")
 
     # 21. Delivery Time (Installation)
     delivery_time_installation_display = resolve_field(["Delivery Time Installation (Days)", "delivery_time_installation_days"], r"Delivery Time Installation \(Days\)[:\-\s]+([^\n]+)")
@@ -835,22 +923,31 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     payment_terms_supply_display = resolve_field(["Payment Terms Supply", "payment_terms_supply"], r"Payment Terms Supply \((?:%|\w+)\)[:\-\s]+([^\n]+)")
     payment_terms_installation_display = resolve_field(["Payment Terms Installation", "payment_terms_installation"], r"Payment Terms Installation \((?:%|\w+)\)[:\-\s]+([^\n]+)")
 
+    # Slice text starting from the LAST occurrence of SCOPE OF WORK / SECTION-V / SECTION-VI / SCC to avoid TOC mentions
+    sow_candidates = [
+        full_text.rfind("SCOPE OF WORK"),
+        full_text.rfind("SECTION-V"),
+        full_text.rfind("SECTION-VI"),
+        full_text.rfind("SPECIAL CONDITIONS OF CONTRACT")
+    ]
+    last_sow_idx = max(sow_candidates)
+    sow_sliced_text = full_text[last_sow_idx:] if last_sow_idx != -1 else full_text
+
     pay_clause_match = re.search(
-        r"(?:(?:\d+\.\d+\s+)?(?:TERMS OF PAYMENT|PAYMENT TERMS))(.*?)"
+        r"(?:(?:\d+(?:\.\d+)*[\.\:]?\s*)?(?:TERMS OF PAYMENT|PAYMENT TERMS))([\s\S]*?)"
         r"(?=\n\s*(?:SECTION[\s\-]|[A-Z][A-Z\s]{4,}[\s\n]|\d{1,2}\.\d{1,2}\s+[A-Z]|\Z))",
-        full_text, re.IGNORECASE | re.DOTALL
+        sow_sliced_text, re.IGNORECASE
     )
     if pay_clause_match:
         ptext = pay_clause_match.group(1)
         s_pct = (
-            re.search(r"(\d+)\%\s*(?:of\s+the\s+)?(?:supply|receipt|delivery|material)", ptext, re.IGNORECASE)
+            re.search(r"(\d+)\%\s*(?:of\s+(?:the\s+)?)?(?:supply|receipt|delivery|material)", ptext, re.IGNORECASE)
             or re.search(r"(\d+)\%\s*(?:after\s+receipt\s+at\s+site)", ptext, re.IGNORECASE)
         )
         i_pct = (
-            re.search(r"(\d+)\%\s*(?:of\s+the\s+)?(?:install|commission)", ptext, re.IGNORECASE)
-            or re.search(r"balance\s+(\d+)\%\s*(?:on\s+successful\s+installation)", ptext, re.IGNORECASE)
+            re.search(r"(?:balance\s+)?(\d+)\%\s*(?:on\s+successful\s+installation|completion\s+installation|for\s+installation)", ptext, re.IGNORECASE)
+            or re.search(r"(\d+)\%\s*(?:of\s+(?:the\s+)?)?(?:install|commission)", ptext, re.IGNORECASE)
         )
-        # Guard: only accept if the captured value is unambiguously numeric (%)
         if s_pct and re.search(r"\d", s_pct.group(1)) and (_is_missing(payment_terms_supply_display) or payment_terms_supply_display == "NA"):
             payment_terms_supply_display = f"{s_pct.group(1)}%"
             logger.info(f"[ATC_ANCHOR] Resolved field 'payment_terms_supply' via SECTION_HEADING: TERMS OF PAYMENT ({payment_terms_supply_display})")
@@ -871,31 +968,34 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     max_ld_percentage_display = resolve_field(["Max LD Percentage", "max_ld_percentage"], r"Max LD Percentage[:\-\s]+([^\n]+)")
 
     prs_heading_match = re.search(
-        r"(?:PRICE REDUCTION SCHEDULE\s*\(PRS\)\s*FOR DELAYED DELIVERY|PRICE REDUCTION SCHEDULE|PRS\s+FOR\s+DELAYED\s+DELIVERY)(.*?)(?=\n\s*(?:SECTION|CLAUSE|\d+\.\d+|\Z))",
-        full_text, re.IGNORECASE | re.DOTALL
+        r"(?:PRICE REDUCTION SCHEDULE\s*\(PRS\)\s*FOR DELAYED DELIVERY|PRICE REDUCTION SCHEDULE|PRS\s+FOR\s+DELAYED\s+DELIVERY)([\s\S]*?)(?=\n\s*(?:SECTION|CLAUSE|\d+\.\d+|\Z))",
+        full_text, re.IGNORECASE
     )
     if prs_heading_match:
         prs_body = prs_heading_match.group(1)
         prs_m = re.search(
-            r"(\xbd|1/2|\d+(?:\.\d+)?)\s*%\s*(?:per\s+complete\s+week|per\s+week).*?maximum\s*(?:of\s*)?(\d+(?:\.\d+)?)\s*%",
-            prs_body, re.IGNORECASE | re.DOTALL
+            r"(\u00bd|\xbd|1/2|\d+(?:\.\d+)?)\s*(?:%|percent)(?:[\s\S]*?)(?:per\s+(?:complete\s+)?week)[\s\S]*?maximum\s+(?:of\s+)?(\d+(?:\.\d+)?)\s*(?:%|percent)",
+            prs_body, re.IGNORECASE
         )
         if prs_m:
             rate_raw = prs_m.group(1)
             max_raw = prs_m.group(2)
-            rate_val = 0.5 if rate_raw in ("\xbd", "1/2") else float(rate_raw)
+            rate_val = 0.5 if rate_raw in ("\u00bd", "\xbd", "1/2") else float(rate_raw)
+            max_val = float(max_raw)
+            max_str = f"{int(max_val)}" if max_val.is_integer() else f"{max_val}"
             ld_percentage_display = f"{rate_val}% per week"
-            max_ld_percentage_display = f"{float(max_raw)}%"
+            max_ld_percentage_display = f"{max_str}%"
             logger.info(f"[ATC_ANCHOR] Resolved field 'prs_ld' via SECTION_HEADING: PRICE REDUCTION SCHEDULE ({ld_percentage_display}, max {max_ld_percentage_display})")
     
     if _is_missing(ld_percentage_display) or ld_percentage_display == "NA":
-        prs_clause_match = re.search(r"(?:PRICE REDUCTION SCHEDULE|PRS).*?(\xbd|1/2|\d+(?:\.\d+)?)\%.*?per week.*?maximum\s*(\d+(?:\.\d+)?)\%", full_text, re.IGNORECASE | re.DOTALL)
+        prs_clause_match = re.search(r"(?:PRICE REDUCTION SCHEDULE|PRS)[\s\S]*?(\u00bd|\xbd|1/2|\d+(?:\.\d+)?)\%.*?per week.*?maximum\s*(\d+(?:\.\d+)?)\%", full_text, re.IGNORECASE)
         if prs_clause_match:
             rate_raw = prs_clause_match.group(1)
             max_raw = prs_clause_match.group(2)
-            rate_val = 0.5 if rate_raw in ("\xbd", "1/2") else float(rate_raw)
+            max_val = float(max_raw)
+            max_str = f"{int(max_val)}" if max_val.is_integer() else f"{max_val}"
             ld_percentage_display = f"{rate_val}% per week"
-            max_ld_percentage_display = f"{float(max_raw)}%"
+            max_ld_percentage_display = f"{max_str}%"
             logger.info(f"[ATC_ANCHOR] Resolved field 'prs_ld' via CLAUSE_NUMBER_FALLBACK: Clause 26.0 ({ld_percentage_display}, max {max_ld_percentage_display})")
         elif re.search(r"(?:PRICE REDUCTION SCHEDULE|PRS)", full_text, re.IGNORECASE):
             ld_percentage_display = "0.5% per week"
@@ -983,9 +1083,18 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
 
     # 32. Physical Docs Submission Required
     physical_docs_required_display = resolve_field("Physical Docs Required", r"Physical Docs Required[:\-\s]+([^\n]+)")
+    if _is_missing(physical_docs_required_display) or physical_docs_required_display == "NA":
+        if re.search(r"(?:submitted\s+in\s+Original\s+in\s+physical\s+form|physical\s+form\s+within\s+(\d+|\w+)\s*\(?\w*\)?\s*days|submission\s+of\s+physical\s+document)", full_text, re.IGNORECASE):
+            physical_docs_required_display = "Yes"
+            logger.info("[ATC_ANCHOR] Resolved field 'physical_docs_required' via ITB Clause 4.0 (Yes)")
 
     # 33. Physical Docs Submission Deadline
     physical_docs_deadline_display = resolve_field("Physical Docs Deadline", r"Physical Docs Deadline[:\-\s]+([^\n]+)")
+    if _is_missing(physical_docs_deadline_display) or physical_docs_deadline_display == "NA":
+        phys_dl_m = re.search(r"physical\s+form\s+within\s+([^\n\.]+?)(?:from|\.|$)", full_text, re.IGNORECASE)
+        if phys_dl_m:
+            physical_docs_deadline_display = f"Within {phys_dl_m.group(1).strip()}"
+            logger.info(f"[ATC_ANCHOR] Resolved field 'physical_docs_deadline' via ITB Clause 4.0 ({physical_docs_deadline_display})")
 
     # 34. Age (in yrs) / Experience Years (BEC Sl. 1)
     word_to_num = {
@@ -1096,22 +1205,32 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             )
             logger.info(f"[ATC_ANCHOR] Resolved field 'custom_eligibility_criteria' via SECTION_HEADING: BEC Technical Criteria Sl. 1 ({total_inr} INR)")
 
-    # 45. Client details — Tag (G) Primary
-    tag_g_match = re.search(
-        r"\(G\)\s*CONTACT\s*DETAILS(?:\s*OF\s*TENDER\s*DEALING\s*OFFICER)?(.*?)(?=\([A-Z0-9]{1,3}\)|\Z)",
-        full_text, re.IGNORECASE | re.DOTALL
+    # 45. Client details — BDS Clause 36 / Tag (G) Primary
+    client_name_1_display = "NA"
+    client_email_1_display = "NA"
+    client_phone_1_display = "NA"
+
+    bds_36_match = re.search(
+        r"(?:designated\s+authority\s+shall\s+be\s+contacted\s+after\s+receipt\s+of\s+Notification\s+of\s+Award|Clause\s*36[\.\s])([\s\S]*?)(?=\n\s*(?:Clause|\d+[\.\s]|\Z))",
+        full_text, re.IGNORECASE
     )
-    if tag_g_match:
-        g_text = tag_g_match.group(1)
-        name_m = re.search(r"Name[:\-\s]+(Sh\.\s*[^\n]+|[A-Za-z\.\s]{3,40})", g_text, re.IGNORECASE)
-        email_m = re.search(r"E-?mail(?:\s*ID)?[:\-\s]+([a-zA-Z0-9\._%+\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,})", g_text, re.IGNORECASE)
-        phone_m = re.search(r"(?:Phone|Tel|Mobile)(?:[^\n:]*?)[:\-][ \t]*([0-9\-\/\(\)\sExtn\.]+)", g_text, re.IGNORECASE)
-        
-        client_name_1_display = name_m.group(1).strip() if name_m else "NA"
-        client_email_1_display = email_m.group(1).strip() if email_m else "NA"
-        client_phone_1_display = phone_m.group(1).strip() if phone_m else "NA"
-        logger.info(f"[ATC_ANCHOR] Resolved field 'client_contacts' via BDS_TAG: (G) CONTACT DETAILS OF TENDER DEALING OFFICER ({client_name_1_display})")
-    else:
+    tag_g_match = re.search(
+        r"\(G\)[\s\S]*?(?:CONTACT\s*DETAILS|TENDER\s*DEALING|OFFICER)([\s\S]*?)(?=\([A-Z0-9]{1,3}\)|\Z)",
+        full_text, re.IGNORECASE
+    )
+    c1_text = bds_36_match.group(1) if bds_36_match else (tag_g_match.group(1) if tag_g_match else "")
+    
+    if c1_text:
+        name_m = re.search(r"Name[:\-\s]+(Sh\.\s*[^\n]+|[A-Za-z\.\s]{3,40})", c1_text, re.IGNORECASE)
+        email_m = re.search(r"E-?mail(?:\s*ID)?[:\-\s]+([a-zA-Z0-9\._%+\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,})", c1_text, re.IGNORECASE)
+        phone_m = re.search(r"(?:Phone|Tel|Mobile)(?:[^\n:]*?)[:\-][ \t]*([0-9\-\/\(\)\sExtn\.]+)", c1_text, re.IGNORECASE)
+        if name_m:
+            client_name_1_display = name_m.group(1).strip()
+            client_email_1_display = email_m.group(1).strip() if email_m else "NA"
+            client_phone_1_display = phone_m.group(1).strip() if phone_m else "NA"
+            logger.info(f"[ATC_ANCHOR] Resolved field 'client_contacts' via BDS Clause 36 ({client_name_1_display})")
+
+    if client_name_1_display == "NA":
         client_match = re.search(r"Requested Details[:\-\s]+([^\n]+)[:\-\s]+([^\n]+)[:\-\s]+([^\n]+)", full_text, re.IGNORECASE)
         if client_match:
             client_name_1_display = client_match.group(1).strip()
@@ -1129,25 +1248,28 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             client_email_1_display = email_m.group(1).strip() if email_m else "NA"
             client_phone_1_display = phone_m.group(1).strip() if phone_m else "NA"
 
-    # Task 2: Second Contact Block (Nodal Officer)
+    # Task 2: Second Contact Block (Nodal Officer - Clause 39.2 Anchor)
     client_name_2_display = "NA"
     client_email_2_display = "NA"
     client_phone_2_display = "NA"
 
     nodal_officer_match = re.search(
-        r"(?:Name\s+and\s+contact\s+details\s+of\s+nodal\s+officer|contact\s+details\s+of\s+nodal\s+officer)(.*?)(?=\n\s*\n\s*\d+\.|\Z)",
-        full_text, re.IGNORECASE | re.DOTALL
+        r"(?:39\.2\s+Name\s+and\s+contact\s+details\s+of\s+nodal\s+officer|nodal\s+officer\s+are\s+as\s+under)([\s\S]*?)(?=\n\s*(?:Clause|\d+[\.\s]|\Z))",
+        full_text, re.IGNORECASE
     )
     if nodal_officer_match:
         n_text = nodal_officer_match.group(1)
-        n_name = re.search(r"Name[:\-\s]+(Sh\.\s*[^\n]+|[A-Za-z\.\s]{3,40})", n_text, re.IGNORECASE)
+        n_name = (
+            re.search(r"Name[:\-\s]+(Shri?\.\s*[^\n,]+|[A-Za-z\.\s]{3,40})", n_text, re.IGNORECASE)
+            or re.search(r"are\s+as\s+under[:\s\n]*(Shri?\.\s*[^\n,]+)", n_text, re.IGNORECASE)
+        )
         n_email = re.search(r"E-?mail(?:\s*ID)?[:\-\s]+([a-zA-Z0-9\._%+\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,})", n_text, re.IGNORECASE)
-        n_phone = re.search(r"(?:Phone|Tel|Mobile)(?:\s*No|\s*and\s*Extn)?[:\-\s]+([0-9\-\/\(\)\sExtn\.]+)", n_text, re.IGNORECASE)
+        n_phone = re.search(r"(?:Phone|Tel|Mobile|Tel[:\-\s]*)(?:\s*No|\s*and\s*Extn)?[:\-\s]*([0-9\-\/\(\)\sExtn\.]+)", n_text, re.IGNORECASE)
         if n_name:
-            client_name_2_display = n_name.group(1).strip()
+            client_name_2_display = n_name.group(1).split("\n")[0].strip()
             client_email_2_display = n_email.group(1).strip() if n_email else "NA"
             client_phone_2_display = n_phone.group(1).strip() if n_phone else "NA"
-            logger.info(f"[ATC_ANCHOR] Resolved field 'client_contacts_2' via SECTION_HEADING: Nodal Officer Clause ({client_name_2_display})")
+            logger.info(f"[ATC_ANCHOR] Resolved field 'client_contacts_2' via BDS Clause 39.2 ({client_name_2_display})")
 
     client_name_3_display = "NA"
     client_email_3_display = "NA"
@@ -1189,33 +1311,61 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             elif idx == 7: doc_8_display = doc_name
             elif idx == 8: doc_9_display = doc_name
 
-    # Courier Delivery Address: BDS Tag (H) Primary
-    tag_h_match = re.search(
-        r"\(H\)\s*DEALING\s*GAIL['’\s]*S\s*OFFICE\s*ADDRESS(.*?)(?=\([A-Z0-9]{1,3}\)|In\s+case|\Z)",
-        full_text, re.IGNORECASE | re.DOTALL
+    # Courier Delivery Address: BDS Clause 22.2 Primary with Tight Positive Stop after Email
+    addr_block_m = re.search(
+        r"(?:the\s+Owner['’]?s\s+address\s+is|Clause\s*22\.2)[:\-\s]*([\s\S]*?(?:E-?mail|Contact\s*No)[\:\s]*[^\n]+)",
+        full_text, re.IGNORECASE
     )
-    if tag_h_match:
-        h_text = tag_h_match.group(1).strip()
-        h_clean = re.sub(r"\s+", " ", h_text)
-        if client_name_1_display != "NA" and client_email_1_display != "NA":
-            courier_address_display = f"{h_clean} | Kind Attn: {client_name_1_display} ({client_email_1_display})"
-        elif client_name_1_display != "NA":
-            courier_address_display = f"{h_clean} | Kind Attn: {client_name_1_display}"
+    if addr_block_m:
+        addr_raw = addr_block_m.group(1)
+        attn_m = re.search(r"Attention[:\-\s]+([^\n]+)", addr_raw, re.IGNORECASE)
+        street_m = re.search(r"Street\s+Address[:\-\s]+([^\n]+)", addr_raw, re.IGNORECASE)
+        floor_m = re.search(r"Floor/Room\s+number[:\-\s]+([^\n]+)", addr_raw, re.IGNORECASE)
+        city_m = re.search(r"City[:\-\s]+([^\n]+)", addr_raw, re.IGNORECASE)
+        zip_m = re.search(r"(?:ZIP\s+Code|Pincode)[:\-\s]+([^\n]+)", addr_raw, re.IGNORECASE)
+        country_m = re.search(r"Country[:\-\s]+([^\n]+)", addr_raw, re.IGNORECASE)
+        
+        parts = []
+        if attn_m: parts.append(f"Kind Attn: {attn_m.group(1).strip()}")
+        if street_m: parts.append(street_m.group(1).strip())
+        if floor_m: parts.append(floor_m.group(1).strip())
+        if city_m: parts.append(city_m.group(1).strip())
+        if zip_m: parts.append(zip_m.group(1).strip())
+        if country_m: parts.append(country_m.group(1).strip())
+        
+        if parts:
+            courier_address_display = ", ".join(parts)
         else:
-            courier_address_display = h_clean
-        logger.info(f"[ATC_ANCHOR] Resolved field 'courier_address' via BDS_TAG: (H) DEALING GAIL'S OFFICE ADDRESS ({courier_address_display[:60]}...)")
+            clean_addr = re.sub(r"\s+", " ", addr_raw).strip()
+            courier_address_display = clean_addr if len(clean_addr) > 5 else "NA"
+        logger.info(f"[ATC_ANCHOR] Resolved field 'courier_address' via BDS Clause 22.2 ({courier_address_display[:60]}...)")
     else:
-        courier_addr_match = re.search(r"Address \(Legacy\)[:\-\s]+([^\n]+(?:\n\s*[^\n]+)?)[:\-\s]+(?:Physical Docs Required|Physical Docs Submission)", full_text, re.IGNORECASE)
-        if courier_addr_match:
-            courier_address_display = courier_addr_match.group(1).strip().replace("\n", " ")
-        else:
-            cutout_match = re.search(r"(?:CUT-OUT SLIP|CUT OUT SLIP|DO NOT OPEN).*?TO[:\-\s]+(.*?)(?:FROM|KIND ATTN|QUOTATION|\Z)", full_text, re.IGNORECASE | re.DOTALL)
-            if cutout_match:
-                raw_addr = cutout_match.group(1).strip()
-                clean_addr = re.sub(r"\s+", " ", raw_addr)
-                courier_address_display = clean_addr if len(clean_addr) > 5 else "NA"
+        tag_h_match = re.search(
+            r"\(H\)\s*DEALING\s*GAIL['’\s]*S\s*OFFICE\s*ADDRESS(.*?)(?=\([A-Z0-9]{1,3}\)|In\s+case|\Z)",
+            full_text, re.IGNORECASE | re.DOTALL
+        )
+        if tag_h_match:
+            h_text = tag_h_match.group(1).strip()
+            h_clean = re.sub(r"\s+", " ", h_text)
+            if client_name_1_display != "NA" and client_email_1_display != "NA":
+                courier_address_display = f"{h_clean} | Kind Attn: {client_name_1_display} ({client_email_1_display})"
+            elif client_name_1_display != "NA":
+                courier_address_display = f"{h_clean} | Kind Attn: {client_name_1_display}"
             else:
-                courier_address_display = "NA"
+                courier_address_display = h_clean
+            logger.info(f"[ATC_ANCHOR] Resolved field 'courier_address' via BDS_TAG: (H) DEALING GAIL'S OFFICE ADDRESS ({courier_address_display[:60]}...)")
+        else:
+            courier_addr_match = re.search(r"Address \(Legacy\)[:\-\s]+([^\n]+(?:\n\s*[^\n]+)?)[:\-\s]+(?:Physical Docs Required|Physical Docs Submission)", full_text, re.IGNORECASE)
+            if courier_addr_match:
+                courier_address_display = courier_addr_match.group(1).strip().replace("\n", " ")
+            else:
+                cutout_match = re.search(r"(?:CUT-OUT SLIP|CUT OUT SLIP|DO NOT OPEN).*?TO[:\-\s]+(.*?)(?:FROM|KIND ATTN|QUOTATION|\Z)", full_text, re.IGNORECASE | re.DOTALL)
+                if cutout_match:
+                    raw_addr = cutout_match.group(1).strip()
+                    clean_addr = re.sub(r"\s+", " ", raw_addr)
+                    courier_address_display = clean_addr if len(clean_addr) > 5 else "NA"
+                else:
+                    courier_address_display = "NA"
 
     courier_provider_display = "NA"
     courier_docket_no_display = "NA"
@@ -1458,6 +1608,96 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         "schedule_2_details_display": schedule_2_details_display,
         "schedule_3_details_display": schedule_3_details_display,
     }
+
+    # Dual-pipeline field synchronization: Push resolved ATC fields back into sections list (Fix C)
+    resolved_vals = {
+        "payment_terms_supply_percent": payment_terms_supply_display,
+        "payment_terms_installation_percent": payment_terms_installation_display,
+        "maf_required": maf_required_display,
+        "ld_percentage_per_week": ld_percentage_display,
+        "max_ld_percentage": max_ld_percentage_display,
+        "client_contact_person": client_name_1_display,
+        "client_email": client_email_1_display,
+        "client_phone": client_phone_1_display,
+        "full_courier_address_with_pincode": courier_address_display,
+        "bid_validity_days": bid_validity_days_display,
+        "eligibility_criterion_years": age_in_yrs,
+        "avg_annual_turnover_value": avg_annual_turnover_value_display,
+        "working_capital_value": working_capital_value_display,
+        "solvency_certificate_value": solvency_certificate_value_display,
+        "net_worth_value": net_worth_value_display,
+        "physical_docs_required": physical_docs_required_display,
+        "physical_docs_deadline": physical_docs_deadline_display,
+    }
+
+    name_to_key = {
+        "payment_terms_supply_percent": ["payment terms %", "payment_terms_supply_percent"],
+        "payment_terms_installation_percent": ["payment terms installation (%)", "payment_terms_installation_percent"],
+        "maf_required": ["maf required", "maf_required"],
+        "ld_percentage_per_week": ["ld percentage per week", "ld_percentage_per_week"],
+        "max_ld_percentage": ["max ld percentage", "max_ld_percentage"],
+        "client_contact_person": ["client contacts", "client_contact_person"],
+        "client_email": ["client email", "client_email"],
+        "client_phone": ["client phone", "client_phone"],
+        "full_courier_address_with_pincode": ["courier address", "full_courier_address_with_pincode"],
+        "bid_validity_days": ["bid validity period", "bid_validity_days"],
+        "eligibility_criterion_years": ["minimum experience (years)", "eligibility_criterion_years", "minimum experience", "experience years"],
+        "avg_annual_turnover_value": ["annual avg turnover value", "avg_annual_turnover_value", "annual avg turnover", "average annual turnover"],
+        "working_capital_value": ["working capital value", "working_capital_value", "working capital"],
+        "solvency_certificate_value": ["solvency certificate value", "solvency_certificate_value", "solvency certificate"],
+        "net_worth_value": ["net worth value", "net_worth_value", "net worth"],
+        "physical_docs_required": ["physical docs required", "physical_docs_required"],
+        "physical_docs_deadline": ["physical docs deadline", "physical_docs_deadline"],
+    }
+
+    updated_canon = set()
+    for sec in sections:
+        for f in sec.get("fields", []):
+            lbl = str(f.get("label", "")).lower()
+            f_name = str(f.get("field_name", "")).lower()
+            for canon_name, aliases in name_to_key.items():
+                if f_name == canon_name or any(alias in lbl for alias in aliases):
+                    val = resolved_vals[canon_name]
+                    if val not in (None, "", "NA", "Not Found"):
+                        updated_canon.add(canon_name)
+                        if f.get("status") != "verified":
+                            if "not applicable" in str(val).lower() or "exempt" in str(val).lower() or val in ("₹0.00", "0.0", 0):
+                                f["value"] = "N/A"
+                                f["status"] = "not_applicable"
+                                f["confidence"] = 100.0
+                            else:
+                                f["value"] = val
+                                f["status"] = "extracted"
+                                f["confidence"] = 95.0
+                        f["source"] = "atc"
+
+    # For any missing fields in sections, append them to the first section
+    if sections:
+        dest_sec = sections[0]
+        existing_fields = dest_sec.get("fields", [])
+        all_verified = bool(existing_fields) and all(f.get("status") == "verified" for f in existing_fields)
+        
+        for canon_name, val in resolved_vals.items():
+            if canon_name not in updated_canon and val not in (None, "", "NA", "Not Found"):
+                label_clean = name_to_key[canon_name][0].replace("_", " ").title()
+                if "not applicable" in str(val).lower() or "exempt" in str(val).lower() or val in ("₹0.00", "0.0", 0):
+                    val = "N/A"
+                    status_val = "verified" if all_verified else "not_applicable"
+                    conf_val = 100.0
+                else:
+                    status_val = "verified" if all_verified else "extracted"
+                    conf_val = 95.0
+                
+                dest_sec.setdefault("fields", []).append({
+                    "id": f"f-{canon_name}",
+                    "label": label_clean,
+                    "field_name": canon_name,
+                    "value": val,
+                    "status": status_val,
+                    "confidence": conf_val,
+                    "source": "atc"
+                })
+
     res_dict["_info_sheet_sources"] = info_sheet_sources
     return res_dict
 

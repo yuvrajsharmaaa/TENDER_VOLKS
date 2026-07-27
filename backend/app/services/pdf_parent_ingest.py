@@ -198,6 +198,36 @@ def ingest_parent_tender_pdf(
             atc_page_texts = extract_pdf_text_hybrid(str(atc_path), atc_pages_dir)
             atc_sections = extract_tender_fields(atc_page_texts, f"{title_raw} ATC", document_type="generic_nit")
             
+            # Upsert standalone resolve_atc_anchor_fields output into atc_sections (Task 2)
+            atc_full_text = "\n".join([p.get("text", "") for p in atc_page_texts])
+            from backend.app.services.tender_mapper import resolve_atc_anchor_fields
+            resolved_atc = resolve_atc_anchor_fields(atc_full_text)
+            
+            schema_label_map = {
+                "ld_percentage_per_week": "LD Percentage per Week",
+                "max_ld_percentage": "Max LD Percentage",
+                "maf_required": "MAF Required",
+                "payment_terms_supply_percent": "Payment Terms %",
+                "payment_terms_installation_percent": "Payment Terms Installation (%)",
+                "sd_mode": "Security Deposit Mode",
+                "sd_required": "Security Deposit Required",
+                "sd_percentage": "Security Deposit %",
+                "sd_duration": "Security Deposit Duration"
+            }
+            if atc_sections:
+                sec_to_update = atc_sections[0]
+                for key, val in resolved_atc.items():
+                    lbl = schema_label_map.get(key, key.replace("_", " ").title())
+                    sec_to_update.setdefault("fields", []).append({
+                        "id": f"f-{key}",
+                        "label": lbl,
+                        "field_name": key,
+                        "value": val,
+                        "status": "extracted",
+                        "confidence": 85.0,
+                        "source": "atc"
+                    })
+            
             # BUG 4 FIX: Build label -> (section_index, field_index) map to preserve section layout
             label_to_loc = {}
             for sec_idx, sec in enumerate(sections):

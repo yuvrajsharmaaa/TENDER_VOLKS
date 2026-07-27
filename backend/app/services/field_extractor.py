@@ -121,6 +121,8 @@ def extract_tender_fields(
         "prs_max": "Max LD Percentage",
         "payment_terms": "Payment Terms",
         "payment_terms_supply_percent": "Payment Terms %",
+        "payment_terms_installation_percent": "Payment Terms Installation (%)",
+        "maf_required": "MAF Required",
         "client_contact_person": "Client Contacts",
         "client_contacts": "Client Contacts",
         "full_courier_address_with_pincode": "Courier Address",

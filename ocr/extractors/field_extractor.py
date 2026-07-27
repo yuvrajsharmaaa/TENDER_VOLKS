@@ -412,6 +412,16 @@ class FieldExtractor:
                 "hindi": ["भुगतान की शर्तें"],
                 "type": "text"
             },
+            "payment_terms_installation_percent": {
+                "anchors": ["balance", "successful installation", "installation & commissioning", "Payment Terms Installation"],
+                "hindi": [],
+                "type": "text"
+            },
+            "maf_required": {
+                "anchors": ["Manufacturer Authorization Form", "MAF Required", "Authorized Partner/ Distributor/ Dealer"],
+                "hindi": [],
+                "type": "yes_no"
+            },
             "prs_ld": {
                 "anchors": ["PRICE REDUCTION SCHEDULE", "Price Reduction Schedule", "PRS", "Price Reduction"],
                 "hindi": ["मूल्य कटौती अनुसूची"],
