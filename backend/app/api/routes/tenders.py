@@ -496,6 +496,7 @@ async def process_tender_document(
     document_id: str,
     background_tasks: BackgroundTasks,
     run_layoutlm: bool = False,
+    force_reprocess: bool = False,
     db: Session = Depends(get_db)
 ):
     """
@@ -536,7 +537,7 @@ async def process_tender_document(
                 "message": "Document is already currently being processed"
             }
         )
-    elif doc.processing_status == "completed":
+    elif doc.processing_status == "completed" and not force_reprocess:
         raise HTTPException(
             status_code=400,
             detail={

@@ -163,12 +163,14 @@ def extract_pdf_text_hybrid(pdf_path: str, pages_dir: Path) -> List[Dict[str, An
         if is_digital:
             native_words = page.get_text("words")
             blocks = build_text_blocks_from_words(native_words)
+            cb_states = extract_checkbox_states(page)
             results.append({
                 "page": page_num + 1,
                 "text": native_text,
                 "source": "native",
                 "confidence": 100.0,
-                "blocks": blocks
+                "blocks": blocks,
+                "checkboxes": cb_states
             })
         else:
             # Scanned page detected -> render to image

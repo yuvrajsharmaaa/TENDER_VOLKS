@@ -200,8 +200,9 @@ def ingest_parent_tender_pdf(
             
             # Upsert standalone resolve_atc_anchor_fields output into atc_sections (Task 2)
             atc_full_text = "\n".join([p.get("text", "") for p in atc_page_texts])
+            atc_checkboxes = [cb for p in atc_page_texts for cb in p.get("checkboxes", [])]
             from backend.app.services.tender_mapper import resolve_atc_anchor_fields
-            resolved_atc = resolve_atc_anchor_fields(atc_full_text)
+            resolved_atc = resolve_atc_anchor_fields(atc_full_text, checkboxes=atc_checkboxes, page_texts=atc_page_texts)
             
             schema_label_map = {
                 "ld_percentage_per_week": "LD Percentage per Week",

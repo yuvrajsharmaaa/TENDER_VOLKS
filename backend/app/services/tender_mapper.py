@@ -314,7 +314,11 @@ def map_internal_to_db_payload(data: dict, tender_id: int) -> dict:
     
     return db_payload
 
-def resolve_atc_anchor_fields(full_text: str) -> Dict[str, Any]:
+def resolve_atc_anchor_fields(
+    full_text: str,
+    checkboxes: Optional[List[Dict[str, Any]]] = None,
+    page_texts: Optional[List[Dict[str, Any]]] = None
+) -> Dict[str, Any]:
     """
     Extracts ATC anchor fields as schema-typed values (float, bool, int, str).
     Covering:
@@ -387,7 +391,32 @@ def resolve_atc_anchor_fields(full_text: str) -> Dict[str, Any]:
     if c38_match:
         res["sd_percentage"] = float(c38_match.group(1))
         res["sd_duration"] = int(c38_match.group(2))
+
+    # Precedence: 1. Wingdings Checkbox Detection
+    sd_checkbox_resolved = False
+    if checkboxes:
+        for cb in checkboxes:
+            assoc_lbl = str(cb.get("associated_label", "")).strip().upper()
+            cb_page = cb.get("page")
+            if assoc_lbl in ("APPLICABLE", "NOT APPLICABLE"):
+                cb_page_text = ""
+                if page_texts and 1 <= cb_page <= len(page_texts):
+                    cb_page_text = page_texts[cb_page - 1].get("text", "")
+                
+                if not cb_page_text or re.search(r"(?:Contract Performance Security|Security Deposit)", cb_page_text, re.IGNORECASE):
+                    is_req = (cb.get("status") == "CHECKED") if assoc_lbl == "APPLICABLE" else (cb.get("status") == "UNCHECKED")
+                    res["sd_required"] = is_req
+                    sd_checkbox_resolved = True
+                    logger.info(
+                        f"[ATC_ANCHOR] Resolved field 'sd_required' via CHECKBOX_DETECTION: "
+                        f"page {cb_page} label '{assoc_lbl}' status {cb.get('status')} -> {is_req}"
+                    )
+                    break
+
+    # Precedence: 2. Fallback to Text-Only Regex Inference
+    if not sd_checkbox_resolved and c38_match:
         res["sd_required"] = True
+        logger.info("[ATC_ANCHOR] Resolved field 'sd_required' via TEXT_FALLBACK: Clause 38 regex match")
 
     return res
 
