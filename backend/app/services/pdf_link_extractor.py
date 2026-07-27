@@ -262,14 +262,14 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                                 domain = parsed.netloc
                                 path = parsed.path
 
-                                tender_domains = ["gem.gov.in", "mkp.gem.gov.in", "eprocure.gov.in", "etenders.gov.in", "cppp.gov.in"]
-                                tender_path_keywords = ["/buyer-atc/", "/atc/", "/doc/", "/download/", "/tenders/", "/files/", "/documents/"]
+                                tender_domains = ["gem.gov.in", "mkp.gem.gov.in", "assets-bg.gem.gov.in", "bidplus.gem.gov.in", "eprocure.gov.in", "etenders.gov.in", "cppp.gov.in"]
+                                tender_path_keywords = ["/buyer-atc/", "/atc/", "/doc/", "/download/", "/tenders/", "/files/", "/documents/", "/upload/", "/resources/"]
 
                                 if any(td in domain for td in tender_domains):
                                     if any(kw in path for kw in tender_path_keywords):
                                         return True
 
-                                return any(kw in url_lower for kw in ["/buyer-atc/", "/atc/doc/", "download_atc", "get_document"])
+                                return any(kw in url_lower for kw in ["/buyer-atc/", "/atc/doc/", "download_atc", "get_document", "/upload/shared/"])
 
                             should_download = is_atc_anchor or is_tender_doc_url(uri)
                             if should_download:

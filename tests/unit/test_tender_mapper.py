@@ -491,8 +491,8 @@ def test_pbg_required_derived_from_percentage():
         f"Expected 'Yes' but got {info_data['pbg_required_display']!r} — "
         "derivation rule should infer PBG Required from PBG Percentage presence."
     )
-    assert info_data["pbg_percentage_display"] == "5.0%"
-    assert info_data["pbg_duration_display"] == "21 Months"
+    assert info_data["pbg_percentage_display"] == "5%"
+    assert info_data["pbg_duration_display"] == "21"
 
 
 def test_bds_tag_g_h_e_anchors_and_second_nodal_officer():

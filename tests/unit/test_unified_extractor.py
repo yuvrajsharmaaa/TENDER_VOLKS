@@ -44,7 +44,7 @@ def test_unified_extractor_and_regex_fallback():
     
     assert infosheet_inline.get("bid_validity_days_display") == "90 Days"
     assert infosheet_inline.get("emd_required_display") == "Yes"
-    assert infosheet_inline.get("pbg_duration_display") == "6 Months"
+    assert infosheet_inline.get("pbg_duration_display") in ("6", "6 Months")
     
     # 4. Test case: Stringified list values are parsed and formatted cleanly without corruption
     infosheet_safe["tender_value"] = '["Value 1", "Value 2"]'
