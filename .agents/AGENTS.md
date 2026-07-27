@@ -57,3 +57,35 @@ Every extracted field object (`ExtractedFieldSchema`) produced during processing
 - **Main Document Ownership**: `Bid Validity Period`, `PBG Duration`, `Tender Title`, `NIT No`.
 - **Excluded / Non-Existent in ATC**: `Processing Fee Amount` / `Tender Fee Amount` (0 occurrences in ATC).
 
+## Learned PSU/GeM Tender Parsing Rules
+
+### EMD Mode Instrument Mapping Rules
+- Scans target text for specific keywords and maps them to standard abbreviations:
+  - `"demand draft"` -> `DD`
+  - `"banker's cheque"`, `"bankers cheque"`, `"imps"`, `"neft"`, `"rtgs"`, `"online banking"` -> `BT`
+  - `"surety bond"`, `"insurance surety"` -> `SB`
+  - `"fixed deposit"`, `"fdr"` -> `FDR`
+  - `"bank guarantee"`, `"bg"` -> `BG`
+- Maps multiple identified instruments separating them by `/` (e.g. `DD/BG`).
+
+### Restricted Section Scoping for Payment Terms
+- Avoid scanning generic GCC payment terms which often list boilerplate terms.
+- Restrict search to `SECTION-V`, `SECTION-VI`, `SCOPE OF WORK`, or `SPECIAL CONDITIONS OF CONTRACT` (SCC) boundaries in the `ATC_DOC`.
+- Parse specific percentage splits (e.g. `70%` receipt/delivery/supply and `30%` install/commissioning).
+
+### Financial Criteria Exemption Rules
+- If the phrase `"financial criteria"` and `"not applicable"` appear together in the BEC text, automatically override all 8 financial sub-fields:
+  - `avg_annual_turnover_type_display` -> `"Not Applicable"`
+  - `avg_annual_turnover_value_display` -> `"₹0.00"`
+  - `working_capital_type_display` -> `"Not Applicable"`
+  - `working_capital_value_display` -> `"₹0.00"`
+  - `solvency_certificate_type_display` -> `"Not Applicable"`
+  - `solvency_certificate_value_display` -> `"₹0.00"`
+  - `net_worth_type_display` -> `"Not Applicable"`
+  - `net_worth_value_display` -> `"₹0.00"`
+
+### Client Contact Block Parsing
+- Locate Nodal Officer / Contact Details section.
+- Extract contact details in ordered formats representing name, phone, and email details (e.g., matching `"Sh. / Shri / Mr."` name, `"@gail.co.in"` email, and standard phone number formats).
+
+

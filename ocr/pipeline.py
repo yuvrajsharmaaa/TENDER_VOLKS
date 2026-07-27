@@ -160,6 +160,10 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False, atc_pdf
             
             region.contained_block_ids = [b.block_id for b in sorted_contained]
             region.text_content = "\n".join([b.text for b in sorted_contained])
+            
+            if region.region_type.lower() == "table":
+                from ocr.table_grid_parser import build_table_structure
+                region.table_structure = build_table_structure(contained_blocks)
         
         # Get actual image dimensions
         with Image.open(img_path) as img:
@@ -316,6 +320,17 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False, atc_pdf
                             preprocessed_path.unlink()
                         except Exception:
                             pass
+
+                # Spatial containment and reading order mapping for ATC regions
+                for idx, region in enumerate(layout_regions):
+                    region.reading_order_index = idx + 1
+                    contained_blocks = [tb for tb in text_blocks if is_contained(tb.bounding_box, region.bounding_box)]
+                    sorted_contained = sort_blocks_by_reading_order(contained_blocks)
+                    region.contained_block_ids = [b.block_id for b in sorted_contained]
+                    region.text_content = "\n".join([b.text for b in sorted_contained])
+                    if region.region_type.lower() == "table":
+                        from ocr.table_grid_parser import build_table_structure
+                        region.table_structure = build_table_structure(contained_blocks)
 
                 atc_pr = PageResult(
                     job_id=f"{job_id}_atc",

@@ -68,6 +68,10 @@ coverage.xml
 # PaddleOCR
 .paddleocr/
 models/
+!backend/app/models/
+!backend/app/models/**
+!backend/app/models/
+!backend/app/models/**
 inference/
 whl/
 

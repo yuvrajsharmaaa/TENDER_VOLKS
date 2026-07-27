@@ -16,6 +16,7 @@ from backend.app.services.normalizer import (
 )
 from backend.app.services.csv_schema import CSV_COLUMNS, EVIDENCE_COLUMNS
 from backend.app.services.evidence_collector import resolve_best_value, compile_evidence_log
+from ocr.table_grid_parser import reconstruct_grid
 
 logger = logging.getLogger(__name__)
 
@@ -372,6 +373,121 @@ def map_extraction_to_tender_information(extracted: dict, tender_id: int) -> dic
     return map_internal_to_db_payload(normalized, tender_id)
 
 
+def extract_regex_safe(label: str, full_text: str) -> Optional[str]:
+    if not full_text or not label:
+        return None
+    # 1. Match inline with colon/dash (allows any characters after colon/dash up to a large gap)
+    m1 = re.search(rf"{re.escape(label)}[ \t]*[:\-–—\.]+[ \t]*((?:(?!\s{{2,}})[^\n])+)", full_text, re.IGNORECASE)
+    if m1:
+        return m1.group(1).strip()
+    # 2. Match inline with 1-2 spaces (requires starting with alphanumeric, stops at large gaps or end of line)
+    m2 = re.search(rf"{re.escape(label)}[ \t]{{1,2}}([A-Za-z0-9₹Rs](?:(?!\s{{2,}})[^\n]){{0,24}})(?:\s{{2,}}|\n|$)", full_text, re.IGNORECASE)
+    if m2:
+        return m2.group(1).strip()
+    # 3. Match next line ONLY if label is the only thing on the line
+    m3 = re.search(rf"^[ \t]*{re.escape(label)}[ \t]*\n[ \t]*((?:(?!\s{{2,}})[^\n])+)", full_text, re.IGNORECASE | re.MULTILINE)
+    if m3:
+        return m3.group(1).strip()
+    return None
+
+def resolve_field_staged(
+    canonical_key: str,
+    synonyms: List[str],
+    full_text: str,
+    grid_matrix: List[List[str]]
+) -> Tuple[Any, str, float]:
+    """
+    Executes a 4-pass resolution protocol before defaulting to NA:
+    Pass 1: Exact 2D Grid Cell Mapping
+    Pass 2: Section-Scoped Regex Extraction
+    Pass 3: Business & Exemption Rules Check
+    Pass 4: Fallback Assignment (NA)
+    """
+    # Pass 1: Check 2D Table Matrix for label and extract adjacent cell value
+    for row in grid_matrix:
+        for idx, cell in enumerate(row):
+            if any(syn.lower() in cell.lower() for syn in synonyms):
+                if idx + 1 < len(row) and row[idx+1].strip():
+                    val = row[idx+1].strip()
+                    if val.lower() not in ["na", "n/a", "nil", "—"]:
+                        return val, "grid_matrix_cell", 95.0
+
+    # Pass 2: Section Regex Extraction
+    for syn in synonyms:
+        val = extract_regex_safe(syn, full_text)
+        if val and val.strip():
+            val_clean = val.strip()
+            if val_clean.lower() not in ["na", "n/a", "nil", "—"]:
+                return val_clean, "section_regex", 85.0
+
+    # Pass 3: Business & Exemption Rules Check
+    if any(k in canonical_key.lower() for k in ["financial", "turnover", "solvency", "net_worth", "working_capital"]):
+        if "financial criteria" in full_text.lower() and "not applicable" in full_text.lower():
+            return "Not Applicable", "domain_rule_exemption", 90.0
+
+    # Pass 4: Fallback Assignment
+    return "NA", "missing_fallback", 0.0
+
+def collect_repeated_documents(sections: List[Dict[str, Any]]) -> List[Dict[str, str]]:
+    """
+    Prevents repeated checklist items (Doc 1..Doc 9) from overwriting one another.
+    Supports list structures and comma-separated document names.
+    """
+    documents_list = []
+    doc_counter = 1
+
+    for sec in sections:
+        for f in sec.get("fields", []):
+            label = f.get("label", "").strip()
+            val = f.get("value")
+            if not val or val == "NA" or val == "Not Found":
+                continue
+
+            if any(kw in label.lower() for kw in ["document", "doc", "supporting", "attachment"]):
+                import ast
+                parsed_items = []
+                if isinstance(val, list):
+                    parsed_items = val
+                elif isinstance(val, str) and val.strip().startswith("["):
+                    try:
+                        parsed_items = ast.literal_eval(val)
+                    except Exception:
+                        pass
+
+                if parsed_items and isinstance(parsed_items, list):
+                    for item in parsed_items:
+                        doc_name = item.get("document_name") if isinstance(item, dict) else str(item)
+                        if doc_name and doc_name.strip() and doc_name.strip() != "NA":
+                            documents_list.append({
+                                "doc_identifier": f"Doc {doc_counter}",
+                                "label": label,
+                                "description": doc_name.strip()
+                            })
+                            doc_counter += 1
+                else:
+                    val_str = str(val).strip()
+                    if val_str and val_str != "NA":
+                        if "," in val_str and not any(c.isdigit() for c in val_str):
+                            parts = [p.strip() for p in val_str.split(",") if p.strip()]
+                            for part in parts:
+                                if part != "NA":
+                                    documents_list.append({
+                                        "doc_identifier": f"Doc {doc_counter}",
+                                        "label": label,
+                                        "description": part
+                                    })
+                                    doc_counter += 1
+                        else:
+                            documents_list.append({
+                                "doc_identifier": f"Doc {doc_counter}",
+                                "label": label,
+                                "description": val_str
+                            })
+                            doc_counter += 1
+
+    return documents_list
+
+
 def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[str, Any]] = None, job_id: str = "Unknown") -> Dict[str, str]:
     """
     Flattens the extracted sections and runs regex match fallbacks on the raw page texts
@@ -428,8 +544,13 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
 
     # Get full text if page_texts is provided
     full_text = ""
+    grid_matrix = []
     if page_texts:
         full_text = "\n".join([p.get("text", "") for p in page_texts])
+        for p in page_texts:
+            p_blocks = p.get("blocks", [])
+            if p_blocks:
+                grid_matrix.extend(reconstruct_grid(p_blocks))
 
     # Helper to extract using regex from full_text
     import re
@@ -441,17 +562,9 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         suffix = r"[:\-\s]+([^\n]+)"
         if pattern.endswith(suffix):
             label = pattern[:-len(suffix)]
-            # Match inline with colon/dash OR at most 2 spaces, stopping at large gaps
-            # If there's a colon/dash, we allow any character. If only spaces, the value must start with alphanumeric.
-            m1 = re.search(rf"{label}[ \t]*[:\-][ \t]*((?:(?!\s{{2,}})[^\n])+)", full_text, re.IGNORECASE)
-            if not m1:
-                m1 = re.search(rf"{label}[ \t]{{1,2}}([A-Za-z0-9₹Rs](?:(?!\s{{2,}})[^\n]){{0,24}})(?:\s{{2,}}|\n|$)", full_text, re.IGNORECASE)
-            if m1:
-                return m1.group(1).strip()
-            # Match next line ONLY if label is the only thing on the line
-            m2 = re.search(rf"^[ \t]*{label}[ \t]*\n[ \t]*((?:(?!\s{{2,}})[^\n])+)", full_text, re.IGNORECASE | re.MULTILINE)
-            if m2:
-                return m2.group(1).strip()
+            val = extract_regex_safe(label, full_text)
+            if val is not None:
+                return val
             return default
                 
         # Fallback to original
@@ -469,6 +582,13 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
                 val = field_lookup.get(key.lower())
             if not _is_missing(val) and val != "Not Found":
                 return val
+                
+        # Staged resolver fallback
+        canonical_key = keys[0] if keys else "unknown"
+        val_staged, method, conf = resolve_field_staged(canonical_key, keys, full_text, grid_matrix)
+        if val_staged != "NA":
+            return val_staged
+
         if regex_pattern:
             return extract_regex(regex_pattern, default)
         return default
@@ -1044,14 +1164,30 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     doc_8_display = "NA"
     doc_9_display = "NA"
 
-    extra_docs_match = re.search(r"Extra Documents \(\d+\)[:\-\s]+([^\n]+)(?:\n\s*([^\n]+))?(?:\n\s*([^\n]+))?(?:\n\s*([^\n]+))?(?:\n\s*([^\n]+))?(?:\n\s*([^\n]+))?", full_text, re.IGNORECASE)
-    if extra_docs_match:
-        doc_1_display = extra_docs_match.group(1).strip() if extra_docs_match.group(1) else "NA"
-        doc_2_display = extra_docs_match.group(2).strip() if extra_docs_match.group(2) else "NA"
-        doc_3_display = extra_docs_match.group(3).strip() if extra_docs_match.group(3) else "NA"
-        doc_4_display = extra_docs_match.group(4).strip() if extra_docs_match.group(4) else "NA"
-        doc_5_display = extra_docs_match.group(5).strip() if extra_docs_match.group(5) else "NA"
-        doc_6_display = extra_docs_match.group(6).strip() if extra_docs_match.group(6) else "NA"
+    # Use robust collect_repeated_documents to gather documents
+    repeated_docs = collect_repeated_documents(sections)
+    if not repeated_docs:
+        # Fallback to extra docs match on full text if sections didn't have documents
+        extra_docs_match = re.search(r"Extra Documents \(\d+\)[:\-\s]+([^\n]+)(?:\n\s*([^\n]+))?(?:\n\s*([^\n]+))?(?:\n\s*([^\n]+))?(?:\n\s*([^\n]+))?(?:\n\s*([^\n]+))?", full_text, re.IGNORECASE)
+        if extra_docs_match:
+            doc_1_display = extra_docs_match.group(1).strip() if extra_docs_match.group(1) else "NA"
+            doc_2_display = extra_docs_match.group(2).strip() if extra_docs_match.group(2) else "NA"
+            doc_3_display = extra_docs_match.group(3).strip() if extra_docs_match.group(3) else "NA"
+            doc_4_display = extra_docs_match.group(4).strip() if extra_docs_match.group(4) else "NA"
+            doc_5_display = extra_docs_match.group(5).strip() if extra_docs_match.group(5) else "NA"
+            doc_6_display = extra_docs_match.group(6).strip() if extra_docs_match.group(6) else "NA"
+    else:
+        for idx, doc in enumerate(repeated_docs[:9]):
+            doc_name = doc["description"]
+            if idx == 0: doc_1_display = doc_name
+            elif idx == 1: doc_2_display = doc_name
+            elif idx == 2: doc_3_display = doc_name
+            elif idx == 3: doc_4_display = doc_name
+            elif idx == 4: doc_5_display = doc_name
+            elif idx == 5: doc_6_display = doc_name
+            elif idx == 6: doc_7_display = doc_name
+            elif idx == 7: doc_8_display = doc_name
+            elif idx == 8: doc_9_display = doc_name
 
     # Courier Delivery Address: BDS Tag (H) Primary
     tag_h_match = re.search(
@@ -1087,32 +1223,8 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     docket_slip_upload_display = "NA"
     physical_docs_uploaded_display = "NA"
 
-    # Format and map GeM required documents list
-    docs_list_raw = field_lookup.get("required_documents") or field_lookup.get("Document required from seller")
-    if docs_list_raw:
-        import ast
-        parsed_docs = []
-        try:
-            if isinstance(docs_list_raw, str) and docs_list_raw.startswith("["):
-                parsed_docs = ast.literal_eval(docs_list_raw)
-            elif isinstance(docs_list_raw, list):
-                parsed_docs = docs_list_raw
-        except Exception:
-            pass
-        if not parsed_docs and isinstance(docs_list_raw, str):
-            parsed_docs = [d.strip() for d in docs_list_raw.split(",") if d.strip()]
-            
-        for idx, doc in enumerate(parsed_docs[:9]):
-            doc_name = doc.get("document_name") if isinstance(doc, dict) else str(doc)
-            if idx == 0: doc_1_display = doc_name
-            elif idx == 1: doc_2_display = doc_name
-            elif idx == 2: doc_3_display = doc_name
-            elif idx == 3: doc_4_display = doc_name
-            elif idx == 4: doc_5_display = doc_name
-            elif idx == 5: doc_6_display = doc_name
-            elif idx == 6: doc_7_display = doc_name
-            elif idx == 7: doc_8_display = doc_name
-            elif idx == 8: doc_9_display = doc_name
+    # Format and map GeM required documents list (handled above via collect_repeated_documents)
+    pass
 
     # Policies displays
     mse_relaxation_display = field_lookup.get("mse_relaxation_experience_turnover") or field_lookup.get("MSE Relaxation for Years of Experience and Turnover") or "NA"

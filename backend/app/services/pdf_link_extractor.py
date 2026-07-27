@@ -315,19 +315,20 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                                         f"Headers: {resp_headers}"
                                     )
 
-                                    # Strictly validate PDF magic bytes (%PDF) or Content-Type (never bypass via is_atc_anchor)
+                                    # Validate PDF magic bytes (%PDF), Excel ZIP magic bytes (PK\x03\x04), or Content-Type
                                     is_pdf = file_bytes.startswith(b"%PDF") or "pdf" in content_type.lower()
-                                    if is_pdf:
+                                    is_excel = file_bytes.startswith(b"PK\x03\x04") or any(ct in content_type.lower() for ct in ["spreadsheet", "excel", "officedocument"])
+                                    if is_pdf or is_excel:
                                         out_path = output_dir / unique_filename
                                         with open(out_path, "wb") as f:
                                             f.write(file_bytes)
                                         saved_paths.append(str(out_path))
                                         external_count += 1
                                         links[-1]["local_path"] = str(out_path)
-                                        logger.info(f"[ATC_RESOLVER] ATC child PDF saved to: '{out_path}'")
+                                        logger.info(f"[ATC_RESOLVER] ATC child document saved to: '{out_path}'")
                                     else:
                                         logger.warning(
-                                            f"[ATC_RESOLVER] ATC_DOWNLOAD_INVALID: URL '{uri}' returned non-PDF content "
+                                            f"[ATC_RESOLVER] ATC_DOWNLOAD_INVALID: URL '{uri}' returned non-document content "
                                             f"(status={status_code}, content-type={content_type}, first bytes={file_bytes[:20]!r}). Not saving."
                                         )
                                 except urllib.error.HTTPError as http_err:
