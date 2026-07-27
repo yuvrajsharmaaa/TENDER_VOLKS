@@ -1,83 +1,44 @@
 # Python
-__pycache__
+__pycache__/
 *.py[cod]
 *$py.class
-*.pyo
-*.pyd
+*.so
 .Python
-env
-build
-develop-eggs
-dist
-downloads
-eggs
-.eggs
-lib
-lib64
-parts
-sdist
-var
-*.egg-info
-.installed.cfg
-*.egg
-.installer.log
-.lib
-.lib64
-*.manifest
-*.spec
-pip-log.txt
-pip-delete-this-directory.txt
-header-too.txt
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis
-.pytest_cache
-.cache
-.ipynb_checkpoints
-.env
-.venv
 env/
 venv/
-ENV/
-env.bak/
-venv.bak/
-.lib
-.lib64
+.venv/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+*.egg-info/
+.installed.cfg
+*.egg
 *.manifest
 *.spec
-pip-log.txt
-pip-delete-this-directory.txt
-header-too.txt
 .coverage
 .coverage.*
 .cache
-nosetests.xml
 coverage.xml
 *.cover
-*.py,cover
-.hypothesis
-.pytest_cache
-.cache
-.ipynb_checkpoints
+.pytest_cache/
+.ipynb_checkpoints/
+.env
+.env.dev
 
 # PaddleOCR
 .paddleocr/
 models/
 !backend/app/models/
-!backend/app/models/**
-!backend/app/models/
-!backend/app/models/**
 inference/
 whl/
 
-# Local tool/virtual-env artifacts
+# Local tool & scratch artifacts
 tmc/
 scripts/test_extraction_runner.py
+scratch/*.txt
 
 # Storage (local dev data — not for version control)
 storage/jobs/
@@ -90,17 +51,14 @@ backend/app/storage/
 *.db-shm
 *.db-wal
 
-# Frontend build artefacts
+# Frontend build artifacts
 frontend/tsconfig.tsbuildinfo
 frontend/dist/
 
-# IDE
+# IDE & OS
 .vscode/
 .idea/
 *.swp
 *~
 .DS_Store
 Thumbs.db
-
-# Sample files (if large)
-sample_files/
