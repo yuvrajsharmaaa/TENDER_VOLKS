@@ -127,7 +127,12 @@ def extract_tender_fields(
         "client_contacts": "Client Contacts",
         "full_courier_address_with_pincode": "Courier Address",
         "courier_address": "Courier Address",
-        "courier_info": "Courier Information"
+        "courier_info": "Courier Information",
+        "eligibility_executed_value": "Custom Eligibility Criteria",
+        "financial_avg_turnover": "Annual Avg Turnover",
+        "financial_net_worth": "Net Worth",
+        "financial_working_capital": "Working Capital",
+        "nodal_officer_contact": "Client Contacts 2"
     }
     
     fields = []

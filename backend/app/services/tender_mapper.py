@@ -1308,8 +1308,20 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     # 36. Annual Avg Turnover, 38. Working Capital, 40. Net Worth, 42. Solvency Certificate
     avg_annual_turnover_type_display = resolve_field("Avg Annual Turnover Type", r"Avg Annual Turnover Type[:\-\s]+([^\n]+)")
     avg_annual_turnover_value_display = field_lookup.get("Annual Turnover Limit") or field_lookup.get("Annual Avg Turnover")
-    if not avg_annual_turnover_value_display or avg_annual_turnover_value_display == "NA":
+    if not avg_annual_turnover_value_display or avg_annual_turnover_value_display in ("NA", "Not Found"):
         avg_annual_turnover_value_display = extract_regex(r"Avg Annual Turnover Value[:\-\s]+([^\n]+)")
+    if not avg_annual_turnover_value_display or avg_annual_turnover_value_display in ("NA", "Not Found"):
+        clause_2_1_match = re.search(r"\b2\.1\b(.*?)(?=\b2\.2\b|\b2\.3\b|\b3\.\d\b|\bSECTION-III\b|\bBIDDING DATA SHEET\b|\Z)", full_text, re.IGNORECASE | re.DOTALL)
+        if clause_2_1_match:
+            c_text = clause_2_1_match.group(1).strip()
+            lines = [line.strip() for line in c_text.split("\n") if line.strip()]
+            table_lines = []
+            for line in lines:
+                if re.search(r"\bPart\s*-?\s*\d+\b", line, re.IGNORECASE) or "Part 1 & 2" in line or "Part 1&2" in line:
+                    table_lines.append(line)
+            if table_lines:
+                avg_annual_turnover_value_display = "; ".join(table_lines)
+                logger.info(f"[ATC_ANCHOR] Resolved field 'avg_annual_turnover_value' via CLAUSE_NUMBER_FALLBACK: Clause 2.1 ({avg_annual_turnover_value_display})")
 
     # 37. 2 Works Value
     order_value_2_display = format_order_value_with_unit_check(resolve_field("2 Works Value", r"2 Works Value[:\-\s]+([^\n]+)"))
@@ -1317,6 +1329,22 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     # 38. Working Capital
     working_capital_type_display = resolve_field("Working Capital Type", r"Working Capital Type[:\-\s]+([^\n]+)")
     working_capital_value_display = resolve_field(["Working Capital Value", "Working Capital"], r"Working Capital Value[:\-\s]+([^\n]+)")
+    if not working_capital_value_display or working_capital_value_display in ("NA", "Not Found"):
+        clause_2_3_match = re.search(r"\b2\.3\b\s*WORKING\s*CAPITAL\s*[:\-]?\s*(.*?)(?=\b2\.4\b|\b3\.\d\b|\bSECTION-III\b|\bBIDDING DATA SHEET\b|\Z)", full_text, re.IGNORECASE | re.DOTALL)
+        if clause_2_3_match:
+            c_text = clause_2_3_match.group(1).strip()
+            lines = [line.strip() for line in c_text.split("\n") if line.strip()]
+            table_lines = []
+            for line in lines:
+                if re.search(r"\bPart\s*-?\s*\d+\b", line, re.IGNORECASE) or "Part 1 & 2" in line or "Part 1&2" in line:
+                    table_lines.append(line)
+            if table_lines:
+                working_capital_value_display = "; ".join(table_lines)
+                note_match = re.search(r"(If\s+the\s+bidder.*?line\s+of\s+credit.*?(?:F-9| F9|\bformat\b|$))", c_text, re.IGNORECASE | re.DOTALL)
+                if note_match:
+                    clean_note = re.sub(r"\s+", " ", note_match.group(1)).strip()
+                    working_capital_value_display += f" [Note: {clean_note[:200]}...]"
+                logger.info(f"[ATC_ANCHOR] Resolved field 'working_capital_value' via CLAUSE_NUMBER_FALLBACK: Clause 2.3 ({working_capital_value_display})")
 
     # 39. 1 work Value
     order_value_3_display = format_order_value_with_unit_check(resolve_field("1 work Value", r"1 work Value[:\-\s]+([^\n]+)"))
@@ -1324,6 +1352,13 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     # 40. Net Worth
     net_worth_type_display = resolve_field("Net Worth Type", r"Net Worth Type[:\-\s]+([^\n]+)")
     net_worth_value_display = resolve_field(["Net Worth Value", "Net Worth"], r"Net Worth Value[:\-\s]+([^\n]+)")
+    if not net_worth_value_display or net_worth_value_display in ("NA", "Not Found"):
+        clause_2_2_match = re.search(r"\b2\.2\b\s*NET\s*WORTH\s*[:\-]?\s*(.*?)(?=\b2\.3\b|\b3\.\d\b|\bSECTION-III\b|\bBIDDING DATA SHEET\b|\Z)", full_text, re.IGNORECASE | re.DOTALL)
+        if clause_2_2_match:
+            c_text = clause_2_2_match.group(1).strip()
+            c_text_clean = re.sub(r"\s+", " ", c_text).strip()
+            net_worth_value_display = c_text_clean
+            logger.info(f"[ATC_ANCHOR] Resolved field 'net_worth_value' via CLAUSE_NUMBER_FALLBACK: Clause 2.2 ({net_worth_value_display})")
 
     # 41. PO selected for Technical Eligibility
     po_selected_documents_display = resolve_field("PO selected for Technical Eligibility", r"PO selected for Technical Eligibility[:\-\s]+([^\n]+)")
@@ -1367,6 +1402,19 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         if total_inr:
             custom_eligibility_criteria_value_normalized = total_inr
 
+    if _is_missing(custom_eligibility_criteria_display) or custom_eligibility_criteria_display in ("NA", "Not Found"):
+        clause_1_2_match = re.search(r"\b1\.2\b(.*?)(?=\b2\.[0123]\b|\b1\.3\b|\b2\.0\b|\bSECTION-III\b|\bBIDDING DATA SHEET\b|\Z)", full_text, re.IGNORECASE | re.DOTALL)
+        if clause_1_2_match:
+            c_text = clause_1_2_match.group(1).strip()
+            lines = [line.strip() for line in c_text.split("\n") if line.strip()]
+            table_lines = []
+            for line in lines:
+                if re.search(r"\bPart\s*-?\s*\d+\b", line, re.IGNORECASE) or "Part 1 & 2" in line or "Part 1&2" in line:
+                    table_lines.append(line)
+            if table_lines:
+                custom_eligibility_criteria_display = "; ".join(table_lines)
+                logger.info(f"[ATC_ANCHOR] Resolved field 'custom_eligibility_criteria' via CLAUSE_NUMBER_FALLBACK: Clause 1.2 ({custom_eligibility_criteria_display})")
+
     if _is_missing(custom_eligibility_criteria_display) or custom_eligibility_criteria_display == "NA":
         order_val_m = re.search(
             r"(?:valuing\s+not\s+less\s+than|value\s+not\s+less\s+than|single\s+order\s+of)\s*Rs\.?\s*([\d,]+(?:\.\d+)?)\s*(lakh|crore)s?",
@@ -1389,7 +1437,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     client_phone_1_display = "NA"
 
     bds_36_match = re.search(
-        r"(?:designated\s+authority\s+shall\s+be\s+contacted\s+after\s+receipt\s+of\s+Notification\s+of\s+Award|Tender\s+Dealing\s+Officer|Nodal\s+Officer)([\s\S]*?)(?=\n\s*(?:SECTION|ANNEXURE|CLAUSE|\d+[\.\s]|\Z))",
+        r"(?:designated\s+authority\s+shall\s+be\s+contacted\s+after\s+receipt\s+of\s+Notification\s+of\s+Award|Tender\s+Dealing\s+Officer)([\s\S]*?)(?=\n\s*(?:SECTION|ANNEXURE|CLAUSE|\d+[\.\s]|\Z))",
         full_text, re.IGNORECASE
     )
     tag_g_match = re.search(
@@ -1415,8 +1463,8 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             client_email_1_display = client_match.group(3).strip()
             client_phone_1_display = client_match.group(2).strip()
         else:
-            officer_block_match = re.search(r"(?:CONTACT DETAILS OF TENDER DEALING OFFICER|TENDER DEALING OFFICER|Nodal\s+Officer)(.*?)(?=\n\s*(?:SECTION|ANNEXURE|CLAUSE|\d+[\.\s]|\Z))", full_text, re.IGNORECASE | re.DOTALL)
-            officer_text = officer_block_match.group(1) if officer_block_match else full_text
+            officer_block_match = re.search(r"(?:CONTACT DETAILS OF TENDER DEALING OFFICER|TENDER DEALING OFFICER)(.*?)(?=\n\s*(?:SECTION|ANNEXURE|CLAUSE|\d+[\.\s]|\Z))", full_text, re.IGNORECASE | re.DOTALL)
+            officer_text = officer_block_match.group(1) if officer_block_match else ""
             
             name_m = re.search(r"Name[:\-\s]+(Sh\.\s*[^\n]+|[A-Za-z\.\s]{3,40})", officer_text, re.IGNORECASE)
             email_m = re.search(r"E-?mail(?:\s*ID)?[:\-\s]+([a-zA-Z0-9\._%+\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,})", officer_text, re.IGNORECASE)
@@ -1438,8 +1486,8 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     if nodal_officer_match:
         n_text = nodal_officer_match.group(1)
         n_name = (
-            re.search(r"Name[:\-\s]+(Shri?\.\s*[^\n,]+|[A-Za-z\.\s]{3,40})", n_text, re.IGNORECASE)
-            or re.search(r"are\s+as\s+under[:\s\n]*(Shri?\.\s*[^\n,]+)", n_text, re.IGNORECASE)
+            re.search(r"Name[:\-\s]+(Shri?\.?\s*[^\n,]+|[A-Za-z\.\s]{3,40})", n_text, re.IGNORECASE)
+            or re.search(r"are\s+as\s+under[:\s\n]*(Shri?\.?\s*[^\n,]+)", n_text, re.IGNORECASE)
         )
         n_email = re.search(r"E-?mail(?:\s*ID)?[:\-\s]+([a-zA-Z0-9\._%+\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,})", n_text, re.IGNORECASE)
         n_phone = re.search(r"(?:Phone|Tel|Mobile|Tel[:\-\s]*)(?:\s*No|\s*and\s*Extn)?[:\-\s]*([0-9\-\/\(\)\sExtn\.]+)", n_text, re.IGNORECASE)
@@ -1457,6 +1505,18 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         _nodal_slice,
         lambda v: not _is_missing(v) and v not in ("NA", "Not Found") and len(str(v)) > 2
     )
+    if client_name_2_display == "NA":
+        clause_39_2_match = re.search(r"\b39\.2\b(.*?)(?=\b40\b|\bSECTION-III\b|\bBIDDING DATA SHEET\b|\Z)", full_text, re.IGNORECASE | re.DOTALL)
+        if clause_39_2_match:
+            c_text = clause_39_2_match.group(1).strip()
+            n_name = re.search(r"(Shri?\.\s*[^\n,]+|[A-Za-z\.\s]{3,40})", c_text, re.IGNORECASE)
+            n_email = re.search(r"([a-zA-Z0-9\._%+\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,})", c_text, re.IGNORECASE)
+            n_phone = re.search(r"(?:Phone|Tel|Mobile|Tel[:\-\s]*)(?:\s*No|\s*and\s*Extn)?[:\-\s]*([0-9\-\/\(\)\sExtn\.]+)", c_text, re.IGNORECASE)
+            if n_name:
+                client_name_2_display = n_name.group(1).strip()
+                client_email_2_display = n_email.group(1).strip() if n_email else "NA"
+                client_phone_2_display = n_phone.group(1).strip() if n_phone else "NA"
+                logger.info(f"[ATC_ANCHOR] Resolved field 'client_contacts_2' via CLAUSE_NUMBER_FALLBACK: Clause 39.2 ({client_name_2_display})")
 
     client_name_3_display = "NA"
     client_email_3_display = "NA"
@@ -1500,7 +1560,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
 
     # Courier Delivery Address: BDS Tag (H) Primary, followed by BDS Clause Address Block
     tag_h_match = re.search(
-        r"\(H\)\s*DEALING\s*GAIL['’\s]*S\s*OFFICE\s*ADDRESS(.*?)(?=\([A-Z0-9]{1,3}\)|In\s+case|\Z)",
+        r"\(H\)\s*DEALING\s*GAIL['’\s]*S\s*OFFICE\s*ADDRESS(.*?)(?=\([A-Z0-9]{1,3}\)|In\s+case|\n\s*\d+\.\d+|\n\s*SECTION|\n\s*ANNEXURE|\Z)",
         full_text, re.IGNORECASE | re.DOTALL
     )
     if tag_h_match:
@@ -1841,6 +1901,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         "net_worth_value": net_worth_value_display,
         "physical_docs_required": physical_docs_required_display,
         "physical_docs_deadline": physical_docs_deadline_display,
+        "custom_eligibility_criteria": custom_eligibility_criteria_display,
     }
 
     name_to_key = {
@@ -1861,6 +1922,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         "net_worth_value": ["net worth value", "net_worth_value", "net worth"],
         "physical_docs_required": ["physical docs required", "physical_docs_required"],
         "physical_docs_deadline": ["physical docs deadline", "physical_docs_deadline"],
+        "custom_eligibility_criteria": ["custom eligibility criteria", "custom_eligibility_criteria", "eligibility_executed_value", "required minimum executed value"],
     }
 
     updated_canon = set()

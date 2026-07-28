@@ -363,6 +363,109 @@ def test_atc_resolver_link_and_fallback_handling():
     assert dummy_link["url"] == "https://example.com/buyer_atc.pdf"
 
 
+def test_gail_bec_section_ii_table_extraction():
+    """Verify multi-row table handlers for GAIL BEC Clause 1.2, 2.1, 2.2, 2.3, and 39.2."""
+    extractor = FieldExtractor()
+
+    # Clause 1.2 technical eligibility table
+    b_1_2_hdr = TextBlock(block_id="b1_2h", text="1.2 Required Minimum executed Value (in Rs.)", confidence=1.0, bounding_box={"x1": 10, "y1": 10, "x2": 400, "y2": 25}, language_hint="en")
+    tbl_1_2_h = TextBlock(block_id="t1_2h", text="Part No. Site Required Minimum executed Value (in Rs.)", confidence=1.0, bounding_box={"x1": 10, "y1": 30, "x2": 500, "y2": 45}, language_hint="en")
+    tbl_1_2_r1 = TextBlock(block_id="t1_2r1", text="Part - 1 MANSARAMPURA REGION 106.41 Lakh", confidence=1.0, bounding_box={"x1": 10, "y1": 50, "x2": 500, "y2": 65}, language_hint="en")
+    tbl_1_2_r2 = TextBlock(block_id="t1_2r2", text="Part - 2 NASIRABAD REGION 112.97 Lakh", confidence=1.0, bounding_box={"x1": 10, "y1": 70, "x2": 500, "y2": 85}, language_hint="en")
+    
+    region_1_2 = LayoutRegion(region_id="r1", region_type="Table", bounding_box={"x1": 5, "y1": 28, "x2": 510, "y2": 90}, contained_block_ids=[], confidence=0.95)
+
+    page1 = PageResult(
+        job_id="test_bec", page_number=1, image_path="", image_width_px=600, image_height_px=800,
+        processing_time_seconds=0.1, text_blocks=[b_1_2_hdr, tbl_1_2_h, tbl_1_2_r1, tbl_1_2_r2],
+        layout_regions=[region_1_2]
+    )
+
+    # Clause 2.1, 2.2, 2.3 financial BEC table page
+    b_2_1_hdr = TextBlock(block_id="b2_1h", text="2.1 AVERAGE ANNUAL TURNOVER", confidence=1.0, bounding_box={"x1": 10, "y1": 10, "x2": 400, "y2": 25}, language_hint="en")
+    tbl_2_1_h = TextBlock(block_id="t2_1h", text="Part No. Site Required Minimum Turnover (in Rs.)", confidence=1.0, bounding_box={"x1": 10, "y1": 30, "x2": 500, "y2": 45}, language_hint="en")
+    tbl_2_1_r1 = TextBlock(block_id="t2_1r1", text="Part - 1 MANSARAMPURA REGION 79.81 Lakh", confidence=1.0, bounding_box={"x1": 10, "y1": 50, "x2": 500, "y2": 65}, language_hint="en")
+    region_2_1 = LayoutRegion(region_id="r2", region_type="Table", bounding_box={"x1": 5, "y1": 28, "x2": 510, "y2": 70}, contained_block_ids=[], confidence=0.95)
+
+    b_2_2 = TextBlock(block_id="b2_2", text="2.2 NET WORTH: Positive for preceding financial year", confidence=1.0, bounding_box={"x1": 10, "y1": 80, "x2": 500, "y2": 95}, language_hint="en")
+    b_2_2_sub = TextBlock(block_id="b2_2s", text="- do -", confidence=1.0, bounding_box={"x1": 10, "y1": 96, "x2": 100, "y2": 110}, language_hint="en")
+
+    b_2_3_hdr = TextBlock(block_id="b2_3h", text="2.3 WORKING CAPITAL", confidence=1.0, bounding_box={"x1": 10, "y1": 120, "x2": 400, "y2": 135}, language_hint="en")
+    tbl_2_3_h = TextBlock(block_id="t2_3h", text="Part No. Site Required Minimum Working Capital (in Rs.)", confidence=1.0, bounding_box={"x1": 10, "y1": 140, "x2": 500, "y2": 155}, language_hint="en")
+    tbl_2_3_r1 = TextBlock(block_id="t2_3r1", text="Part - 1 MANSARAMPURA REGION 15.96 Lakh", confidence=1.0, bounding_box={"x1": 10, "y1": 160, "x2": 500, "y2": 175}, language_hint="en")
+    b_2_3_note = TextBlock(block_id="b2_3n", text="If the bidder working capital is inadequate, the bidder shall submit line of credit from bank", confidence=1.0, bounding_box={"x1": 10, "y1": 180, "x2": 550, "y2": 195}, language_hint="en")
+    region_2_3 = LayoutRegion(region_id="r3", region_type="Table", bounding_box={"x1": 5, "y1": 138, "x2": 510, "y2": 178}, contained_block_ids=[], confidence=0.95)
+
+    page2 = PageResult(
+        job_id="test_bec", page_number=2, image_path="", image_width_px=600, image_height_px=800,
+        processing_time_seconds=0.1,
+        text_blocks=[b_2_1_hdr, tbl_2_1_h, tbl_2_1_r1, b_2_2, b_2_2_sub, b_2_3_hdr, tbl_2_3_h, tbl_2_3_r1, b_2_3_note],
+        layout_regions=[region_2_1, region_2_3]
+    )
+
+    # Clause 39.2 Nodal Officer page
+    b_39_2_hdr = TextBlock(block_id="b39_2h", text="39.2 Name and contact details of nodal officer are as under:", confidence=1.0, bounding_box={"x1": 10, "y1": 10, "x2": 500, "y2": 25}, language_hint="en")
+    b_39_2_info = TextBlock(block_id="b39_2i", text="Shri Sheew Shankar, GM (O&M), Jaipur\nTel: 0141-2230347\nEmail: sheewshankar@gail.co.in", confidence=1.0, bounding_box={"x1": 10, "y1": 30, "x2": 450, "y2": 70}, language_hint="en")
+
+    page3 = PageResult(
+        job_id="test_bec", page_number=3, image_path="", image_width_px=600, image_height_px=800,
+        processing_time_seconds=0.1, text_blocks=[b_39_2_hdr, b_39_2_info], layout_regions=[]
+    )
+
+    fields = extractor.extract_fields([page1, page2, page3])
+    field_map = {f.field_name: f for f in fields}
+
+    assert "eligibility_executed_value" in field_map
+    assert "MANSARAMPURA REGION 106.41 Lakh" in field_map["eligibility_executed_value"].value
+
+    assert "financial_avg_turnover" in field_map
+    assert "MANSARAMPURA REGION 79.81 Lakh" in field_map["financial_avg_turnover"].value
+
+    assert "financial_net_worth" in field_map
+    assert "Positive for preceding financial year" in field_map["financial_net_worth"].value
+
+    assert "financial_working_capital" in field_map
+    assert "15.96 Lakh" in field_map["financial_working_capital"].value
+
+    assert "nodal_officer_contact" in field_map
+    assert "Shri Sheew Shankar" in field_map["nodal_officer_contact"].value
+
+
+def test_nodal_officer_courier_address_leak_protection():
+    """Verify that Nodal Officer (Clause 39.2) details do not leak into courier address field."""
+    from backend.app.services.tender_mapper import build_infosheet_data
+
+    sample_atc_text = (
+        "(H) DEALING GAIL'S OFFICE ADDRESS\n"
+        "GAIL Bhawan, Jaipur Region, Plot 5, Jaipur, Rajasthan 302001\n\n"
+        "39.2 Name and contact details of nodal officer are as under:\n"
+        "Shri Sheew Shankar, GM (O&M), Jaipur\n"
+        "Tel: 0141-2230347\n"
+        "Email: sheewshankar@gail.co.in\n"
+    )
+
+    pages = [{"page": 1, "text": sample_atc_text, "blocks": []}]
+    sections = [
+        {
+            "id": "sec-1",
+            "title": "Unified",
+            "fields": [
+                {"label": "Courier Address", "field_name": "full_courier_address_with_pincode", "value": "GAIL Bhawan, Jaipur Region, Plot 5, Jaipur, Rajasthan 302001", "status": "extracted"}
+            ]
+        }
+    ]
+
+    infosheet = build_infosheet_data(sections, pages, job_id="test_leak")
+    
+    # Assert Nodal Officer details resolved to client_name_2_display
+    assert infosheet.get("client_name_2_display") == "Shri Sheew Shankar"
+    assert "sheewshankar@gail.co.in" in infosheet.get("client_email_2_display", "")
+
+    # Assert courier address does NOT contain Nodal Officer's name
+    courier_addr = infosheet.get("courier_address_display", "")
+    assert "Shri Sheew Shankar" not in courier_addr
+
+
 
 
 

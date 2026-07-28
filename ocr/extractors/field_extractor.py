@@ -436,6 +436,31 @@ class FieldExtractor:
                 "anchors": ["DEALING GAIL'S OFFICE ADDRESS", "GAIL Bhawan", "OFFICE ADDRESS", "Communication Address"],
                 "hindi": ["कार्यालय पता"],
                 "type": "text"
+            },
+            "eligibility_executed_value": {
+                "anchors": ["Required Minimum executed Value", "executed Value"],
+                "hindi": [],
+                "type": "text"
+            },
+            "financial_avg_turnover": {
+                "anchors": ["Required Minimum Turnover"],
+                "hindi": [],
+                "type": "text"
+            },
+            "financial_net_worth": {
+                "anchors": ["Positive for preceding financial year", "- do -"],
+                "hindi": [],
+                "type": "text"
+            },
+            "financial_working_capital": {
+                "anchors": ["Required Minimum Working Capital"],
+                "hindi": [],
+                "type": "text"
+            },
+            "nodal_officer_contact": {
+                "anchors": ["Name and contact details of nodal officer"],
+                "hindi": [],
+                "type": "text"
             }
         }
 
@@ -942,6 +967,356 @@ class FieldExtractor:
                         confidence=0.0,
                         source_page=1,
                         evidence="No schedules found.",
+                        source_blocks=[],
+                        source=doc_source
+                    ))
+                continue
+
+            if field_name == "eligibility_executed_value":
+                extracted_val = None
+                source_blocks = []
+                for page in pages:
+                    page_num = page.page_number
+                    blocks = page.text_blocks
+                    regions = page.layout_regions
+                    table_regions = [r for r in regions if r.region_type.lower() == "table"]
+                    for table in table_regions:
+                        table_blocks = [b for b in blocks if is_contained(b.bounding_box, table.bounding_box)]
+                        if not table_blocks:
+                            continue
+                        rows = group_blocks_into_rows(table_blocks)
+                        header_row_idx = -1
+                        col_indices = {}
+                        for idx, row in enumerate(rows):
+                            row_texts = [b.text.lower() for b in row]
+                            has_part = any("part" in txt for txt in row_texts)
+                            has_val = any("executed" in txt or "value" in txt for txt in row_texts)
+                            if has_part and has_val:
+                                header_row_idx = idx
+                                for col_idx, block in enumerate(row):
+                                    txt = block.text.lower()
+                                    if "part" in txt:
+                                        col_indices["part"] = col_idx
+                                    if "site" in txt or "region" in txt:
+                                        col_indices["site"] = col_idx
+                                    if "executed" in txt or "value" in txt:
+                                        col_indices["value"] = col_idx
+                                break
+                        if header_row_idx != -1 and col_indices:
+                            clause_ctx = None
+                            table_bbox = table.bounding_box
+                            blocks_above = [b for b in blocks if b.bounding_box["y2"] < table_bbox["y1"]]
+                            blocks_above.sort(key=lambda b: table_bbox["y1"] - b.bounding_box["y2"])
+                            for b in blocks_above:
+                                m = re.search(r'\b(1\.2|2\.1|2\.3|2\.2)\b', b.text)
+                                if m:
+                                    clause_ctx = m.group(1)
+                                    break
+                            if clause_ctx == "1.2" or (clause_ctx is None and any("executed" in b.text.lower() for b in rows[header_row_idx])):
+                                table_data = []
+                                for row in rows[header_row_idx + 1:]:
+                                    if len(row) == 1:
+                                        txt = row[0].text.strip()
+                                        if txt:
+                                            table_data.append(txt)
+                                            source_blocks.append(SourceBlockRef(page_number=page_num, block_id=row[0].block_id, text=row[0].text, bounding_box=BoundingBox(**row[0].bounding_box)))
+                                    else:
+                                        part_val = row[col_indices["part"]].text.strip() if "part" in col_indices and col_indices["part"] < len(row) else ""
+                                        site_val = row[col_indices["site"]].text.strip() if "site" in col_indices and col_indices["site"] < len(row) else ""
+                                        val_val = row[col_indices["value"]].text.strip() if "value" in col_indices and col_indices["value"] < len(row) else ""
+                                        if part_val or site_val or val_val:
+                                            table_data.append(f"{part_val} {site_val}: {val_val}".strip())
+                                            source_blocks.extend([SourceBlockRef(page_number=page_num, block_id=b.block_id, text=b.text, bounding_box=BoundingBox(**b.bounding_box)) for b in row])
+                                if table_data:
+                                    extracted_val = "; ".join(table_data)
+                                    break
+                if extracted_val:
+                    extracted.append(ExtractedFieldSchema(
+                        field_name="eligibility_executed_value",
+                        value=extracted_val,
+                        confidence=0.95,
+                        source_page=1,
+                        evidence=f"Extracted Clause 1.2 table rows: {extracted_val}",
+                        source_blocks=source_blocks,
+                        source=doc_source
+                    ))
+                else:
+                    default_val = "Out of Scope (Stage 1)" if "eligibility_executed_value" in self.out_of_scope_stage1 else "Not Found"
+                    extracted.append(ExtractedFieldSchema(
+                        field_name="eligibility_executed_value",
+                        value=default_val,
+                        confidence=0.0,
+                        source_page=1,
+                        evidence="No technical eligibility executed value table found.",
+                        source_blocks=[],
+                        source=doc_source
+                    ))
+                continue
+
+            if field_name == "financial_avg_turnover":
+                extracted_val = None
+                source_blocks = []
+                for page in pages:
+                    page_num = page.page_number
+                    blocks = page.text_blocks
+                    regions = page.layout_regions
+                    table_regions = [r for r in regions if r.region_type.lower() == "table"]
+                    for table in table_regions:
+                        table_blocks = [b for b in blocks if is_contained(b.bounding_box, table.bounding_box)]
+                        if not table_blocks:
+                            continue
+                        rows = group_blocks_into_rows(table_blocks)
+                        header_row_idx = -1
+                        col_indices = {}
+                        for idx, row in enumerate(rows):
+                            row_texts = [b.text.lower() for b in row]
+                            has_part = any("part" in txt for txt in row_texts)
+                            has_turnover = any("turnover" in txt for txt in row_texts)
+                            if has_part and has_turnover:
+                                header_row_idx = idx
+                                for col_idx, block in enumerate(row):
+                                    txt = block.text.lower()
+                                    if "part" in txt:
+                                        col_indices["part"] = col_idx
+                                    if "site" in txt or "region" in txt:
+                                        col_indices["site"] = col_idx
+                                    if "turnover" in txt:
+                                        col_indices["value"] = col_idx
+                                break
+                        if header_row_idx != -1 and col_indices:
+                            clause_ctx = None
+                            table_bbox = table.bounding_box
+                            blocks_above = [b for b in blocks if b.bounding_box["y2"] < table_bbox["y1"]]
+                            blocks_above.sort(key=lambda b: table_bbox["y1"] - b.bounding_box["y2"])
+                            for b in blocks_above:
+                                m = re.search(r'\b(1\.2|2\.1|2\.3|2\.2)\b', b.text)
+                                if m:
+                                    clause_ctx = m.group(1)
+                                    break
+                            if clause_ctx == "2.1" or (clause_ctx is None and any("turnover" in b.text.lower() for b in rows[header_row_idx])):
+                                table_data = []
+                                for row in rows[header_row_idx + 1:]:
+                                    if len(row) == 1:
+                                        txt = row[0].text.strip()
+                                        if txt:
+                                            table_data.append(txt)
+                                            source_blocks.append(SourceBlockRef(page_number=page_num, block_id=row[0].block_id, text=row[0].text, bounding_box=BoundingBox(**row[0].bounding_box)))
+                                    else:
+                                        part_val = row[col_indices["part"]].text.strip() if "part" in col_indices and col_indices["part"] < len(row) else ""
+                                        site_val = row[col_indices["site"]].text.strip() if "site" in col_indices and col_indices["site"] < len(row) else ""
+                                        val_val = row[col_indices["value"]].text.strip() if "value" in col_indices and col_indices["value"] < len(row) else ""
+                                        if part_val or site_val or val_val:
+                                            table_data.append(f"{part_val} {site_val}: {val_val}".strip())
+                                            source_blocks.extend([SourceBlockRef(page_number=page_num, block_id=b.block_id, text=b.text, bounding_box=BoundingBox(**b.bounding_box)) for b in row])
+                                if table_data:
+                                    extracted_val = "; ".join(table_data)
+                                    break
+                if extracted_val:
+                    extracted.append(ExtractedFieldSchema(
+                        field_name="financial_avg_turnover",
+                        value=extracted_val,
+                        confidence=0.95,
+                        source_page=1,
+                        evidence=f"Extracted Clause 2.1 table rows: {extracted_val}",
+                        source_blocks=source_blocks,
+                        source=doc_source
+                    ))
+                else:
+                    default_val = "Out of Scope (Stage 1)" if "financial_avg_turnover" in self.out_of_scope_stage1 else "Not Found"
+                    extracted.append(ExtractedFieldSchema(
+                        field_name="financial_avg_turnover",
+                        value=default_val,
+                        confidence=0.0,
+                        source_page=1,
+                        evidence="No financial average annual turnover table found.",
+                        source_blocks=[],
+                        source=doc_source
+                    ))
+                continue
+
+            if field_name == "financial_net_worth":
+                extracted_val = None
+                source_blocks = []
+                for page in pages:
+                    page_num = page.page_number
+                    blocks = page.text_blocks
+                    for idx, block in enumerate(blocks):
+                        text_lower = block.text.lower()
+                        if "2.2" in text_lower and "net" in text_lower and "worth" in text_lower:
+                            val_str = block.text.strip()
+                            m_prefix = re.search(r"2\.2\s*net\s*worth\s*[:\-]?\s*", val_str, re.IGNORECASE)
+                            if m_prefix:
+                                val_str = val_str[m_prefix.end():].strip()
+                            nxt_texts = []
+                            for other in blocks[idx+1:idx+4]:
+                                if abs(other.bounding_box["y1"] - block.bounding_box["y1"]) < 50 or "do" in other.text.lower():
+                                    nxt_texts.append(other.text.strip())
+                            if nxt_texts:
+                                val_str += " | " + " | ".join(nxt_texts)
+                            extracted_val = val_str
+                            source_blocks.append(SourceBlockRef(page_number=page_num, block_id=block.block_id, text=block.text, bounding_box=BoundingBox(**block.bounding_box)))
+                            break
+                    if extracted_val:
+                        break
+                if extracted_val:
+                    extracted.append(ExtractedFieldSchema(
+                        field_name="financial_net_worth",
+                        value=extracted_val,
+                        confidence=0.95,
+                        source_page=1,
+                        evidence=f"Extracted Clause 2.2 text: {extracted_val}",
+                        source_blocks=source_blocks,
+                        source=doc_source
+                    ))
+                else:
+                    default_val = "Out of Scope (Stage 1)" if "financial_net_worth" in self.out_of_scope_stage1 else "Not Found"
+                    extracted.append(ExtractedFieldSchema(
+                        field_name="financial_net_worth",
+                        value=default_val,
+                        confidence=0.0,
+                        source_page=1,
+                        evidence="No financial net worth clause found.",
+                        source_blocks=[],
+                        source=doc_source
+                    ))
+                continue
+
+            if field_name == "financial_working_capital":
+                extracted_val = None
+                source_blocks = []
+                for page in pages:
+                    page_num = page.page_number
+                    blocks = page.text_blocks
+                    regions = page.layout_regions
+                    table_regions = [r for r in regions if r.region_type.lower() == "table"]
+                    for table in table_regions:
+                        table_blocks = [b for b in blocks if is_contained(b.bounding_box, table.bounding_box)]
+                        if not table_blocks:
+                            continue
+                        rows = group_blocks_into_rows(table_blocks)
+                        header_row_idx = -1
+                        col_indices = {}
+                        for idx, row in enumerate(rows):
+                            row_texts = [b.text.lower() for b in row]
+                            has_part = any("part" in txt for txt in row_texts)
+                            has_wc = any("working" in txt or "capital" in txt for txt in row_texts)
+                            if has_part and has_wc:
+                                header_row_idx = idx
+                                for col_idx, block in enumerate(row):
+                                    txt = block.text.lower()
+                                    if "part" in txt:
+                                        col_indices["part"] = col_idx
+                                    if "site" in txt or "region" in txt:
+                                        col_indices["site"] = col_idx
+                                    if "working" in txt or "capital" in txt:
+                                        col_indices["value"] = col_idx
+                                break
+                        if header_row_idx != -1 and col_indices:
+                            clause_ctx = None
+                            table_bbox = table.bounding_box
+                            blocks_above = [b for b in blocks if b.bounding_box["y2"] < table_bbox["y1"]]
+                            blocks_above.sort(key=lambda b: table_bbox["y1"] - b.bounding_box["y2"])
+                            for b in blocks_above:
+                                m = re.search(r'\b(1\.2|2\.1|2\.3|2\.2)\b', b.text)
+                                if m:
+                                    clause_ctx = m.group(1)
+                                    break
+                            if clause_ctx == "2.3" or (clause_ctx is None and any("working" in b.text.lower() for b in rows[header_row_idx])):
+                                table_data = []
+                                for row in rows[header_row_idx + 1:]:
+                                    if len(row) == 1:
+                                        txt = row[0].text.strip()
+                                        if txt:
+                                            table_data.append(txt)
+                                            source_blocks.append(SourceBlockRef(page_number=page_num, block_id=row[0].block_id, text=row[0].text, bounding_box=BoundingBox(**row[0].bounding_box)))
+                                    else:
+                                        part_val = row[col_indices["part"]].text.strip() if "part" in col_indices and col_indices["part"] < len(row) else ""
+                                        site_val = row[col_indices["site"]].text.strip() if "site" in col_indices and col_indices["site"] < len(row) else ""
+                                        val_val = row[col_indices["value"]].text.strip() if "value" in col_indices and col_indices["value"] < len(row) else ""
+                                        if part_val or site_val or val_val:
+                                            table_data.append(f"{part_val} {site_val}: {val_val}".strip())
+                                            source_blocks.extend([SourceBlockRef(page_number=page_num, block_id=b.block_id, text=b.text, bounding_box=BoundingBox(**b.bounding_box)) for b in row])
+                                note_text = ""
+                                blocks_below = [b for b in blocks if b.bounding_box["y1"] > table_bbox["y2"]]
+                                blocks_below.sort(key=lambda b: b.bounding_box["y1"] - table_bbox["y2"])
+                                for b in blocks_below[:10]:
+                                    if "line of credit" in b.text.lower() or "bank" in b.text.lower():
+                                        note_text = b.text.strip()
+                                        source_blocks.append(SourceBlockRef(page_number=page_num, block_id=b.block_id, text=b.text, bounding_box=BoundingBox(**b.bounding_box)))
+                                        break
+                                if table_data:
+                                    extracted_val = "; ".join(table_data)
+                                    if note_text:
+                                        extracted_val += " [Note: " + re.sub(r"\s+", " ", note_text)[:200] + "...]"
+                                    break
+                if extracted_val:
+                    extracted.append(ExtractedFieldSchema(
+                        field_name="financial_working_capital",
+                        value=extracted_val,
+                        confidence=0.95,
+                        source_page=1,
+                        evidence=f"Extracted Clause 2.3 table rows: {extracted_val}",
+                        source_blocks=source_blocks,
+                        source=doc_source
+                    ))
+                else:
+                    default_val = "Out of Scope (Stage 1)" if "financial_working_capital" in self.out_of_scope_stage1 else "Not Found"
+                    extracted.append(ExtractedFieldSchema(
+                        field_name="financial_working_capital",
+                        value=default_val,
+                        confidence=0.0,
+                        source_page=1,
+                        evidence="No financial working capital table found.",
+                        source_blocks=[],
+                        source=doc_source
+                    ))
+                continue
+
+            if field_name == "nodal_officer_contact":
+                extracted_val = None
+                source_blocks = []
+                for page in pages:
+                    page_num = page.page_number
+                    blocks = page.text_blocks
+                    for idx, block in enumerate(blocks):
+                        text_lower = block.text.lower()
+                        if "39.2" in text_lower:
+                            window_blocks = blocks[idx:idx+4]
+                            window_texts = [b.text.lower() for b in window_blocks]
+                            has_nodal = any("nodal" in txt or "contact details of nodal" in txt or "officer" in txt for txt in window_texts)
+                            if has_nodal:
+                                contact_parts = []
+                                for other in blocks[idx+1:idx+6]:
+                                    other_text = other.text.strip()
+                                    if other_text:
+                                        if re.match(r"^(?:40|41|42)\b", other_text):
+                                            break
+                                        contact_parts.append(other_text)
+                                        source_blocks.append(SourceBlockRef(page_number=page_num, block_id=other.block_id, text=other.text, bounding_box=BoundingBox(**other.bounding_box)))
+                                if contact_parts:
+                                    extracted_val = "\n".join(contact_parts)
+                                    source_blocks.append(SourceBlockRef(page_number=page_num, block_id=block.block_id, text=block.text, bounding_box=BoundingBox(**block.bounding_box)))
+                                    break
+                    if extracted_val:
+                        break
+                if extracted_val:
+                    extracted.append(ExtractedFieldSchema(
+                        field_name="nodal_officer_contact",
+                        value=extracted_val,
+                        confidence=0.95,
+                        source_page=1,
+                        evidence=f"Extracted Clause 39.2 block: {extracted_val}",
+                        source_blocks=source_blocks,
+                        source=doc_source
+                    ))
+                else:
+                    default_val = "Out of Scope (Stage 1)" if "nodal_officer_contact" in self.out_of_scope_stage1 else "Not Found"
+                    extracted.append(ExtractedFieldSchema(
+                        field_name="nodal_officer_contact",
+                        value=default_val,
+                        confidence=0.0,
+                        source_page=1,
+                        evidence="No nodal officer contact block found.",
                         source_blocks=[],
                         source=doc_source
                     ))
