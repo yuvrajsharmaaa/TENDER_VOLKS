@@ -144,15 +144,33 @@ def ingest_parent_tender_pdf(
                     f["sourceSnippet"] = anchor_snippet
 
     atc_path = None
+    # 1. High-priority search: explicit ATC or TENDOC markers (excluding MSE, MII, GTC, rules, catalogs, specs, drawings)
     for l in links:
         if l.get("local_path") and Path(l["local_path"]).exists() and str(l["local_path"]).lower().endswith(".pdf"):
             url_s = l.get("url", "").lower()
             name_s = l.get("name", "").lower()
             anchor_s = l.get("anchorText", "").lower()
-            if l.get("is_atc_anchor") or any(k in s for s in (url_s, name_s, anchor_s) for k in ["atc", "upload", "shared", "doc", "buyer", "resource"]):
+            
+            excluding_terms = ["mse", "mii", "gtc", "rules", "list-of-categories", "catalog", "specification", "spec", "drawing", "schedule", "boq"]
+            is_explicit_atc = any(k in s for s in (url_s, name_s, anchor_s) for k in ["atc", "tendoc", "buyer1", "buyer_uploaded"]) and not any(k in s for s in (url_s, name_s, anchor_s) for k in excluding_terms)
+            is_valid_atc_anchor = l.get("is_atc_anchor") and not any(k in s for s in (url_s, name_s, anchor_s) for k in excluding_terms)
+            
+            if is_explicit_atc or is_valid_atc_anchor:
                 atc_path = Path(l["local_path"])
-                logger.info(f"[ATC_RESOLVER] Selected downloaded ATC child PDF: '{atc_path}'")
+                logger.info(f"[ATC_RESOLVER] Selected high-priority ATC child PDF: '{atc_path}'")
                 break
+
+    # 2. General fallback search if no high-priority match found
+    if not atc_path:
+        for l in links:
+            if l.get("local_path") and Path(l["local_path"]).exists() and str(l["local_path"]).lower().endswith(".pdf"):
+                url_s = l.get("url", "").lower()
+                name_s = l.get("name", "").lower()
+                anchor_s = l.get("anchorText", "").lower()
+                if any(k in s for s in (url_s, name_s, anchor_s) for k in ["upload", "shared", "doc", "buyer", "resource"]):
+                    atc_path = Path(l["local_path"])
+                    logger.info(f"[ATC_RESOLVER] Selected downloaded ATC child PDF: '{atc_path}'")
+                    break
 
     if not atc_path:
         for l in links:
@@ -166,7 +184,12 @@ def ingest_parent_tender_pdf(
         if ext_children_dir.exists():
             child_pdfs = [p for p in ext_children_dir.glob("*.pdf") if p.is_file() and p.stat().st_size > 0]
             if child_pdfs:
-                atc_path = child_pdfs[0]
+                # Also sort to prioritize explicit atc/tendoc filenames
+                atc_candidates = [p for p in child_pdfs if any(k in p.name.lower() for k in ["atc", "tendoc", "buyer1", "buyer_uploaded"])]
+                if atc_candidates:
+                    atc_path = atc_candidates[0]
+                else:
+                    atc_path = child_pdfs[0]
                 logger.info(f"[ATC_RESOLVER] Discovered extracted child PDF in job directory: '{atc_path}'")
 
     page_texts_combined = " ".join([p.get("text", "") for p in page_texts[:30]]).lower()
@@ -174,7 +197,7 @@ def ingest_parent_tender_pdf(
         "bidding data sheet", "special conditions of contract",
         "buyer added bid specific atc", "buyer uploaded atc document",
         "price reduction schedule", "terms of payment", "general conditions of contract",
-        "invitation for bid", "section-iii", "section-ii", "scc", "bds", "gail"
+        "invitation for bid", "section-iii", "section-ii", "scc", "bds"
     ]
     is_direct_atc = any(kw in page_texts_combined for kw in atc_keywords) or any(k in original_filename.lower() for k in ["atc", "buyer"])
 
