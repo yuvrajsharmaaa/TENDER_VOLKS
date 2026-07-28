@@ -384,10 +384,22 @@ def resolve_atc_anchor_fields(
     if re.search(r"(?:CONTRACT PERFORMANCE SECURITY|SECURITY DEPOSIT|CPS/SD)", full_text, re.IGNORECASE):
         res["sd_mode"] = "Bank Guarantee / DD / FDR / Online Transfer / Insurance Surety Bond"
         
-    c38_match = re.search(
-        r"(\d+(?:\.\d+)?)\s*%\s*of\s+Total\s+Order.*?(\d+)\s*days\s*of\s+FOA",
-        full_text, re.IGNORECASE | re.DOTALL
-    )
+    c38_match = None
+    for sd_section_match in re.finditer(
+        r"(?:Contract\s+Performance\s+Security\s*/\s*Security\s+Deposit|"
+        r"Clause\s*38|Security\s+Deposit)([\s\S]*?)"
+        r"(?=\n\s*(?:Clause\s*39|SECTION|\d+\.\d+|\Z))",
+        full_text, re.IGNORECASE
+    ):
+        sd_body = sd_section_match.group(1)
+        m = re.search(
+            r"(\d+(?:\.\d+)?)\s*%\s*of\s+Total\s+Order.*?(\d+)\s*days\s*of\s+FOA",
+            sd_body, re.IGNORECASE | re.DOTALL
+        )
+        if m:
+            c38_match = m
+            break
+
     if c38_match:
         res["sd_percentage"] = float(c38_match.group(1))
         res["sd_duration"] = int(c38_match.group(2))
@@ -849,7 +861,13 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     )
     commercial_evaluation_display = normalize_evaluation_method(commercial_evaluation_raw)
     if _is_missing(commercial_evaluation_display) or commercial_evaluation_display in ("Not Found", "NA"):
-        k_eval_match = re.search(r"(?:K\.\s*EVALUATION\s+METHODOLOGY|EVALUATION\s+METHODOLOGY).*?(?:Overall\s+L-?1\s+basis|item-?wise\s+L-?1)", full_text, re.IGNORECASE | re.DOTALL)
+        k_eval_match = None
+        for m_head in re.finditer(r"(?:K\.\s*EVALUATION\s+METHODOLOGY|BID\s+EVALUATION\s+CRITERIA\s*&\s*EVALUATION\s+METHODOLOGY|EVALUATION\s+METHODOLOGY)", full_text, re.IGNORECASE):
+            window = full_text[m_head.start():m_head.start() + 2500]
+            m_sub = re.search(r"(?:Overall\s+L-?1\s+basis|item-?wise\s+L-?1)", window, re.IGNORECASE)
+            if m_sub:
+                k_eval_match = m_sub
+                break
         if k_eval_match:
             eval_snippet = k_eval_match.group(0).lower()
             if "overall l-1" in eval_snippet or "overall l1" in eval_snippet or "overall basis" in eval_snippet:
@@ -932,7 +950,13 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
 
     # 21. Delivery Time (Installation)
     delivery_time_installation_display = resolve_field(["Delivery Time Installation (Days)", "delivery_time_installation_days"], r"Delivery Time Installation \(Days\)[:\-\s]+([^\n]+)")
-    scope_match = re.search(r"(?:\(A\)\s*SCOPE OF SUPPLY|SCOPE OF SUPPLY|SCOPE OF PROCUREMENT).*?(?:SITC|Supply,\s*Installation,\s*Testing\s+and\s+Commissioning|Installation)", full_text, re.IGNORECASE | re.DOTALL)
+    scope_match = None
+    for m_head in re.finditer(r"(?:\(A\)\s*SCOPE OF SUPPLY|SCOPE OF SUPPLY|SCOPE OF PROCUREMENT)", full_text, re.IGNORECASE):
+        window = full_text[m_head.start():m_head.start() + 1500]
+        m_sub = re.search(r"(?:SITC|Supply,\s*Installation,\s*Testing\s+and\s+Commissioning|Installation)", window, re.IGNORECASE)
+        if m_sub:
+            scope_match = m_sub
+            break
     if scope_match and (_is_missing(delivery_time_installation_display) or delivery_time_installation_display == "NA"):
         delivery_time_installation_display = "Inclusive (SITC Scope)"
         logger.info("[ATC_ANCHOR] Resolved field 'delivery_time_installation' via SECTION_HEADING: Scope of Supply SITC")
@@ -1038,10 +1062,17 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             logger.info(f"[ATC_ANCHOR] Resolved field 'prs_ld' via SECTION_HEADING: PRICE REDUCTION SCHEDULE ({ld_percentage_display}, max {max_ld_percentage_display})")
     
     if _is_missing(ld_percentage_display) or ld_percentage_display == "NA":
-        prs_clause_match = re.search(r"(?:PRICE REDUCTION SCHEDULE|PRS)[\s\S]*?(\u00bd|\xbd|1/2|\d+(?:\.\d+)?)\%.*?per week.*?maximum\s*(\d+(?:\.\d+)?)\%", full_text, re.IGNORECASE)
+        prs_clause_match = None
+        for prs_head in re.finditer(r"(?:PRICE REDUCTION SCHEDULE|PRS)", full_text, re.IGNORECASE):
+            window = full_text[prs_head.start():prs_head.start() + 2500]
+            m = re.search(r"(\u00bd|\xbd|1/2|\d+(?:\.\d+)?)\%\s*(?:per\s+(?:complete\s+)?week).*?maximum\s*(?:of\s+)?(\d+(?:\.\d+)?)\%", window, re.IGNORECASE | re.DOTALL)
+            if m:
+                prs_clause_match = m
+                break
         if prs_clause_match:
             rate_raw = prs_clause_match.group(1)
             max_raw = prs_clause_match.group(2)
+            rate_val = 0.5 if rate_raw in ("\u00bd", "\xbd", "1/2") else float(rate_raw)
             max_val = float(max_raw)
             max_str = f"{int(max_val)}" if max_val.is_integer() else f"{max_val}"
             ld_percentage_display = f"{rate_val}% per week"
@@ -1427,7 +1458,13 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             if courier_addr_match:
                 courier_address_display = courier_addr_match.group(1).strip().replace("\n", " ")
             else:
-                cutout_match = re.search(r"(?:CUT-OUT SLIP|CUT OUT SLIP|DO NOT OPEN).*?TO[:\-\s]+(.*?)(?:FROM|KIND ATTN|QUOTATION|\Z)", full_text, re.IGNORECASE | re.DOTALL)
+                cutout_match = None
+                for m_head in re.finditer(r"(?:CUT-OUT SLIP|CUT OUT SLIP|DO NOT OPEN)", full_text, re.IGNORECASE):
+                    window = full_text[m_head.start():m_head.start() + 1500]
+                    m_sub = re.search(r"TO[:\-\s]+(.*?)(?:FROM|KIND ATTN|QUOTATION|\Z)", window, re.IGNORECASE | re.DOTALL)
+                    if m_sub:
+                        cutout_match = m_sub
+                        break
                 if cutout_match:
                     raw_addr = cutout_match.group(1).strip()
                     clean_addr = re.sub(r"\s+", " ", raw_addr)
@@ -1546,7 +1583,13 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             if total_inr:
                 custom_eligibility_criteria_value_normalized = total_inr
         else:
-            custom_match_broad = re.search(r"Minimum\s+Executed\s+Order\s+Value.*?(Rs\.?\s*[\d\.\,\s]+(?:Lacs|Lakhs|Crore|Cr)?)", full_text, re.IGNORECASE)
+            custom_match_broad = None
+            for m_head in re.finditer(r"Minimum\s+Executed\s+Order\s+Value", full_text, re.IGNORECASE):
+                window = full_text[m_head.start():m_head.start() + 500]
+                m_sub = re.search(r"(Rs\.?\s*[\d\.\,\s]+(?:Lacs|Lakhs|Crore|Cr)?)", window, re.IGNORECASE)
+                if m_sub:
+                    custom_match_broad = m_sub
+                    break
             if custom_match_broad:
                 val_str = custom_match_broad.group(1).strip()
                 custom_eligibility_criteria_display = f"Minimum Qualifying Order Value: {val_str}"
