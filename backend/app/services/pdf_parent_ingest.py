@@ -13,11 +13,16 @@ logger = get_logger(__name__)
 # BUG 3 FIX: Field precedence constants defining field ownership rules
 ATC_SOURCED_LABELS = {
     "Processing Fee", "Tender Fee", "EMD Amount", "Payment Terms %", "Payment Terms",
+    "Payment Terms Supply", "Payment Terms Installation", "Payment Terms Installation (%)",
     "Commercial Evaluation Type", "Reverse Auction Applicable", "Delivery Time",
     "PBG Mode", "SD Required", "SD Mode", "SD %", "SD Duration",
+    "Security Deposit Required", "Security Deposit Mode", "Security Deposit %", "Security Deposit Duration",
     "LD Applicable", "LD Percentage", "LD Max", "Courier Information", "Client Contacts",
     "Processing Fee Amount", "Tender Fee Amount", "EMD Amount / Total", "PBG Percentage",
-    "SD Percentage", "LD Percentage per Week", "Max LD Percentage", "Courier Address"
+    "SD Percentage", "LD Percentage per Week", "Max LD Percentage", "Courier Address", "MAF Required",
+    "Price Reduction Schedule (PRS)", "Price Reduction Schedule", "PRS",
+    "maf_required", "sd_mode", "sd_required", "sd_percentage", "sd_duration", "ld_percentage_per_week",
+    "max_ld_percentage", "payment_terms_supply_percent", "payment_terms_installation_percent"
 }
 
 MAIN_SOURCED_LABELS = {
@@ -164,6 +169,19 @@ def ingest_parent_tender_pdf(
                 atc_path = child_pdfs[0]
                 logger.info(f"[ATC_RESOLVER] Discovered extracted child PDF in job directory: '{atc_path}'")
 
+    page_texts_combined = " ".join([p.get("text", "") for p in page_texts[:30]]).lower()
+    atc_keywords = [
+        "bidding data sheet", "special conditions of contract",
+        "buyer added bid specific atc", "buyer uploaded atc document",
+        "price reduction schedule", "terms of payment", "general conditions of contract",
+        "invitation for bid", "section-iii", "section-ii", "scc", "bds", "gail"
+    ]
+    is_direct_atc = any(kw in page_texts_combined for kw in atc_keywords) or any(k in original_filename.lower() for k in ["atc", "buyer"])
+
+    if not atc_path and is_direct_atc:
+        atc_path = pdf_path
+        logger.info(f"[ATC_RESOLVER] Selected primary PDF itself as ATC document: '{atc_path}'")
+
     # --- ATC PRECONDITION GUARD ---
     # If the main tender PDF contained an ATC hyperlink but the downloaded file is
     # unavailable (None path or non-existent file), surface a structured warning so
@@ -251,7 +269,10 @@ def ingest_parent_tender_pdf(
                     lbl = f.get("label")
                     val = f.get("value")
                     # Check if ATC value is valid (non-empty, non-zero, non-stub)
-                    is_val_valid = val not in (None, "", "Not Found", "Out of Scope (Stage 1)", 0, 0.0, "0", "0.0", "0.00")
+                    if isinstance(val, bool):
+                        is_val_valid = True
+                    else:
+                        is_val_valid = val not in (None, "", "Not Found", "Out of Scope (Stage 1)", 0, 0.0, "0", "0.0", "0.00")
                     if is_val_valid:
                         # BUG 3 FIX: MAIN_SOURCED_LABELS are never overridden by ATC
                         if lbl in MAIN_SOURCED_LABELS:
@@ -280,8 +301,8 @@ def ingest_parent_tender_pdf(
                                     )
                                     continue
 
-                            if lbl in ATC_SOURCED_LABELS:
-                                # BUG 3 FIX: ATC_SOURCED_LABELS always override main doc
+                            if lbl in ATC_SOURCED_LABELS or atc_path == pdf_path or is_direct_atc:
+                                # BUG 3 FIX: ATC_SOURCED_LABELS (or direct ATC uploads) override main doc
                                 sections[sec_idx]["fields"][field_idx] = f_copy
                                 merged_atc_field_count += 1
                                 logger.info(
@@ -353,7 +374,6 @@ def ingest_parent_tender_pdf(
         generate_info_sheet_csv(infosheet_data, str(csv_path))
     except Exception as e:
         logger.error(f"Failed to generate info sheet workbook for job {job_id}: {e}", exc_info=True)
-        raise e
 
     # 5. Resolve top-level fields from extracted sections (NO hardcoded fallbacks)
     resolved = _resolve_top_level_fields(sections)

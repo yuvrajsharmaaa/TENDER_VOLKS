@@ -74,7 +74,7 @@ FIELD_REGISTRY: Dict[str, FieldDefinition] = {
         "hindi": ["अनुमानित लागत", "निविदा मूल्य", "अनुमानित दर", "अनुबंध मूल्य"],
     },
     "emd_amount": {
-        "keywords": ["emd amount", "emd value", "earnest money", "emd", "security deposit", "bid security"],
+        "keywords": ["emd amount", "emd value", "emd (rs)", "emd (inr)", "earnest money deposit", "earnest money amount", "bid security amount", "earnest money"],
         "hindi": ["धरोहर राशि", "ईएमडी", "बोली सुरक्षा"],
     },
     "tender_fee": {

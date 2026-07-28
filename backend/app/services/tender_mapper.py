@@ -851,9 +851,9 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
 
     if emd_amount_display == "NA":
         if _is_missing(emd_amount_raw):
-            emd_amount_raw = extract_regex(r"EMD Amount[:\-\s]+([^\n]+)", None)
+            emd_amount_raw = extract_regex(r"\bEMD\s+Amount[:\-\s]+([^\n]+)", None)
         if _is_missing(emd_amount_raw):
-            emd_amount_raw = extract_regex(r"EMD[:\-\s]+([^\n]+)", None)
+            emd_amount_raw = extract_regex(r"\bEMD(?!\s+Required)[:\-\s]+([^\n]+)", None)
             
         if not _is_missing(emd_amount_raw):
             from backend.app.services.normalizer import parse_money
@@ -1689,9 +1689,13 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     for sec in sections:
         for f in sec.get("fields", []):
             label = f.get("label", "").strip()
+            field_name = f.get("field_name", "").strip()
             src = f.get("source")
-            if label and src:
-                field_sources[label] = src
+            if src:
+                if label:
+                    field_sources[label] = src
+                if field_name:
+                    field_sources[field_name] = src
 
     # Map raw field sources to infosheet layout display keys
     info_sheet_sources = {}
@@ -1715,7 +1719,17 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         "pbg_percentage_display": ["pbg_percentage"],
         "pbg_duration_display": ["pbg_duration_months"],
         "custom_eligibility_criteria_display": ["custom_eligibility_criteria"],
-        "pre_bid_meeting_display": ["pre_bid_meeting"]
+        "pre_bid_meeting_display": ["pre_bid_meeting"],
+        "payment_terms_supply_display": ["payment_terms_supply_percent", "payment_terms_supply", "payment_terms"],
+        "payment_terms_installation_display": ["payment_terms_installation_percent", "payment_terms_installation"],
+        "sd_required_display": ["sd_required", "sd_percentage"],
+        "sd_percentage_display": ["sd_percentage", "sd_mode"],
+        "sd_duration_display": ["sd_duration"],
+        "ld_percentage_per_week_display": ["ld_percentage_per_week", "prs_rate", "prs_ld"],
+        "max_ld_percentage_display": ["max_ld_percentage", "prs_max", "prs_ld"],
+        "maf_required_display": ["maf_required"],
+        "client_contact_person_display": ["client_contact_person", "client_contacts"],
+        "full_courier_address_with_pincode_display": ["full_courier_address_with_pincode", "courier_address"]
     }
     for disp_key, raw_keys in key_to_raw.items():
         for rk in raw_keys:

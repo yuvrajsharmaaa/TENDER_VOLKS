@@ -42,7 +42,6 @@ MAIN_FIELD_ALIASES: Dict[str, List[str]] = {
         "EMD Amount",
         "Earnest Money Deposit",
         "EMD Detail",
-        "EMD Required",
         "EMD"
     ],
     "tender_title": [

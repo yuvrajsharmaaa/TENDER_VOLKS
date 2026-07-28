@@ -109,7 +109,7 @@ class FieldExtractor:
         self.rules = {
             # Legacy Fields
             "EMD": {
-                "anchors": ["emd", "earnest money", "security deposit", "bid security"],
+                "anchors": ["emd amount", "emd value", "emd (rs)", "emd (inr)", "earnest money deposit", "earnest money amount", "bid security amount", "emd:", "earnest money"],
                 "hindi": ["धरोहर राशि", "ईएमडी", "बोली सुरक्षा"],
                 "type": "currency"
             },
@@ -474,24 +474,32 @@ class FieldExtractor:
         substring matches (e.g. "06-06-2025" stays "06 06 2025")."""
         return re.sub(r"\s+", " ", re.sub(r"[/\\_.:\-]", " ", text.lower())).strip()
 
-    def _anchor_matches(self, anchor: str, text: str) -> bool:
+    def _anchor_matches(self, anchor: str, text: str, max_gap: int = 1) -> bool:
         """Check if the anchor words appear in order inside the text words,
-        allowing small gaps. This is stricter than raw substring (so it
-        avoids "value" matching inside "devalued") but more forgiving than
-        exact phrase matching (so "ministry name" matches
-        "ministry / state name")."""
+        allowing small gaps (at most max_gap words between consecutive anchor words).
+        This prevents broad multi-column matching like "emd" ... "value" across table headers."""
         anchor_words = self._normalize_for_match(anchor).split()
         text_words = self._normalize_for_match(text).split()
         if not anchor_words:
             return False
-        i = 0
-        for aw in anchor_words:
-            while i < len(text_words) and text_words[i] != aw:
-                i += 1
-            if i >= len(text_words):
-                return False
-            i += 1
-        return True
+        for start_idx in range(len(text_words)):
+            if text_words[start_idx] == anchor_words[0]:
+                curr_idx = start_idx
+                matched_all = True
+                for aw in anchor_words[1:]:
+                    found = False
+                    for step in range(1, max_gap + 2):
+                        next_idx = curr_idx + step
+                        if next_idx < len(text_words) and text_words[next_idx] == aw:
+                            curr_idx = next_idx
+                            found = True
+                            break
+                    if not found:
+                        matched_all = False
+                        break
+                if matched_all:
+                    return True
+        return False
 
     def _anchor_at_start_or_short(self, anchor: str, text: str) -> bool:
         """True if the anchor is at the very start of the text or the text is
