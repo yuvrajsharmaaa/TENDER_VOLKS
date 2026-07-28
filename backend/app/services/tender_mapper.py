@@ -18,6 +18,9 @@ from backend.app.services.csv_schema import CSV_COLUMNS, EVIDENCE_COLUMNS
 from backend.app.services.evidence_collector import resolve_best_value, compile_evidence_log
 from ocr.table_grid_parser import reconstruct_grid
 
+from backend.app.services.gail_clause_aliases import ATC_CLAUSE_ALIASES
+from backend.app.services.gem_field_aliases import MAIN_FIELD_ALIASES
+
 logger = logging.getLogger(__name__)
 
 import re
@@ -346,7 +349,7 @@ def resolve_atc_anchor_fields(
     # 2. Payment Terms
     for m in re.finditer(r"(?:TERMS OF PAYMENT|PAYMENT TERMS)", full_text, re.IGNORECASE):
         window = full_text[m.start():m.start() + 1500]
-        s_pct = re.search(r"(\d+)\%\s*(?:of\s+(?:the\s+)?)?(?:supply|receipt|delivery|material)", window, re.IGNORECASE)
+        s_pct = re.search(r"(\d+)\%\s*(?:of\s+(?:the\s+)?)?(?:supply|receipt|delivery|material|total\s+order|order|contract)", window, re.IGNORECASE)
         i_pct = (
             re.search(r"balance\s*(\d+)\%[\s\S]{0,80}?(?:install|commission)", window, re.IGNORECASE)
             or re.search(r"(\d+)\%\s*(?:of\s+(?:the\s+)?)?(?:install|commission)", window, re.IGNORECASE)
@@ -384,20 +387,20 @@ def resolve_atc_anchor_fields(
     if re.search(r"(?:CONTRACT PERFORMANCE SECURITY|SECURITY DEPOSIT|CPS/SD)", full_text, re.IGNORECASE):
         res["sd_mode"] = "Bank Guarantee / DD / FDR / Online Transfer / Insurance Surety Bond"
         
+    sd_alias_pattern = r"(?:" + "|".join([re.escape(a).replace(r"\ ", r"\s+") for a in ATC_CLAUSE_ALIASES["security_deposit"]]) + r")"
     c38_match = None
     for sd_section_match in re.finditer(
-        r"(?:Contract\s+Performance\s+Security\s*/\s*Security\s+Deposit|"
-        r"Clause\s*38|Security\s+Deposit)([\s\S]*?)"
-        r"(?=\n\s*(?:Clause\s*39|SECTION|\d+\.\d+|\Z))",
+        sd_alias_pattern + r"([\s\S]*?)(?=\n\s*(?:SECTION|ANNEXURE|CLAUSE|\d+[\.\s]|\Z))",
         full_text, re.IGNORECASE
     ):
         sd_body = sd_section_match.group(1)
         m = re.search(
-            r"(\d+(?:\.\d+)?)\s*%\s*of\s+Total\s+Order.*?(\d+)\s*days\s*of\s+FOA",
+            r"(\d+(?:\.\d+)?)\s*%\s*(?:of\s+(?:Total\s+Order|Contract\s+Value|Purchase\s+Order)|within\s+\d+\s+days).*?(\d+)\s*days\s*of\s+FOA",
             sd_body, re.IGNORECASE | re.DOTALL
         )
         if m:
             c38_match = m
+            logger.info(f"[ATC_ALIAS] Matched 'security_deposit' section body via concept alias: {m.group(0)[:60]!r}")
             break
 
     if c38_match:
@@ -507,6 +510,53 @@ def extract_regex_safe(label: str, full_text: str) -> Optional[str]:
     if m3:
         return m3.group(1).strip()
     return None
+
+def evaluate_bounded_fallback(
+    field_name: str,
+    extracted_val: Any,
+    section_text: str,
+    sanity_check_fn
+) -> Tuple[Any, Dict[str, Any]]:
+    """
+    Task 3 Bounded Fallback Protocol:
+    1. Evaluates sanity_check_fn on extracted_val.
+    2. If valid, returns (extracted_val, {"source": "regex", "needs_review": False}).
+    3. If invalid or missing (e.g. NA / None / failed sanity check), performs a bounded fallback
+       extraction pass over section_text, extracting the value, verbatim source_quote, and confidence flag.
+    4. Logs which path produced the value and flags needs_review=True for infosheet output marking.
+    """
+    if sanity_check_fn(extracted_val):
+        return extracted_val, {"source": "regex", "needs_review": False}
+        
+    fallback_val = None
+    source_quote = ""
+    
+    if field_name in ("payment_terms_supply", "payment_terms_installation"):
+        m = re.search(r"(\d{1,3})\s*%", section_text)
+        if m and 0 <= float(m.group(1)) <= 100:
+            fallback_val = f"{m.group(1)}%"
+            source_quote = m.group(0)
+    elif field_name == "delivery_time_supply":
+        m = re.search(r"(\d{1,4})\s*(?:days|months|weeks|day|month|week)", section_text, re.IGNORECASE)
+        if m:
+            fallback_val = m.group(0)
+            source_quote = m.group(0)
+    elif field_name in ("client_name_2", "nodal_officer"):
+        m = re.search(r"(?:Shri?|Mr|Ms|Sh)\.?\s*[A-Z][a-zA-Z\.\s]{2,30}", section_text)
+        if m:
+            fallback_val = m.group(0).strip()
+            source_quote = m.group(0).strip()
+
+    if fallback_val is not None and fallback_val != extracted_val:
+        logger.info(f"[BOUNDED_FALLBACK] Field '{field_name}' recovered via fallback: {fallback_val!r} | Quote: {source_quote!r}")
+        return fallback_val, {
+            "source": "fallback",
+            "source_quote": source_quote,
+            "needs_review": True,
+            "confidence": 60.0
+        }
+        
+    return extracted_val, {"source": "regex", "needs_review": False}
 
 def resolve_field_staged(
     canonical_key: str,
@@ -661,6 +711,9 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
                 if field_name:
                     field_lookup[field_name] = val_str
                     field_lookup[field_name.lower()] = val_str
+                if field_name:
+                    field_lookup[field_name] = val_str
+                    field_lookup[field_name.lower()] = val_str
 
     # Get full text if page_texts is provided
     full_text = ""
@@ -696,16 +749,26 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     def resolve_field(keys, regex_pattern=None, default="NA"):
         if isinstance(keys, str):
             keys = [keys]
-        for key in keys:
+            
+        expanded_keys = list(keys)
+        for key in list(keys):
+            for concept, aliases in MAIN_FIELD_ALIASES.items():
+                if key in aliases or key == concept:
+                    for alias in aliases:
+                        if alias not in expanded_keys:
+                            expanded_keys.append(alias)
+                            
+        for key in expanded_keys:
             val = field_lookup.get(key)
             if val is None:
                 val = field_lookup.get(key.lower())
             if not _is_missing(val) and val != "Not Found":
+                logger.info(f"[MAIN_ALIAS] Matched field '{keys[0]}' via concept alias '{key}' -> {val!r}")
                 return val
                 
         # Staged resolver fallback
         canonical_key = keys[0] if keys else "unknown"
-        val_staged, method, conf = resolve_field_staged(canonical_key, keys, full_text, grid_matrix)
+        val_staged, method, conf = resolve_field_staged(canonical_key, expanded_keys, full_text, grid_matrix)
         if val_staged != "NA":
             return val_staged
 
@@ -765,7 +828,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         emd_required_display = "Yes" if emd_required else "No"
 
     # 12. EMD
-    emd_amount_raw = field_lookup.get("EMD Amount") or field_lookup.get("emd_amount")
+    emd_amount_raw = resolve_field(["EMD Amount", "emd_amount", "EMD Detail"], default=None)
     emd_amount_display = "NA"
     emd_total = 0.0
     
@@ -787,7 +850,6 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
                 logger.info(f"[ATC_ANCHOR] Resolved field 'emd_amount' via BDS_TAG: (E) BID SECURITY / EARNEST MONEY DEPOSIT ({emd_total})")
 
     if emd_amount_display == "NA":
-        emd_amount_raw = field_lookup.get("EMD Amount") or field_lookup.get("emd_amount")
         if _is_missing(emd_amount_raw):
             emd_amount_raw = extract_regex(r"EMD Amount[:\-\s]+([^\n]+)", None)
         if _is_missing(emd_amount_raw):
@@ -797,7 +859,10 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             from backend.app.services.normalizer import parse_money
             emd_total = parse_money(emd_amount_raw) or 0.0
             
-        if emd_required_display == "Yes":
+        if emd_total > 0:
+            emd_required_display = "Yes"
+            emd_amount_display = format_currency(emd_total)
+        elif emd_required_display == "Yes":
             emd_amount_display = format_currency(emd_total)
         else:
             emd_amount_display = "₹0.00"
@@ -948,6 +1013,13 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             delivery_time_supply_display = f"{days_val} Days"
             logger.info(f"[ATC_ANCHOR] Resolved field 'delivery_time_supply' via completion period ({delivery_time_supply_display})")
 
+    delivery_time_supply_display, del_fb_meta = evaluate_bounded_fallback(
+        "delivery_time_supply",
+        delivery_time_supply_display,
+        full_text[:5000],
+        lambda v: not _is_missing(v) and v not in ("NA", "Not Found") and any(c.isdigit() for c in str(v))
+    )
+
     # 21. Delivery Time (Installation)
     delivery_time_installation_display = resolve_field(["Delivery Time Installation (Days)", "delivery_time_installation_days"], r"Delivery Time Installation \(Days\)[:\-\s]+([^\n]+)")
     scope_match = None
@@ -970,7 +1042,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
 
     if _is_missing(pbg_mode_display) or pbg_mode_display == "NA":
         pbg_clause_match = re.search(
-            r"(?:Clause\s*(?:38|39)|Contract\s+Performance\s+Security|Performance\s+Bank\s+Guarantee|Security\s+Deposit|CPBG)(.*?)(?=\n\s*(?:Clause\s*(?:39|40)|SECTION|\d+\.\d+|\Z))",
+            r"(?:Contract\s+Performance\s+Security|Performance\s+Bank\s+Guarantee|Security\s+Deposit|CPBG|CPS)(.*?)(?=\n\s*(?:SECTION|ANNEXURE|CLAUSE|\d+[\.\s]|\Z))",
             full_text, re.IGNORECASE | re.DOTALL
         )
         pbg_block = pbg_clause_match.group(1).lower() if pbg_clause_match else full_text.lower()
@@ -1028,6 +1100,13 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         if i_pct and re.search(r"\d", i_pct.group(1)) and (_is_missing(payment_terms_installation_display) or payment_terms_installation_display == "NA"):
             payment_terms_installation_display = f"{i_pct.group(1)}%"
             logger.info(f"[ATC_ANCHOR] Resolved field 'payment_terms_installation' via SECTION_HEADING: TERMS OF PAYMENT ({payment_terms_installation_display})")
+
+    payment_terms_supply_display, pay_fb_meta = evaluate_bounded_fallback(
+        "payment_terms_supply",
+        payment_terms_supply_display,
+        sow_sliced_text[:3000],
+        lambda v: not _is_missing(v) and v not in ("NA", "Not Found") and "%" in str(v)
+    )
 
     # 25. SD (in form of)
     sd_mode_display = resolve_field(["Security Deposit Mode", "sd_mode"], r"Security Deposit Mode[:\-\s]+([^\n]+)")
@@ -1310,7 +1389,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     client_phone_1_display = "NA"
 
     bds_36_match = re.search(
-        r"(?:designated\s+authority\s+shall\s+be\s+contacted\s+after\s+receipt\s+of\s+Notification\s+of\s+Award|Clause\s*36[\.\s])([\s\S]*?)(?=\n\s*(?:Clause|\d+[\.\s]|\Z))",
+        r"(?:designated\s+authority\s+shall\s+be\s+contacted\s+after\s+receipt\s+of\s+Notification\s+of\s+Award|Tender\s+Dealing\s+Officer|Nodal\s+Officer)([\s\S]*?)(?=\n\s*(?:SECTION|ANNEXURE|CLAUSE|\d+[\.\s]|\Z))",
         full_text, re.IGNORECASE
     )
     tag_g_match = re.search(
@@ -1327,7 +1406,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             client_name_1_display = name_m.group(1).strip()
             client_email_1_display = email_m.group(1).strip() if email_m else "NA"
             client_phone_1_display = phone_m.group(1).strip() if phone_m else "NA"
-            logger.info(f"[ATC_ANCHOR] Resolved field 'client_contacts' via BDS Clause 36 ({client_name_1_display})")
+            logger.info(f"[ATC_ANCHOR] Resolved field 'client_contacts' via BDS contact block ({client_name_1_display})")
 
     if client_name_1_display == "NA":
         client_match = re.search(r"Requested Details[:\-\s]+([^\n]+)[:\-\s]+([^\n]+)[:\-\s]+([^\n]+)", full_text, re.IGNORECASE)
@@ -1336,7 +1415,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             client_email_1_display = client_match.group(3).strip()
             client_phone_1_display = client_match.group(2).strip()
         else:
-            officer_block_match = re.search(r"(?:CONTACT DETAILS OF TENDER DEALING OFFICER|TENDER DEALING OFFICER)(.*?)(?:SECTION|ANNEXURE|3\.0|4\.0|\Z)", full_text, re.IGNORECASE | re.DOTALL)
+            officer_block_match = re.search(r"(?:CONTACT DETAILS OF TENDER DEALING OFFICER|TENDER DEALING OFFICER|Nodal\s+Officer)(.*?)(?=\n\s*(?:SECTION|ANNEXURE|CLAUSE|\d+[\.\s]|\Z))", full_text, re.IGNORECASE | re.DOTALL)
             officer_text = officer_block_match.group(1) if officer_block_match else full_text
             
             name_m = re.search(r"Name[:\-\s]+(Sh\.\s*[^\n]+|[A-Za-z\.\s]{3,40})", officer_text, re.IGNORECASE)
@@ -1347,13 +1426,13 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             client_email_1_display = email_m.group(1).strip() if email_m else "NA"
             client_phone_1_display = phone_m.group(1).strip() if phone_m else "NA"
 
-    # Task 2: Second Contact Block (Nodal Officer - Clause 39.2 Anchor)
+    # Task 2: Second Contact Block (Nodal Officer Anchor)
     client_name_2_display = "NA"
     client_email_2_display = "NA"
     client_phone_2_display = "NA"
 
     nodal_officer_match = re.search(
-        r"(?:39\.2\s+Name\s+and\s+contact\s+details\s+of\s+nodal\s+officer|nodal\s+officer\s+are\s+as\s+under)([\s\S]*?)(?=\n\s*(?:Clause|\d+[\.\s]|\Z))",
+        r"(?:Name\s+and\s+contact\s+details\s+of\s+nodal\s+officer|nodal\s+officer\s+are\s+as\s+under|Nodal\s+Officer)([\s\S]*?)(?=\n\s*(?:SECTION|ANNEXURE|CLAUSE|\d+[\.\s]|\Z))",
         full_text, re.IGNORECASE
     )
     if nodal_officer_match:
@@ -1368,7 +1447,16 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             client_name_2_display = n_name.group(1).split("\n")[0].strip()
             client_email_2_display = n_email.group(1).strip() if n_email else "NA"
             client_phone_2_display = n_phone.group(1).strip() if n_phone else "NA"
-            logger.info(f"[ATC_ANCHOR] Resolved field 'client_contacts_2' via BDS Clause 39.2 ({client_name_2_display})")
+            logger.info(f"[ATC_ANCHOR] Resolved field 'client_contacts_2' via BDS contact block ({client_name_2_display})")
+
+    _nodal_idx = full_text.lower().find("nodal")
+    _nodal_slice = full_text[_nodal_idx:_nodal_idx+2000] if _nodal_idx != -1 else full_text[:2000]
+    client_name_2_display, c2_fb_meta = evaluate_bounded_fallback(
+        "client_name_2",
+        client_name_2_display,
+        _nodal_slice,
+        lambda v: not _is_missing(v) and v not in ("NA", "Not Found") and len(str(v)) > 2
+    )
 
     client_name_3_display = "NA"
     client_email_3_display = "NA"
@@ -1410,49 +1498,49 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             elif idx == 7: doc_8_display = doc_name
             elif idx == 8: doc_9_display = doc_name
 
-    # Courier Delivery Address: BDS Clause 22.2 Primary with Tight Positive Stop after Email
-    addr_block_m = re.search(
-        r"(?:the\s+Owner['’]?s\s+address\s+is|Clause\s*22\.2)[:\-\s]*([\s\S]*?(?:E-?mail|Contact\s*No)[\:\s]*[^\n]+)",
-        full_text, re.IGNORECASE
+    # Courier Delivery Address: BDS Tag (H) Primary, followed by BDS Clause Address Block
+    tag_h_match = re.search(
+        r"\(H\)\s*DEALING\s*GAIL['’\s]*S\s*OFFICE\s*ADDRESS(.*?)(?=\([A-Z0-9]{1,3}\)|In\s+case|\Z)",
+        full_text, re.IGNORECASE | re.DOTALL
     )
-    if addr_block_m:
-        addr_raw = addr_block_m.group(1)
-        attn_m = re.search(r"Attention[:\-\s]+([^\n]+)", addr_raw, re.IGNORECASE)
-        street_m = re.search(r"Street\s+Address[:\-\s]+([^\n]+)", addr_raw, re.IGNORECASE)
-        floor_m = re.search(r"Floor/Room\s+number[:\-\s]+([^\n]+)", addr_raw, re.IGNORECASE)
-        city_m = re.search(r"City[:\-\s]+([^\n]+)", addr_raw, re.IGNORECASE)
-        zip_m = re.search(r"(?:ZIP\s+Code|Pincode)[:\-\s]+([^\n]+)", addr_raw, re.IGNORECASE)
-        country_m = re.search(r"Country[:\-\s]+([^\n]+)", addr_raw, re.IGNORECASE)
-        
-        parts = []
-        if attn_m: parts.append(f"Kind Attn: {attn_m.group(1).strip()}")
-        if street_m: parts.append(street_m.group(1).strip())
-        if floor_m: parts.append(floor_m.group(1).strip())
-        if city_m: parts.append(city_m.group(1).strip())
-        if zip_m: parts.append(zip_m.group(1).strip())
-        if country_m: parts.append(country_m.group(1).strip())
-        
-        if parts:
-            courier_address_display = ", ".join(parts)
+    if tag_h_match:
+        h_text = tag_h_match.group(1).strip()
+        h_clean = re.sub(r"\s+", " ", h_text)
+        if client_name_1_display != "NA" and client_email_1_display != "NA":
+            courier_address_display = f"{h_clean} | Kind Attn: {client_name_1_display} ({client_email_1_display})"
+        elif client_name_1_display != "NA":
+            courier_address_display = f"{h_clean} | Kind Attn: {client_name_1_display}"
         else:
-            clean_addr = re.sub(r"\s+", " ", addr_raw).strip()
-            courier_address_display = clean_addr if len(clean_addr) > 5 else "NA"
-        logger.info(f"[ATC_ANCHOR] Resolved field 'courier_address' via BDS Clause 22.2 ({courier_address_display[:60]}...)")
+            courier_address_display = h_clean
+        logger.info(f"[ATC_ANCHOR] Resolved field 'courier_address' via BDS Tag (H) ({courier_address_display[:60]}...)")
     else:
-        tag_h_match = re.search(
-            r"\(H\)\s*DEALING\s*GAIL['’\s]*S\s*OFFICE\s*ADDRESS(.*?)(?=\([A-Z0-9]{1,3}\)|In\s+case|\Z)",
-            full_text, re.IGNORECASE | re.DOTALL
+        addr_block_m = re.search(
+            r"(?:the\s+Owner['’]?s\s+address\s+is|Office\s+Address|Address\s+for\s+Submission)[:\-\s]*([\s\S]*?(?:E-?mail|Contact\s*No)[\:\s]*[^\n]+)",
+            full_text, re.IGNORECASE
         )
-        if tag_h_match:
-            h_text = tag_h_match.group(1).strip()
-            h_clean = re.sub(r"\s+", " ", h_text)
-            if client_name_1_display != "NA" and client_email_1_display != "NA":
-                courier_address_display = f"{h_clean} | Kind Attn: {client_name_1_display} ({client_email_1_display})"
-            elif client_name_1_display != "NA":
-                courier_address_display = f"{h_clean} | Kind Attn: {client_name_1_display}"
+        if addr_block_m:
+            addr_raw = addr_block_m.group(1)
+            attn_m = re.search(r"Attention[:\-\s]+([^\n]+)", addr_raw, re.IGNORECASE)
+            street_m = re.search(r"Street\s+Address[:\-\s]+([^\n]+)", addr_raw, re.IGNORECASE)
+            floor_m = re.search(r"Floor/Room\s+number[:\-\s]+([^\n]+)", addr_raw, re.IGNORECASE)
+            city_m = re.search(r"City[:\-\s]+([^\n]+)", addr_raw, re.IGNORECASE)
+            zip_m = re.search(r"(?:ZIP\s+Code|Pincode)[:\-\s]+([^\n]+)", addr_raw, re.IGNORECASE)
+            country_m = re.search(r"Country[:\-\s]+([^\n]+)", addr_raw, re.IGNORECASE)
+            
+            parts = []
+            if attn_m: parts.append(f"Kind Attn: {attn_m.group(1).strip()}")
+            if street_m: parts.append(street_m.group(1).strip())
+            if floor_m: parts.append(floor_m.group(1).strip())
+            if city_m: parts.append(city_m.group(1).strip())
+            if zip_m: parts.append(zip_m.group(1).strip())
+            if country_m: parts.append(country_m.group(1).strip())
+            
+            if parts:
+                courier_address_display = ", ".join(parts)
             else:
-                courier_address_display = h_clean
-            logger.info(f"[ATC_ANCHOR] Resolved field 'courier_address' via BDS_TAG: (H) DEALING GAIL'S OFFICE ADDRESS ({courier_address_display[:60]}...)")
+                clean_addr = re.sub(r"\s+", " ", addr_raw).strip()
+                courier_address_display = clean_addr if len(clean_addr) > 5 else "NA"
+            logger.info(f"[ATC_ANCHOR] Resolved field 'courier_address' via BDS Clause ({courier_address_display[:60]}...)")
         else:
             courier_addr_match = re.search(r"Address \(Legacy\)[:\-\s]+([^\n]+(?:\n\s*[^\n]+)?)[:\-\s]+(?:Physical Docs Required|Physical Docs Submission)", full_text, re.IGNORECASE)
             if courier_addr_match:
