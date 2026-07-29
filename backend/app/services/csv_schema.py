@@ -356,8 +356,8 @@ INFOSHEET_PAGE1_LAYOUT = [
 
     # --- Eligibility / Financial criterion header row ---
     _row([
-        _cell(2, "label", "Eligibility Criterion", style=STYLE_SUBSECTION, bold=True),
-        _cell(1, "label", "Age (in yrs)", style=STYLE_SUBSECTION, bold=True, align="center"),
+        _cell(2, "label", "Eligibility Criterion (Years)", style=STYLE_SUBSECTION, bold=True),
+        _cell(1, "value", key="experience_years_display", style=STYLE_SUBSECTION, bold=True, align="center"),
         _cell(3, "header", "Financial Criterion", style=STYLE_SECTION_HEADER, bold=True, align="center"),
     ]),
 
