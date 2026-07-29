@@ -311,7 +311,9 @@ class LLMFieldResolver:
     def __init__(self):
         self.provider = os.getenv("LLM_PROVIDER", "gemini").lower()
         self.api_key = os.getenv("LLM_API_KEY", os.getenv("GEMINI_API_KEY", ""))
-        self.model_name = os.getenv("LLM_MODEL", os.getenv("GEMINI_MODEL", "gemini-1.5-flash"))
+        self.model_name = os.getenv("LLM_MODEL", os.getenv("GEMINI_MODEL", "gemini-flash-latest"))
+        if self.model_name == "gemini-1.5-flash":
+            self.model_name = "gemini-flash-latest"
         self.base_url = os.getenv("LLM_BASE_URL", "")
         self.enabled = os.getenv("LLM_FALLBACK_ENABLED", "true").lower() == "true"
         self._client = None
