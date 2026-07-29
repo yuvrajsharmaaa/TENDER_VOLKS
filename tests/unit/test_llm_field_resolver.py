@@ -114,3 +114,25 @@ def test_llm_resolver_openai_compatible():
     assert res["payment_terms_installation_display"] == "20%"
     resolver._call_openai_compatible.assert_called_once()
 
+
+def test_record_correction_updates_memory(tmp_path, monkeypatch):
+    from backend.app.services.llm_field_resolver import record_correction, _load_memory, _MEMORY_FILE
+    
+    test_mem = tmp_path / "test_memory.json"
+    monkeypatch.setattr("backend.app.services.llm_field_resolver._MEMORY_FILE", test_mem)
+    monkeypatch.setattr("backend.app.services.llm_field_resolver._MEMORY_DIR", tmp_path)
+    
+    # 1. First correction
+    record_correction("payment_terms_supply_display", "70%", "Payment terms 70% supply receipt")
+    mem1 = _load_memory()
+    assert len(mem1.get("payment_terms_supply_display", [])) == 1
+    assert mem1["payment_terms_supply_display"][0]["value"] == "70%"
+    
+    # 2. Updated correction for same anchor should replace, not duplicate
+    record_correction("payment_terms_supply_display", "80%", "Payment terms 70% supply receipt")
+    mem2 = _load_memory()
+    assert len(mem2.get("payment_terms_supply_display", [])) == 1
+    assert mem2["payment_terms_supply_display"][0]["value"] == "80%"
+    assert mem2["payment_terms_supply_display"][0]["confidence"] == 0.99
+
+

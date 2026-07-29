@@ -1260,6 +1260,15 @@ async def update_workspace_field(job_id: str, field_id: str, payload: FieldUpdat
                 f["value"] = payload.value
                 f["status"] = "edited"
                 found = True
+                # Record user correction into few-shot memory store for continuous learning
+                try:
+                    from backend.app.services.llm_field_resolver import record_correction
+                    target_key = f.get("field_name") or f.get("label")
+                    anchor_ctx = f.get("sourceSnippet") or str(payload.value)
+                    if target_key:
+                        record_correction(target_key, payload.value, anchor_ctx)
+                except Exception as mem_err:
+                    logger.warning(f"Could not log user field correction to memory: {mem_err}")
                 break
         if found:
             break

@@ -473,12 +473,59 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                     except Exception as ae:
                         print(f"[DEBUG] Failed to extract annotation file on page {page_num+1}: {ae}")
 
-            # Layer 3: Textual file reference fallback scanning
+            # Layer 3: Textual URL and file reference fallback scanning
             try:
                 page_text = page.get_text()
             except Exception:
                 page_text = ""
-                
+
+            # 3a. Plain-text HTTP/HTTPS URL scanner for printed links without PDF LINK_URI annotations
+            raw_url_pattern = re.compile(r'https?://[^\s<>"\'\]\)]+', re.IGNORECASE)
+            for url_match in raw_url_pattern.finditer(page_text):
+                raw_url = url_match.group(0).rstrip(".,;)>")
+                if len(raw_url) > 10:
+                    already_captured = any(l.get("url", "").lower() == raw_url.lower() for l in links)
+                    if not already_captured and not is_generic_homepage(raw_url) and is_tender_doc_url(raw_url):
+                        import logging
+                        logger = logging.getLogger("backend.app.services.pdf_link_extractor")
+                        logger.info(f"[ATC_RESOLVER] Plain-text URL detected in PDF text on Page {page_num + 1}: '{raw_url}'")
+                        url_hash = hashlib.sha256(raw_url.encode()).hexdigest()[:16]
+                        filename = raw_url.split("/")[-1].split("?")[0] or f"text_url_p{page_num+1}.pdf"
+                        if not filename.lower().endswith((".pdf", ".xlsx", ".xls", ".doc", ".docx", ".zip")):
+                            filename = f"{filename}.pdf"
+                        unique_filename = f"atc_txt_{url_hash}_{filename}"
+                        out_path = output_dir / unique_filename
+
+                        links.append({
+                            "name": filename,
+                            "url": raw_url,
+                            "sourcePage": page_num + 1,
+                            "anchorText": f"Plain-Text Printed Hyperlink on Page {page_num + 1}",
+                            "extractionConfidence": 85.0,
+                            "is_atc_anchor": True
+                        })
+
+                        try:
+                            headers = {
+                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                                'Accept': 'application/pdf,application/octet-stream,*/*',
+                                'Referer': 'https://bidplus.gem.gov.in/'
+                            }
+                            req = urllib.request.Request(raw_url, headers=headers)
+                            file_bytes, status_code, resp_headers, content_type = _download_with_retry(req)
+                            is_pdf = file_bytes.startswith(b"%PDF") or "pdf" in content_type.lower()
+                            is_excel = file_bytes.startswith(b"PK\x03\x04") or any(ct in content_type.lower() for ct in ["spreadsheet", "excel", "officedocument"])
+                            if is_pdf or is_excel:
+                                with open(out_path, "wb") as f:
+                                    f.write(file_bytes)
+                                saved_paths.append(str(out_path))
+                                external_count += 1
+                                links[-1]["local_path"] = str(out_path)
+                                logger.info(f"[ATC_RESOLVER] Plain-text URL ATC child document saved to: '{out_path}'")
+                        except Exception as dl_err:
+                            logger.warning(f"[ATC_RESOLVER] Failed to download plain-text URL '{raw_url}': {dl_err}")
+
+            # 3b. Mention pattern fallback scanning
             for match in mention_pattern.finditer(page_text):
                 mention_word = match.group(0).strip()
                 if len(mention_word) > 3:

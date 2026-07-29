@@ -407,22 +407,84 @@ def ingest_parent_tender_pdf(
         from backend.app.services.tender_mapper import build_infosheet_data
         infosheet_data = build_infosheet_data(sections, all_pages, job_id=job_id)
 
-        # 4a. LLM Fallback Post-Pass — resolve remaining NA fields via Gemini Flash
+        # 4a. LLM Fallback Post-Pass — resolve remaining NA fields via LLM (Gemini / OpenAI-compatible)
         import os
         if os.getenv("LLM_FALLBACK_ENABLED", "true").lower() == "true":
             try:
                 from backend.app.services.llm_field_resolver import LLMFieldResolver, FIELD_PROMPT_MAP
+                from backend.app.services.tender_mapper import FIELD_STATUS_OK_FALLBACK, FIELD_STATUS_MISSING
+                _DISPLAY_KEY_TO_LABEL = {
+                    "payment_terms_supply_display": "Payment Terms Supply",
+                    "payment_terms_installation_display": "Payment Terms Installation",
+                    "ld_percentage_display": "LD Percentage Per Week",
+                    "max_ld_percentage_display": "Max LD Percentage",
+                    "sd_mode_display": "Security Deposit Mode",
+                    "sd_percentage_display": "Security Deposit %",
+                    "sd_duration_display": "SD Duration (Months)",
+                    "maf_required_display": "MAF Required",
+                    "client_name_1_display": "Client 1 Name",
+                    "client_email_1_display": "Client 1 Email",
+                    "client_phone_1_display": "Client 1 Mobile",
+                    "client_name_2_display": "Client 2 Name",
+                    "client_email_2_display": "Client 2 Email",
+                    "client_phone_2_display": "Client 2 Mobile",
+                    "courier_address_display": "Courier Address",
+                    "delivery_time_supply_display": "Delivery Time Supply (Days)",
+                    "pbg_mode_display": "PBG Mode",
+                    "commercial_evaluation_display": "Commercial Evaluation Type",
+                    "reverse_auction_applicable_display": "Reverse Auction Applicable",
+                }
                 _FALLBACK_KEYS = list(FIELD_PROMPT_MAP.keys())
                 _stub_vals = ("NA", "N/A", None, "", "Not Found")
                 missing_keys = [k for k in _FALLBACK_KEYS if infosheet_data.get(k) in _stub_vals]
-                if missing_keys and atc_full_text:
-                    logger.info("[LLM_FALLBACK] %d fields still NA after regex pass — invoking Gemini", len(missing_keys))
+                target_text = atc_full_text or "\n".join([p.get("text", "") for p in page_texts])
+                if missing_keys and target_text:
+                    logger.info("[LLM_FALLBACK] %d fields still NA after regex pass — invoking LLM", len(missing_keys))
                     resolver = LLMFieldResolver()
-                    llm_resolved = resolver.resolve(atc_full_text, missing_keys)
+                    llm_resolved = resolver.resolve(target_text, missing_keys)
+                    
+                    field_statuses = infosheet_data.get("_info_sheet_statuses", {})
+                    missing_fields = infosheet_data.get("missing_fields", [])
+                    status_summary = infosheet_data.get("status_summary", {})
+                    
                     for key, val in llm_resolved.items():
                         if val and infosheet_data.get(key) in _stub_vals:
                             infosheet_data[key] = val
                             logger.info("[LLM_FALLBACK] Merged '%s' = %r into infosheet_data", key, val)
+                            
+                            # 1. Update status tracking dicts
+                            field_statuses[key] = FIELD_STATUS_OK_FALLBACK
+                            if key in missing_fields:
+                                missing_fields.remove(key)
+                            if FIELD_STATUS_MISSING in status_summary and status_summary[FIELD_STATUS_MISSING] > 0:
+                                status_summary[FIELD_STATUS_MISSING] -= 1
+                            status_summary[FIELD_STATUS_OK_FALLBACK] = status_summary.get(FIELD_STATUS_OK_FALLBACK, 0) + 1
+                            
+                            # 2. Sync to infoSheetSections for UI preview
+                            target_label = _DISPLAY_KEY_TO_LABEL.get(key)
+                            if target_label and sections:
+                                field_found = False
+                                for sec in sections:
+                                    for f in sec.get("fields", []):
+                                        if f.get("label") == target_label or f.get("field_name") == key:
+                                            f["value"] = val
+                                            f["status"] = "extracted"
+                                            f["confidence"] = 90.0
+                                            f["source"] = "atc_llm"
+                                            field_found = True
+                                            break
+                                    if field_found:
+                                        break
+                                if not field_found and sections:
+                                    sections[0].setdefault("fields", []).append({
+                                        "id": f"f-{key}",
+                                        "label": target_label,
+                                        "field_name": key,
+                                        "value": val,
+                                        "status": "extracted",
+                                        "confidence": 90.0,
+                                        "source": "atc_llm"
+                                    })
                 elif missing_keys and not atc_full_text:
                     logger.info("[LLM_FALLBACK] Skipping LLM — no ATC text available (ATC not downloaded)")
             except Exception as llm_err:

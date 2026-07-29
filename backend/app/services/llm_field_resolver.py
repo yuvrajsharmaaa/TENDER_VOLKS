@@ -184,7 +184,7 @@ FIELD_PROMPT_MAP = {
         "string",
         "Commercial evaluation method — look for 'Overall GST Inclusive', 'L1 basis', etc."
     ),
-    "reverse_auction_display": (
+    "reverse_auction_applicable_display": (
         "reverse_auction_applicable",
         "boolean",
         "Is Reverse Auction applicable for this bid? (true/false)"
@@ -219,16 +219,15 @@ def _save_memory(field_key: str, anchor_text: str, value: Any, doc_type: str, co
                 existing = raw.get("examples_by_field", {})
 
         examples = existing.get(field_key, [])
-        # Deduplicate by anchor_text
-        anchor_set = {ex["anchor_text"][:100] for ex in examples}
-        if anchor_text[:100] not in anchor_set:
-            examples.append({
-                "anchor_text": anchor_text[:300],
-                "value": value,
-                "doc_type": doc_type,
-                "confidence": confidence,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-            })
+        # Remove existing example with matching anchor prefix to allow updates
+        examples = [ex for ex in examples if ex.get("anchor_text", "")[:100] != anchor_text[:100]]
+        examples.append({
+            "anchor_text": anchor_text[:300],
+            "value": value,
+            "doc_type": doc_type,
+            "confidence": confidence,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
         # Keep only highest-confidence examples
         examples.sort(key=lambda x: x.get("confidence", 0), reverse=True)
         examples = examples[:_MEMORY_MAX_EXAMPLES_PER_FIELD]
@@ -402,27 +401,46 @@ ATC Document Text:
         str_val = str(value).strip()
         if not str_val or str_val in ("null", "None", "NA", ""):
             return None
-        # For numeric values, check presence of the number
-        num_str = str_val.replace("%", "").replace("₹", "").replace(",", "").strip()
-        if num_str and re.search(re.escape(num_str[:8]), full_text[:500000]):
-            # Find surrounding context for memory storage
-            m = re.search(re.escape(num_str[:8]), full_text)
-            if m:
-                start = max(0, m.start() - 100)
-                end = min(len(full_text), m.end() + 150)
-                return full_text[start:end]
-        # For string values, check key words
-        if isinstance(value, str) and len(value) > 3:
-            key_words = [w for w in value.split() if len(w) > 3][:3]
-            if key_words and all(re.search(re.escape(w), full_text, re.IGNORECASE) for w in key_words):
-                m = re.search(re.escape(key_words[0]), full_text, re.IGNORECASE)
-                if m:
-                    start = max(0, m.start() - 100)
-                    end = min(len(full_text), m.end() + 150)
-                    return full_text[start:end]
+
         # Booleans don't need anchoring
         if isinstance(value, bool):
             return "boolean_value"
+
+        # Create normalized text for robust matching (collapse whitespace and linebreaks)
+        normalized_text = re.sub(r"\s+", " ", full_text)
+
+        # 1. Numeric values matching
+        num_str = str_val.replace("%", "").replace("₹", "").replace(",", "").strip()
+        if num_str:
+            # Match exact number or integer portion
+            num_pattern = re.escape(num_str[:8])
+            m = re.search(num_pattern, full_text) or re.search(num_pattern, normalized_text)
+            if m:
+                pos = m.start()
+                start = max(0, pos - 100)
+                end = min(len(full_text), m.end() + 150)
+                return full_text[start:end]
+
+        # 2. String values matching (exact or normalized token matching)
+        if isinstance(value, str) and len(value) > 2:
+            # Direct case-insensitive search
+            m = re.search(re.escape(value), full_text, re.IGNORECASE) or re.search(re.escape(value), normalized_text, re.IGNORECASE)
+            if m:
+                pos = m.start()
+                start = max(0, pos - 100)
+                end = min(len(full_text), m.end() + 150)
+                return full_text[start:end]
+
+            # Key words matching
+            key_words = [w for w in re.findall(r"\w+", value) if len(w) > 2][:4]
+            if key_words and all(re.search(r"\b" + re.escape(w) + r"\b", normalized_text, re.IGNORECASE) or re.search(re.escape(w), normalized_text, re.IGNORECASE) for w in key_words):
+                m = re.search(re.escape(key_words[0]), full_text, re.IGNORECASE) or re.search(re.escape(key_words[0]), normalized_text, re.IGNORECASE)
+                if m:
+                    pos = m.start()
+                    start = max(0, pos - 100)
+                    end = min(len(full_text), m.end() + 150)
+                    return full_text[start:end]
+
         return None
 
     def _map_to_display_value(self, display_key: str, raw_value: Any) -> Optional[str]:
