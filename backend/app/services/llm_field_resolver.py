@@ -164,6 +164,31 @@ FIELD_PROMPT_MAP = {
         "string",
         "Email of second contact / Nodal Officer"
     ),
+    "client_phone_2_display": (
+        "client_phone_2",
+        "string",
+        "Phone number of second contact / Nodal Officer"
+    ),
+    "client_name_3_display": (
+        "client_name_3",
+        "string",
+        "Name of third contact / additional dealing officer"
+    ),
+    "client_email_3_display": (
+        "client_email_3",
+        "string",
+        "Email of third contact / additional dealing officer"
+    ),
+    "client_phone_3_display": (
+        "client_phone_3",
+        "string",
+        "Phone number of third contact / additional dealing officer"
+    ),
+    "custom_eligibility_criteria_display": (
+        "custom_eligibility_criteria",
+        "string",
+        "Detailed Technical Eligibility criteria / single order value requirement from Section-II BEC"
+    ),
     "courier_address_display": (
         "courier_address",
         "string",
@@ -560,4 +585,43 @@ ATC Document Text:
                     _save_memory(display_key, anchor_snippet, raw_value, detected_type)
 
         logger.info("[LLM_FALLBACK] Resolved %d/%d fields via Gemini", len(results), len(known_missing))
+        if not results:
+            return self._resolve_local_heuristics(atc_full_text, known_missing)
+        return results
+
+    def _resolve_local_heuristics(self, full_text: str, missing_keys: List[str]) -> Dict[str, str]:
+        """Local rule-based heuristic engine executed when LLM is unavailable or fails."""
+        results = {}
+        if not full_text or not missing_keys:
+            return results
+
+        logger.info("[LOCAL_HEURISTICS] Executing local heuristic fallback for %d missing keys: %s", len(missing_keys), missing_keys)
+
+        # 1. Payment terms supply/installation %
+        if "payment_terms_supply_display" in missing_keys or "payment_terms_installation_display" in missing_keys:
+            m_s = re.search(r"(\d+)\%\s*(?:Payment\s+of\s+Supply|portion\s+on\s+receipt|against\s+supply|upon\s+receipt)", full_text, re.IGNORECASE)
+            m_i = re.search(r"(\d+)\%\s*(?:payment\s+of\s+supply|portion['’\s]+and\s+payment|installation\s+&\s+commissioning)", full_text, re.IGNORECASE)
+            if m_s:
+                results["payment_terms_supply_display"] = f"{m_s.group(1)}%"
+            if m_i:
+                results["payment_terms_installation_display"] = f"{m_i.group(1)}%"
+
+        # 2. Custom eligibility criteria
+        if "custom_eligibility_criteria_display" in missing_keys:
+            m_bec = re.search(r"(?:Table-1|Minimum\s+Executed\s+Order\s+value)[^\n]*?([\d,\.]+\s*(?:Lakhs?|Lacs?|Crores?|Cr)?[\s\S]*?)(?=\n\s*\n|\Z)", full_text, re.IGNORECASE)
+            if m_bec:
+                clean_bec = re.sub(r"\s+", " ", m_bec.group(0)).strip()
+                results["custom_eligibility_criteria_display"] = clean_bec[:300]
+
+        # 3. Client Email / Phone / Name
+        if "client_email_1_display" in missing_keys:
+            m_em = re.search(r"([a-zA-Z0-9\._%+\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,})", full_text, re.IGNORECASE)
+            if m_em:
+                results["client_email_1_display"] = m_em.group(1).strip()
+
+        if "client_name_1_display" in missing_keys:
+            m_nm = re.search(r"(?:Name[:\-\s]+|Shri?\.?\s*)([A-Z][a-zA-Z\.\s]{2,35})(?=\s*\,|\s*\n|\s*Designation|\Z)", full_text)
+            if m_nm:
+                results["client_name_1_display"] = m_nm.group(0).strip()
+
         return results

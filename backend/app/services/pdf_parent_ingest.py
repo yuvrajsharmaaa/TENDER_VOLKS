@@ -187,10 +187,12 @@ def ingest_parent_tender_pdf(
                 # Also sort to prioritize explicit atc/tendoc filenames
                 atc_candidates = [p for p in child_pdfs if any(k in p.name.lower() for k in ["atc", "tendoc", "buyer1", "buyer_uploaded"])]
                 if atc_candidates:
+                    atc_candidates.sort(key=lambda p: p.stat().st_size, reverse=True)
                     atc_path = atc_candidates[0]
                 else:
+                    child_pdfs.sort(key=lambda p: p.stat().st_size, reverse=True)
                     atc_path = child_pdfs[0]
-                logger.info(f"[ATC_RESOLVER] Discovered extracted child PDF in job directory: '{atc_path}'")
+                logger.info(f"[ATC_RESOLVER] Discovered largest extracted child PDF in job directory: '{atc_path}' (size: {atc_path.stat().st_size} bytes)")
 
     page_texts_combined = " ".join([p.get("text", "") for p in page_texts[:30]]).lower()
     atc_keywords = [
@@ -422,12 +424,16 @@ def ingest_parent_tender_pdf(
                     "sd_percentage_display": "Security Deposit %",
                     "sd_duration_display": "SD Duration (Months)",
                     "maf_required_display": "MAF Required",
-                    "client_name_1_display": "Client 1 Name",
-                    "client_email_1_display": "Client 1 Email",
-                    "client_phone_1_display": "Client 1 Mobile",
-                    "client_name_2_display": "Client 2 Name",
-                    "client_email_2_display": "Client 2 Email",
-                    "client_phone_2_display": "Client 2 Mobile",
+                    "client_name_1_display": "Client Contacts",
+                    "client_email_1_display": "Client Email",
+                    "client_phone_1_display": "Client Phone",
+                    "client_name_2_display": "Client Contacts 2",
+                    "client_email_2_display": "Client Email 2",
+                    "client_phone_2_display": "Client Phone 2",
+                    "client_name_3_display": "Client Contacts 3",
+                    "client_email_3_display": "Client Email 3",
+                    "client_phone_3_display": "Client Phone 3",
+                    "custom_eligibility_criteria_display": "Custom Eligibility Criteria",
                     "courier_address_display": "Courier Address",
                     "delivery_time_supply_display": "Delivery Time Supply (Days)",
                     "pbg_mode_display": "PBG Mode",

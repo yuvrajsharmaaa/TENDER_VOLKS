@@ -1174,10 +1174,18 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         lambda v: not _is_missing(v) and v not in ("NA", "Not Found") and "%" in str(v)
     )
 
+    # Specific percentage split extraction (e.g. 70% supply / 30% installation)
+    pts_pct = re.search(r"(\d+)\%\s*(?:Payment\s+of\s+Supply|portion\s+on\s+receipt|against\s+supply|upon\s+receipt)", full_text, re.IGNORECASE)
+    pti_pct = re.search(r"(\d+)\%\s*(?:payment\s+of\s+supply|portion['’\s]+and\s+payment|installation\s+&\s+commissioning)", full_text, re.IGNORECASE)
+    if pts_pct:
+        payment_terms_supply_display = f"{pts_pct.group(1)}%"
+    if pti_pct:
+        payment_terms_installation_display = f"{pti_pct.group(1)}%"
+
     # 25. SD (in form of)
     sd_mode_display = resolve_field(["Security Deposit Mode", "sd_mode"], r"Security Deposit Mode[:\-\s]+([^\n]+)")
     if _is_missing(sd_mode_display) or sd_mode_display == "NA":
-        if re.search(r"(?:CONTRACT PERFORMANCE SECURITY|SECURITY DEPOSIT|CPS/SD)", full_text, re.IGNORECASE):
+        if re.search(r"(?:CONTRACT PERFORMANCE SECURITY|SECURITY DEPOSIT|CPS/SD)", full_text, re.IGNORECASE) and not re.search(r"(?:no|nil|not\s+applicable|exempt)\s+(?:security\s+deposit|cps|sd)", full_text, re.IGNORECASE):
             sd_mode_display = "Bank Guarantee / DD / FDR / Online Transfer / Insurance Surety Bond"
             logger.info("[ATC_ANCHOR] Resolved field 'sd_mode' via SECTION_HEADING: CONTRACT PERFORMANCE SECURITY")
 
@@ -1546,27 +1554,30 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             client_phone_1_display = phone_m.group(1).strip() if phone_m else "NA"
 
     # Task 2: Second Contact Block (Nodal Officer Anchor)
-    client_name_2_display = "NA"
-    client_email_2_display = "NA"
-    client_phone_2_display = "NA"
+    client_name_2_display = resolve_field(["Client Contacts 2", "Client Contacts II", "client_contacts_2", "client_name_2"], default="NA")
+    client_email_2_display = resolve_field(["Client Email 2", "client_email_2", "buyer_email_2", "client_email_2_display"], default="NA")
+    client_phone_2_display = resolve_field(["Client Phone 2", "client_phone_2", "client_phone_2_display"], default="NA")
 
-    nodal_officer_match = re.search(
-        r"(?:Name\s+and\s+contact\s+details\s+of\s+nodal\s+officer|nodal\s+officer\s+are\s+as\s+under|Nodal\s+Officer)([\s\S]*?)(?=\n\s*(?:SECTION|ANNEXURE|CLAUSE|\d+[\.\s]|\Z))",
-        full_text, re.IGNORECASE
-    )
-    if nodal_officer_match:
-        n_text = nodal_officer_match.group(1)
-        n_name = (
-            re.search(r"Name[:\-\s]+(Shri?\.?\s*[^\n,]+|[A-Za-z\.\s]{3,40})", n_text, re.IGNORECASE)
-            or re.search(r"are\s+as\s+under[:\s\n]*(Shri?\.?\s*[^\n,]+)", n_text, re.IGNORECASE)
+    if client_name_2_display == "NA":
+        nodal_officer_match = re.search(
+            r"(?:Name\s+and\s+contact\s+details\s+of\s+nodal\s+officer|nodal\s+officer\s+are\s+as\s+under|Nodal\s+Officer)([\s\S]*?)(?=\n\s*(?:SECTION|ANNEXURE|CLAUSE|\d+[\.\s]|\Z))",
+            full_text, re.IGNORECASE
         )
-        n_email = re.search(r"E-?mail(?:\s*ID)?[:\-\s]+([a-zA-Z0-9\._%+\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,})", n_text, re.IGNORECASE)
-        n_phone = re.search(r"(?:Phone|Tel|Mobile|Tel[:\-\s]*)(?:\s*No|\s*and\s*Extn)?[:\-\s]*([0-9\-\/\(\)\sExtn\.]+)", n_text, re.IGNORECASE)
-        if n_name:
-            client_name_2_display = n_name.group(1).split("\n")[0].strip()
-            client_email_2_display = n_email.group(1).strip() if n_email else "NA"
-            client_phone_2_display = n_phone.group(1).strip() if n_phone else "NA"
-            logger.info(f"[ATC_ANCHOR] Resolved field 'client_contacts_2' via BDS contact block ({client_name_2_display})")
+        if nodal_officer_match:
+            n_text = nodal_officer_match.group(1)
+            n_name = (
+                re.search(r"Name[:\-\s]+(Shri?\.?\s*[^\n,]+|[A-Za-z\.\s]{3,40})", n_text, re.IGNORECASE)
+                or re.search(r"are\s+as\s+under[:\s\n]*(Shri?\.?\s*[^\n,]+)", n_text, re.IGNORECASE)
+            )
+            n_email = re.search(r"E-?mail(?:\s*ID)?[:\-\s]+([a-zA-Z0-9\._%+\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,})", n_text, re.IGNORECASE)
+            n_phone = re.search(r"(?:Phone|Tel|Mobile|Tel[:\-\s]*)(?:\s*No|\s*and\s*Extn)?[:\-\s]*([0-9\-\/\(\)\sExtn\.]+)", n_text, re.IGNORECASE)
+            if n_name:
+                client_name_2_display = n_name.group(1).split("\n")[0].strip()
+                if client_email_2_display == "NA":
+                    client_email_2_display = n_email.group(1).strip() if n_email else "NA"
+                if client_phone_2_display == "NA":
+                    client_phone_2_display = n_phone.group(1).strip() if n_phone else "NA"
+                logger.info(f"[ATC_ANCHOR] Resolved field 'client_contacts_2' via BDS contact block ({client_name_2_display})")
 
     _nodal_idx = full_text.lower().find("nodal")
     _nodal_slice = full_text[_nodal_idx:_nodal_idx+2000] if _nodal_idx != -1 else full_text[:2000]
@@ -1587,14 +1598,16 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
                     n_email = re.search(r"([a-zA-Z0-9\._%+\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,})", c_text, re.IGNORECASE)
                     n_phone = re.search(r"(?:Phone|Tel|Mobile|Tel[:\-\s]*)(?:\s*No|\s*and\s*Extn)?[:\-\s]*([0-9\-\/\(\)\sExtn\.]+)", c_text, re.IGNORECASE)
                     client_name_2_display = val_candidate
-                    client_email_2_display = n_email.group(1).strip() if n_email else "NA"
-                    client_phone_2_display = n_phone.group(1).strip() if n_phone else "NA"
+                    if client_email_2_display == "NA":
+                        client_email_2_display = n_email.group(1).strip() if n_email else "NA"
+                    if client_phone_2_display == "NA":
+                        client_phone_2_display = n_phone.group(1).strip() if n_phone else "NA"
                     logger.info(f"[ATC_ANCHOR] Resolved field 'client_contacts_2' via CLAUSE_NUMBER_FALLBACK: Clause 39.2 ({client_name_2_display})")
                     break
 
-    client_name_3_display = "NA"
-    client_email_3_display = "NA"
-    client_phone_3_display = "NA"
+    client_name_3_display = resolve_field(["Client Contacts 3", "Client Contacts III", "client_contacts_3", "client_name_3"], default="NA")
+    client_email_3_display = resolve_field(["Client Email 3", "client_email_3", "buyer_email_3", "client_email_3_display"], default="NA")
+    client_phone_3_display = resolve_field(["Client Phone 3", "client_phone_3", "client_phone_3_display"], default="NA")
 
     # 46. Docs Submitted
     doc_1_display = "NA"
@@ -1635,7 +1648,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     # Courier Delivery Address: Try field_lookup (from merged sections) first, followed by BDS Tag (H)
     courier_address_display = resolve_field(["Courier Address", "Courier Information", "courier_address", "full_courier_address_with_pincode"], default="NA")
 
-    if courier_address_display == "NA":
+    if courier_address_display in ("NA", "GAIL (India) Ltd") or len(str(courier_address_display)) < 20:
         tag_h_match = re.search(
             r"\(H\)\s*DEALING\s*GAIL['’\s]*S\s*OFFICE\s*ADDRESS(.*?)(?=\([A-Z0-9]{1,3}\)|In\s+case|\n\s*\d+\.\d+|\n\s*SECTION|\n\s*ANNEXURE|\Z)",
             full_text, re.IGNORECASE | re.DOTALL
@@ -2080,7 +2093,10 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     has_pbg = pbg_val not in (None, "", "NA", "N/A", "Not Found", "No")
     has_sd_pct = sd_pct_val not in (None, "", "NA", "N/A", "Not Found", "₹0.00", "0.0", 0, "0%", "0.00%")
     if has_pbg and not has_sd_pct:
-        explicit_na_keys.update(["sd_mode_display", "sd_percentage_display", "sd_duration_display", "sd_required_display"])
+        # Only mark numeric SD percentage/duration as NA if not defined, preserve extracted SD Mode/Required
+        if res_dict.get("sd_mode_display") in (None, "", "NA", "N/A"):
+            explicit_na_keys.add("sd_mode_display")
+        explicit_na_keys.update(["sd_percentage_display", "sd_duration_display"])
 
     # 2. Financial criteria fields: NA when financial criteria is exempted
     fin_vals = [res_dict.get(k) for k in ["avg_annual_turnover_type_display", "working_capital_type_display", "solvency_certificate_type_display", "net_worth_type_display"]]
