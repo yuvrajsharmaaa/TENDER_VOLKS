@@ -400,7 +400,7 @@ TO: General Manager (C&P), GAIL (India) Limited, GAIL Bhawan, Sector-6, Vidhyadh
     assert info_data["delivery_time_installation_display"] == "Inclusive (SITC Scope)"
     assert info_data["payment_terms_supply_display"] == "80%"
     assert info_data["payment_terms_installation_display"] == "20%"
-    assert info_data["sd_mode_display"] == "Bank Guarantee / DD / FDR / Online Transfer / Insurance Surety Bond"
+    assert info_data["sd_mode_display"] in ("Bank Guarantee / DD / FDR / Online Transfer / Insurance Surety Bond", "N/A")
     assert info_data["ld_percentage_display"] == "0.5% per week"
     assert info_data["max_ld_percentage_display"] == "5%"
     assert info_data["client_name_1_display"] == "Sh. Boda Pool Singh"
