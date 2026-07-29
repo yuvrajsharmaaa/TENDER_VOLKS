@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from datetime import datetime
 
@@ -18,8 +18,7 @@ class DocumentResponse(BaseModel):
     processing_status: str
     document_type: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class TenderProjectResponse(BaseModel):
     """Schema for general Tender Project response."""
@@ -30,8 +29,7 @@ class TenderProjectResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class TenderProjectDetailResponse(BaseModel):
     """Schema for Tender Project details, including all linked documents."""
@@ -43,8 +41,7 @@ class TenderProjectDetailResponse(BaseModel):
     updated_at: datetime
     documents: List[DocumentResponse] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class TenderUploadResponse(BaseModel):
     """Unified response schema for file uploads across workspace and direct APIs."""

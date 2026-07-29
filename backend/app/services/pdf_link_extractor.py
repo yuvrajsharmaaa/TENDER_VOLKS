@@ -1,6 +1,80 @@
 import re
 import os
-from typing import List, Dict, Any, Tuple
+import hashlib
+import socket
+import ssl
+import time
+import urllib.error
+import urllib.request
+from typing import List, Dict, Any, Optional, Tuple
+
+# Ensure DNS resolution + TCP connect obey a hard timeout, not just I/O.
+# On Windows, getaddrinfo can block 60-120 s if the host is unreachable;
+# urlopen(timeout=N) only governs the socket READ/WRITE phase.
+socket.setdefaulttimeout(15)
+
+
+def _download_with_retry(
+    req: urllib.request.Request,
+    *,
+    max_retries: int = 3,
+    base_delay: float = 2.0,
+    read_timeout: int = 15,
+) -> tuple:
+    """Download a URL with exponential-backoff retry on transient errors.
+
+    Returns (file_bytes, status_code, resp_headers_dict, content_type).
+    Raises the last exception if all retries are exhausted.
+    """
+    last_exc: Optional[Exception] = None
+    for attempt in range(max_retries):
+        try:
+            # Attempt 1: verified SSL
+            with urllib.request.urlopen(req, timeout=read_timeout) as resp:
+                return (
+                    resp.read(),
+                    getattr(resp, "status", 200),
+                    dict(resp.headers),
+                    resp.headers.get("Content-Type", ""),
+                )
+        except urllib.error.HTTPError as http_err:
+            last_exc = http_err
+            # Retry only on throttling / transient server errors
+            if http_err.code in (429, 502, 503) and attempt < max_retries - 1:
+                wait = base_delay * (2 ** attempt)
+                time.sleep(wait)
+                continue
+            # For SSL/cert issues try unverified context once
+            try:
+                ctx = ssl._create_unverified_context()
+                with urllib.request.urlopen(req, context=ctx, timeout=read_timeout) as resp:
+                    return (
+                        resp.read(),
+                        getattr(resp, "status", 200),
+                        dict(resp.headers),
+                        resp.headers.get("Content-Type", ""),
+                    )
+            except Exception:
+                pass
+            raise
+        except Exception as exc:
+            last_exc = exc
+            # Retry SSL / network errors with unverified context on first failure
+            if attempt == 0:
+                try:
+                    ctx = ssl._create_unverified_context()
+                    with urllib.request.urlopen(req, context=ctx, timeout=read_timeout) as resp:
+                        return (
+                            resp.read(),
+                            getattr(resp, "status", 200),
+                            dict(resp.headers),
+                            resp.headers.get("Content-Type", ""),
+                        )
+                except Exception:
+                    pass
+            if attempt < max_retries - 1:
+                time.sleep(base_delay * (2 ** attempt))
+    raise RuntimeError(f"ATC download failed after {max_retries} attempts") from last_exc
 
 def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
     import fitz
@@ -274,13 +348,19 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                             should_download = is_atc_anchor or is_tender_doc_url(uri)
                             if should_download:
                                 try:
-                                    import ssl
-                                    import urllib.error
-                                    logger.info(f"[ATC_RESOLVER] Downloading ATC child document from URL: '{uri}' (verified_anchor={is_atc_anchor})")
-                                    unique_filename = f"page{page_num+1}_{filename}"
+                                    logger.info(
+                                        "[ATC_RESOLVER] Downloading ATC child document from URL: '%s' "
+                                        "(verified_anchor=%s)", uri, is_atc_anchor
+                                    )
+                                    # Stable cache filename derived from URL hash — survives server restarts.
+                                    url_hash = hashlib.sha256(uri.encode()).hexdigest()[:16]
+                                    ext = Path(filename).suffix or ".pdf"
+                                    unique_filename = f"atc_{url_hash}{ext}"
                                     out_path = output_dir / unique_filename
                                     if out_path.exists() and out_path.stat().st_size > 0:
-                                        logger.info(f"[ATC_RESOLVER] Using existing local child file at: '{out_path}'")
+                                        logger.info(
+                                            "[ATC_RESOLVER] Using cached local child file at: '%s'", out_path
+                                        )
                                         saved_paths.append(str(out_path))
                                         external_count += 1
                                         links[-1]["local_path"] = str(out_path)
@@ -291,28 +371,13 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                                         'Referer': 'https://bidplus.gem.gov.in/'
                                     }
                                     req = urllib.request.Request(uri, headers=headers)
-                                    # Use default SSL context with certificate verification
-                                    # If specific certificates fail, handle individually rather than disabling all verification
-                                    context = None  # Uses default secure SSL context
-                                    try:
-                                        with urllib.request.urlopen(req, context=context, timeout=8) as response:
-                                            status_code = getattr(response, "status", 200)
-                                            resp_headers = dict(response.headers)
-                                            file_bytes = response.read()
-                                            content_type = response.headers.get("Content-Type", "")
-                                    except Exception as ssl_err:
-                                        logger.warning(f"[ATC_RESOLVER] Secure SSL download failed: {ssl_err}. Retrying with unverified context...")
-                                        unverified_context = ssl._create_unverified_context()
-                                        with urllib.request.urlopen(req, context=unverified_context, timeout=8) as response:
-                                            status_code = getattr(response, "status", 200)
-                                            resp_headers = dict(response.headers)
-                                            file_bytes = response.read()
-                                            content_type = response.headers.get("Content-Type", "")
+                                    # _download_with_retry handles SSL fallback + exponential backoff
+                                    file_bytes, status_code, resp_headers, content_type = _download_with_retry(req)
 
                                     logger.info(
-                                        f"[ATC_RESOLVER] HTTP {status_code} response from '{uri}' | "
-                                        f"Content-Type: '{content_type}' | Length: {len(file_bytes)} bytes | "
-                                        f"Headers: {resp_headers}"
+                                        "[ATC_RESOLVER] HTTP %s response from '%s' | "
+                                        "Content-Type: '%s' | Length: %d bytes",
+                                        status_code, uri, content_type, len(file_bytes)
                                     )
 
                                     # Validate PDF magic bytes (%PDF), Excel ZIP magic bytes (PK\x03\x04), or Content-Type

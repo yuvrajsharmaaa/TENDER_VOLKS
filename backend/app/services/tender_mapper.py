@@ -31,11 +31,40 @@ FIELD_STATUS_OK_FALLBACK = "OK_FALLBACK"
 FIELD_STATUS_NOT_APPLICABLE = "NOT_APPLICABLE"
 FIELD_STATUS_MISSING = "MISSING"
 
+# Pre-compiled module-level regexes for high-performance extraction & mapping
+_RE_BEC_ORDER_VAL = re.compile(r"([\d,]+(?:\.\d+)?)\s*(lakh|crore|lac|cr)s?", re.IGNORECASE)
+_RE_BEC_MAF_PATTERN = re.compile(
+    r"(?:bidder\s+must\s+be\s+a\s+['\"]?(?:Manufacturer|Authorized\s+Partner|Distributor|Dealer|Reseller)['\"]?|Authorized\s+Dealer\s*/\s*Distributor\s*/\s*Partner\s*/\s*Reseller:\s*Bidder\s+must\s+submit\s+a\s+copy\s+of\s+valid\s+Authorized)",
+    re.IGNORECASE,
+)
+_RE_PAYMENT_TERMS_HDG = re.compile(r"(?:TERMS OF PAYMENT|PAYMENT TERMS)", re.IGNORECASE)
+_RE_PAYMENT_SUPPLY_PCT = re.compile(
+    r"(\d+)\%\s*(?:of\s+(?:the\s+)?)?(?:supply|receipt|delivery|material|total\s+order|order|contract)", re.IGNORECASE
+)
+_RE_PAYMENT_INSTALL_PCT_1 = re.compile(r"balance\s*(\d+)\%[\s\S]{0,80}?(?:install|commission)", re.IGNORECASE)
+_RE_PAYMENT_INSTALL_PCT_2 = re.compile(r"(\d+)\%\s*(?:of\s+(?:the\s+)?)?(?:install|commission)", re.IGNORECASE)
+_RE_DIGIT = re.compile(r"\d")
+_RE_PRS_HEADING = re.compile(
+    r"(?:PRICE REDUCTION SCHEDULE\s*\(PRS\)\s*FOR DELAYED DELIVERY|PRICE REDUCTION SCHEDULE|PRS\s+FOR\s+DELAYED\s+DELIVERY)([\s\S]*?)(?=\n\s*(?:SECTION|CLAUSE|\d+\.\d+|\Z))",
+    re.IGNORECASE,
+)
+_RE_PRS_BODY_RATE_MAX = re.compile(
+    r"(\u00bd|\xbd|1/2|\d+(?:\.\d+)?)\s*(?:%|percent)(?:[\s\S]*?)(?:per\s+(?:complete\s+)?week)[\s\S]*?maximum\s+(?:of\s+)?(\d+(?:\.\d+)?)\s*(?:%|percent)",
+    re.IGNORECASE,
+)
+_RE_PRS_FALLBACK_KW = re.compile(r"(?:PRICE REDUCTION SCHEDULE|PRS)", re.IGNORECASE)
+_RE_SD_KW = re.compile(r"(?:CONTRACT PERFORMANCE SECURITY|SECURITY DEPOSIT|CPS/SD)", re.IGNORECASE)
+_RE_SD_CLAUSE38 = re.compile(
+    r"(\d+(?:\.\d+)?)\s*%\s*(?:of\s+(?:Total\s+Order|Contract\s+Value|Purchase\s+Order)|within\s+\d+\s+days).*?(\d+)\s*days\s*of\s+FOA",
+    re.IGNORECASE | re.DOTALL,
+)
+_RE_SD_PAGE_CHECK = re.compile(r"(?:Contract Performance Security|Security Deposit)", re.IGNORECASE)
+
 def normalize_bec_order_value(value_str: str) -> Optional[int]:
     if not value_str:
         return None
     # Matches digits (optional comma/dots) followed by lakh, crore, lac, cr
-    m = re.search(r"([\d,]+(?:\.\d+)?)\s*(lakh|crore|lac|cr)s?", value_str, re.IGNORECASE)
+    m = _RE_BEC_ORDER_VAL.search(value_str)
     if m:
         try:
             val_num = float(m.group(1).replace(",", ""))
@@ -346,38 +375,31 @@ def resolve_atc_anchor_fields(
         return res
 
     # 1. MAF Required
-    bec_maf_pattern = r"(?:bidder\s+must\s+be\s+a\s+['\"]?(?:Manufacturer|Authorized\s+Partner|Distributor|Dealer|Reseller)['\"]?|Authorized\s+Dealer\s*/\s*Distributor\s*/\s*Partner\s*/\s*Reseller:\s*Bidder\s+must\s+submit\s+a\s+copy\s+of\s+valid\s+Authorized)"
-    if re.search(bec_maf_pattern, full_text, re.IGNORECASE) or any(kw in full_text.lower() for kw in ["oem authorization", "manufacturer authorization", "authorization certificate"]):
+    if _RE_BEC_MAF_PATTERN.search(full_text) or any(kw in full_text.lower() for kw in ["oem authorization", "manufacturer authorization", "authorization certificate"]):
         res["maf_required"] = True
     else:
         res["maf_required"] = False
 
     # 2. Payment Terms
-    for m in re.finditer(r"(?:TERMS OF PAYMENT|PAYMENT TERMS)", full_text, re.IGNORECASE):
+    for m in _RE_PAYMENT_TERMS_HDG.finditer(full_text):
         window = full_text[m.start():m.start() + 1500]
-        s_pct = re.search(r"(\d+)\%\s*(?:of\s+(?:the\s+)?)?(?:supply|receipt|delivery|material|total\s+order|order|contract)", window, re.IGNORECASE)
+        s_pct = _RE_PAYMENT_SUPPLY_PCT.search(window)
         i_pct = (
-            re.search(r"balance\s*(\d+)\%[\s\S]{0,80}?(?:install|commission)", window, re.IGNORECASE)
-            or re.search(r"(\d+)\%\s*(?:of\s+(?:the\s+)?)?(?:install|commission)", window, re.IGNORECASE)
+            _RE_PAYMENT_INSTALL_PCT_1.search(window)
+            or _RE_PAYMENT_INSTALL_PCT_2.search(window)
         )
-        if s_pct and re.search(r"\d", s_pct.group(1)):
+        if s_pct and _RE_DIGIT.search(s_pct.group(1)):
             res["payment_terms_supply_percent"] = float(s_pct.group(1))
-        if i_pct and re.search(r"\d", i_pct.group(1)):
+        if i_pct and _RE_DIGIT.search(i_pct.group(1)):
             res["payment_terms_installation_percent"] = float(i_pct.group(1))
         if "payment_terms_supply_percent" in res:
             break
 
     # 3. LD/PRS % per week & Max LD %
-    prs_heading_match = re.search(
-        r"(?:PRICE REDUCTION SCHEDULE\s*\(PRS\)\s*FOR DELAYED DELIVERY|PRICE REDUCTION SCHEDULE|PRS\s+FOR\s+DELAYED\s+DELIVERY)([\s\S]*?)(?=\n\s*(?:SECTION|CLAUSE|\d+\.\d+|\Z))",
-        full_text, re.IGNORECASE
-    )
+    prs_heading_match = _RE_PRS_HEADING.search(full_text)
     if prs_heading_match:
         prs_body = prs_heading_match.group(1)
-        prs_m = re.search(
-            r"(\u00bd|\xbd|1/2|\d+(?:\.\d+)?)\s*(?:%|percent)(?:[\s\S]*?)(?:per\s+(?:complete\s+)?week)[\s\S]*?maximum\s+(?:of\s+)?(\d+(?:\.\d+)?)\s*(?:%|percent)",
-            prs_body, re.IGNORECASE
-        )
+        prs_m = _RE_PRS_BODY_RATE_MAX.search(prs_body)
         if prs_m:
             rate_raw = prs_m.group(1)
             max_raw = prs_m.group(2)
@@ -385,12 +407,12 @@ def resolve_atc_anchor_fields(
             res["ld_percentage_per_week"] = rate_val
             res["max_ld_percentage"] = float(max_raw)
 
-    if "ld_percentage_per_week" not in res and re.search(r"(?:PRICE REDUCTION SCHEDULE|PRS)", full_text, re.IGNORECASE):
+    if "ld_percentage_per_week" not in res and _RE_PRS_FALLBACK_KW.search(full_text):
         res["ld_percentage_per_week"] = 0.5
         res["max_ld_percentage"] = 5.0
 
     # 4. Security Deposit Mode, Required, Percentage, Duration
-    if re.search(r"(?:CONTRACT PERFORMANCE SECURITY|SECURITY DEPOSIT|CPS/SD)", full_text, re.IGNORECASE):
+    if _RE_SD_KW.search(full_text):
         res["sd_mode"] = "Bank Guarantee / DD / FDR / Online Transfer / Insurance Surety Bond"
         
     sd_alias_pattern = r"(?:" + "|".join([re.escape(a).replace(r"\ ", r"\s+") for a in ATC_CLAUSE_ALIASES["security_deposit"]]) + r")"
@@ -400,13 +422,10 @@ def resolve_atc_anchor_fields(
         full_text, re.IGNORECASE
     ):
         sd_body = sd_section_match.group(1)
-        m = re.search(
-            r"(\d+(?:\.\d+)?)\s*%\s*(?:of\s+(?:Total\s+Order|Contract\s+Value|Purchase\s+Order)|within\s+\d+\s+days).*?(\d+)\s*days\s*of\s+FOA",
-            sd_body, re.IGNORECASE | re.DOTALL
-        )
+        m = _RE_SD_CLAUSE38.search(sd_body)
         if m:
             c38_match = m
-            logger.info(f"[ATC_ALIAS] Matched 'security_deposit' section body via concept alias: {m.group(0)[:60]!r}")
+            logger.info("[ATC_ALIAS] Matched 'security_deposit' section body via concept alias: %r", m.group(0)[:60])
             break
 
     if c38_match:
@@ -424,13 +443,13 @@ def resolve_atc_anchor_fields(
                 if page_texts and 1 <= cb_page <= len(page_texts):
                     cb_page_text = page_texts[cb_page - 1].get("text", "")
                 
-                if not cb_page_text or re.search(r"(?:Contract Performance Security|Security Deposit)", cb_page_text, re.IGNORECASE):
+                if not cb_page_text or _RE_SD_PAGE_CHECK.search(cb_page_text):
                     is_req = (cb.get("status") == "CHECKED") if assoc_lbl == "APPLICABLE" else (cb.get("status") == "UNCHECKED")
                     res["sd_required"] = is_req
                     sd_checkbox_resolved = True
                     logger.info(
-                        f"[ATC_ANCHOR] Resolved field 'sd_required' via CHECKBOX_DETECTION: "
-                        f"page {cb_page} label '{assoc_lbl}' status {cb.get('status')} -> {is_req}"
+                        "[ATC_ANCHOR] Resolved field 'sd_required' via CHECKBOX_DETECTION: page %s label '%s' status %s -> %s",
+                        cb_page, assoc_lbl, cb.get("status"), is_req
                     )
                     break
 
@@ -710,20 +729,17 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     for sec in sections:
         for f in sec.get("fields", []):
             label = f.get("label", "").strip()
+            field_id = f.get("id", "").strip()
             field_name = f.get("field_name", "").strip()
             val = f.get("value", "")
-            status = f.get("status", "")
-            if status != "missing" and val is not None and val != "":
+            if val is not None and str(val).strip() != "":
                 val_str = str(val).strip()
-                if label:
-                    field_lookup[label] = val_str
-                    field_lookup[label.lower()] = val_str
-                if field_name:
-                    field_lookup[field_name] = val_str
-                    field_lookup[field_name.lower()] = val_str
-                if field_name:
-                    field_lookup[field_name] = val_str
-                    field_lookup[field_name.lower()] = val_str
+                for key_candidate in (label, field_id, field_name):
+                    if key_candidate:
+                        field_lookup[key_candidate] = val_str
+                        field_lookup[key_candidate.lower()] = val_str
+                        norm_key = key_candidate.lower().replace("_", " ").replace("-", " ").strip()
+                        field_lookup[norm_key] = val_str
 
     # Get full text if page_texts is provided
     full_text = ""
@@ -772,8 +788,11 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             val = field_lookup.get(key)
             if val is None:
                 val = field_lookup.get(key.lower())
-            if not _is_missing(val) and val != "Not Found":
-                logger.info(f"[MAIN_ALIAS] Matched field '{keys[0]}' via concept alias '{key}' -> {val!r}")
+            if val is None:
+                norm_k = key.lower().replace("_", " ").replace("-", " ").strip()
+                val = field_lookup.get(norm_k)
+            if val is not None and not _is_missing(val) and val != "Not Found":
+                logger.info("[MAIN_ALIAS] Matched field '%s' via concept alias '%s' -> %r", keys[0], key, val)
                 return val
                 
         # Staged resolver fallback
@@ -1986,7 +2005,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
                     if val not in (None, "", "NA", "Not Found"):
                         updated_canon.add(canon_name)
                         if f.get("status") != "verified":
-                            if "not applicable" in str(val).lower() or "exempt" in str(val).lower() or val in ("₹0.00", "0.0", 0):
+                            if "not applicable" in str(val).lower() or "exempt" in str(val).lower():
                                 f["value"] = "N/A"
                                 f["status"] = FIELD_STATUS_NOT_APPLICABLE
                                 f["confidence"] = 100.0
@@ -2005,11 +2024,12 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         for canon_name, val in resolved_vals.items():
             if canon_name not in updated_canon and val not in (None, "", "NA", "Not Found"):
                 label_clean = name_to_key[canon_name][0].replace("_", " ").title()
-                if "not applicable" in str(val).lower() or "exempt" in str(val).lower() or val in ("₹0.00", "0.0", 0):
-                    val = "N/A"
+                if "not applicable" in str(val).lower() or "exempt" in str(val).lower():
+                    val_out = "N/A"
                     status_val = "verified" if all_verified else FIELD_STATUS_NOT_APPLICABLE
                     conf_val = 100.0
                 else:
+                    val_out = val
                     status_val = "verified" if all_verified else FIELD_STATUS_OK
                     conf_val = 95.0
                 
@@ -2017,7 +2037,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
                     "id": f"f-{canon_name}",
                     "label": label_clean,
                     "field_name": canon_name,
-                    "value": val,
+                    "value": val_out,
                     "status": status_val,
                     "confidence": conf_val,
                     "source": "atc"

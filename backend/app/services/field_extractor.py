@@ -130,6 +130,7 @@ def extract_tender_fields(
         "courier_info": "Courier Information",
         "eligibility_executed_value": "Custom Eligibility Criteria",
         "financial_avg_turnover": "Annual Avg Turnover",
+        "minimum_average_annual_turnover": "Annual Avg Turnover",
         "financial_net_worth": "Net Worth",
         "financial_working_capital": "Working Capital",
         "nodal_officer_contact": "Client Contacts 2"

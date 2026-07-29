@@ -169,6 +169,7 @@ def test_field_merging_and_provenance():
     assert amb_field.value["atc"] == "ATC specific eligibility clause"
 
 
+@pytest.mark.slow
 def test_full_pipeline_with_atc_child_pdf(tmp_path):
     main_pdf = tmp_path / "main_tender.pdf"
     atc_pdf = tmp_path / "child_atc.pdf"
