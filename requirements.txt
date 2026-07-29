@@ -16,3 +16,4 @@ pytesseract
 openpyxl
 pytest
 rapidfuzz
+google-generativeai>=0.8.0

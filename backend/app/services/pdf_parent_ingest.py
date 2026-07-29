@@ -239,6 +239,7 @@ def ingest_parent_tender_pdf(
         else:
             sections.append({"id": "sec-warnings", "title": "Pipeline Warnings", "fields": [warning_field]})
 
+    atc_full_text = ""  # Outer-scope ATC text — used by LLM fallback post-pass
     merged_atc_field_count = 0
     if atc_path:
         try:
@@ -401,9 +402,32 @@ def ingest_parent_tender_pdf(
     # 4. Generate XLSX Spreadsheet Info Sheet
     csv_filename = f"{original_filename.replace('.pdf', '')}_InfoSheet.xlsx"
     csv_path = job_dir / csv_filename
+    infosheet_data = {}
     try:
         from backend.app.services.tender_mapper import build_infosheet_data
         infosheet_data = build_infosheet_data(sections, all_pages, job_id=job_id)
+
+        # 4a. LLM Fallback Post-Pass — resolve remaining NA fields via Gemini Flash
+        import os
+        if os.getenv("LLM_FALLBACK_ENABLED", "true").lower() == "true":
+            try:
+                from backend.app.services.llm_field_resolver import LLMFieldResolver, FIELD_PROMPT_MAP
+                _FALLBACK_KEYS = list(FIELD_PROMPT_MAP.keys())
+                _stub_vals = ("NA", "N/A", None, "", "Not Found")
+                missing_keys = [k for k in _FALLBACK_KEYS if infosheet_data.get(k) in _stub_vals]
+                if missing_keys and atc_full_text:
+                    logger.info("[LLM_FALLBACK] %d fields still NA after regex pass — invoking Gemini", len(missing_keys))
+                    resolver = LLMFieldResolver()
+                    llm_resolved = resolver.resolve(atc_full_text, missing_keys)
+                    for key, val in llm_resolved.items():
+                        if val and infosheet_data.get(key) in _stub_vals:
+                            infosheet_data[key] = val
+                            logger.info("[LLM_FALLBACK] Merged '%s' = %r into infosheet_data", key, val)
+                elif missing_keys and not atc_full_text:
+                    logger.info("[LLM_FALLBACK] Skipping LLM — no ATC text available (ATC not downloaded)")
+            except Exception as llm_err:
+                logger.warning("[LLM_FALLBACK] Non-fatal LLM resolution error: %s", llm_err)
+
         generate_info_sheet_csv(infosheet_data, str(csv_path))
     except Exception as e:
         logger.error(f"Failed to generate info sheet workbook for job {job_id}: {e}", exc_info=True)
