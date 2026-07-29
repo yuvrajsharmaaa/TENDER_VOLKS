@@ -1,28 +1,80 @@
-import json
+"""
+Verify the key fixes still produce correct results using a synthetic test
+that mimics the NiCd Ranchi ATC text patterns.
+"""
 import sys
-from pathlib import Path
-from backend.app.services.tender_mapper import build_infosheet_data
-
 sys.stdout.reconfigure(encoding='utf-8')
 
-job_id = "06e824d6-0d81-454e-abba-68e951e85170"
-job_dir = Path(fr"c:\Users\Asus\Desktop\Tender_Volks\main\backend\app\storage\jobs\{job_id}")
+# Test the build_infosheet_data function directly with synthetic sections and pages
+from backend.app.services.tender_mapper import build_infosheet_data
 
-with open(job_dir / "tender_detail.json", "r", encoding="utf-8") as f:
-    payload = json.load(f)
-
-sections = payload.get("infoSheetSections", [])
-pages = payload.get("rawTextPages", [])
-
-infosheet_data = build_infosheet_data(sections, pages, job_id=job_id)
-
-print("\n--- RANCHI INFOSHEET DATA VERIFICATION ---")
-fields_to_check = [
-    "experience_years_display", "bid_validity_days_display",
-    "order_value_1_display", "order_value_2_display", "order_value_3_display",
-    "payment_terms_supply_display", "payment_terms_installation_display",
-    "delivery_time_supply_display", "installation_inclusive_display", "delivery_time_installation_display"
+# Simulate sections as would come from ATC parsing of NiCd Ranchi tender
+sections = [
+    {
+        "id": "sec1",
+        "title": "Unified Extraction",
+        "fields": [
+            {"id": "f1", "label": "Tender Name / Title", "value": "GAIL NiCd Ranchi - Supply of Ni-Cd Battery Banks", "status": "extracted"},
+            {"id": "f2", "label": "eligibility_criterion_years", "value": "7", "status": "extracted"},
+            {"id": "f3", "label": "Bid Validity (Days)", "value": "120", "status": "extracted"},
+        ]
+    }
 ]
 
-for k in fields_to_check:
-    print(f"  {k}: {infosheet_data.get(k)!r}")
+pages = [
+    {
+        "page": 1,
+        "text": """
+SECTION-I - INVITATION FOR BID (IFB)
+(A) SCOPE OF SUPPLY: Supply of Ni-Cd Battery Banks at GAIL Ranchi
+
+SECTION-II - BID EVALUATION CRITERIA & EVALUATION METHODOLOGY
+1.1 Experience Criteria: The bidder should have experience of executing works during last 7 (seven) years.
+1.2 Technical Criteria:
+  Table-1: Minimum Executed Order Values
+  Schedule 1: Rs. 34.02 Lakhs
+  Schedule 2: Rs. 34.90 Lakhs
+  Schedule 3: Rs. 13.39 Lakhs
+
+SECTION-V - SCOPE OF WORK
+9.0 TERMS OF PAYMENT
+70% Payment of Supply portion on receipt of material at site.
+30% Payment of Installation portion on successful installation and commissioning.
+
+CONTRACT COMPLETION PERIOD: 3 Months for supply and 30 days for installation.
+"""
+    }
+]
+
+info = build_infosheet_data(sections, pages, job_id="ranchi-test")
+
+print("\n--- Ranchi Synthetic Verification ---")
+fields = [
+    ("experience_years_display", "7"),
+    ("bid_validity_days_display", "120 Days"),
+    ("delivery_time_supply_display", "90 Days"),     # 3 months → 90 days
+    ("delivery_time_installation_display", "30 Days"),
+    ("installation_inclusive_display", "No"),
+    ("payment_terms_supply_display", "70%"),
+    ("payment_terms_installation_display", "30%"),
+]
+
+all_pass = True
+for key, expected in fields:
+    actual = info.get(key)
+    status = "✅" if actual == expected else "❌"
+    if actual != expected:
+        all_pass = False
+    print(f"  {status} {key}: expected={expected!r}, got={actual!r}")
+
+print()
+print("Order values (from lakh regex):")
+print(f"  order_value_1_display: {info.get('order_value_1_display')}")
+print(f"  order_value_2_display: {info.get('order_value_2_display')}")
+print(f"  order_value_3_display: {info.get('order_value_3_display')}")
+
+print()
+if all_pass:
+    print("ALL TESTS PASSED ✅")
+else:
+    print("SOME TESTS FAILED ❌")

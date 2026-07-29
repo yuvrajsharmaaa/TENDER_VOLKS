@@ -1081,9 +1081,31 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
 
     # 21. Delivery Time (Installation)
     delivery_time_installation_display = resolve_field(["Delivery Time Installation (Days)", "delivery_time_installation_days"], r"Delivery Time Installation \(Days\)[:\-\s]+([^\n]+)")
-    if _is_missing(delivery_time_installation_display) or delivery_time_installation_display in ("NA", "Not Applicable", "Inclusive (SITC Scope)"):
-        delivery_time_installation_display = "30 Days"
-    installation_inclusive_display = "No"
+
+    # Determine whether installation is SITC-scoped (inclusive in supply) or has a separate period
+    _is_sitc = bool(re.search(r"(?:Supply,?\s*Installation,?\s*Testing\s+and\s+Commissioning|\bSITC\b)", full_text, re.IGNORECASE))
+    # Match explicit installation days in EITHER order: "installation ... N days" OR "N days for installation"
+    _install_days_in_text = (
+        re.search(r"(\d+)\s*(?:days?|day)\s+(?:for|of)\s+installation", full_text, re.IGNORECASE)
+        or re.search(r"installation[^\n]{0,80}(\d+)\s*(?:days?|day)", full_text, re.IGNORECASE)
+    )
+
+    if _is_missing(delivery_time_installation_display) or delivery_time_installation_display == "NA":
+        if _install_days_in_text:
+            # Explicit installation period found in document — use it
+            delivery_time_installation_display = f"{int(_install_days_in_text.group(1))} Days"
+            installation_inclusive_display = "No"
+            logger.info(f"[ATC_ANCHOR] Resolved field 'delivery_time_installation' via regex in text ({delivery_time_installation_display})")
+        elif _is_sitc:
+            # SITC scope with no explicit period: installation is inclusive in supply timeline
+            delivery_time_installation_display = "Inclusive (SITC Scope)"
+            installation_inclusive_display = "Yes"
+            logger.info("[ATC_ANCHOR] Resolved field 'delivery_time_installation' via SECTION_HEADING: Scope of Supply SITC (Inclusive)")
+        else:
+            delivery_time_installation_display = "NA"
+            installation_inclusive_display = "No"
+    else:
+        installation_inclusive_display = "No"
 
     # 22. PBG (in form of)
     # BUG FIX 5: Exclude bank name cell-pair leaks (e.g. "State Bank of India" / Advisory Bank)
@@ -1173,21 +1195,31 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         lambda v: not _is_missing(v) and v not in ("NA", "Not Found") and "%" in str(v)
     )
 
-    # Specific percentage split extraction (e.g. 70% supply / 30% installation)
-    pts_pct = re.search(r"(\d+)\%\s*(?:Payment\s+of\s+Supply|Supply\s+portion|against\s+supply|upon\s+receipt|receipt\s+of\s+material)", full_text, re.IGNORECASE)
-    pti_pct = re.search(r"(\d+)\%\s*(?:payment\s+of\s+installation|for\s+installation|installation\s+&\s+commissioning|commissioning\s+charges)", full_text, re.IGNORECASE)
-    if not pti_pct:
-        pti_pct = re.search(r"remaining\s+['’\s]*(\d+)\%", full_text, re.IGNORECASE)
+    # Wider percentage split scan (e.g. "70% Payment of Supply") - only used if nothing extracted yet
+    if _is_missing(payment_terms_supply_display) or payment_terms_supply_display == "NA":
+        pts_pct = re.search(r"(\d+)\%\s*(?:Payment\s+of\s+Supply|Supply\s+portion|against\s+supply|upon\s+receipt|receipt\s+of\s+material)", full_text, re.IGNORECASE)
+        if pts_pct:
+            payment_terms_supply_display = f"{pts_pct.group(1)}%"
+            logger.info(f"[ATC_ANCHOR] Resolved field 'payment_terms_supply' via wide scan ({payment_terms_supply_display})")
 
-    if pts_pct:
-        payment_terms_supply_display = f"{pts_pct.group(1)}%"
-    else:
+    if _is_missing(payment_terms_installation_display) or payment_terms_installation_display == "NA":
+        pti_pct = (
+            re.search(r"(\d+)\%\s*(?:payment\s+of\s+installation|for\s+installation|installation\s+&\s+commissioning|commissioning\s+charges)", full_text, re.IGNORECASE)
+            or re.search(r"remaining\s+[''s]*(\d+)\%", full_text, re.IGNORECASE)
+        )
+        if pti_pct:
+            payment_terms_installation_display = f"{pti_pct.group(1)}%"
+            logger.info(f"[ATC_ANCHOR] Resolved field 'payment_terms_installation' via wide scan ({payment_terms_installation_display})")
+
+    # GAIL / GeM standard defaults for Goods/SITC contracts (70% supply, 30% installation)
+    # Only apply when nothing has been extracted from any source above
+    if _is_missing(payment_terms_supply_display) or payment_terms_supply_display == "NA":
         payment_terms_supply_display = "70%"
+        logger.info("[ATC_ANCHOR] Resolved field 'payment_terms_supply' via GAIL default (70%)")
 
-    if pti_pct:
-        payment_terms_installation_display = f"{pti_pct.group(1)}%"
-    else:
+    if _is_missing(payment_terms_installation_display) or payment_terms_installation_display == "NA":
         payment_terms_installation_display = "30%"
+        logger.info("[ATC_ANCHOR] Resolved field 'payment_terms_installation' via GAIL default (30%)")
 
     # 25. SD (in form of)
     sd_mode_display = resolve_field(["Security Deposit Mode", "sd_mode"], r"Security Deposit Mode[:\-\s]+([^\n]+)")
@@ -1343,16 +1375,17 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
         "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10
     }
+    # Always build bec_text upfront so downstream code can use it regardless of which branch is taken
+    bec_block_match = re.search(
+        r"(?:Technical\s+BEC\s+Criteria|BID\s+EVALUATION\s+CRITERIA\s+&\s+EVALUATION\s+METHODOLOGY)(.*?)(?=SECTION-III|BIDDING\s+DATA\s+SHEET|\Z)",
+        full_text, re.IGNORECASE | re.DOTALL
+    )
+    bec_text = bec_block_match.group(1) if bec_block_match else full_text
+
     exp_years_from_sec = resolve_field(["Eligibility Criterion (Years)", "eligibility_criterion_years", "Years of Past Experience", "Past Experience", "Minimum Experience (Years)", "Experience Criterion"], default=None)
     if not _is_missing(exp_years_from_sec) and exp_years_from_sec not in ("NA", "Not Found", "0", 0, "0.0", "—"):
         age_in_yrs = str(exp_years_from_sec)
     else:
-        bec_block_match = re.search(
-            r"(?:Technical\s+BEC\s+Criteria|BID\s+EVALUATION\s+CRITERIA\s+&\s+EVALUATION\s+METHODOLOGY)(.*?)(?=SECTION-III|BIDDING\s+DATA\s+SHEET|\Z)",
-            full_text, re.IGNORECASE | re.DOTALL
-        )
-        bec_text = bec_block_match.group(1) if bec_block_match else full_text
-
         yrs_m = re.search(
             r"(?:previous|past|preceding)\s+(?:(one|two|three|four|five|six|seven|eight|nine|ten|\(?\d{1,2}\)?))\s*\(?\d{0,2}\)?\s*years?",
             bec_text, re.IGNORECASE

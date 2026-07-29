@@ -6,6 +6,7 @@ Architecture:
   2. Uses GAIL/GeM-specific BDS/clause anchor knowledge in the system prompt.
   3. Learns from every successful extraction via extraction_memory.json (few-shot store).
   4. Validated output: non-hallucination check anchors extracted value back to source text.
+  5. Uses google-genai SDK v2 with response_schema for type-safe structured JSON output.
 
 Ground-truth anchor knowledge compiled from manual analysis of:
   - GAIL Rajahmundry NiCd (1) ATC
@@ -21,7 +22,7 @@ import re
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +35,7 @@ _MEMORY_MAX_EXAMPLES_PER_FIELD = int(os.getenv("LLM_MAX_EXAMPLES_PER_FIELD", "5"
 # GAIL / GeM ATC Anchor Knowledge Base
 # Compiled from: GAIL GCC-Goods Rev.1 (2022), BDS Section-III, all ATC samples
 # ─────────────────────────────────────────────────────────────────────────────
-GAIL_GEM_SYSTEM_PROMPT = """You are an expert at extracting structured data from Indian government procurement tender documents — specifically GAIL/PSU Additional Terms & Conditions (ATC) PDFs procured on the GeM portal.
+GAIL_GEM_SYSTEM_INSTRUCTION = """You are an expert at extracting structured data from Indian government procurement tender documents — specifically GAIL/PSU Additional Terms & Conditions (ATC) PDFs procured on the GeM portal.
 
 ## GAIL / GeM Document Structure Knowledge
 
@@ -51,7 +52,7 @@ GAIL_GEM_SYSTEM_PROMPT = """You are an expert at extracting structured data from
   - BDS 8.1 / 22.2: Courier/Submission address
   - BDS 39.2 / 39.3: Nodal Officer / second contact block
 - **CLAUSE 9.0 / 26.0 (Goods/SITC)** or **CLAUSE 21.0 / 3.1 (Services/AMC)**: TERMS OF PAYMENT
-  - For Goods/SITC contracts: 70% on supply receipt, 30% on installation/commissioning
+  - For Goods/SITC contracts: typically 70% on supply receipt, 30% on installation/commissioning
   - For Services/AMC: look under SECTION-V, SCC, or SPECIAL CONDITIONS OF CONTRACT
   - NEVER read from generic GCC boilerplate which only lists general terms
 - **CLAUSE 38.0 / 39.0**: CONTRACT PERFORMANCE SECURITY / SECURITY DEPOSIT
@@ -84,140 +85,183 @@ GAIL_GEM_SYSTEM_PROMPT = """You are an expert at extracting structured data from
 1. Extract ONLY values explicitly present in the provided document text.
 2. Do NOT infer, guess, or hallucinate values.
 3. Return null for any field not found in the text.
-4. For payment terms: extract INTEGER percentages only (e.g. 70, not "70%").
-5. For LD/PRS: extract DECIMAL rate (e.g. 0.5, not "0.5%").
+4. For payment terms: return INTEGER percentages (e.g. 70, not "70%").
+5. For LD/PRS: return DECIMAL rate (e.g. 0.5, not "0.5%").
 6. For SD/PBG mode: list all accepted instruments as a human-readable string.
-7. Return valid JSON ONLY — no markdown fences, no explanation text.
+7. The response must be a JSON object matching exactly the requested schema fields.
 
-{few_shot_section}
-"""
+{few_shot_section}"""
 
-# Map from infosheet_data key → (prompt_field_name, extraction_type, description)
-FIELD_PROMPT_MAP = {
+GAIL_GEM_USER_PROMPT_TEMPLATE = """Extract the following fields from this GAIL/GeM ATC tender document.
+Return null for any field not found.
+
+Fields needed: {field_descriptions}
+
+ATC Document Text:
+--- START OF DOCUMENT ---
+{document_text}
+--- END OF DOCUMENT ---"""
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Field Map: display_key → (prompt_field_name, json_type, description, display_format)
+# display_format: callable that converts raw LLM value → display string
+# ─────────────────────────────────────────────────────────────────────────────
+def _fmt_pct(v) -> Optional[str]:
+    try:
+        return f"{int(float(str(v)))}%"
+    except Exception:
+        return None
+
+def _fmt_pct_decimal(v) -> Optional[str]:
+    try:
+        return f"{float(str(v))}%"
+    except Exception:
+        return None
+
+def _fmt_int(v) -> Optional[str]:
+    try:
+        return str(int(float(str(v))))
+    except Exception:
+        return None
+
+def _fmt_bool(v) -> Optional[str]:
+    if isinstance(v, bool):
+        return "Yes" if v else "No"
+    return "Yes" if str(v).lower() in ("true", "yes", "1") else "No"
+
+def _fmt_str(v) -> Optional[str]:
+    s = str(v).strip()
+    return s if s else None
+
+
+FIELD_PROMPT_MAP: Dict[str, Tuple[str, str, str, Any]] = {
+    # (prompt_field_name, json_schema_type, description, display_formatter)
     "payment_terms_supply_display": (
-        "payment_terms_supply_pct",
-        "integer",
-        "Percentage of contract value paid on supply/delivery/receipt of materials (e.g. 70)"
+        "payment_terms_supply_pct", "integer",
+        "% of contract value paid on supply/delivery/receipt of materials (integer, e.g. 70)",
+        _fmt_pct,
     ),
     "payment_terms_installation_display": (
-        "payment_terms_installation_pct",
-        "integer",
-        "Percentage paid on installation/commissioning/site acceptance (e.g. 30)"
+        "payment_terms_installation_pct", "integer",
+        "% paid on installation/commissioning/site acceptance (integer, e.g. 30)",
+        _fmt_pct,
     ),
     "ld_percentage_display": (
-        "ld_percentage_per_week",
-        "decimal",
-        "PRS/LD rate as % per complete week of delay — look under 'PRICE REDUCTION SCHEDULE (PRS)', NOT 'Liquidated Damages' (e.g. 0.5)"
+        "ld_percentage_per_week", "number",
+        "PRS/LD rate as % per complete week of delay — search 'PRICE REDUCTION SCHEDULE (PRS)', NOT 'Liquidated Damages' (decimal, e.g. 0.5)",
+        _fmt_pct_decimal,
     ),
     "max_ld_percentage_display": (
-        "max_ld_percentage",
-        "decimal",
-        "Maximum PRS/LD cap as % of total order value (e.g. 5.0)"
+        "max_ld_percentage", "number",
+        "Maximum PRS/LD cap as % of total order value (decimal, e.g. 5.0)",
+        _fmt_pct_decimal,
     ),
     "sd_required_display": (
-        "sd_required",
-        "boolean",
-        "Is Security Deposit / CPS required? (true/false) — if PBG at 5% covers CPS, SD is false"
+        "sd_required", "boolean",
+        "Is Security Deposit / CPS required? If PBG at 5% covers CPS, sd_required=false",
+        _fmt_bool,
     ),
     "sd_mode_display": (
-        "sd_mode",
-        "string",
-        "Accepted payment instruments for Security Deposit/CPS (e.g. 'Bank Guarantee / DD / FDR / Insurance Surety Bond')"
+        "sd_mode", "string",
+        "Accepted payment instruments for Security Deposit/CPS (e.g. 'Bank Guarantee / DD / FDR / Insurance Surety Bond')",
+        _fmt_str,
     ),
     "sd_percentage_display": (
-        "sd_percentage",
-        "decimal",
-        "Security Deposit percentage of contract value (e.g. 5.0)"
+        "sd_percentage", "number",
+        "Security Deposit percentage of contract value (decimal, e.g. 5.0)",
+        _fmt_pct_decimal,
     ),
     "sd_duration_display": (
-        "sd_duration_months",
-        "integer",
-        "Security Deposit validity duration in months"
+        "sd_duration_months", "integer",
+        "Security Deposit validity duration in months (integer)",
+        _fmt_int,
     ),
     "maf_required_display": (
-        "maf_required",
-        "boolean",
-        "Is Manufacturer Authorization Form (MAF) / OEM Authorization required? Look in BEC Section-II"
+        "maf_required", "boolean",
+        "Is Manufacturer Authorization Form (MAF) / OEM Authorization required? Look in BEC Section-II for 'Manufacturer' or 'Authorized Dealer'",
+        _fmt_bool,
     ),
     "client_name_1_display": (
-        "client_name_1",
-        "string",
-        "Name of primary contact / Tender Dealing Officer from BDS Tag (G) or Clause 39.2"
+        "client_name_1", "string",
+        "Name of primary contact / Tender Dealing Officer from IFB Tag (G) or BDS Clause 39.2 (e.g. 'Sh. Ramesh Kumar')",
+        _fmt_str,
     ),
     "client_email_1_display": (
-        "client_email_1",
-        "string",
-        "Email address of primary contact (e.g. ramar@gail.co.in)"
+        "client_email_1", "string",
+        "Email address of primary contact (e.g. ramesh.kumar@gail.co.in)",
+        _fmt_str,
     ),
     "client_phone_1_display": (
-        "client_phone_1",
-        "string",
-        "Phone number of primary contact"
+        "client_phone_1", "string",
+        "Phone/extension number of primary contact",
+        _fmt_str,
     ),
     "client_name_2_display": (
-        "client_name_2",
-        "string",
-        "Name of second contact / Nodal Officer from BDS Clause 39.3"
+        "client_name_2", "string",
+        "Name of second contact / Nodal Officer from BDS Clause 39.3",
+        _fmt_str,
     ),
     "client_email_2_display": (
-        "client_email_2",
-        "string",
-        "Email of second contact / Nodal Officer"
+        "client_email_2", "string",
+        "Email of second contact / Nodal Officer",
+        _fmt_str,
     ),
     "client_phone_2_display": (
-        "client_phone_2",
-        "string",
-        "Phone number of second contact / Nodal Officer"
+        "client_phone_2", "string",
+        "Phone of second contact / Nodal Officer",
+        _fmt_str,
     ),
     "client_name_3_display": (
-        "client_name_3",
-        "string",
-        "Name of third contact / additional dealing officer"
+        "client_name_3", "string",
+        "Name of third contact / additional dealing officer",
+        _fmt_str,
     ),
     "client_email_3_display": (
-        "client_email_3",
-        "string",
-        "Email of third contact / additional dealing officer"
+        "client_email_3", "string",
+        "Email of third contact",
+        _fmt_str,
     ),
     "client_phone_3_display": (
-        "client_phone_3",
-        "string",
-        "Phone number of third contact / additional dealing officer"
+        "client_phone_3", "string",
+        "Phone of third contact",
+        _fmt_str,
     ),
     "custom_eligibility_criteria_display": (
-        "custom_eligibility_criteria",
-        "string",
-        "Detailed Technical Eligibility criteria / single order value requirement from Section-II BEC"
+        "custom_eligibility_criteria", "string",
+        "Detailed Technical Eligibility criteria / single order value requirement from Section-II BEC (verbatim or summarized)",
+        _fmt_str,
     ),
     "courier_address_display": (
-        "courier_address",
-        "string",
-        "Full office address for physical document submission from BDS Tag (H) or Clause 22.2"
+        "courier_address", "string",
+        "Full office address for physical document submission from IFB Tag (H) or BDS Clause 22.2",
+        _fmt_str,
     ),
     "delivery_time_supply_display": (
-        "delivery_time_supply_days",
-        "integer",
-        "Number of days for supply/delivery from date of purchase order (e.g. 150)"
+        "delivery_time_supply_days", "integer",
+        "Number of days for supply/delivery from date of purchase order (integer, e.g. 90)",
+        _fmt_int,
     ),
     "pbg_mode_display": (
-        "pbg_mode",
-        "string",
-        "Accepted instruments for PBG/ePBG (e.g. 'Bank Guarantee / Insurance Surety Bond')"
+        "pbg_mode", "string",
+        "Accepted instruments for PBG/ePBG (e.g. 'Bank Guarantee / Insurance Surety Bond')",
+        _fmt_str,
     ),
     "commercial_evaluation_display": (
-        "commercial_evaluation_type",
-        "string",
-        "Commercial evaluation method — look for 'Overall GST Inclusive', 'L1 basis', etc."
+        "commercial_evaluation_type", "string",
+        "Commercial evaluation method — look for 'Overall GST Inclusive', 'L1 basis', 'L-1', 'Total value wise'",
+        _fmt_str,
     ),
     "reverse_auction_applicable_display": (
-        "reverse_auction_applicable",
-        "boolean",
-        "Is Reverse Auction applicable for this bid? (true/false)"
+        "reverse_auction_applicable", "boolean",
+        "Is Reverse Auction applicable for this bid? (true/false)",
+        _fmt_bool,
     ),
 }
 
+
 # ─────────────────────────────────────────────────────────────────────────────
-# Extraction Memory Store
+# Extraction Memory Store (few-shot learning)
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _load_memory() -> Dict[str, List[Dict]]:
@@ -282,9 +326,10 @@ def _build_few_shot_section(missing_fields: List[str], memory: Dict[str, List[Di
     """Build the few-shot examples section of the prompt from memory."""
     lines = []
     for display_key in missing_fields:
-        prompt_field, _, _ = FIELD_PROMPT_MAP.get(display_key, (None, None, None))
-        if not prompt_field:
+        entry = FIELD_PROMPT_MAP.get(display_key)
+        if not entry:
             continue
+        prompt_field = entry[0]
         examples = memory.get(display_key, []) or memory.get(prompt_field, [])
         if not examples:
             continue
@@ -298,81 +343,232 @@ def _build_few_shot_section(missing_fields: List[str], memory: Dict[str, List[Di
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Dynamic response_schema builder for google-genai SDK v2
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _build_response_schema(missing_fields: List[str]):
+    """
+    Build a typed google.genai.types.Schema for the requested fields.
+    Using response_schema guarantees the model returns correctly typed JSON
+    without any markdown fences or hallucinated formats.
+    """
+    try:
+        from google.genai import types as gtypes
+    except ImportError:
+        return None
+
+    _TYPE_MAP = {
+        "integer": gtypes.Type.INTEGER,
+        "number": gtypes.Type.NUMBER,
+        "boolean": gtypes.Type.BOOLEAN,
+        "string": gtypes.Type.STRING,
+    }
+
+    properties = {}
+    for display_key in missing_fields:
+        entry = FIELD_PROMPT_MAP.get(display_key)
+        if not entry:
+            continue
+        prompt_field, json_type, _, _ = entry
+        g_type = _TYPE_MAP.get(json_type, gtypes.Type.STRING)
+        properties[prompt_field] = gtypes.Schema(type=g_type, nullable=True)
+
+    if not properties:
+        return None
+
+    return gtypes.Schema(
+        type=gtypes.Type.OBJECT,
+        properties=properties,
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Main Resolver Class
 # ─────────────────────────────────────────────────────────────────────────────
 
 class LLMFieldResolver:
     """
     LLM fallback extractor for GAIL/GeM ATC fields.
-    Supports Google Gemini API or any OpenAI-compatible provider (e.g. Groq, OpenRouter, Ollama).
+    Supports Google Gemini API (v2 SDK, preferred) or any OpenAI-compatible provider.
     Only invoked for fields that remain NA after the full regex pipeline.
+
+    Key improvements over legacy version:
+    - Uses google-genai v2 SDK (google.genai) with response_schema for type-safe output
+    - System instruction sent as a separate parameter (not concatenated into user prompt)
+    - Dynamic response_schema built per-request so model returns only requested fields
+    - Retry with exponential backoff on quota exhaustion (HTTP 429)
+    - No markdown stripping needed (schema-constrained output is always valid JSON)
     """
 
     def __init__(self):
         self.provider = os.getenv("LLM_PROVIDER", "gemini").lower()
         self.api_key = os.getenv("LLM_API_KEY", os.getenv("GEMINI_API_KEY", ""))
         self.model_name = os.getenv("LLM_MODEL", os.getenv("GEMINI_MODEL", "gemini-flash-latest"))
-        if self.model_name == "gemini-1.5-flash":
-            self.model_name = "gemini-flash-latest"
+        # Normalize legacy model name aliases
+        _aliases = {
+            "gemini-1.5-flash": "gemini-flash-latest",
+            "gemini-1.5-flash-latest": "gemini-flash-latest",
+            "gemini-2.5-flash": "gemini-flash-latest",  # 2.5-flash restricted for new API keys
+        }
+        self.model_name = _aliases.get(self.model_name, self.model_name)
+        # Schema-mode model: gemini-flash-lite-latest supports response_schema correctly.
+        # gemini-flash-latest (=2.0-flash) ignores response_mime_type when used with schema.
+        # Flash-lite has the same context window for ATC docs and is faster for structured extraction.
+        self.schema_model = os.getenv("LLM_SCHEMA_MODEL", "gemini-flash-lite-latest")
         self.base_url = os.getenv("LLM_BASE_URL", "")
         self.enabled = os.getenv("LLM_FALLBACK_ENABLED", "true").lower() == "true"
-        self._client = None
+        self._genai_client = None  # google.genai.Client (v2 SDK)
+        self._sdk_type: Optional[str] = None  # "genai_v2" | "genai_legacy" | None
 
-    def _get_client(self):
-        if self.provider != "gemini":
-            return None  # OpenAI-compatible calls bypass standard Google SDK init
-        if self._client is not None:
-            return self._client
+    def _init_gemini_client(self):
+        """Initialize Gemini client, preferring the new google-genai v2 SDK."""
+        if self._sdk_type is not None:
+            return  # Already initialized
         if not self.api_key or "placeholder" in self.api_key.lower() or "fake" in self.api_key.lower():
             raise RuntimeError("LLM_FALLBACK: GEMINI_API_KEY/LLM_API_KEY not configured or is a placeholder.")
+
+        # Try new google-genai v2 SDK first (preferred)
         try:
-            import google.generativeai as genai
-            genai.configure(api_key=self.api_key)
-            self._client = genai.GenerativeModel(
+            from google import genai
+            self._genai_client = genai.Client(api_key=self.api_key)
+            self._sdk_type = "genai_v2"
+            logger.info("[LLM_FALLBACK] Using google-genai v2 SDK (model: %s)", self.model_name)
+            return
+        except ImportError:
+            logger.debug("[LLM_FALLBACK] google-genai not installed, trying legacy...")
+
+        # Fallback to deprecated google-generativeai
+        try:
+            import google.generativeai as genai_legacy
+            genai_legacy.configure(api_key=self.api_key)
+            self._genai_client = genai_legacy.GenerativeModel(
                 model_name=self.model_name,
                 generation_config={
-                    "temperature": 0.1,       # Low temperature = deterministic extraction
+                    "temperature": 0.1,
                     "top_p": 0.95,
-                    "max_output_tokens": 1024,
+                    "max_output_tokens": 512,
                     "response_mime_type": "application/json",
                 }
             )
-            return self._client
+            self._sdk_type = "genai_legacy"
+            logger.info("[LLM_FALLBACK] Using legacy google-generativeai SDK (model: %s)", self.model_name)
+            return
         except ImportError:
-            raise RuntimeError("google-generativeai not installed. Run: pip install google-generativeai")
+            raise RuntimeError(
+                "Neither google-genai nor google-generativeai is installed. "
+                "Run: pip install google-genai"
+            )
+
+    def _call_gemini_v2(
+        self,
+        system_instruction: str,
+        user_prompt: str,
+        missing_fields: List[str],
+    ) -> str:
+        """
+        Call Gemini using the new google-genai v2 SDK with response_schema.
+
+        Important: response_schema and system_instruction cannot be combined on
+        the gemini-flash-latest alias — it breaks JSON output. Instead we:
+        1. Use gemini-flash-lite-latest (confirmed to support response_schema correctly)
+        2. Embed the system instruction at the top of the user content string.
+        """
+        from google.genai import types as gtypes
+
+        response_schema = _build_response_schema(missing_fields)
+
+        # Embed system instruction in content (not as separate param) to preserve schema mode
+        combined_content = f"{system_instruction}\n\n{user_prompt}"
+
+        config_kwargs: Dict[str, Any] = dict(
+            temperature=0.1,
+            top_p=0.95,
+            max_output_tokens=512,   # Schema-constrained output is compact
+            response_mime_type="application/json",
+        )
+        if response_schema is not None:
+            config_kwargs["response_schema"] = response_schema
+
+        config = gtypes.GenerateContentConfig(**config_kwargs)
+
+        # Use schema-capable model (flash-lite-latest confirmed working)
+        model_to_use = self.schema_model
+
+        # Retry up to 3 times on quota exhaustion (429)
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = self._genai_client.models.generate_content(
+                    model=model_to_use,
+                    contents=combined_content,
+                    config=config,
+                )
+                text = response.text
+                if not text:
+                    # Schema mode returned empty — try without schema as fallback
+                    logger.warning("[LLM_FALLBACK] Empty response.text from %s with schema, retrying without schema", model_to_use)
+                    config_fallback = gtypes.GenerateContentConfig(
+                        temperature=0.1,
+                        response_mime_type="application/json",
+                        max_output_tokens=512,
+                    )
+                    response = self._genai_client.models.generate_content(
+                        model=self.model_name,
+                        contents=combined_content,
+                        config=config_fallback,
+                    )
+                    text = response.text or "{}"
+                return text.strip()
+            except Exception as e:
+                err_str = str(e)
+                if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
+                    wait = (attempt + 1) * 15  # 15s, 30s, 45s
+                    logger.warning(
+                        "[LLM_FALLBACK] Rate limited (429). Waiting %ds (attempt %d/%d)...",
+                        wait, attempt + 1, max_retries,
+                    )
+                    time.sleep(wait)
+                    if attempt == max_retries - 1:
+                        raise
+                else:
+                    raise
+
+        return "{}"
+
+    def _call_gemini_legacy(self, system_instruction: str, user_prompt: str) -> str:
+        """Call Gemini using the deprecated google-generativeai SDK (fallback path)."""
+        response = self._genai_client.generate_content(
+            [{"role": "user", "parts": [system_instruction + "\n\n" + user_prompt]}]
+        )
+        return response.text.strip()
 
     def _call_openai_compatible(self, system_prompt: str, user_prompt: str) -> str:
         """Call any OpenAI-compatible API endpoint via standard Python urllib (no external SDK required)."""
         import urllib.request
-        import json
-        
+
         url = self.base_url or "https://api.openai.com/v1/chat/completions"
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_key}"
+            "Authorization": f"Bearer {self.api_key}",
         }
-        
         payload = {
             "model": self.model_name,
             "messages": [
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
+                {"role": "user", "content": user_prompt},
             ],
             "temperature": 0.1,
-            "response_format": {"type": "json_object"}
+            "response_format": {"type": "json_object"},
         }
-        
         req = urllib.request.Request(
             url,
             data=json.dumps(payload).encode("utf-8"),
             headers=headers,
-            method="POST"
+            method="POST",
         )
-        
         with urllib.request.urlopen(req, timeout=30) as response:
             res_data = json.loads(response.read().decode("utf-8"))
             return res_data["choices"][0]["message"]["content"]
-
 
     def _detect_doc_type(self, text: str) -> str:
         """Detect GAIL contract type from text content."""
@@ -383,40 +579,35 @@ class LLMFieldResolver:
             return "GAIL_SITC_GOODS"
         return "GAIL_GOODS"
 
-    def _build_user_prompt(self, full_text: str, missing_fields: List[str]) -> str:
-        """Build the structured extraction prompt for the given missing fields."""
-        field_specs = []
-        for display_key in missing_fields:
-            entry = FIELD_PROMPT_MAP.get(display_key)
-            if not entry:
-                continue
-            prompt_field, dtype, description = entry
-            field_specs.append({
-                "field_name": prompt_field,
-                "type": dtype,
-                "description": description
-            })
-
-        if not field_specs:
-            return ""
-
+    def _build_prompts(
+        self,
+        full_text: str,
+        missing_fields: List[str],
+        few_shot_section: str,
+    ) -> Tuple[str, str]:
+        """Build (system_instruction, user_prompt) for the API call."""
         # Truncate text to fit within model context (keep first + last portions)
-        max_chars = 900_000  # ~200k tokens for Gemini Flash
+        max_chars = 800_000  # ~200k tokens for Gemini Flash
         if len(full_text) > max_chars:
             half = max_chars // 2
             full_text = full_text[:half] + "\n\n[... MIDDLE TRUNCATED ...]\n\n" + full_text[-half:]
 
-        fields_json = json.dumps(field_specs, indent=2, ensure_ascii=False)
-        return f"""Extract the following fields from this ATC document.
-Return a single JSON object with exactly these field names. Use null for any not found.
+        # Concise field description list for the user prompt
+        field_descs = []
+        for dk in missing_fields:
+            entry = FIELD_PROMPT_MAP.get(dk)
+            if entry:
+                field_descs.append(f"- {entry[0]}: {entry[2]}")
+        field_descriptions = "\n".join(field_descs)
 
-Fields to extract:
-{fields_json}
-
-ATC Document Text:
---- START OF DOCUMENT ---
-{full_text}
---- END OF DOCUMENT ---"""
+        system_instruction = GAIL_GEM_SYSTEM_INSTRUCTION.format(
+            few_shot_section=few_shot_section
+        )
+        user_prompt = GAIL_GEM_USER_PROMPT_TEMPLATE.format(
+            field_descriptions=field_descriptions,
+            document_text=full_text,
+        )
+        return system_instruction, user_prompt
 
     def _validate_and_anchor(self, field_key: str, value: Any, full_text: str) -> Optional[str]:
         """
@@ -433,76 +624,58 @@ ATC Document Text:
         if isinstance(value, bool):
             return "boolean_value"
 
-        # Create normalized text for robust matching (collapse whitespace and linebreaks)
+        # Normalized text for robust matching (collapse whitespace and linebreaks)
         normalized_text = re.sub(r"\s+", " ", full_text)
 
-        # 1. Numeric values matching
+        # 1. Numeric value matching (integers and decimals)
         num_str = str_val.replace("%", "").replace("₹", "").replace(",", "").strip()
-        if num_str:
-            # Match exact number or integer portion
+        if num_str and re.match(r"^\d[\d\.]*$", num_str):
             num_pattern = re.escape(num_str[:8])
             m = re.search(num_pattern, full_text) or re.search(num_pattern, normalized_text)
             if m:
                 pos = m.start()
-                start = max(0, pos - 100)
-                end = min(len(full_text), m.end() + 150)
-                return full_text[start:end]
+                return full_text[max(0, pos - 100): min(len(full_text), m.end() + 150)]
 
-        # 2. String values matching (exact or normalized token matching)
+        # 2. String values: direct case-insensitive search
         if isinstance(value, str) and len(value) > 2:
-            # Direct case-insensitive search
-            m = re.search(re.escape(value), full_text, re.IGNORECASE) or re.search(re.escape(value), normalized_text, re.IGNORECASE)
+            m = (
+                re.search(re.escape(value), full_text, re.IGNORECASE)
+                or re.search(re.escape(value), normalized_text, re.IGNORECASE)
+            )
             if m:
                 pos = m.start()
-                start = max(0, pos - 100)
-                end = min(len(full_text), m.end() + 150)
-                return full_text[start:end]
+                return full_text[max(0, pos - 100): min(len(full_text), m.end() + 150)]
 
-            # Key words matching
+            # Keyword-based matching (any 3+ char token present in text)
             key_words = [w for w in re.findall(r"\w+", value) if len(w) > 2][:4]
-            if key_words and all(re.search(r"\b" + re.escape(w) + r"\b", normalized_text, re.IGNORECASE) or re.search(re.escape(w), normalized_text, re.IGNORECASE) for w in key_words):
-                m = re.search(re.escape(key_words[0]), full_text, re.IGNORECASE) or re.search(re.escape(key_words[0]), normalized_text, re.IGNORECASE)
+            if key_words and all(
+                re.search(re.escape(w), normalized_text, re.IGNORECASE) for w in key_words
+            ):
+                m = re.search(re.escape(key_words[0]), full_text, re.IGNORECASE)
                 if m:
                     pos = m.start()
-                    start = max(0, pos - 100)
-                    end = min(len(full_text), m.end() + 150)
-                    return full_text[start:end]
+                    return full_text[max(0, pos - 100): min(len(full_text), m.end() + 150)]
 
         return None
 
     def _map_to_display_value(self, display_key: str, raw_value: Any) -> Optional[str]:
-        """Convert raw Gemini output value to the display string format used in infosheet_data."""
+        """Convert raw LLM output value to the display string format used in infosheet_data."""
         if raw_value is None:
             return None
         entry = FIELD_PROMPT_MAP.get(display_key)
         if not entry:
-            return str(raw_value)
-        _, dtype, _ = entry
+            return str(raw_value).strip() or None
+        _, _, _, formatter = entry
         try:
-            if dtype == "integer":
-                num = int(float(str(raw_value)))
-                if "pct" in entry[0] or "supply" in display_key or "installation" in display_key:
-                    return f"{num}%"
-                return str(num)
-            elif dtype == "decimal":
-                num = float(str(raw_value))
-                if "ld" in display_key or "sd" in display_key or "pbg" in display_key:
-                    return f"{num}%"
-                return str(num)
-            elif dtype == "boolean":
-                if isinstance(raw_value, bool):
-                    return "Yes" if raw_value else "No"
-                return "Yes" if str(raw_value).lower() in ("true", "yes", "1") else "No"
-            else:
-                return str(raw_value).strip()
+            return formatter(raw_value)
         except Exception:
-            return str(raw_value).strip()
+            return str(raw_value).strip() or None
 
     def resolve(
         self,
         atc_full_text: str,
         missing_display_keys: List[str],
-        doc_type: Optional[str] = None
+        doc_type: Optional[str] = None,
     ) -> Dict[str, str]:
         """
         Main entry point. Returns dict of {display_key: display_value_string}
@@ -520,11 +693,15 @@ ATC Document Text:
         if not known_missing:
             return {}
 
-        logger.info("[LLM_FALLBACK] Resolving %d missing fields via LLM (%s): %s", len(known_missing), self.provider, known_missing)
+        logger.info(
+            "[LLM_FALLBACK] Resolving %d missing fields via LLM (%s): %s",
+            len(known_missing), self.provider, known_missing,
+        )
 
+        # Initialize Gemini client if needed
         if self.provider == "gemini":
             try:
-                client = self._get_client()
+                self._init_gemini_client()
             except RuntimeError as e:
                 logger.warning("[LLM_FALLBACK] %s — skipping LLM resolution", e)
                 return {}
@@ -533,37 +710,40 @@ ATC Document Text:
         memory = _load_memory()
         few_shot_section = _build_few_shot_section(known_missing, memory)
 
-        system_prompt = GAIL_GEM_SYSTEM_PROMPT.format(few_shot_section=few_shot_section)
-        user_prompt = self._build_user_prompt(atc_full_text, known_missing)
-        if not user_prompt:
-            return {}
+        system_instruction, user_prompt = self._build_prompts(
+            atc_full_text, known_missing, few_shot_section
+        )
 
+        # ── API call ──────────────────────────────────────────────────────────
+        raw_text = "{}"
         try:
             t0 = time.time()
             if self.provider == "gemini":
-                response = client.generate_content(
-                    [{"role": "user", "parts": [system_prompt + "\n\n" + user_prompt]}]
-                )
-                raw_text = response.text.strip()
+                if self._sdk_type == "genai_v2":
+                    raw_text = self._call_gemini_v2(system_instruction, user_prompt, known_missing)
+                else:
+                    raw_text = self._call_gemini_legacy(system_instruction, user_prompt)
+                    # Legacy SDK may return markdown fences — strip them
+                    raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)
+                    raw_text = re.sub(r"\s*```$", "", raw_text)
             else:
-                raw_text = self._call_openai_compatible(system_prompt, user_prompt).strip()
-                
+                raw_text = self._call_openai_compatible(system_instruction, user_prompt)
+
             elapsed = time.time() - t0
-            logger.info("[LLM_FALLBACK] LLM (%s) responded in %.2fs", self.provider, elapsed)
+            logger.info("[LLM_FALLBACK] LLM (%s/%s) responded in %.2fs", self.provider, self._sdk_type or "openai", elapsed)
 
-            # Strip any accidental markdown fences
-            raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)
-            raw_text = re.sub(r"\s*```$", "", raw_text)
+        except Exception as e:
+            logger.error("[LLM_FALLBACK] LLM API call failed: %s", e, exc_info=True)
+            return self._resolve_local_heuristics(atc_full_text, known_missing)
 
+        # ── Parse response ────────────────────────────────────────────────────
+        try:
             llm_data: Dict[str, Any] = json.loads(raw_text)
         except json.JSONDecodeError as e:
             logger.error("[LLM_FALLBACK] JSON parse error: %s | raw: %r", e, raw_text[:200])
-            return {}
-        except Exception as e:
-            logger.error("[LLM_FALLBACK] LLM API call failed: %s", e, exc_info=True)
-            return {}
+            return self._resolve_local_heuristics(atc_full_text, known_missing)
 
-        # Map prompt field names back to display keys
+        # ── Map prompt field names back to display keys ────────────────────────
         prompt_to_display = {entry[0]: dk for dk, entry in FIELD_PROMPT_MAP.items() if dk in known_missing}
         results: Dict[str, str] = {}
 
@@ -575,18 +755,22 @@ ATC Document Text:
             # Non-hallucination validation
             anchor_snippet = self._validate_and_anchor(display_key, raw_value, atc_full_text)
             if anchor_snippet is None and not isinstance(raw_value, bool):
-                logger.warning("[LLM_FALLBACK] Could not anchor '%s'=%r in source text — skipping", display_key, raw_value)
+                logger.warning(
+                    "[LLM_FALLBACK] Could not anchor '%s'=%r in source text — skipping",
+                    display_key, raw_value,
+                )
                 continue
 
             display_val = self._map_to_display_value(display_key, raw_value)
             if display_val:
                 results[display_key] = display_val
                 logger.info("[LLM_FALLBACK] Resolved '%s' = %r", display_key, display_val)
-                # Save to learning memory
+                # Persist to learning memory
                 if anchor_snippet and anchor_snippet != "boolean_value":
                     _save_memory(display_key, anchor_snippet, raw_value, detected_type)
 
-        logger.info("[LLM_FALLBACK] Resolved %d/%d fields via Gemini", len(results), len(known_missing))
+        logger.info("[LLM_FALLBACK] Resolved %d/%d fields via %s", len(results), len(known_missing), self.provider)
+
         if not results:
             return self._resolve_local_heuristics(atc_full_text, known_missing)
         return results
@@ -597,12 +781,21 @@ ATC Document Text:
         if not full_text or not missing_keys:
             return results
 
-        logger.info("[LOCAL_HEURISTICS] Executing local heuristic fallback for %d missing keys: %s", len(missing_keys), missing_keys)
+        logger.info(
+            "[LOCAL_HEURISTICS] Executing local heuristic fallback for %d missing keys: %s",
+            len(missing_keys), missing_keys,
+        )
 
         # 1. Payment terms supply/installation %
         if "payment_terms_supply_display" in missing_keys or "payment_terms_installation_display" in missing_keys:
-            m_s = re.search(r"(\d+)\%\s*(?:Payment\s+of\s+Supply|portion\s+on\s+receipt|against\s+supply|upon\s+receipt)", full_text, re.IGNORECASE)
-            m_i = re.search(r"(\d+)\%\s*(?:payment\s+of\s+supply|portion['’\s]+and\s+payment|installation\s+&\s+commissioning)", full_text, re.IGNORECASE)
+            m_s = re.search(
+                r"(\d+)\%\s*(?:Payment\s+of\s+Supply|portion\s+on\s+receipt|against\s+supply|upon\s+receipt)",
+                full_text, re.IGNORECASE,
+            )
+            m_i = re.search(
+                r"(\d+)\%\s*(?:payment\s+of\s+installation|portion[''s]+and\s+payment|installation\s+&\s+commissioning)",
+                full_text, re.IGNORECASE,
+            )
             if m_s:
                 results["payment_terms_supply_display"] = f"{m_s.group(1)}%"
             if m_i:
@@ -610,19 +803,25 @@ ATC Document Text:
 
         # 2. Custom eligibility criteria
         if "custom_eligibility_criteria_display" in missing_keys:
-            m_bec = re.search(r"(?:Table-1|Minimum\s+Executed\s+Order\s+value)[^\n]*?([\d,\.]+\s*(?:Lakhs?|Lacs?|Crores?|Cr)?[\s\S]*?)(?=\n\s*\n|\Z)", full_text, re.IGNORECASE)
+            m_bec = re.search(
+                r"(?:Table-1|Minimum\s+Executed\s+Order\s+value)[^\n]*?([\d,\.]+\s*(?:Lakhs?|Lacs?|Crores?|Cr)?[\s\S]*?)(?=\n\s*\n|\Z)",
+                full_text, re.IGNORECASE,
+            )
             if m_bec:
                 clean_bec = re.sub(r"\s+", " ", m_bec.group(0)).strip()
                 results["custom_eligibility_criteria_display"] = clean_bec[:300]
 
         # 3. Client Email / Phone / Name
         if "client_email_1_display" in missing_keys:
-            m_em = re.search(r"([a-zA-Z0-9\._%+\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,})", full_text, re.IGNORECASE)
+            m_em = re.search(r"([a-zA-Z0-9\._%+\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,})", full_text)
             if m_em:
                 results["client_email_1_display"] = m_em.group(1).strip()
 
         if "client_name_1_display" in missing_keys:
-            m_nm = re.search(r"(?:Name[:\-\s]+|Shri?\.?\s*)([A-Z][a-zA-Z\.\s]{2,35})(?=\s*\,|\s*\n|\s*Designation|\Z)", full_text)
+            m_nm = re.search(
+                r"(?:Name[:\-\s]+|Shri?\.?\s*)([A-Z][a-zA-Z\.\s]{2,35})(?=\s*\,|\s*\n|\s*Designation|\Z)",
+                full_text,
+            )
             if m_nm:
                 results["client_name_1_display"] = m_nm.group(0).strip()
 
