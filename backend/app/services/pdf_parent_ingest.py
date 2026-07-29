@@ -107,8 +107,8 @@ def ingest_parent_tender_pdf(
     job_dir = pdf_path.parent
     pages_dir = job_dir / "pages"
 
-    # 1. Hybrid text extraction (Native PDF search + PaddleOCR fallback)
     page_texts = extract_pdf_text_hybrid(str(pdf_path), pages_dir)
+    all_pages = list(page_texts)
 
     # 2. Extract clickable hyperlinks and document mentions
     links, mentions = extract_links_and_mentions(str(pdf_path))
@@ -245,6 +245,7 @@ def ingest_parent_tender_pdf(
             logger.info(f"[ATC_RESOLVER] Ingest pipeline parsing downloaded ATC child PDF: '{atc_path}'...")
             atc_pages_dir = job_dir / "atc_pages"
             atc_page_texts = extract_pdf_text_hybrid(str(atc_path), atc_pages_dir)
+            all_pages.extend(atc_page_texts)
             atc_sections = extract_tender_fields(atc_page_texts, f"{title_raw} ATC", document_type="generic_nit")
             
             # Upsert standalone resolve_atc_anchor_fields output into atc_sections (Task 2)
@@ -393,7 +394,7 @@ def ingest_parent_tender_pdf(
     csv_path = job_dir / csv_filename
     try:
         from backend.app.services.tender_mapper import build_infosheet_data
-        infosheet_data = build_infosheet_data(sections, page_texts, job_id=job_id)
+        infosheet_data = build_infosheet_data(sections, all_pages, job_id=job_id)
         generate_info_sheet_csv(infosheet_data, str(csv_path))
     except Exception as e:
         logger.error(f"Failed to generate info sheet workbook for job {job_id}: {e}", exc_info=True)
@@ -484,6 +485,10 @@ def ingest_parent_tender_pdf(
     issues += len(mentioned_docs)
 
     # 9. Build conforming detailed tender payload
+    status_sum = infosheet_data.get("status_summary", {}) if 'infosheet_data' in locals() else {}
+    missing_fls = infosheet_data.get("missing_fields", []) if 'infosheet_data' in locals() else []
+    field_sts = infosheet_data.get("_info_sheet_statuses", {}) if 'infosheet_data' in locals() else {}
+
     payload = {
         "id": job_id,
         "title": tender_title,
@@ -506,7 +511,10 @@ def ingest_parent_tender_pdf(
         "parse_status": "completed",
         "parse_confidence": parse_confidence,
         "review_status": "unreviewed",
-        "issues_count": issues
+        "issues_count": issues,
+        "status_summary": status_sum,
+        "missing_fields": missing_fls,
+        "field_statuses": field_sts
     }
 
     return payload

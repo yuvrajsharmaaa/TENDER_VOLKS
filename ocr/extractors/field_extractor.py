@@ -984,52 +984,23 @@ class FieldExtractor:
                         table_blocks = [b for b in blocks if is_contained(b.bounding_box, table.bounding_box)]
                         if not table_blocks:
                             continue
-                        rows = group_blocks_into_rows(table_blocks)
-                        header_row_idx = -1
-                        col_indices = {}
-                        for idx, row in enumerate(rows):
-                            row_texts = [b.text.lower() for b in row]
-                            has_part = any("part" in txt for txt in row_texts)
-                            has_val = any("executed" in txt or "value" in txt for txt in row_texts)
-                            if has_part and has_val:
-                                header_row_idx = idx
-                                for col_idx, block in enumerate(row):
-                                    txt = block.text.lower()
-                                    if "part" in txt:
-                                        col_indices["part"] = col_idx
-                                    if "site" in txt or "region" in txt:
-                                        col_indices["site"] = col_idx
-                                    if "executed" in txt or "value" in txt:
-                                        col_indices["value"] = col_idx
+                        table_blocks.sort(key=lambda b: (round(b.bounding_box["y1"] / 10) * 10, b.bounding_box["x1"]))
+                        table_text = " ".join([b.text.strip() for b in table_blocks])
+                        clause_ctx = None
+                        table_bbox = table.bounding_box
+                        blocks_above = [b for b in blocks if b.bounding_box["y2"] < table_bbox["y1"]]
+                        blocks_above.sort(key=lambda b: table_bbox["y1"] - b.bounding_box["y2"])
+                        for b in blocks_above:
+                            m = re.search(r'\b(1\.2|2\.1|2\.3|2\.2)\b', b.text)
+                            if m:
+                                clause_ctx = m.group(1)
                                 break
-                        if header_row_idx != -1 and col_indices:
-                            clause_ctx = None
-                            table_bbox = table.bounding_box
-                            blocks_above = [b for b in blocks if b.bounding_box["y2"] < table_bbox["y1"]]
-                            blocks_above.sort(key=lambda b: table_bbox["y1"] - b.bounding_box["y2"])
-                            for b in blocks_above:
-                                m = re.search(r'\b(1\.2|2\.1|2\.3|2\.2)\b', b.text)
-                                if m:
-                                    clause_ctx = m.group(1)
-                                    break
-                            if clause_ctx == "1.2" or (clause_ctx is None and any("executed" in b.text.lower() for b in rows[header_row_idx])):
-                                table_data = []
-                                for row in rows[header_row_idx + 1:]:
-                                    if len(row) == 1:
-                                        txt = row[0].text.strip()
-                                        if txt:
-                                            table_data.append(txt)
-                                            source_blocks.append(SourceBlockRef(page_number=page_num, block_id=row[0].block_id, text=row[0].text, bounding_box=BoundingBox(**row[0].bounding_box)))
-                                    else:
-                                        part_val = row[col_indices["part"]].text.strip() if "part" in col_indices and col_indices["part"] < len(row) else ""
-                                        site_val = row[col_indices["site"]].text.strip() if "site" in col_indices and col_indices["site"] < len(row) else ""
-                                        val_val = row[col_indices["value"]].text.strip() if "value" in col_indices and col_indices["value"] < len(row) else ""
-                                        if part_val or site_val or val_val:
-                                            table_data.append(f"{part_val} {site_val}: {val_val}".strip())
-                                            source_blocks.extend([SourceBlockRef(page_number=page_num, block_id=b.block_id, text=b.text, bounding_box=BoundingBox(**b.bounding_box)) for b in row])
-                                if table_data:
-                                    extracted_val = "; ".join(table_data)
-                                    break
+                        if clause_ctx == "1.2" or (clause_ctx is None and "executed" in table_text.lower() and "value" in table_text.lower()):
+                            matches = re.findall(r"(Part\s*(?:-?\s*\d+|1\s*&\s*2)[\s\S]*?[\d\.]+\s*(?:Lakh|Crore|Cr))", table_text, re.IGNORECASE)
+                            if matches:
+                                extracted_val = "; ".join([m.strip() for m in matches])
+                                source_blocks.extend([SourceBlockRef(page_number=page_num, block_id=b.block_id, text=b.text, bounding_box=BoundingBox(**b.bounding_box)) for b in table_blocks])
+                                break
                 if extracted_val:
                     extracted.append(ExtractedFieldSchema(
                         field_name="eligibility_executed_value",
@@ -1065,52 +1036,23 @@ class FieldExtractor:
                         table_blocks = [b for b in blocks if is_contained(b.bounding_box, table.bounding_box)]
                         if not table_blocks:
                             continue
-                        rows = group_blocks_into_rows(table_blocks)
-                        header_row_idx = -1
-                        col_indices = {}
-                        for idx, row in enumerate(rows):
-                            row_texts = [b.text.lower() for b in row]
-                            has_part = any("part" in txt for txt in row_texts)
-                            has_turnover = any("turnover" in txt for txt in row_texts)
-                            if has_part and has_turnover:
-                                header_row_idx = idx
-                                for col_idx, block in enumerate(row):
-                                    txt = block.text.lower()
-                                    if "part" in txt:
-                                        col_indices["part"] = col_idx
-                                    if "site" in txt or "region" in txt:
-                                        col_indices["site"] = col_idx
-                                    if "turnover" in txt:
-                                        col_indices["value"] = col_idx
+                        table_blocks.sort(key=lambda b: (round(b.bounding_box["y1"] / 10) * 10, b.bounding_box["x1"]))
+                        table_text = " ".join([b.text.strip() for b in table_blocks])
+                        clause_ctx = None
+                        table_bbox = table.bounding_box
+                        blocks_above = [b for b in blocks if b.bounding_box["y2"] < table_bbox["y1"]]
+                        blocks_above.sort(key=lambda b: table_bbox["y1"] - b.bounding_box["y2"])
+                        for b in blocks_above:
+                            m = re.search(r'\b(1\.2|2\.1|2\.3|2\.2)\b', b.text)
+                            if m:
+                                clause_ctx = m.group(1)
                                 break
-                        if header_row_idx != -1 and col_indices:
-                            clause_ctx = None
-                            table_bbox = table.bounding_box
-                            blocks_above = [b for b in blocks if b.bounding_box["y2"] < table_bbox["y1"]]
-                            blocks_above.sort(key=lambda b: table_bbox["y1"] - b.bounding_box["y2"])
-                            for b in blocks_above:
-                                m = re.search(r'\b(1\.2|2\.1|2\.3|2\.2)\b', b.text)
-                                if m:
-                                    clause_ctx = m.group(1)
-                                    break
-                            if clause_ctx == "2.1" or (clause_ctx is None and any("turnover" in b.text.lower() for b in rows[header_row_idx])):
-                                table_data = []
-                                for row in rows[header_row_idx + 1:]:
-                                    if len(row) == 1:
-                                        txt = row[0].text.strip()
-                                        if txt:
-                                            table_data.append(txt)
-                                            source_blocks.append(SourceBlockRef(page_number=page_num, block_id=row[0].block_id, text=row[0].text, bounding_box=BoundingBox(**row[0].bounding_box)))
-                                    else:
-                                        part_val = row[col_indices["part"]].text.strip() if "part" in col_indices and col_indices["part"] < len(row) else ""
-                                        site_val = row[col_indices["site"]].text.strip() if "site" in col_indices and col_indices["site"] < len(row) else ""
-                                        val_val = row[col_indices["value"]].text.strip() if "value" in col_indices and col_indices["value"] < len(row) else ""
-                                        if part_val or site_val or val_val:
-                                            table_data.append(f"{part_val} {site_val}: {val_val}".strip())
-                                            source_blocks.extend([SourceBlockRef(page_number=page_num, block_id=b.block_id, text=b.text, bounding_box=BoundingBox(**b.bounding_box)) for b in row])
-                                if table_data:
-                                    extracted_val = "; ".join(table_data)
-                                    break
+                        if clause_ctx == "2.1" or (clause_ctx is None and "turnover" in table_text.lower()):
+                            matches = re.findall(r"(Part\s*(?:-?\s*\d+|1\s*&\s*2)[\s\S]*?[\d\.]+\s*(?:Lakh|Crore|Cr))", table_text, re.IGNORECASE)
+                            if matches:
+                                extracted_val = "; ".join([m.strip() for m in matches])
+                                source_blocks.extend([SourceBlockRef(page_number=page_num, block_id=b.block_id, text=b.text, bounding_box=BoundingBox(**b.bounding_box)) for b in table_blocks])
+                                break
                 if extracted_val:
                     extracted.append(ExtractedFieldSchema(
                         field_name="financial_avg_turnover",
@@ -1193,62 +1135,33 @@ class FieldExtractor:
                         table_blocks = [b for b in blocks if is_contained(b.bounding_box, table.bounding_box)]
                         if not table_blocks:
                             continue
-                        rows = group_blocks_into_rows(table_blocks)
-                        header_row_idx = -1
-                        col_indices = {}
-                        for idx, row in enumerate(rows):
-                            row_texts = [b.text.lower() for b in row]
-                            has_part = any("part" in txt for txt in row_texts)
-                            has_wc = any("working" in txt or "capital" in txt for txt in row_texts)
-                            if has_part and has_wc:
-                                header_row_idx = idx
-                                for col_idx, block in enumerate(row):
-                                    txt = block.text.lower()
-                                    if "part" in txt:
-                                        col_indices["part"] = col_idx
-                                    if "site" in txt or "region" in txt:
-                                        col_indices["site"] = col_idx
-                                    if "working" in txt or "capital" in txt:
-                                        col_indices["value"] = col_idx
+                        table_blocks.sort(key=lambda b: (round(b.bounding_box["y1"] / 10) * 10, b.bounding_box["x1"]))
+                        table_text = " ".join([b.text.strip() for b in table_blocks])
+                        clause_ctx = None
+                        table_bbox = table.bounding_box
+                        blocks_above = [b for b in blocks if b.bounding_box["y2"] < table_bbox["y1"]]
+                        blocks_above.sort(key=lambda b: table_bbox["y1"] - b.bounding_box["y2"])
+                        for b in blocks_above:
+                            m = re.search(r'\b(1\.2|2\.1|2\.3|2\.2)\b', b.text)
+                            if m:
+                                clause_ctx = m.group(1)
                                 break
-                        if header_row_idx != -1 and col_indices:
-                            clause_ctx = None
-                            table_bbox = table.bounding_box
-                            blocks_above = [b for b in blocks if b.bounding_box["y2"] < table_bbox["y1"]]
-                            blocks_above.sort(key=lambda b: table_bbox["y1"] - b.bounding_box["y2"])
-                            for b in blocks_above:
-                                m = re.search(r'\b(1\.2|2\.1|2\.3|2\.2)\b', b.text)
-                                if m:
-                                    clause_ctx = m.group(1)
+                        if clause_ctx == "2.3" or (clause_ctx is None and "working" in table_text.lower() and "capital" in table_text.lower()):
+                            matches = re.findall(r"(Part\s*(?:-?\s*\d+|1\s*&\s*2)[\s\S]*?[\d\.]+\s*(?:Lakh|Crore|Cr))", table_text, re.IGNORECASE)
+                            note_text = ""
+                            blocks_below = [b for b in blocks if b.bounding_box["y1"] > table_bbox["y2"]]
+                            blocks_below.sort(key=lambda b: b.bounding_box["y1"] - table_bbox["y2"])
+                            for b in blocks_below[:10]:
+                                if "line of credit" in b.text.lower() or "bank" in b.text.lower():
+                                    note_text = b.text.strip()
+                                    source_blocks.append(SourceBlockRef(page_number=page_num, block_id=b.block_id, text=b.text, bounding_box=BoundingBox(**b.bounding_box)))
                                     break
-                            if clause_ctx == "2.3" or (clause_ctx is None and any("working" in b.text.lower() for b in rows[header_row_idx])):
-                                table_data = []
-                                for row in rows[header_row_idx + 1:]:
-                                    if len(row) == 1:
-                                        txt = row[0].text.strip()
-                                        if txt:
-                                            table_data.append(txt)
-                                            source_blocks.append(SourceBlockRef(page_number=page_num, block_id=row[0].block_id, text=row[0].text, bounding_box=BoundingBox(**row[0].bounding_box)))
-                                    else:
-                                        part_val = row[col_indices["part"]].text.strip() if "part" in col_indices and col_indices["part"] < len(row) else ""
-                                        site_val = row[col_indices["site"]].text.strip() if "site" in col_indices and col_indices["site"] < len(row) else ""
-                                        val_val = row[col_indices["value"]].text.strip() if "value" in col_indices and col_indices["value"] < len(row) else ""
-                                        if part_val or site_val or val_val:
-                                            table_data.append(f"{part_val} {site_val}: {val_val}".strip())
-                                            source_blocks.extend([SourceBlockRef(page_number=page_num, block_id=b.block_id, text=b.text, bounding_box=BoundingBox(**b.bounding_box)) for b in row])
-                                note_text = ""
-                                blocks_below = [b for b in blocks if b.bounding_box["y1"] > table_bbox["y2"]]
-                                blocks_below.sort(key=lambda b: b.bounding_box["y1"] - table_bbox["y2"])
-                                for b in blocks_below[:10]:
-                                    if "line of credit" in b.text.lower() or "bank" in b.text.lower():
-                                        note_text = b.text.strip()
-                                        source_blocks.append(SourceBlockRef(page_number=page_num, block_id=b.block_id, text=b.text, bounding_box=BoundingBox(**b.bounding_box)))
-                                        break
-                                if table_data:
-                                    extracted_val = "; ".join(table_data)
-                                    if note_text:
-                                        extracted_val += " [Note: " + re.sub(r"\s+", " ", note_text)[:200] + "...]"
-                                    break
+                            if matches:
+                                extracted_val = "; ".join([m.strip() for m in matches])
+                                if note_text:
+                                    extracted_val += " [Note: " + re.sub(r"\s+", " ", note_text)[:200] + "...]"
+                                source_blocks.extend([SourceBlockRef(page_number=page_num, block_id=b.block_id, text=b.text, bounding_box=BoundingBox(**b.bounding_box)) for b in table_blocks])
+                                break
                 if extracted_val:
                     extracted.append(ExtractedFieldSchema(
                         field_name="financial_working_capital",
@@ -1294,9 +1207,11 @@ class FieldExtractor:
                                         contact_parts.append(other_text)
                                         source_blocks.append(SourceBlockRef(page_number=page_num, block_id=other.block_id, text=other.text, bounding_box=BoundingBox(**other.bounding_box)))
                                 if contact_parts:
-                                    extracted_val = "\n".join(contact_parts)
-                                    source_blocks.append(SourceBlockRef(page_number=page_num, block_id=block.block_id, text=block.text, bounding_box=BoundingBox(**block.bounding_box)))
-                                    break
+                                    temp_val = "\n".join(contact_parts)
+                                    if "@" in temp_val or any(p in temp_val.lower() for p in ["tel", "phone", "email", "mobile", "contact no"]):
+                                        extracted_val = temp_val
+                                        source_blocks.append(SourceBlockRef(page_number=page_num, block_id=block.block_id, text=block.text, bounding_box=BoundingBox(**block.bounding_box)))
+                                        break
                     if extracted_val:
                         break
                 if extracted_val:

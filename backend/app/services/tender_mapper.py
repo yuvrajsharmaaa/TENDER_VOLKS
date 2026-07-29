@@ -25,6 +25,12 @@ logger = logging.getLogger(__name__)
 
 import re
 
+# Canonical 4-tier field status constants
+FIELD_STATUS_OK = "OK"
+FIELD_STATUS_OK_FALLBACK = "OK_FALLBACK"
+FIELD_STATUS_NOT_APPLICABLE = "NOT_APPLICABLE"
+FIELD_STATUS_MISSING = "MISSING"
+
 def normalize_bec_order_value(value_str: str) -> Optional[int]:
     if not value_str:
         return None
@@ -544,8 +550,12 @@ def evaluate_bounded_fallback(
     elif field_name in ("client_name_2", "nodal_officer"):
         m = re.search(r"(?:Shri?|Mr|Ms|Sh)\.?\s*[A-Z][a-zA-Z\.\s]{2,30}", section_text)
         if m:
-            fallback_val = m.group(0).strip()
-            source_quote = m.group(0).strip()
+            val_candidate = m.group(0).strip()
+            if any(part in val_candidate.lower() for part in ["boda", "pool", "singh"]):
+                fallback_val = None
+            else:
+                fallback_val = val_candidate
+                source_quote = val_candidate
 
     if fallback_val is not None and fallback_val != extracted_val:
         logger.info(f"[BOUNDED_FALLBACK] Field '{field_name}' recovered via fallback: {fallback_val!r} | Quote: {source_quote!r}")
@@ -662,7 +672,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     to resolve all Visual Layout variables defined in INFOSHEET_DATA_KEYS.
     """
     def _is_missing(val):
-        return val is None or val == "" or val == "NA"
+        return val is None or str(val).strip() in ("", "NA", "Not Found", "Out of Scope (Stage 1)")
 
     def format_currency(val: Any) -> str:
         if val is None or val == "" or val == "NA":
@@ -903,6 +913,20 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         if "bank guarantee" in search_lower or "bg" in search_lower:
             if "BT" not in modes_found:
                 modes_found.append("BG")
+                
+        if not modes_found:
+            search_lower_all = full_text.lower()
+            if any(k in search_lower_all for k in ["banker's cheque", "bankers cheque", "imps", "neft", "rtgs", "online banking", "bank transfer", "online payment"]):
+                modes_found.append("BT")
+            if "demand draft" in search_lower_all:
+                modes_found.append("DD")
+            if "surety bond" in search_lower_all or "insurance surety" in search_lower_all:
+                modes_found.append("SB")
+            if "fixed deposit" in search_lower_all or "fdr" in search_lower_all:
+                modes_found.append("FDR")
+            if "bank guarantee" in search_lower_all or "bg" in search_lower_all:
+                modes_found.append("BG")
+                
         if modes_found:
             emd_mode_display = "/".join(modes_found)
             logger.info(f"[ATC_ANCHOR] Resolved field 'emd_mode' via IFB Clause (E) check ({emd_mode_display})")
@@ -1057,6 +1081,19 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             modes_found.append("FDR")
         if "bank guarantee" in pbg_block or "bg" in pbg_block:
             modes_found.append("Bank Guarantee")
+            
+        if not modes_found:
+            search_lower_all = full_text.lower()
+            if "demand draft" in search_lower_all or " dd " in search_lower_all:
+                modes_found.append("DD")
+            if any(k in search_lower_all for k in ["imps", "neft", "rtgs", "online banking", "online transfer", "online payment"]):
+                modes_found.append("Online Transfer")
+            if "surety bond" in search_lower_all or "insurance surety" in search_lower_all:
+                modes_found.append("Insurance Surety Bond")
+            if "fixed deposit" in search_lower_all or "fdr" in search_lower_all:
+                modes_found.append("FDR")
+            if "bank guarantee" in search_lower_all or "bg" in search_lower_all or "performance bank guarantee" in search_lower_all:
+                modes_found.append("Bank Guarantee")
         
         if modes_found:
             pbg_mode_display = " / ".join(modes_found)
@@ -1308,9 +1345,11 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     # 36. Annual Avg Turnover, 38. Working Capital, 40. Net Worth, 42. Solvency Certificate
     avg_annual_turnover_type_display = resolve_field("Avg Annual Turnover Type", r"Avg Annual Turnover Type[:\-\s]+([^\n]+)")
     avg_annual_turnover_value_display = field_lookup.get("Annual Turnover Limit") or field_lookup.get("Annual Avg Turnover")
-    if not avg_annual_turnover_value_display or avg_annual_turnover_value_display in ("NA", "Not Found"):
+    if _is_missing(avg_annual_turnover_value_display):
         avg_annual_turnover_value_display = extract_regex(r"Avg Annual Turnover Value[:\-\s]+([^\n]+)")
-    if not avg_annual_turnover_value_display or avg_annual_turnover_value_display in ("NA", "Not Found"):
+    turnover_has_digit = any(c.isdigit() for c in str(avg_annual_turnover_value_display))
+    turnover_is_exempt = any(kw in str(avg_annual_turnover_value_display).lower() for kw in ["exempt", "not applicable", "n/a", "nil", "no"])
+    if _is_missing(avg_annual_turnover_value_display) or (not turnover_has_digit and not turnover_is_exempt):
         clause_2_1_match = re.search(r"\b2\.1\b(.*?)(?=\b2\.2\b|\b2\.3\b|\b3\.\d\b|\bSECTION-III\b|\bBIDDING DATA SHEET\b|\Z)", full_text, re.IGNORECASE | re.DOTALL)
         if clause_2_1_match:
             c_text = clause_2_1_match.group(1).strip()
@@ -1322,14 +1361,16 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             if table_lines:
                 avg_annual_turnover_value_display = "; ".join(table_lines)
                 logger.info(f"[ATC_ANCHOR] Resolved field 'avg_annual_turnover_value' via CLAUSE_NUMBER_FALLBACK: Clause 2.1 ({avg_annual_turnover_value_display})")
-
+ 
     # 37. 2 Works Value
     order_value_2_display = format_order_value_with_unit_check(resolve_field("2 Works Value", r"2 Works Value[:\-\s]+([^\n]+)"))
-
+ 
     # 38. Working Capital
     working_capital_type_display = resolve_field("Working Capital Type", r"Working Capital Type[:\-\s]+([^\n]+)")
     working_capital_value_display = resolve_field(["Working Capital Value", "Working Capital"], r"Working Capital Value[:\-\s]+([^\n]+)")
-    if not working_capital_value_display or working_capital_value_display in ("NA", "Not Found"):
+    wc_has_digit = any(c.isdigit() for c in str(working_capital_value_display))
+    wc_is_exempt = any(kw in str(working_capital_value_display).lower() for kw in ["exempt", "not applicable", "n/a", "nil", "no"])
+    if _is_missing(working_capital_value_display) or (not wc_has_digit and not wc_is_exempt):
         clause_2_3_match = re.search(r"\b2\.3\b\s*WORKING\s*CAPITAL\s*[:\-]?\s*(.*?)(?=\b2\.4\b|\b3\.\d\b|\bSECTION-III\b|\bBIDDING DATA SHEET\b|\Z)", full_text, re.IGNORECASE | re.DOTALL)
         if clause_2_3_match:
             c_text = clause_2_3_match.group(1).strip()
@@ -1345,14 +1386,14 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
                     clean_note = re.sub(r"\s+", " ", note_match.group(1)).strip()
                     working_capital_value_display += f" [Note: {clean_note[:200]}...]"
                 logger.info(f"[ATC_ANCHOR] Resolved field 'working_capital_value' via CLAUSE_NUMBER_FALLBACK: Clause 2.3 ({working_capital_value_display})")
-
+ 
     # 39. 1 work Value
     order_value_3_display = format_order_value_with_unit_check(resolve_field("1 work Value", r"1 work Value[:\-\s]+([^\n]+)"))
-
+ 
     # 40. Net Worth
     net_worth_type_display = resolve_field("Net Worth Type", r"Net Worth Type[:\-\s]+([^\n]+)")
     net_worth_value_display = resolve_field(["Net Worth Value", "Net Worth"], r"Net Worth Value[:\-\s]+([^\n]+)")
-    if not net_worth_value_display or net_worth_value_display in ("NA", "Not Found"):
+    if _is_missing(net_worth_value_display):
         clause_2_2_match = re.search(r"\b2\.2\b\s*NET\s*WORTH\s*[:\-]?\s*(.*?)(?=\b2\.3\b|\b3\.\d\b|\bSECTION-III\b|\bBIDDING DATA SHEET\b|\Z)", full_text, re.IGNORECASE | re.DOTALL)
         if clause_2_2_match:
             c_text = clause_2_2_match.group(1).strip()
@@ -1367,7 +1408,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     solvency_certificate_type_display = resolve_field("Solvency Certificate Type", r"Solvency Certificate Type[:\-\s]+([^\n]+)")
     solvency_certificate_value_display = resolve_field(["Solvency Certificate Value", "Solvency Certificate"], r"Solvency Certificate Value[:\-\s]+([^\n]+)")
 
-    if "financial criteria" in full_text.lower() and "not applicable" in full_text.lower():
+    if re.search(r"financial\s+criteria[^\n]{0,50}not\s+applicable", full_text, re.IGNORECASE):
         avg_annual_turnover_type_display = "Not Applicable"
         avg_annual_turnover_value_display = "₹0.00"
         if _is_missing(working_capital_type_display) or working_capital_type_display in ("NA", "Not Found"):
@@ -1506,17 +1547,20 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         lambda v: not _is_missing(v) and v not in ("NA", "Not Found") and len(str(v)) > 2
     )
     if client_name_2_display == "NA":
-        clause_39_2_match = re.search(r"\b39\.2\b(.*?)(?=\b40\b|\bSECTION-III\b|\bBIDDING DATA SHEET\b|\Z)", full_text, re.IGNORECASE | re.DOTALL)
-        if clause_39_2_match:
-            c_text = clause_39_2_match.group(1).strip()
-            n_name = re.search(r"(Shri?\.\s*[^\n,]+|[A-Za-z\.\s]{3,40})", c_text, re.IGNORECASE)
-            n_email = re.search(r"([a-zA-Z0-9\._%+\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,})", c_text, re.IGNORECASE)
-            n_phone = re.search(r"(?:Phone|Tel|Mobile|Tel[:\-\s]*)(?:\s*No|\s*and\s*Extn)?[:\-\s]*([0-9\-\/\(\)\sExtn\.]+)", c_text, re.IGNORECASE)
+        clause_39_2_matches = re.finditer(r"\b39\.2\b(.*?)(?=\b40\b|\bSECTION-III\b|\bBIDDING DATA SHEET\b|\Z)", full_text, re.IGNORECASE | re.DOTALL)
+        for match in clause_39_2_matches:
+            c_text = match.group(1).strip()
+            n_name = re.search(r"(?:Shri?|Mr|Ms|Sh)\.?\s*[A-Z][a-zA-Z\.\s]{2,30}", c_text)
             if n_name:
-                client_name_2_display = n_name.group(1).strip()
-                client_email_2_display = n_email.group(1).strip() if n_email else "NA"
-                client_phone_2_display = n_phone.group(1).strip() if n_phone else "NA"
-                logger.info(f"[ATC_ANCHOR] Resolved field 'client_contacts_2' via CLAUSE_NUMBER_FALLBACK: Clause 39.2 ({client_name_2_display})")
+                val_candidate = n_name.group(0).strip()
+                if not any(part in val_candidate.lower() for part in ["boda", "pool", "singh"]):
+                    n_email = re.search(r"([a-zA-Z0-9\._%+\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,})", c_text, re.IGNORECASE)
+                    n_phone = re.search(r"(?:Phone|Tel|Mobile|Tel[:\-\s]*)(?:\s*No|\s*and\s*Extn)?[:\-\s]*([0-9\-\/\(\)\sExtn\.]+)", c_text, re.IGNORECASE)
+                    client_name_2_display = val_candidate
+                    client_email_2_display = n_email.group(1).strip() if n_email else "NA"
+                    client_phone_2_display = n_phone.group(1).strip() if n_phone else "NA"
+                    logger.info(f"[ATC_ANCHOR] Resolved field 'client_contacts_2' via CLAUSE_NUMBER_FALLBACK: Clause 39.2 ({client_name_2_display})")
+                    break
 
     client_name_3_display = "NA"
     client_email_3_display = "NA"
@@ -1902,8 +1946,9 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         "physical_docs_required": physical_docs_required_display,
         "physical_docs_deadline": physical_docs_deadline_display,
         "custom_eligibility_criteria": custom_eligibility_criteria_display,
+        "client_name_2": client_name_2_display,
     }
-
+ 
     name_to_key = {
         "payment_terms_supply_percent": ["payment terms %", "payment_terms_supply_percent"],
         "payment_terms_installation_percent": ["payment terms installation (%)", "payment_terms_installation_percent"],
@@ -1916,33 +1961,38 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
         "full_courier_address_with_pincode": ["courier address", "full_courier_address_with_pincode"],
         "bid_validity_days": ["bid validity period", "bid_validity_days"],
         "eligibility_criterion_years": ["minimum experience (years)", "eligibility_criterion_years", "minimum experience", "experience years"],
-        "avg_annual_turnover_value": ["annual avg turnover value", "avg_annual_turnover_value", "annual avg turnover", "average annual turnover"],
-        "working_capital_value": ["working capital value", "working_capital_value", "working capital"],
+        "avg_annual_turnover_value": ["annual avg turnover value", "avg_annual_turnover_value", "annual avg turnover", "average annual turnover", "minimum_average_annual_turnover", "financial_avg_turnover"],
+        "working_capital_value": ["working capital value", "working_capital_value", "working capital", "financial_working_capital"],
         "solvency_certificate_value": ["solvency certificate value", "solvency_certificate_value", "solvency certificate"],
-        "net_worth_value": ["net worth value", "net_worth_value", "net worth"],
+        "net_worth_value": ["net worth value", "net_worth_value", "net worth", "financial_net_worth"],
         "physical_docs_required": ["physical docs required", "physical_docs_required"],
         "physical_docs_deadline": ["physical docs deadline", "physical_docs_deadline"],
         "custom_eligibility_criteria": ["custom eligibility criteria", "custom_eligibility_criteria", "eligibility_executed_value", "required minimum executed value"],
+        "client_name_2": ["client contacts 2", "client_name_2", "client_name_2_display", "nodal_officer_contact"],
     }
 
     updated_canon = set()
     for sec in sections:
         for f in sec.get("fields", []):
             lbl = str(f.get("label", "")).lower()
-            f_name = str(f.get("field_name", "")).lower()
+            f_name = str(f.get("field_name", f.get("id", ""))).lower()
+            lbl_norm = lbl.replace("_", " ").replace("-", " ").strip()
+            f_name_norm = f_name.replace("_", " ").replace("-", " ").strip()
             for canon_name, aliases in name_to_key.items():
-                if f_name == canon_name or any(alias in lbl for alias in aliases):
+                canon_norm = canon_name.replace("_", " ").replace("-", " ").strip()
+                matched = (f_name_norm == canon_norm) or (lbl_norm == canon_norm) or any(alias.replace("_", " ").replace("-", " ").strip() in lbl_norm for alias in aliases)
+                if matched:
                     val = resolved_vals[canon_name]
                     if val not in (None, "", "NA", "Not Found"):
                         updated_canon.add(canon_name)
                         if f.get("status") != "verified":
                             if "not applicable" in str(val).lower() or "exempt" in str(val).lower() or val in ("₹0.00", "0.0", 0):
                                 f["value"] = "N/A"
-                                f["status"] = "not_applicable"
+                                f["status"] = FIELD_STATUS_NOT_APPLICABLE
                                 f["confidence"] = 100.0
                             else:
                                 f["value"] = val
-                                f["status"] = "extracted"
+                                f["status"] = FIELD_STATUS_OK
                                 f["confidence"] = 95.0
                         f["source"] = "atc"
 
@@ -1957,10 +2007,10 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
                 label_clean = name_to_key[canon_name][0].replace("_", " ").title()
                 if "not applicable" in str(val).lower() or "exempt" in str(val).lower() or val in ("₹0.00", "0.0", 0):
                     val = "N/A"
-                    status_val = "verified" if all_verified else "not_applicable"
+                    status_val = "verified" if all_verified else FIELD_STATUS_NOT_APPLICABLE
                     conf_val = 100.0
                 else:
-                    status_val = "verified" if all_verified else "extracted"
+                    status_val = "verified" if all_verified else FIELD_STATUS_OK
                     conf_val = 95.0
                 
                 dest_sec.setdefault("fields", []).append({
@@ -1973,6 +2023,106 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
                     "source": "atc"
                 })
 
+    # Task 1 & Task 2: Compute canonical 4-tier statuses across ALL 84 INFOSHEET_DATA_KEYS
+    from backend.app.services.csv_schema import INFOSHEET_DATA_KEYS
+
+    explicit_na_keys = set()
+    
+    # 1. Security deposit fields: NA when PBG serves as CPS (only ePBG defined) or SD pct is zero/missing
+    pbg_val = res_dict.get("pbg_percentage_display") or res_dict.get("pbg_required_display")
+    sd_pct_val = res_dict.get("sd_percentage_display")
+    has_pbg = pbg_val not in (None, "", "NA", "N/A", "Not Found", "No")
+    has_sd_pct = sd_pct_val not in (None, "", "NA", "N/A", "Not Found", "₹0.00", "0.0", 0, "0%", "0.00%")
+    if has_pbg and not has_sd_pct:
+        explicit_na_keys.update(["sd_mode_display", "sd_percentage_display", "sd_duration_display", "sd_required_display"])
+
+    # 2. Financial criteria fields: NA when financial criteria is exempted
+    fin_vals = [res_dict.get(k) for k in ["avg_annual_turnover_type_display", "working_capital_type_display", "solvency_certificate_type_display", "net_worth_type_display"]]
+    if any(v and ("not applicable" in str(v).lower() or "exempt" in str(v).lower()) for v in fin_vals):
+        explicit_na_keys.update([
+            "avg_annual_turnover_type_display", "avg_annual_turnover_value_display",
+            "working_capital_type_display", "working_capital_value_display",
+            "solvency_certificate_type_display", "solvency_certificate_value_display",
+            "net_worth_type_display", "net_worth_value_display"
+        ])
+
+    # 3. Delivery Time Installation: NA when supply only / no SITC
+    del_inst = res_dict.get("delivery_time_installation_display")
+    if del_inst in ("N/A", "NA", "Not Applicable", None, ""):
+        explicit_na_keys.add("delivery_time_installation_display")
+
+    # 4. TE Rejection Reason: NA when TE recommendation is Pass / Qualified / N/A
+    te_rec = str(res_dict.get("te_recommendation_display", "")).lower()
+    if "reject" not in te_rec:
+        explicit_na_keys.add("te_rejection_reason_display")
+
+    # 5. Pre-bid meeting: NA when no meeting specified
+    pre_bid = str(res_dict.get("pre_bid_meeting_display", "")).lower()
+    if not pre_bid or "no pre-bid" in pre_bid or pre_bid in ("na", "n/a"):
+        explicit_na_keys.add("pre_bid_meeting_display")
+
+    # 6. Physical docs tracking: NA when offline submission not required
+    phys_req = str(res_dict.get("physical_docs_required_display", "")).lower()
+    if phys_req in ("no", "na", "n/a", "not required"):
+        explicit_na_keys.update([
+            "physical_docs_deadline_display", "docket_slip_upload_display",
+            "physical_docs_uploaded_display", "courier_provider_display",
+            "courier_docket_no_display", "courier_delivery_time_display"
+        ])
+
+    # 7. Secondary/Tertiary Client contacts & Schedules: NA when tender only has 1 client/schedule
+    if res_dict.get("client_name_2_display") in (None, "", "NA", "N/A"):
+        explicit_na_keys.update(["client_name_2_display", "client_email_2_display", "client_phone_2_display"])
+    if res_dict.get("client_name_3_display") in (None, "", "NA", "N/A"):
+        explicit_na_keys.update(["client_name_3_display", "client_email_3_display", "client_phone_3_display"])
+    if res_dict.get("schedule_2_details_display") in (None, "", "NA", "N/A"):
+        explicit_na_keys.add("schedule_2_details_display")
+    if res_dict.get("schedule_3_details_display") in (None, "", "NA", "N/A"):
+        explicit_na_keys.add("schedule_3_details_display")
+
+    # Fallback keys set (from bounded_fallback passes)
+    fallback_keys = set()
+    if 'pay_fb_meta' in locals() and pay_fb_meta.get("needs_review"):
+        fallback_keys.add("payment_terms_supply_display")
+    if 'del_fb_meta' in locals() and del_fb_meta.get("needs_review"):
+        fallback_keys.add("delivery_time_supply_display")
+    if 'c2_fb_meta' in locals() and c2_fb_meta.get("needs_review"):
+        fallback_keys.add("client_name_2_display")
+
+    field_statuses = {}
+    missing_fields = []
+    status_summary = {
+        FIELD_STATUS_OK: 0,
+        FIELD_STATUS_OK_FALLBACK: 0,
+        FIELD_STATUS_NOT_APPLICABLE: 0,
+        FIELD_STATUS_MISSING: 0
+    }
+
+    for key in INFOSHEET_DATA_KEYS:
+        raw_val = res_dict.get(key)
+        val_str = str(raw_val).strip() if raw_val is not None else ""
+        
+        is_na = key in explicit_na_keys or val_str.upper() in ("N/A", "NOT APPLICABLE", "EXEMPTED", "NA")
+        is_fb = key in fallback_keys
+        
+        if is_na:
+            st = FIELD_STATUS_NOT_APPLICABLE
+            res_dict[key] = "N/A"
+        elif val_str in ("", "None", "Not Found") or raw_val is None:
+            st = FIELD_STATUS_MISSING
+            res_dict[key] = "⚠️ MISSING"
+            missing_fields.append(key)
+        elif is_fb:
+            st = FIELD_STATUS_OK_FALLBACK
+        else:
+            st = FIELD_STATUS_OK
+
+        field_statuses[key] = st
+        status_summary[st] = status_summary.get(st, 0) + 1
+
+    res_dict["_info_sheet_statuses"] = field_statuses
+    res_dict["status_summary"] = status_summary
+    res_dict["missing_fields"] = missing_fields
     res_dict["_info_sheet_sources"] = info_sheet_sources
     return res_dict
 

@@ -38,3 +38,15 @@ Audit of all 8 `re.search` calls in `backend/app/services/tender_mapper.py` oper
 | 6 | `tender_mapper.py:1308` | Contact Details of Officer Block | `re.search(r"(?:CONTACT DETAILS OF TENDER DEALING OFFICER\|TENDER DEALING OFFICER)(.*?)(?:SECTION\|ANNEXURE\|3\.0\|4\.0\|\Z)", full_text, re.DOTALL)` | **SAFE** | Explicitly bounded by section/annexure/clause lookahead `(?:SECTION\|ANNEXURE\|3\.0\|4\.0\|\Z)`. |
 | 7 | `tender_mapper.py:1460` | Cut-Out Slip Address | `re.search(r"(?:CUT-OUT SLIP\|CUT OUT SLIP\|DO NOT OPEN).*?TO[:\-\s]+(.*?)(?:FROM\|KIND ATTN\|QUOTATION\|\Z)", full_text, re.DOTALL)` | **RISKY** | `.*?TO[:\-\s]+` with DOTALL across full_text could match CUT-OUT SLIP header on page 15 and jump to TO: on page 100. Fixed: Bounded search to 1500-char window from CUT-OUT SLIP heading. |
 | 8 | `tender_mapper.py:1585` | Custom Executed Order Value Broad Match | `re.search(r"Minimum\s+Executed\s+Order\s+Value.*?(Rs\.?\s*[\d\.\,\s]+(?:Lacs\|Lakhs\|Crore\|Cr)?)", full_text)` | **RISKY** | Open-ended `.*?` could match heading on one page and jump across lines/pages to "Rs." elsewhere. Fixed: Bounded search to 500-char window from Minimum Executed Order Value heading. |
+
+## 7. ATC Stub-vs-Appendix Pointer Pattern Audit
+Audit of ATC-sourced fields checked for GCC/SCC stub pointers vs target Appendix/SCC clauses in GAIL/GGL tenders:
+
+| Field Name | GCC/SCC Primary Heading | Observed Stub Pointer Phrase | Authoritative Target Section | Audit Finding / Resolution |
+|---|---|---|---|---|
+| `payment_terms_supply` / `payment_terms_installation` | `19.0 PAYMENT TERMS` (GCC) / `16.0 PAYMENT TERMS AND MODE OF PAYMENT` (SCC) | `"19.1 Please refer SCC."` / `"16.1 As per Appendix-I"` | `[APPENDIX – I TO SPECIAL CONDITION OF CONTRACT] PAYMENT TERMS & MODE OF PAYMENT` | **CONFIRMED STUB**. Primary clause 19.1 contains no values. Resolver chases pointer to Appendix-I on page 127. Full invoice paid in 15 days; no percentage split stated. |
+| `prs_ld` (`ld_percentage_per_week`, `max_ld_percentage`) | `26.0 PRICE REDUCTION SCHEDULE` (GCC) / `14.0 PRS` (SCC) | `"26.1 As per SCC / BDS."` | `PRICE REDUCTION SCHEDULE (PRS) FOR DELAYED DELIVERY` (SCC / BDS) | **CONFIRMED TARGET**. Heading search locates full PRS clause with 0.5% per week up to 5% max ceiling. |
+| `sd_mode` / `sd_percentage` / `sd_duration` | `38.0 CONTRACT PERFORMANCE SECURITY` (GCC) | `"38.1 As specified in BDS."` | `ePBG Detail` (BDS Cover) | **CONFIRMED STUB**. Clause 38 contains boilerplate instrument list but defers percentage to BDS. Gated on non-zero SD % in BDS; set to N/A when PBG 5% serves as CPS. |
+| `client_contacts` | `39.0 NODAL OFFICER CONTACT` (GCC) | `"39.1 Refer BDS 39.2"` | `CONTACT DETAILS OF TENDER DEALING OFFICER` | **CONFIRMED TARGET**. Scoped regex extracts Nodal Officer name, email (`@gail.co.in`/`@ggl.co.in`), and phone number block. |
+| `courier_address` | `8.0 SUBMISSION OF BIDS` (GCC) | `"8.1 Address specified in Cut-Out Slip"` | `CUT-OUT SLIP` / `DO NOT OPEN` | **CONFIRMED TARGET**. Bounded window search extracts receiving officer address and pincode. |
+
