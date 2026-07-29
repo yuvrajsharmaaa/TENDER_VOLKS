@@ -255,15 +255,21 @@ def ingest_parent_tender_pdf(
             resolved_atc = resolve_atc_anchor_fields(atc_full_text, checkboxes=atc_checkboxes, page_texts=atc_page_texts)
             
             schema_label_map = {
-                "ld_percentage_per_week": "LD Percentage per Week",
+                "ld_percentage_per_week": "LD Percentage Per Week",
                 "max_ld_percentage": "Max LD Percentage",
                 "maf_required": "MAF Required",
-                "payment_terms_supply_percent": "Payment Terms %",
-                "payment_terms_installation_percent": "Payment Terms Installation (%)",
+                "payment_terms_supply_percent": "Payment Terms Supply",
+                "payment_terms_installation_percent": "Payment Terms Installation",
                 "sd_mode": "Security Deposit Mode",
-                "sd_required": "Security Deposit Required",
+                "sd_required": "SD Required",
                 "sd_percentage": "Security Deposit %",
-                "sd_duration": "Security Deposit Duration"
+                "sd_duration": "SD Duration (Months)",
+                "client_contacts": "Client Contacts",
+                "courier_address": "Courier Address",
+                "delivery_time_supply": "Delivery Time Supply (Days)",
+                "pbg_mode": "PBG Mode",
+                "commercial_evaluation": "Commercial Evaluation Type",
+                "reverse_auction": "Reverse Auction Applicable",
             }
             if atc_sections:
                 sec_to_update = atc_sections[0]
@@ -344,7 +350,10 @@ def ingest_parent_tender_pdf(
                                     )
                         else:
                             # BUG 4 FIX: Genuinely new field from ATC -> add to ATC-Sourced Fields section
-                            atc_new_fields.append(f_copy)
+                            f_atc = dict(f_copy)
+                            orig_id = f_atc.get("id", f"field-{merged_atc_field_count}")
+                            f_atc["id"] = f"atc-{orig_id}" if not str(orig_id).startswith("atc-") else orig_id
+                            atc_new_fields.append(f_atc)
                             merged_atc_field_count += 1
                             logger.info(
                                 f"[FIELD_MERGE] Field: {lbl} | Old value: None | "

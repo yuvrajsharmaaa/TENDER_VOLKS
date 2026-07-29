@@ -126,10 +126,12 @@ MAIN_FIELD_ALIASES: Dict[str, List[str]] = {
         "tender_id_display"
     ],
     "client_name_1": [
+        "Client Contacts",
         "Client Contact Person",
         "Client Name 1",
         "client_name_1",
         "client_contact_person",
+        "client_contacts",
         "Nodal Officer",
         "client_name_1_display"
     ],
@@ -138,6 +140,7 @@ MAIN_FIELD_ALIASES: Dict[str, List[str]] = {
         "Client Email 1",
         "client_email_1",
         "client_email",
+        "buyer_email",
         "client_email_1_display"
     ],
     "client_phone_1": [
@@ -149,6 +152,7 @@ MAIN_FIELD_ALIASES: Dict[str, List[str]] = {
     ],
     "courier_address": [
         "Courier Address",
+        "Courier Information",
         "courier_address",
         "full_courier_address_with_pincode",
         "courier_address_display"
@@ -156,6 +160,38 @@ MAIN_FIELD_ALIASES: Dict[str, List[str]] = {
     "custom_eligibility_criteria": [
         "Custom Eligibility Criteria",
         "custom_eligibility_criteria",
+        "eligibility_executed_value",
+        "required minimum executed value",
         "custom_eligibility_criteria_display"
+    ],
+    "ld_percentage_per_week": [
+        "LD Percentage Per Week",
+        "LD Percentage per Week",
+        "ld_percentage_per_week",
+        "prs_rate",
+        "prs_ld",
+        "ld_percentage_display"
+    ],
+    "max_ld_percentage": [
+        "Max LD Percentage",
+        "max_ld_percentage",
+        "prs_max",
+        "max_ld_percentage_display"
+    ],
+    "maf_required": [
+        "MAF Required",
+        "maf_required",
+        "maf_required_display"
+    ],
+    "sd_required": [
+        "SD Required",
+        "Security Deposit Required",
+        "sd_required",
+        "sd_required_display"
+    ],
+    "pbg_required": [
+        "PBG Required",
+        "pbg_required",
+        "pbg_required_display"
     ]
 }

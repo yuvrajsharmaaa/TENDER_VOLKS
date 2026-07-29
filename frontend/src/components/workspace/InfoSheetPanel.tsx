@@ -48,13 +48,13 @@ export const InfoSheetPanel: React.FC<InfoSheetPanelProps> = ({
             </h3>
             
             <div className="grid grid-cols-1 gap-3">
-              {section.fields.map((field) => {
+              {section.fields.map((field, fieldIdx) => {
                 const isEditing = editingFieldId === field.id;
                 const isLowConfidence = field.confidence && field.confidence < 70 && field.status === "extracted";
 
                 return (
                   <div
-                    key={field.id}
+                    key={`${section.id}-${field.id}-${fieldIdx}`}
                     className={`border rounded-lg p-3.5 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-3 ${getFieldStatusBorder(
                       field
                     )}`}
