@@ -39,6 +39,7 @@ Tender_Volks/
 │   │   │   └── tender_project.py   # Unified Response Models (TenderUploadResponse, JobStatusResponse, etc.)
 │   │   ├── services/               # Core Business Services
 │   │   │   ├── pdf_parent_ingest.py# Parent Tender Ingest & Synthesis Orchestrator
+│   │   │   ├── llm_field_resolver.py # Gemini & OpenAI-Compatible Hybrid Fallback Engine
 │   │   │   ├── pdf_text_extractor.py # Hybrid PDF Text Extractor (PyMuPDF + PaddleOCR)
 │   │   │   ├── pdf_link_extractor.py # Hyperlink & Mention Extraction Engine
 │   │   │   ├── field_extractor.py  # Structured 6-Category Field Extraction Engine
@@ -78,7 +79,8 @@ Tender_Volks/
 │   └── ...
 │
 ├── storage/                        # Persistent Local Storage Directory
-│   └── jobs/                       # Job Folders ({job_id}/original.pdf, tender_detail.json, InfoSheet.xlsx)
+│   ├── jobs/                       # Job Folders ({job_id}/original.pdf, tender_detail.json, InfoSheet.xlsx)
+│   └── llm_memory/                 # Few-Shot Learning Store (extraction_memory.json)
 │
 ├── sample_files/                   # Sample Indian Government Tender PDFs (GeM, PWD, etc.)
 ├── scratch/                        # Temporary & Verification Scripts (e.g. test_api_contract.py)
@@ -164,6 +166,38 @@ The extraction pipeline organizes parsed tender attributes into **6 structured c
 4. **Project Execution**: Delivery/Completion Period, Installation Days, Payment Terms.
 5. **Bank Guarantees & EMD**: Performance Security (PBG %), Security Deposit (SD %), EMD Exemption rules.
 6. **Terms & Conditions**: Liquidated Damages (LD % per week), Max LD %, Reverse Auction applicability.
+
+---
+
+## 🤖 LLM-Augmented Hybrid Parsing Engine & Dynamic Learning
+
+To overcome text-formatting variations across Public Sector Undertakings (PSUs) and GeM tenders, the pipeline features a **Hybrid LLM Fallback Layer** ([llm_field_resolver.py](file:///c:/Users/Asus/Desktop/Tender_Volks/main/backend/app/services/llm_field_resolver.py)):
+
+### Key Capabilities
+1. **Targeted Fallback Execution**: Fast spatial/regex extraction runs first. The LLM is only invoked for fields that remain `NA` after the regex pass, keeping latency and token costs minimal.
+2. **Domain-Anchored System Prompt**: Hardcoded domain knowledge for Indian PSU tenders (e.g. GAIL GCC-Goods Rev.1, BDS tags E/G/H, Clause 38/39 security deposit, Section-II BEC eligibility, and PRS rules).
+3. **Universal LLM Provider Support**:
+   - **Google Gemini API**: Native support via `google-generativeai` SDK.
+   - **OpenAI-Compatible Providers**: Works with Groq, OpenRouter, TogetherAI, or local Ollama instances using standard Python `urllib` (zero external client library dependencies).
+4. **Dynamic Few-Shot Learning Memory**: Parsed values and anchor contexts accumulate in [extraction_memory.json](file:///c:/Users/Asus/Desktop/Tender_Volks/main/backend/app/storage/llm_memory/extraction_memory.json). High-confidence examples are automatically injected into prompt context for future documents.
+5. **Non-Hallucination Anchoring**: Validates that numeric/text values extracted by the LLM exist verbatim or near-verbatim within the source document text before merging into the final InfoSheet.
+
+### Configuration (`.env.dev`)
+```bash
+# Provider Selection ('gemini' or 'openai_compatible')
+LLM_PROVIDER=gemini
+
+# API Key & Model
+LLM_API_KEY=your_api_key_here
+LLM_MODEL=gemini-1.5-flash
+
+# Base URL (Optional for OpenAI-compatible providers like Groq / OpenRouter / Ollama)
+# LLM_BASE_URL=https://api.groq.com/openai/v1/chat/completions
+
+# Feature Toggles
+LLM_FALLBACK_ENABLED=true
+LLM_MAX_EXAMPLES_PER_FIELD=5
+```
 
 ---
 
