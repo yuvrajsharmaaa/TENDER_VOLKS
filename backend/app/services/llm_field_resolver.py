@@ -640,6 +640,29 @@ class LLMFieldResolver:
         # Normalized text for robust matching (collapse whitespace and linebreaks)
         normalized_text = re.sub(r"\s+", " ", full_text)
 
+        if field_key == "custom_eligibility_criteria_display":
+            # Extract distinct numeric tokens (figures, percentages, ₹ amounts)
+            numeric_tokens = set(re.findall(r"\d+(?:[\.,]\d+)?", str_val))
+            if numeric_tokens:
+                # Numeric path: 60% of distinct digit-tokens must appear in source text
+                matched_count = 0
+                for token in numeric_tokens:
+                    clean_tok = token.strip(",. ")
+                    if not clean_tok:
+                        continue
+                    if clean_tok in full_text or clean_tok in normalized_text:
+                        matched_count += 1
+                if (matched_count / len(numeric_tokens)) >= 0.6:
+                    for token in numeric_tokens:
+                        clean_tok = token.strip(",. ")
+                        m = re.search(re.escape(clean_tok), full_text)
+                        if m:
+                            pos = m.start()
+                            return full_text[max(0, pos - 100): min(len(full_text), m.end() + 150)]
+                    return "numeric_tokens_matched"
+                return None
+            # No numeric tokens: fall through to the general string-matching logic below
+
         # 1. Numeric value matching (integers and decimals)
         num_str = str_val.replace("%", "").replace("₹", "").replace(",", "").strip()
         if num_str and re.match(r"^\d[\d\.]*$", num_str):
@@ -689,9 +712,9 @@ class LLMFieldResolver:
         atc_full_text: str,
         missing_display_keys: List[str],
         doc_type: Optional[str] = None,
-    ) -> Dict[str, str]:
+    ) -> Dict[str, Dict[str, str]]:
         """
-        Main entry point. Returns dict of {display_key: display_value_string}
+        Main entry point. Returns dict of {display_key: {"value": val, "source": "llm"}}
         for fields successfully resolved by LLM.
         Gracefully returns empty dict on any error.
         """
@@ -747,6 +770,7 @@ class LLMFieldResolver:
 
         except Exception as e:
             logger.error("[LLM_FALLBACK] LLM API call failed: %s", e, exc_info=True)
+            logger.info("[LLM_FALLBACK] Falling back to heuristics: reason=api_exception")
             return self._resolve_local_heuristics(atc_full_text, known_missing)
 
         # ── Parse response ────────────────────────────────────────────────────
@@ -754,11 +778,12 @@ class LLMFieldResolver:
             llm_data: Dict[str, Any] = json.loads(raw_text)
         except json.JSONDecodeError as e:
             logger.error("[LLM_FALLBACK] JSON parse error: %s | raw: %r", e, raw_text[:200])
+            logger.info("[LLM_FALLBACK] Falling back to heuristics: reason=json_parse_error")
             return self._resolve_local_heuristics(atc_full_text, known_missing)
 
         # ── Map prompt field names back to display keys ────────────────────────
         prompt_to_display = {entry[0]: dk for dk, entry in FIELD_PROMPT_MAP.items() if dk in known_missing}
-        results: Dict[str, str] = {}
+        results: Dict[str, Dict[str, str]] = {}
 
         for prompt_field, raw_value in llm_data.items():
             display_key = prompt_to_display.get(prompt_field)
@@ -776,7 +801,7 @@ class LLMFieldResolver:
 
             display_val = self._map_to_display_value(display_key, raw_value)
             if display_val:
-                results[display_key] = display_val
+                results[display_key] = {"value": display_val, "source": "llm"}
                 logger.info("[LLM_FALLBACK] Resolved '%s' = %r", display_key, display_val)
                 # Persist to learning memory
                 if anchor_snippet and anchor_snippet != "boolean_value":
@@ -785,10 +810,11 @@ class LLMFieldResolver:
         logger.info("[LLM_FALLBACK] Resolved %d/%d fields via %s", len(results), len(known_missing), self.provider)
 
         if not results:
+            logger.info("[LLM_FALLBACK] Falling back to heuristics: reason=zero_anchored_results")
             return self._resolve_local_heuristics(atc_full_text, known_missing)
         return results
 
-    def _resolve_local_heuristics(self, full_text: str, missing_keys: List[str]) -> Dict[str, str]:
+    def _resolve_local_heuristics(self, full_text: str, missing_keys: List[str]) -> Dict[str, Dict[str, str]]:
         """Local rule-based heuristic engine executed when LLM is unavailable or fails."""
         results = {}
         if not full_text or not missing_keys:
@@ -810,25 +836,35 @@ class LLMFieldResolver:
                 full_text, re.IGNORECASE,
             )
             if m_s:
-                results["payment_terms_supply_display"] = f"{m_s.group(1)}%"
+                results["payment_terms_supply_display"] = {"value": f"{m_s.group(1)}%", "source": "heuristic_regex"}
             if m_i:
-                results["payment_terms_installation_display"] = f"{m_i.group(1)}%"
+                results["payment_terms_installation_display"] = {"value": f"{m_i.group(1)}%", "source": "heuristic_regex"}
 
         # 2. Custom eligibility criteria
         if "custom_eligibility_criteria_display" in missing_keys:
             m_bec = re.search(
-                r"(?:Table-1|Minimum\s+Executed\s+Order\s+value)[^\n]*?([\d,\.]+\s*(?:Lakhs?|Lacs?|Crores?|Cr)?[\s\S]*?)(?=\n\s*\n|\Z)",
+                r"(?:Table-1|Minimum\s+Executed\s+Order\s+value)(?:[^\n]*\n){1,4}",
                 full_text, re.IGNORECASE,
             )
             if m_bec:
-                clean_bec = re.sub(r"\s+", " ", m_bec.group(0)).strip()
-                results["custom_eligibility_criteria_display"] = clean_bec[:300]
+                window_text = m_bec.group(0)
+                cutoff_idx = len(window_text)
+                caps_m = re.search(r"\n\s*[A-Z]{3,}(?:\s+[A-Z]{3,})+", window_text)
+                if caps_m and caps_m.start() > 0:
+                    cutoff_idx = min(cutoff_idx, caps_m.start())
+                clause_m = re.search(r"\n\s*(?:\d+\.\d+|Clause|\b[A-Z]\b\.)", window_text, re.IGNORECASE)
+                if clause_m and clause_m.start() > 0:
+                    cutoff_idx = min(cutoff_idx, clause_m.start())
+                
+                sliced_text = window_text[:cutoff_idx].strip()
+                clean_bec = re.sub(r"\s+", " ", sliced_text)
+                results["custom_eligibility_criteria_display"] = {"value": clean_bec[:500].strip(), "source": "heuristic_regex"}
 
         # 3. Client Email / Phone / Name
         if "client_email_1_display" in missing_keys:
             m_em = re.search(r"([a-zA-Z0-9\._%+\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,})", full_text)
             if m_em:
-                results["client_email_1_display"] = m_em.group(1).strip()
+                results["client_email_1_display"] = {"value": m_em.group(1).strip(), "source": "heuristic_regex"}
 
         if "client_name_1_display" in missing_keys:
             m_nm = re.search(
@@ -836,6 +872,6 @@ class LLMFieldResolver:
                 full_text,
             )
             if m_nm:
-                results["client_name_1_display"] = m_nm.group(0).strip()
+                results["client_name_1_display"] = {"value": m_nm.group(0).strip(), "source": "heuristic_regex"}
 
         return results

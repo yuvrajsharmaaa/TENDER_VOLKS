@@ -456,7 +456,8 @@ def ingest_parent_tender_pdf(
                     missing_fields = infosheet_data.get("missing_fields", [])
                     status_summary = infosheet_data.get("status_summary", {})
                     
-                    for key, val in llm_resolved.items():
+                    for key, item in llm_resolved.items():
+                        val = item["value"]
                         if val and infosheet_data.get(key) in _stub_vals:
                             infosheet_data[key] = val
                             logger.info("[LLM_FALLBACK] Merged '%s' = %r into infosheet_data", key, val)
@@ -480,6 +481,7 @@ def ingest_parent_tender_pdf(
                                             f["status"] = "extracted"
                                             f["confidence"] = 90.0
                                             f["source"] = "atc_llm"
+                                            f["resolution_source"] = item.get("source", "unknown")
                                             field_found = True
                                             break
                                     if field_found:
@@ -492,7 +494,8 @@ def ingest_parent_tender_pdf(
                                         "value": val,
                                         "status": "extracted",
                                         "confidence": 90.0,
-                                        "source": "atc_llm"
+                                        "source": "atc_llm",
+                                        "resolution_source": item.get("source", "unknown")
                                     })
                 elif missing_keys and not atc_full_text:
                     logger.info("[LLM_FALLBACK] Skipping LLM — no ATC text available (ATC not downloaded)")
