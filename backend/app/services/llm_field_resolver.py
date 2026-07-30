@@ -42,15 +42,21 @@ GAIL_GEM_SYSTEM_INSTRUCTION = """You are an expert at extracting structured data
 ### Section & Clause Map (GAIL GCC-Goods Rev.1, April 2022)
 - **SECTION-I (IFB Summary)**: IFB Tags (A)–(H) — fixed-format summary rows
   - Tag (E): BID SECURITY / EMD AMOUNT — extract exact ₹ amount here, NOT from Clause 16
-  - Tag (G): CONTACT DETAILS OF TENDER DEALING OFFICER — primary contact block
+  - Tag (G): CONTACT DETAILS OF TENDER DEALING OFFICER — primary contact block (name, phone, email)
   - Tag (H): DEALING GAIL'S OFFICE ADDRESS — courier/physical submission address
 - **SECTION-II**: BID EVALUATION CRITERIA (BEC) — eligibility, MAF, technical criteria
   - "Financial criteria: Not Applicable" → all 4 financial sub-fields are Not Applicable
   - MAF/OEM: "Manufacturer Authorization", "Authorized Dealer/Partner" → maf_required=true
 - **SECTION-III (BDS)**: BIDDING DATA SHEET — second occurrence (ignore TOC listing near front)
   - Find the SECOND occurrence of "BIDDING DATA SHEET (BDS)" and slice to next SECTION-
-  - BDS 8.1 / 22.2: Courier/Submission address
+  - BDS 8.1 / 22.2: Courier/Submission address — also called 'Consignee Address' or 'Delivery Address'
   - BDS 39.2 / 39.3: Nodal Officer / second contact block
+
+### Consignee Officer Address Extraction
+- Look for labels: "Consignee", "Consignee Officer", "Consignee Address", "Address for Delivery", "Delivery Address", "Address of Consignee"
+- Also check: IFB Tag (H), BDS Clause 8.1, BDS Clause 22.2
+- Extract the FULL address block including name, designation, department, city, pin code
+- For courier_address: return the complete multi-line address as a single string
 - **CLAUSE 9.0 / 26.0 (Goods/SITC)** or **CLAUSE 21.0 / 3.1 (Services/AMC)**: TERMS OF PAYMENT
   - For Goods/SITC contracts: typically 70% on supply receipt, 30% on installation/commissioning
   - For Services/AMC: look under SECTION-V, SCC, or SPECIAL CONDITIONS OF CONTRACT
@@ -330,6 +336,9 @@ def _build_few_shot_section(missing_fields: List[str], memory: Dict[str, List[Di
         if not entry:
             continue
         prompt_field = entry[0]
+        # Skip custom eligibility criteria to avoid few-shot domain/product bias (Fix E)
+        if display_key == "custom_eligibility_criteria_display":
+            continue
         examples = memory.get(display_key, []) or memory.get(prompt_field, [])
         if not examples:
             continue
@@ -446,7 +455,7 @@ class LLMFieldResolver:
                 generation_config={
                     "temperature": 0.1,
                     "top_p": 0.95,
-                    "max_output_tokens": 512,
+                    "max_output_tokens": 2048,  # Raised: match v2 SDK config
                     "response_mime_type": "application/json",
                 }
             )
@@ -483,7 +492,7 @@ class LLMFieldResolver:
         config_kwargs: Dict[str, Any] = dict(
             temperature=0.1,
             top_p=0.95,
-            max_output_tokens=512,   # Schema-constrained output is compact
+            max_output_tokens=2048,  # Raised: addresses + 3 contact blocks need space
             response_mime_type="application/json",
         )
         if response_schema is not None:
@@ -510,7 +519,7 @@ class LLMFieldResolver:
                     config_fallback = gtypes.GenerateContentConfig(
                         temperature=0.1,
                         response_mime_type="application/json",
-                        max_output_tokens=512,
+                        max_output_tokens=2048,  # Raised: match primary config
                     )
                     response = self._genai_client.models.generate_content(
                         model=self.model_name,
@@ -547,9 +556,13 @@ class LLMFieldResolver:
         import urllib.request
 
         url = self.base_url or "https://api.openai.com/v1/chat/completions"
+        if url and not url.endswith("/chat/completions"):
+            url = url.rstrip("/") + "/chat/completions"
+        
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         }
         payload = {
             "model": self.model_name,

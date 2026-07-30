@@ -144,6 +144,7 @@ def ingest_parent_tender_pdf(
                     f["sourceSnippet"] = anchor_snippet
 
     atc_path = None
+
     # 1. High-priority search: explicit ATC or TENDOC markers (excluding MSE, MII, GTC, rules, catalogs, specs, drawings)
     for l in links:
         if l.get("local_path") and Path(l["local_path"]).exists() and str(l["local_path"]).lower().endswith(".pdf"):
@@ -441,9 +442,11 @@ def ingest_parent_tender_pdf(
                     "reverse_auction_applicable_display": "Reverse Auction Applicable",
                 }
                 _FALLBACK_KEYS = list(FIELD_PROMPT_MAP.keys())
-                _stub_vals = ("NA", "N/A", None, "", "Not Found")
+                _stub_vals = ("NA", "N/A", None, "", "Not Found", "NOT_APPLICABLE", "Not Applicable")
                 missing_keys = [k for k in _FALLBACK_KEYS if infosheet_data.get(k) in _stub_vals]
-                target_text = atc_full_text or "\n".join([p.get("text", "") for p in page_texts])
+                # Combine parent and ATC child texts to ensure LLM has full context
+                parent_text = "\n".join([p.get("text", "") for p in all_pages])
+                target_text = f"{parent_text}\n\n{atc_full_text}".strip()
                 if missing_keys and target_text:
                     logger.info("[LLM_FALLBACK] %d fields still NA after regex pass — invoking LLM", len(missing_keys))
                     resolver = LLMFieldResolver()

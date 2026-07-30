@@ -691,7 +691,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
     to resolve all Visual Layout variables defined in INFOSHEET_DATA_KEYS.
     """
     def _is_missing(val):
-        return val is None or str(val).strip() in ("", "NA", "Not Found", "Out of Scope (Stage 1)")
+        return val is None or str(val).strip() in ("", "NA", "Not Found", "None", "Out of Scope (Stage 1)")
 
     def format_currency(val: Any) -> str:
         if val is None or val == "" or val == "NA":
@@ -732,7 +732,8 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             field_id = f.get("id", "").strip()
             field_name = f.get("field_name", "").strip()
             val = f.get("value", "")
-            if val is not None and str(val).strip() != "":
+            # Skip None-string, empty, and stub values — let regex fallback take over for these
+            if val is not None and str(val).strip() not in ("", "None", "NA", "Not Found", "Out of Scope (Stage 1)"):
                 val_str = str(val).strip()
                 for key_candidate in (label, field_id, field_name):
                     if key_candidate:

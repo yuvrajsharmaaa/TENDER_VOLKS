@@ -10,7 +10,7 @@ WORKDIR /app
 
 # Copy requirements and install
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --default-timeout=1000 --no-cache-dir -r requirements.txt
 
 # Install OpenCV dependencies (libgl1 and libglib2.0-0) and the Tesseract OCR
 # engine binary (required at runtime by pytesseract in ocr/ocr_engine.py and
