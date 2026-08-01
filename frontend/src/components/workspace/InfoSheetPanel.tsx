@@ -51,10 +51,11 @@ export const InfoSheetPanel: React.FC<InfoSheetPanelProps> = ({
               {section.fields.map((field, fieldIdx) => {
                 const isEditing = editingFieldId === field.id;
                 const isLowConfidence = field.confidence && field.confidence < 70 && field.status === "extracted";
+                const fieldKey = field.id ? `${section.id}-${field.id}` : `${section.id}-field-${fieldIdx}`;
 
                 return (
                   <div
-                    key={`${section.id}-${field.id}-${fieldIdx}`}
+                    key={fieldKey}
                     className={`border rounded-lg p-3.5 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-3 ${getFieldStatusBorder(
                       field
                     )}`}

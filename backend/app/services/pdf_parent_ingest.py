@@ -448,7 +448,7 @@ def ingest_parent_tender_pdf(
                 parent_text = "\n".join([p.get("text", "") for p in all_pages])
                 target_text = f"{parent_text}\n\n{atc_full_text}".strip()
                 if missing_keys and target_text:
-                    logger.info("[LLM_FALLBACK] %d fields still NA after regex pass — invoking LLM", len(missing_keys))
+                    logger.info("[LLM_FALLBACK][Layer 2] %d fields still NA after regex pass — invoking LLM", len(missing_keys))
                     resolver = LLMFieldResolver()
                     llm_resolved = resolver.resolve(target_text, missing_keys)
                     
@@ -460,7 +460,7 @@ def ingest_parent_tender_pdf(
                         val = item["value"]
                         if val and infosheet_data.get(key) in _stub_vals:
                             infosheet_data[key] = val
-                            logger.info("[LLM_FALLBACK] Merged '%s' = %r into infosheet_data", key, val)
+                            logger.info("[LLM_FALLBACK][Layer 2] Merged '%s' = %r into infosheet_data", key, val)
                             
                             # 1. Update status tracking dicts
                             field_statuses[key] = FIELD_STATUS_OK_FALLBACK
@@ -482,6 +482,7 @@ def ingest_parent_tender_pdf(
                                             f["confidence"] = 90.0
                                             f["source"] = "atc_llm"
                                             f["resolution_source"] = item.get("source", "unknown")
+                                                f["resolution_layer"] = item.get("layer", "layer_2")
                                             field_found = True
                                             break
                                     if field_found:
@@ -495,7 +496,8 @@ def ingest_parent_tender_pdf(
                                         "status": "extracted",
                                         "confidence": 90.0,
                                         "source": "atc_llm",
-                                        "resolution_source": item.get("source", "unknown")
+                                        "resolution_source": item.get("source", "unknown"),
+                                        "resolution_layer": item.get("layer", "layer_2")
                                     })
                 elif missing_keys and not atc_full_text:
                     logger.info("[LLM_FALLBACK] Skipping LLM — no ATC text available (ATC not downloaded)")

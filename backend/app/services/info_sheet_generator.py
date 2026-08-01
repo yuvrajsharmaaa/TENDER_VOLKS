@@ -11,6 +11,62 @@ def clean_val(v: Any) -> str:
         return ""
     return ILLEGAL_CHARACTERS_RE.sub("", str(v))
 
+
+def _canonicalize_lookup_key(value: Any) -> str:
+    text = str(value or "").strip().lower()
+    return re.sub(r"[^a-z0-9]+", "_", text).strip("_")
+
+
+def _build_preview_lookup(preview_sections: List[Dict[str, Any]]) -> Dict[str, Any]:
+    lookup: Dict[str, Any] = {}
+    for sec in preview_sections:
+        for field in sec.get("fields", []):
+            value = field.get("value")
+            if value in (None, ""):
+                continue
+            for candidate in (
+                field.get("field_name"),
+                field.get("label"),
+                field.get("id"),
+                _canonicalize_lookup_key(field.get("field_name")),
+                _canonicalize_lookup_key(field.get("label")),
+            ):
+                if candidate:
+                    lookup[str(candidate).strip().lower()] = value
+    return lookup
+
+
+def _preview_aliases_for(display_key: str) -> List[str]:
+    alias_map = {
+        "tender_value_display": ["tender_value_gst_inclusive", "tender_value_gst", "tender_value", "estimated_value", "tender value (gst inclusive)", "tender value"],
+        "tender_fee_amount_display": ["tender_fee_amount", "tender fee"],
+        "processing_fee_amount_display": ["processing_fee_amount", "processing fee amount"],
+        "emd_amount_display": ["emd_amount", "emd amount", "emd"],
+        "bid_due_date_time": ["bid_submission_deadline", "bid due date and time", "bid submission deadline"],
+        "payment_terms_supply_display": ["payment_terms_supply", "payment terms supply", "payment terms %"],
+        "payment_terms_installation_display": ["payment_terms_installation", "payment terms installation", "payment terms installation (%)"],
+        "delivery_time_supply_display": ["delivery_time_supply", "delivery time supply", "delivery time supply (days)"],
+        "pbg_mode_display": ["pbg_mode", "pbg mode"],
+        "pbg_percentage_display": ["pbg_percentage", "pbg percentage"],
+        "pbg_duration_display": ["pbg_duration", "pbg duration (months)"],
+        "sd_mode_display": ["sd_mode", "security deposit mode"],
+        "sd_percentage_display": ["sd_percentage", "security deposit %"],
+        "sd_duration_display": ["sd_duration", "sd duration (months)"],
+        "ld_percentage_display": ["ld_percentage_per_week", "ld percentage per week"],
+        "max_ld_percentage_display": ["max_ld_percentage", "max ld percentage"],
+        "experience_years_display": ["eligibility_criterion_years", "experience years"],
+        "bid_validity_days_display": ["bid_validity_period", "bid validity period"],
+        "custom_eligibility_criteria_display": ["custom_eligibility_criteria", "custom eligibility criteria"],
+        "avg_annual_turnover_value_display": ["avg_annual_turnover_value", "annual avg turnover", "annual_avg_turnover_value"],
+        "working_capital_value_display": ["working_capital_value", "working capital"],
+        "solvency_certificate_value_display": ["solvency_certificate_value", "solvency certificate"],
+        "courier_address_display": ["courier_address", "courier address"],
+        "client_name_1_display": ["client_name_1", "client contacts", "client contact person"],
+        "client_name_2_display": ["client_name_2", "client contacts 2", "client contacts ii"],
+        "client_name_3_display": ["client_name_3", "client contacts 3", "client contacts iii"],
+    }
+    return alias_map.get(display_key, [])
+
 from backend.app.services.csv_schema import (
     INFOSHEET_PAGE1_LAYOUT,
     INFOSHEET_PAGE2_LAYOUT,
@@ -238,11 +294,22 @@ def generate_info_sheet_csv(data: Any, output_path: str) -> None:
         
         # 1:1 key mapping validation
         data_copy = dict(data)
+        preview_lookup = _build_preview_lookup(preview_sections) if isinstance(preview_sections, list) else {}
         missing_keys = set(INFOSHEET_DATA_KEYS) - set(data_copy.keys())
         extra_keys = set(data_copy.keys()) - set(INFOSHEET_DATA_KEYS)
+
+        for key in list(missing_keys):
+            if data_copy.get(key) not in (None, ""):
+                continue
+            for alias in _preview_aliases_for(key):
+                alias_value = preview_lookup.get(alias.lower())
+                if alias_value not in (None, ""):
+                    data_copy[key] = alias_value
+                    break
         
         for k in missing_keys:
-            data_copy[k] = "N/A"
+            if data_copy.get(k) in (None, ""):
+                data_copy[k] = "N/A"
         for k in extra_keys:
             data_copy.pop(k, None)
             

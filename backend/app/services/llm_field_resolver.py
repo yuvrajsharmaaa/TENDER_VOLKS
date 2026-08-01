@@ -413,7 +413,11 @@ class LLMFieldResolver:
     def __init__(self):
         self.provider = os.getenv("LLM_PROVIDER", "gemini").lower()
         self.api_key = os.getenv("LLM_API_KEY", os.getenv("GEMINI_API_KEY", ""))
+        if self.provider == "groq" and not self.api_key:
+            self.api_key = os.getenv("GROQ_API_KEY", "")
         self.model_name = os.getenv("LLM_MODEL", os.getenv("GEMINI_MODEL", "gemini-flash-latest"))
+        if self.provider == "groq" and self.model_name == "gemini-flash-latest":
+            self.model_name = os.getenv("GROQ_MODEL", "llama-3.1-70b-versatile")
         # Normalize legacy model name aliases
         _aliases = {
             "gemini-1.5-flash": "gemini-flash-latest",
@@ -426,6 +430,8 @@ class LLMFieldResolver:
         # Flash-lite has the same context window for ATC docs and is faster for structured extraction.
         self.schema_model = os.getenv("LLM_SCHEMA_MODEL", "gemini-flash-lite-latest")
         self.base_url = os.getenv("LLM_BASE_URL", "")
+        if self.provider == "groq" and not self.base_url:
+            self.base_url = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1/chat/completions")
         self.enabled = os.getenv("LLM_FALLBACK_ENABLED", "true").lower() == "true"
         self._genai_client: Any = None  # google.genai.Client (v2 SDK) or legacy GenerativeModel
         self._sdk_type: Optional[str] = None  # "genai_v2" | "genai_legacy" | None
@@ -748,6 +754,11 @@ class LLMFieldResolver:
             except RuntimeError as e:
                 logger.warning("[LLM_FALLBACK] %s — skipping LLM resolution", e)
                 return {}
+        elif self.provider == "groq":
+            if not self.api_key:
+                logger.warning("[LLM_FALLBACK] GROQ_API_KEY/LLM_API_KEY not configured — skipping LLM resolution")
+                return {}
+            logger.info("[LLM_FALLBACK] Using Groq OpenAI-compatible endpoint %s with model %s", self.base_url, self.model_name)
 
         detected_type = doc_type or self._detect_doc_type(atc_full_text)
         memory = _load_memory()
@@ -769,6 +780,8 @@ class LLMFieldResolver:
                     # Legacy SDK may return markdown fences — strip them
                     raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)
                     raw_text = re.sub(r"\s*```$", "", raw_text)
+            elif self.provider == "groq":
+                raw_text = self._call_openai_compatible(system_instruction, user_prompt)
             else:
                 raw_text = self._call_openai_compatible(system_instruction, user_prompt)
 
@@ -808,7 +821,7 @@ class LLMFieldResolver:
 
             display_val = self._map_to_display_value(display_key, raw_value)
             if display_val:
-                results[display_key] = {"value": display_val, "source": "llm"}
+                results[display_key] = {"value": display_val, "source": "llm", "layer": "layer_2"}
                 logger.info("[LLM_FALLBACK] Resolved '%s' = %r", display_key, display_val)
                 # Persist to learning memory
                 if anchor_snippet and anchor_snippet != "boolean_value":

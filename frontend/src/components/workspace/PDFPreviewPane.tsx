@@ -158,8 +158,11 @@ export const PDFPreviewPane: React.FC<PDFPreviewPaneProps> = ({ activeDoc, infoS
                       </td>
                     </tr>
                   ) : (
-                    infoSheetFields.map((field, idx) => (
-                      <tr key={field.id} className="hover:bg-section-tint/30 transition-colors">
+                    infoSheetFields.map((field, idx) => {
+                      const rowKey = field.id ? `${field.id}-${idx}` : `field-${idx}`;
+
+                      return (
+                      <tr key={rowKey} className="hover:bg-section-tint/30 transition-colors">
                         <td className="py-2 px-3 border-r border-divider text-center text-[10px] text-text-muted font-sans font-bold bg-section-tint/40 w-8 select-none">
                           {idx + 1}
                         </td>
@@ -177,7 +180,8 @@ export const PDFPreviewPane: React.FC<PDFPreviewPaneProps> = ({ activeDoc, infoS
                           </span>
                         </td>
                       </tr>
-                    ))
+                      );
+                    })
                   )}
                 </tbody>
               </table>
@@ -194,7 +198,7 @@ export const PDFPreviewPane: React.FC<PDFPreviewPaneProps> = ({ activeDoc, infoS
 
         {/* Case 3: Mentioned Unresolved Placeholder */}
         {isMentionedUnresolved && (
-          <div className="max-w-md w-full bg-panel-bg border border-warning-bg rounded-xl p-6 shadow-sm flex flex-col items-center justify-center text-center font-sans space-y-4 select-none animate-fadeIn bg-warning-bg/10">
+          <div className="max-w-md w-full border border-warning-bg rounded-xl p-6 shadow-sm flex flex-col items-center justify-center text-center font-sans space-y-4 select-none animate-fadeIn bg-warning-bg/10">
             <AlertTriangle className="h-12 w-12 text-warning-text animate-pulse" />
             <div>
               <h4 className="text-sm font-bold text-warning-text uppercase tracking-wide">Mentioned Attachment Unresolved</h4>

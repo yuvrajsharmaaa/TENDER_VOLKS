@@ -177,7 +177,12 @@ def map_extraction_to_internal_schema(extracted: dict) -> dict:
 
     # Standardize values
     normalized["bid_number"] = extracted.get("bid_number") or extracted.get("tender_id")
-    normalized["tender_value"] = parse_money(extracted.get("tender_value") or extracted.get("estimated_value"))
+    normalized["tender_value"] = parse_money(
+        extracted.get("tender_value")
+        or extracted.get("estimated_value")
+        or extracted.get("tender_value_gst_inclusive")
+        or extracted.get("tender_value_gst")
+    )
     normalized["bid_validity_days"] = parse_int(extracted.get("bid_validity_days"))
     normalized["deadline_dt"] = parse_datetime(
         extracted.get("physical_docs_deadline") or 
@@ -1927,7 +1932,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
         "bid_validity_days_display": ["bid_validity_days"],
         "reverse_auction_applicable_display": ["reverse_auction_enabled"],
         "delivery_time_supply_display": ["contract_period", "delivery_time_supply"],
-        "pbg_mode_display": ["pbg_advisory_bank", "pbg_mode"],
+        "pbg_mode_display": ["pbg_mode"],
         "pbg_required_display": ["pbg_percentage"],
         "pbg_percentage_display": ["pbg_percentage"],
         "pbg_duration_display": ["pbg_duration_months"],
