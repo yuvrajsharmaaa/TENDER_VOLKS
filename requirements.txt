@@ -6,6 +6,7 @@ pydantic-settings
 python-multipart
 pytest
 httpx
+requests
 numpy
 Pillow
 psycopg2-binary

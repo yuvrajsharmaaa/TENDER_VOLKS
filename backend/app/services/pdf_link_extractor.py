@@ -1,21 +1,40 @@
+import logging
 import re
 import os
 import hashlib
 import socket
-import ssl
 import time
-import urllib.error
-import urllib.request
 from typing import List, Dict, Any, Optional, Tuple
+
+import requests
+
+logger = logging.getLogger(__name__)
 
 # Ensure DNS resolution + TCP connect obey a hard timeout, not just I/O.
 # On Windows, getaddrinfo can block 60-120 s if the host is unreachable;
-# urlopen(timeout=N) only governs the socket READ/WRITE phase.
+# requests timeout handling still keeps the same 15 second ceiling.
 socket.setdefaulttimeout(15)
+
+GEM_WARMUP_URL = "https://bidplus.gem.gov.in/all-bids"
+
+
+def _prime_gem_session(session: requests.Session, read_timeout: int) -> None:
+    try:
+        warmup_response = session.get(GEM_WARMUP_URL, timeout=read_timeout, allow_redirects=True)
+        warmup_response.close()
+        logger.info(
+            "[ATC_RESOLVER] Warmed GeM session via '%s' | status=%s | cookies=%s",
+            GEM_WARMUP_URL,
+            warmup_response.status_code,
+            session.cookies.get_dict(),
+        )
+    except requests.RequestException as exc:
+        logger.warning("[ATC_RESOLVER] GeM session warm-up failed for '%s': %s", GEM_WARMUP_URL, exc)
 
 
 def _download_with_retry(
-    req: urllib.request.Request,
+    session: requests.Session,
+    url: str,
     *,
     max_retries: int = 3,
     base_delay: float = 2.0,
@@ -27,53 +46,72 @@ def _download_with_retry(
     Raises the last exception if all retries are exhausted.
     """
     last_exc: Optional[Exception] = None
+    _prime_gem_session(session, read_timeout)
     for attempt in range(max_retries):
         try:
-            # Attempt 1: verified SSL
-            with urllib.request.urlopen(req, timeout=read_timeout) as resp:
-                return (
-                    resp.read(),
-                    getattr(resp, "status", 200),
-                    dict(resp.headers),
-                    resp.headers.get("Content-Type", ""),
-                )
-        except urllib.error.HTTPError as http_err:
-            last_exc = http_err
-            # Retry only on throttling / transient server errors
-            if http_err.code in (429, 502, 503) and attempt < max_retries - 1:
-                wait = base_delay * (2 ** attempt)
-                time.sleep(wait)
-                continue
-            # For SSL/cert issues try unverified context once
+            response = session.get(url, timeout=read_timeout, allow_redirects=True)
             try:
-                ctx = ssl._create_unverified_context()
-                with urllib.request.urlopen(req, context=ctx, timeout=read_timeout) as resp:
-                    return (
-                        resp.read(),
-                        getattr(resp, "status", 200),
-                        dict(resp.headers),
-                        resp.headers.get("Content-Type", ""),
-                    )
-            except Exception:
+                if response.status_code in (429, 502, 503) and attempt < max_retries - 1:
+                    wait = base_delay * (2 ** attempt)
+                    time.sleep(wait)
+                    continue
+                response.raise_for_status()
+                return (
+                    response.content,
+                    response.status_code,
+                    dict(response.headers),
+                    response.headers.get("Content-Type", ""),
+                )
+            finally:
+                response.close()
+        except requests.RequestException as exc:
+            last_exc = exc
+            try:
+                if attempt == 0:
+                    response = session.get(url, timeout=read_timeout, allow_redirects=True, verify=False)
+                    try:
+                        if response.status_code in (429, 502, 503) and attempt < max_retries - 1:
+                            wait = base_delay * (2 ** attempt)
+                            time.sleep(wait)
+                            continue
+                        response.raise_for_status()
+                        return (
+                            response.content,
+                            response.status_code,
+                            dict(response.headers),
+                            response.headers.get("Content-Type", ""),
+                        )
+                    finally:
+                        response.close()
+            except requests.RequestException:
                 pass
-            raise
+            if attempt < max_retries - 1:
+                time.sleep(base_delay * (2 ** attempt))
+                continue
         except Exception as exc:
             last_exc = exc
-            # Retry SSL / network errors with unverified context on first failure
             if attempt == 0:
                 try:
-                    ctx = ssl._create_unverified_context()
-                    with urllib.request.urlopen(req, context=ctx, timeout=read_timeout) as resp:
+                    response = session.get(url, timeout=read_timeout, allow_redirects=True, verify=False)
+                    try:
+                        if response.status_code in (429, 502, 503) and attempt < max_retries - 1:
+                            wait = base_delay * (2 ** attempt)
+                            time.sleep(wait)
+                            continue
+                        response.raise_for_status()
                         return (
-                            resp.read(),
-                            getattr(resp, "status", 200),
-                            dict(resp.headers),
-                            resp.headers.get("Content-Type", ""),
+                            response.content,
+                            response.status_code,
+                            dict(response.headers),
+                            response.headers.get("Content-Type", ""),
                         )
+                    finally:
+                        response.close()
                 except Exception:
                     pass
             if attempt < max_retries - 1:
                 time.sleep(base_delay * (2 ** attempt))
+                continue
     raise RuntimeError(f"ATC download failed after {max_retries} attempts") from last_exc
 
 def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
@@ -370,9 +408,10 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                                         'Accept': 'application/pdf,application/octet-stream,*/*',
                                         'Referer': 'https://bidplus.gem.gov.in/'
                                     }
-                                    req = urllib.request.Request(uri, headers=headers)
-                                    # _download_with_retry handles SSL fallback + exponential backoff
-                                    file_bytes, status_code, resp_headers, content_type = _download_with_retry(req)
+                                    with requests.Session() as session:
+                                        session.headers.update(headers)
+                                        # _download_with_retry handles session warm-up + retry/backoff.
+                                        file_bytes, status_code, resp_headers, content_type = _download_with_retry(session, uri)
 
                                     logger.info(
                                         "[ATC_RESOLVER] HTTP %s response from '%s' | "

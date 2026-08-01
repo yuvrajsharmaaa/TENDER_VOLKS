@@ -1,6 +1,6 @@
 import time
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any, List, cast
 from backend.app.services.pdf_text_extractor import extract_pdf_text_hybrid
 from backend.app.services.pdf_link_extractor import extract_links_and_mentions
 from backend.app.services.field_extractor import extract_tender_fields
@@ -452,9 +452,9 @@ def ingest_parent_tender_pdf(
                     resolver = LLMFieldResolver()
                     llm_resolved = resolver.resolve(target_text, missing_keys)
                     
-                    field_statuses = infosheet_data.get("_info_sheet_statuses", {})
-                    missing_fields = infosheet_data.get("missing_fields", [])
-                    status_summary = infosheet_data.get("status_summary", {})
+                    field_statuses = cast(Dict[str, str], infosheet_data.get("_info_sheet_statuses", {}))
+                    missing_fields = cast(List[str], infosheet_data.get("missing_fields", []))
+                    status_summary = cast(Dict[str, int], infosheet_data.get("status_summary", {}))
                     
                     for key, item in llm_resolved.items():
                         val = item["value"]
@@ -482,7 +482,7 @@ def ingest_parent_tender_pdf(
                                             f["confidence"] = 90.0
                                             f["source"] = "atc_llm"
                                             f["resolution_source"] = item.get("source", "unknown")
-                                                f["resolution_layer"] = item.get("layer", "layer_2")
+                                            f["resolution_layer"] = item.get("layer", "layer_2")
                                             field_found = True
                                             break
                                     if field_found:
