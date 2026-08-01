@@ -15,6 +15,7 @@ Ground-truth anchor knowledge compiled from manual analysis of:
   - GAIL GCC-Goods Rev.1 (April 2022)
 """
 
+import importlib
 import json
 import logging
 import os
@@ -426,7 +427,7 @@ class LLMFieldResolver:
         self.schema_model = os.getenv("LLM_SCHEMA_MODEL", "gemini-flash-lite-latest")
         self.base_url = os.getenv("LLM_BASE_URL", "")
         self.enabled = os.getenv("LLM_FALLBACK_ENABLED", "true").lower() == "true"
-        self._genai_client = None  # google.genai.Client (v2 SDK)
+        self._genai_client: Any = None  # google.genai.Client (v2 SDK) or legacy GenerativeModel
         self._sdk_type: Optional[str] = None  # "genai_v2" | "genai_legacy" | None
 
     def _init_gemini_client(self):
@@ -448,9 +449,13 @@ class LLMFieldResolver:
 
         # Fallback to deprecated google-generativeai
         try:
-            import google.generativeai as genai_legacy
-            genai_legacy.configure(api_key=self.api_key)
-            self._genai_client = genai_legacy.GenerativeModel(
+            genai_legacy = importlib.import_module("google.generativeai")
+            configure = getattr(genai_legacy, "configure", None)
+            generative_model = getattr(genai_legacy, "GenerativeModel", None)
+            if not callable(configure) or not callable(generative_model):
+                raise ImportError("google.generativeai legacy SDK is unavailable")
+            configure(api_key=self.api_key)
+            self._genai_client = generative_model(
                 model_name=self.model_name,
                 generation_config={
                     "temperature": 0.1,
@@ -507,7 +512,8 @@ class LLMFieldResolver:
         max_retries = 3
         for attempt in range(max_retries):
             try:
-                response = self._genai_client.models.generate_content(
+                client = self._genai_client
+                response = client.models.generate_content(
                     model=model_to_use,
                     contents=combined_content,
                     config=config,
@@ -521,7 +527,7 @@ class LLMFieldResolver:
                         response_mime_type="application/json",
                         max_output_tokens=2048,  # Raised: match primary config
                     )
-                    response = self._genai_client.models.generate_content(
+                    response = client.models.generate_content(
                         model=self.model_name,
                         contents=combined_content,
                         config=config_fallback,
@@ -546,7 +552,8 @@ class LLMFieldResolver:
 
     def _call_gemini_legacy(self, system_instruction: str, user_prompt: str) -> str:
         """Call Gemini using the deprecated google-generativeai SDK (fallback path)."""
-        response = self._genai_client.generate_content(
+        client = self._genai_client
+        response = client.generate_content(
             [{"role": "user", "parts": [system_instruction + "\n\n" + user_prompt]}]
         )
         return response.text.strip()

@@ -440,7 +440,7 @@ def resolve_atc_anchor_fields(
             cb_page = cb.get("page")
             if assoc_lbl in ("APPLICABLE", "NOT APPLICABLE"):
                 cb_page_text = ""
-                if page_texts and 1 <= cb_page <= len(page_texts):
+                if isinstance(cb_page, int) and page_texts and 1 <= cb_page <= len(page_texts):
                     cb_page_text = page_texts[cb_page - 1].get("text", "")
                 
                 if not cb_page_text or _RE_SD_PAGE_CHECK.search(cb_page_text):
@@ -489,7 +489,14 @@ def map_internal_to_evidence_rows(data: dict) -> List[dict]:
     into Layer 2 evidence rows list formatted for DictWriter.
     """
     raw_occurrences = data.get("occurrences", [])
-    tender_id = data.get("bid_number") or data.get("tender_id") or "unknown"
+    tender_id_value = data.get("bid_number") or data.get("tender_id")
+    if isinstance(tender_id_value, int):
+        tender_id = tender_id_value
+    else:
+        try:
+            tender_id = int(str(tender_id_value).strip())
+        except (TypeError, ValueError):
+            tender_id = 0
     return compile_evidence_log(raw_occurrences, tender_id)
 
 def map_occurrences_to_tender_payloads(
@@ -685,7 +692,7 @@ def collect_repeated_documents(sections: List[Dict[str, Any]]) -> List[Dict[str,
     return documents_list
 
 
-def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[str, Any]] = None, job_id: str = "Unknown") -> Dict[str, str]:
+def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[List[Dict[str, Any]]] = None, job_id: str = "Unknown") -> Dict[str, str]:
     """
     Flattens the extracted sections and runs regex match fallbacks on the raw page texts
     to resolve all Visual Layout variables defined in INFOSHEET_DATA_KEYS.
@@ -759,7 +766,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
                 grid_matrix.extend(reconstruct_grid(p_blocks))
 
     # Helper to extract using regex from full_text
-    def extract_regex(pattern, default="NA"):
+    def extract_regex(pattern, default: Optional[str] = "NA"):
         if not full_text or not pattern:
             return default
             
@@ -778,7 +785,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: List[Dict[s
             return m.group(1).strip()
         return default
 
-    def resolve_field(keys, regex_pattern=None, default="NA"):
+    def resolve_field(keys, regex_pattern: Optional[str] = None, default: Optional[str] = "NA"):
         if isinstance(keys, str):
             keys = [keys]
             

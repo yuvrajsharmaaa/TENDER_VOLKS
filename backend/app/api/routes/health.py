@@ -2,7 +2,7 @@ import os
 import sys
 import logging
 from fastapi import APIRouter
-from typing import Dict, Any
+from typing import Dict, Any, cast
 from urllib.parse import urlparse
 import psycopg2
 import redis
@@ -32,7 +32,11 @@ def get_memory_usage_mb() -> float:
         import resource
         # ru_maxrss is in KB on Linux, but bytes on macOS
         factor = 1024.0 if sys.platform != "darwin" else 1024.0 * 1024.0
-        return round(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / factor, 2)
+        getrusage = getattr(resource, "getrusage", None)
+        rusage_self = getattr(resource, "RUSAGE_SELF", None)
+        if callable(getrusage) and rusage_self is not None:
+            usage = cast(Any, getrusage(rusage_self))
+            return round(cast(float, usage.ru_maxrss) / factor, 2)
     except Exception:
         pass
     
@@ -43,9 +47,14 @@ def get_cpu_load() -> float:
     Returns the system 1-minute load average. Returns 0.0 if not supported.
     """
     try:
-        return round(os.getloadavg()[0], 2)
+        getloadavg = getattr(os, "getloadavg", None)
+        if callable(getloadavg):
+            load_avg = cast(tuple[float, float, float], getloadavg())
+            return round(load_avg[0], 2)
     except Exception:
-        return 0.0
+        pass
+
+    return 0.0
 
 @router.get("/health", status_code=200)
 @router.get("/api/health", status_code=200)

@@ -40,8 +40,9 @@ class JSONFormatter(logging.Formatter):
             
         # Capture any extra dynamic kwargs added to the log call
         # e.g., logger.info("event occurred", extra={"custom_field": "val"})
-        if hasattr(record, "custom_fields") and isinstance(record.custom_fields, dict):
-            log_record.update(record.custom_fields)
+        custom_fields = getattr(record, "custom_fields", None)
+        if isinstance(custom_fields, dict):
+            log_record.update(custom_fields)
             
         return json.dumps(log_record)
 
