@@ -329,27 +329,43 @@ def record_correction(field_key: str, corrected_value: Any, anchor_context: str,
 # Few-Shot Section Builder
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _anonymize_few_shot_value(display_key: str, val: Any) -> Any:
+    """Anonymize literal field values to prevent cross-tender value leakage during few-shot prompting."""
+    if val is None or isinstance(val, (bool, int, float)):
+        return val
+    s = str(val)
+    if "email" in display_key:
+        return "officer@gail.co.in"
+    if "phone" in display_key:
+        return "+91-98XXXXXXXX"
+    if "name" in display_key:
+        return "Shri Officer Name"
+    if "address" in display_key or "courier" in display_key:
+        return "GAIL Office Address, City, State - Pin Code"
+    return s
+
 def _build_few_shot_section(missing_fields: List[str], memory: Dict[str, List[Dict]]) -> str:
-    """Build the few-shot examples section of the prompt from memory."""
+    """Build the few-shot examples section of the prompt from memory with anonymized values."""
     lines = []
     for display_key in missing_fields:
         entry = FIELD_PROMPT_MAP.get(display_key)
         if not entry:
             continue
         prompt_field = entry[0]
-        # Skip custom eligibility criteria to avoid few-shot domain/product bias (Fix E)
+        # Skip custom eligibility criteria to avoid few-shot domain/product bias
         if display_key == "custom_eligibility_criteria_display":
             continue
         examples = memory.get(display_key, []) or memory.get(prompt_field, [])
         if not examples:
             continue
         lines.append(f"\n## Learned Examples for `{prompt_field}`:")
-        for ex in examples[:3]:  # Max 3 per field to keep prompt concise
+        for ex in examples[:2]:  # Max 2 per field
+            anon_val = _anonymize_few_shot_value(display_key, ex["value"])
             lines.append(f"  - Anchor: \"{ex['anchor_text'][:120]}\"")
-            lines.append(f"    → Value: {json.dumps(ex['value'])} (confidence: {ex.get('confidence', 0.9):.2f})")
+            lines.append(f"    → Value Format Example: {json.dumps(anon_val)}")
     if not lines:
         return ""
-    return "\n## Few-Shot Extraction Examples (from previously parsed GAIL/GeM documents):\n" + "\n".join(lines)
+    return "\n## Few-Shot Extraction Examples (Formatting guidelines from historical tenders):\n" + "\n".join(lines)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -612,11 +628,20 @@ class LLMFieldResolver:
         few_shot_section: str,
     ) -> Tuple[str, str]:
         """Build (system_instruction, user_prompt) for the API call."""
-        # Truncate text to fit within model context (keep first + last portions)
-        max_chars = 800_000  # ~200k tokens for Gemini Flash
+        # Truncate text to fit within model context without dropping mid-document clauses
+        max_chars = 48_000 if getattr(self, "provider", "") == "groq" else 800_000
         if len(full_text) > max_chars:
-            half = max_chars // 2
-            full_text = full_text[:half] + "\n\n[... MIDDLE TRUNCATED ...]\n\n" + full_text[-half:]
+            third = max_chars // 3
+            # Extract middle slice around key ATC terms if present
+            mid_start = len(full_text) // 2 - (third // 2)
+            mid_match = re.search(r"(?:PAYMENT|PRICE REDUCTION|SECURITY DEPOSIT|BEC|SPECIAL CONDITIONS)", full_text, re.IGNORECASE)
+            if mid_match and third < mid_match.start() < (len(full_text) - third):
+                mid_start = max(0, mid_match.start() - (third // 2))
+            
+            head_part = full_text[:third]
+            mid_part = full_text[mid_start:mid_start + third]
+            tail_part = full_text[-third:]
+            full_text = f"{head_part}\n\n[... SECTION TRUNCATED ...]\n\n{mid_part}\n\n[... SECTION TRUNCATED ...]\n\n{tail_part}"
 
         # Concise field description list for the user prompt
         field_descs = []
@@ -747,13 +772,21 @@ class LLMFieldResolver:
             len(known_missing), self.provider, known_missing,
         )
 
-        # Initialize Gemini client if needed
+        # Initialize Gemini client if needed with automatic Groq fallback
         if self.provider == "gemini":
             try:
                 self._init_gemini_client()
-            except RuntimeError as e:
-                logger.warning("[LLM_FALLBACK] %s — skipping LLM resolution", e)
-                return {}
+            except Exception as e:
+                groq_key = os.getenv("GROQ_API_KEY") or os.getenv("LLM_API_KEY")
+                if groq_key and "placeholder" not in groq_key.lower():
+                    logger.info("[LLM_FALLBACK] Gemini init failed (%s). Switching to Groq API LLM fallback...", e)
+                    self.provider = "groq"
+                    self.api_key = groq_key
+                    self.model_name = os.getenv("GROQ_MODEL", "llama-3.1-70b-versatile")
+                    self.base_url = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1/chat/completions")
+                else:
+                    logger.warning("[LLM_FALLBACK] %s — skipping LLM resolution", e)
+                    return {}
         elif self.provider == "groq":
             if not self.api_key:
                 logger.warning("[LLM_FALLBACK] GROQ_API_KEY/LLM_API_KEY not configured — skipping LLM resolution")
@@ -773,13 +806,27 @@ class LLMFieldResolver:
         try:
             t0 = time.time()
             if self.provider == "gemini":
-                if self._sdk_type == "genai_v2":
-                    raw_text = self._call_gemini_v2(system_instruction, user_prompt, known_missing)
-                else:
-                    raw_text = self._call_gemini_legacy(system_instruction, user_prompt)
-                    # Legacy SDK may return markdown fences — strip them
-                    raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)
-                    raw_text = re.sub(r"\s*```$", "", raw_text)
+                try:
+                    if self._sdk_type == "genai_v2":
+                        raw_text = self._call_gemini_v2(system_instruction, user_prompt, known_missing)
+                    else:
+                        raw_text = self._call_gemini_legacy(system_instruction, user_prompt)
+                        # Legacy SDK may return markdown fences — strip them
+                        raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)
+                        raw_text = re.sub(r"\s*```$", "", raw_text)
+                except Exception as gemini_err:
+                    groq_key = os.getenv("GROQ_API_KEY") or os.getenv("LLM_API_KEY")
+                    if groq_key and "placeholder" not in groq_key.lower():
+                        logger.warning("[LLM_FALLBACK] Gemini API call failed (%s). Falling back to Groq API LLM...", gemini_err)
+                        self.provider = "groq"
+                        self.api_key = groq_key
+                        self.model_name = os.getenv("GROQ_MODEL", "llama-3.1-70b-versatile")
+                        self.base_url = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1/chat/completions")
+                        # Re-build prompt with Groq token optimization
+                        system_instruction, user_prompt = self._build_prompts(atc_full_text, known_missing, few_shot_section)
+                        raw_text = self._call_openai_compatible(system_instruction, user_prompt)
+                    else:
+                        raise gemini_err
             elif self.provider == "groq":
                 raw_text = self._call_openai_compatible(system_instruction, user_prompt)
             else:
@@ -789,9 +836,11 @@ class LLMFieldResolver:
             logger.info("[LLM_FALLBACK] LLM (%s/%s) responded in %.2fs", self.provider, self._sdk_type or "openai", elapsed)
 
         except Exception as e:
-            logger.error("[LLM_FALLBACK] LLM API call failed: %s", e, exc_info=True)
-            logger.info("[LLM_FALLBACK] Falling back to heuristics: reason=api_exception")
-            return self._resolve_local_heuristics(atc_full_text, known_missing)
+            logger.error("[LLM_FALLBACK] LLM API call failed (provider_error): %s", e, exc_info=True)
+            logger.info("[LLM_FALLBACK] Provider failure encountered — executing local heuristics fallback")
+            heuristics_res = self._resolve_local_heuristics(atc_full_text, known_missing)
+            heuristics_res["_llm_status"] = {"status": "provider_error", "error": str(e), "provider": self.provider}
+            return heuristics_res
 
         # ── Parse response ────────────────────────────────────────────────────
         try:

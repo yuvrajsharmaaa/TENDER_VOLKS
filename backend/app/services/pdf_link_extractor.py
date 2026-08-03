@@ -18,18 +18,22 @@ socket.setdefaulttimeout(15)
 GEM_WARMUP_URL = "https://bidplus.gem.gov.in/all-bids"
 
 
-def _prime_gem_session(session: requests.Session, read_timeout: int) -> None:
+def _prime_gem_session(session: requests.Session, read_timeout: int = 15, warmup_url: Optional[str] = None) -> None:
+    if session.cookies:
+        return
+    target_url = warmup_url or GEM_WARMUP_URL
     try:
-        warmup_response = session.get(GEM_WARMUP_URL, timeout=read_timeout, allow_redirects=True)
+        warmup_response = session.get(target_url, timeout=read_timeout, allow_redirects=True)
         warmup_response.close()
         logger.info(
             "[ATC_RESOLVER] Warmed GeM session via '%s' | status=%s | cookies=%s",
-            GEM_WARMUP_URL,
+            target_url,
             warmup_response.status_code,
             session.cookies.get_dict(),
         )
     except requests.RequestException as exc:
-        logger.warning("[ATC_RESOLVER] GeM session warm-up failed for '%s': %s", GEM_WARMUP_URL, exc)
+        logger.warning("[ATC_RESOLVER] GeM session warm-up failed for '%s': %s", target_url, exc)
+
 
 
 def _download_with_retry(
@@ -123,7 +127,6 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
     Layer 3: Regular expression textual file reference fallback
     Layer 4: Deduplication, confidence scoring, and mapping
     """
-    import urllib.request
     from pathlib import Path
     
     parent_dir = Path(pdf_path).parent
@@ -138,6 +141,50 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
     links = []
     mentions = []
     
+    # Reject generic portal/homepage URLs
+    def is_generic_homepage(url_str: str) -> bool:
+        if not url_str:
+            return True
+        clean_url = url_str.strip().lower().rstrip("/")
+        generic_domains = [
+            "https://gem.gov.in", "http://gem.gov.in",
+            "https://mkp.gem.gov.in", "http://mkp.gem.gov.in",
+            "https://eprocure.gov.in", "http://eprocure.gov.in"
+        ]
+        if clean_url in generic_domains:
+            return True
+        from urllib.parse import urlparse
+        parsed = urlparse(clean_url)
+        if parsed.netloc in ["gem.gov.in", "mkp.gem.gov.in", "eprocure.gov.in"] and (not parsed.path or parsed.path in ["", "/"]) and not parsed.query:
+            return True
+        return False
+
+    # BUG 2 FIX: Scope-protected should_download logic preventing arbitrary external HTTP downloads while allowing unverified tender document links
+    def is_tender_doc_url(url_str: str) -> bool:
+        if not url_str or not url_str.startswith("http"):
+            return False
+        if is_generic_homepage(url_str):
+            return False
+
+        url_lower = url_str.lower()
+        doc_exts = [".pdf", ".xlsx", ".xls", ".doc", ".docx", ".zip"]
+        if any(ext in url_lower for ext in doc_exts):
+            return True
+
+        from urllib.parse import urlparse
+        parsed = urlparse(url_lower)
+        domain = parsed.netloc
+        path = parsed.path
+
+        tender_domains = ["gem.gov.in", "mkp.gem.gov.in", "assets-bg.gem.gov.in", "bidplus.gem.gov.in", "eprocure.gov.in", "etenders.gov.in", "cppp.gov.in"]
+        tender_path_keywords = ["/buyer-atc/", "/atc/", "/doc/", "/download/", "/tenders/", "/files/", "/documents/", "/upload/", "/resources/"]
+
+        if any(td in domain for td in tender_domains):
+            if any(kw in path for kw in tender_path_keywords):
+                return True
+
+        return any(kw in url_lower for kw in ["/buyer-atc/", "/atc/doc/", "download_atc", "get_document", "/upload/shared/"])
+
     # Simple regex pattern to scan for referenced assets in prose
     mention_pattern = re.compile(
         r'\b(?:annexure|corrigendum|boq|volume|schedule|specification|addendum)[-_\s]*(?:[iIIVvXx]+|\d+)?(?:\.pdf|\.xlsx?|\.docx?|\b)',
@@ -215,7 +262,7 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
             except Exception:
                 continue
 
-            page_text_raw = page.get_text()
+            page_text_raw = str(page.get_text())
             page_text_lower = page_text_raw.lower()
 
             # BUG 1 FIX: Evaluate per-page text quality to determine if native text is reliable
@@ -266,11 +313,24 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
 
                             anchor_lower = anchor_text.lower()
                             uri_lower = uri.lower()
-                            is_atc_anchor = (
-                                page_has_native_atc_phrase
-                                or any(phrase in anchor_lower for phrase in atc_anchor_phrases)
-                                or any(kw in uri_lower for kw in ["/buyer-atc/", "/atc/doc/", "download_atc", "buyer_documents"])
+                            # Ignore GTC (General Terms & Conditions) links which are present on every GeM tender
+                            is_gtc = (
+                                "/gtc/" in uri_lower
+                                or "pdfbydate" in uri_lower
+                                or "general terms" in anchor_lower
+                                or "gtc" in anchor_lower
                             )
+                            if is_gtc:
+                                is_atc_anchor = False
+                            else:
+                                # A link is an ATC anchor if its anchor text contains an ATC keyword
+                                is_atc_anchor_text = any(phrase in anchor_lower for phrase in atc_anchor_phrases if phrase != "atc") or (anchor_lower.strip() == "atc")
+                                # Or if the page has the native ATC phrase and the anchor text is clickable/view-oriented
+                                is_atc_page_assoc = page_has_native_atc_phrase and any(phrase in anchor_lower for phrase in ["click", "here", "view", "file", "download"])
+                                # Or if the URI explicitly contains buyer ATC keywords
+                                is_atc_url = any(kw in uri_lower for kw in ["/buyer-atc/", "/atc/doc/", "download_atc", "buyer_documents"])
+                                
+                                is_atc_anchor = is_atc_anchor_text or is_atc_page_assoc or is_atc_url
                             anchor_detection_method = "native text" if is_atc_anchor else None
 
                             # BUG 1 FIX: Lazy OCR fallback on scanned/image-heavy pages when native text is unreliable
@@ -310,28 +370,18 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                                         f"[ATC_RESOLVER] Lazy OCR anchor check failed on Page {page_num + 1}: {ocr_err}"
                                     )
 
-                            # Reject generic portal/homepage URLs
-                            def is_generic_homepage(url_str: str) -> bool:
-                                if not url_str:
-                                    return True
-                                clean_url = url_str.strip().lower().rstrip("/")
-                                generic_domains = [
-                                    "https://gem.gov.in", "http://gem.gov.in",
-                                    "https://mkp.gem.gov.in", "http://mkp.gem.gov.in",
-                                    "https://eprocure.gov.in", "http://eprocure.gov.in"
-                                ]
-                                if clean_url in generic_domains:
-                                    return True
-                                from urllib.parse import urlparse
-                                parsed = urlparse(clean_url)
-                                if parsed.netloc in ["gem.gov.in", "mkp.gem.gov.in", "eprocure.gov.in"] and (not parsed.path or parsed.path in ["", "/"]) and not parsed.query:
-                                    return True
-                                return False
 
-                            if is_generic_homepage(uri):
+
+                            is_gtc = (
+                                "/gtc/" in uri_lower
+                                or "pdfbydate" in uri_lower
+                                or "general terms" in anchor_lower
+                                or "gtc" in anchor_lower
+                            )
+                            if is_generic_homepage(uri) or is_gtc:
                                 import logging
                                 logger = logging.getLogger("backend.app.services.pdf_link_extractor")
-                                logger.info(f"[ATC_RESOLVER] Rejected generic portal homepage URL: '{uri}' on Page {page_num + 1}")
+                                logger.info(f"[ATC_RESOLVER] Rejected generic portal homepage or GTC URL: '{uri}' on Page {page_num + 1}")
                                 continue
 
                             found_atc_uri_on_page = True
@@ -357,31 +407,7 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                                 "is_atc_anchor": is_atc_anchor
                             })
 
-                            # BUG 2 FIX: Scope-protected should_download logic preventing arbitrary external HTTP downloads while allowing unverified tender document links
-                            def is_tender_doc_url(url_str: str) -> bool:
-                                if not url_str or not url_str.startswith("http"):
-                                    return False
-                                if is_generic_homepage(url_str):
-                                    return False
 
-                                url_lower = url_str.lower()
-                                doc_exts = [".pdf", ".xlsx", ".xls", ".doc", ".docx", ".zip"]
-                                if any(ext in url_lower for ext in doc_exts):
-                                    return True
-
-                                from urllib.parse import urlparse
-                                parsed = urlparse(url_lower)
-                                domain = parsed.netloc
-                                path = parsed.path
-
-                                tender_domains = ["gem.gov.in", "mkp.gem.gov.in", "assets-bg.gem.gov.in", "bidplus.gem.gov.in", "eprocure.gov.in", "etenders.gov.in", "cppp.gov.in"]
-                                tender_path_keywords = ["/buyer-atc/", "/atc/", "/doc/", "/download/", "/tenders/", "/files/", "/documents/", "/upload/", "/resources/"]
-
-                                if any(td in domain for td in tender_domains):
-                                    if any(kw in path for kw in tender_path_keywords):
-                                        return True
-
-                                return any(kw in url_lower for kw in ["/buyer-atc/", "/atc/doc/", "download_atc", "get_document", "/upload/shared/"])
 
                             should_download = is_atc_anchor or is_tender_doc_url(uri)
                             if should_download:
@@ -435,10 +461,10 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                                             f"[ATC_RESOLVER] ATC_DOWNLOAD_INVALID: URL '{uri}' returned non-document content "
                                             f"(status={status_code}, content-type={content_type}, first bytes={file_bytes[:20]!r}). Not saving."
                                         )
-                                except urllib.error.HTTPError as http_err:
+                                except requests.exceptions.HTTPError as http_err:
                                     logger.warning(
-                                        f"[ATC_RESOLVER] ATC_DOWNLOAD_FAILED: HTTP {http_err.code} {http_err.reason} for URL '{uri}' "
-                                        f"| Headers: {dict(http_err.headers)}. Session auth or cookies may be required."
+                                        f"[ATC_RESOLVER] ATC_DOWNLOAD_FAILED: HTTP {http_err.response.status_code if http_err.response is not None else 'error'} for URL '{uri}' "
+                                        f"| Session auth or cookies may be required: {http_err}"
                                     )
                                 except Exception as dl_err:
                                     logger.warning(f"[ATC_RESOLVER] ATC_DOWNLOAD_FAILED: Failed to download ATC child PDF from URL '{uri}': {dl_err}. Continuing with main tender parsing only.")
@@ -514,7 +540,7 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
 
             # Layer 3: Textual URL and file reference fallback scanning
             try:
-                page_text = page.get_text()
+                page_text = str(page.get_text())
             except Exception:
                 page_text = ""
 
@@ -550,8 +576,9 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                                 'Accept': 'application/pdf,application/octet-stream,*/*',
                                 'Referer': 'https://bidplus.gem.gov.in/'
                             }
-                            req = urllib.request.Request(raw_url, headers=headers)
-                            file_bytes, status_code, resp_headers, content_type = _download_with_retry(req)
+                            with requests.Session() as session:
+                                session.headers.update(headers)
+                                file_bytes, status_code, resp_headers, content_type = _download_with_retry(session, raw_url)
                             is_pdf = file_bytes.startswith(b"%PDF") or "pdf" in content_type.lower()
                             is_excel = file_bytes.startswith(b"PK\x03\x04") or any(ct in content_type.lower() for ct in ["spreadsheet", "excel", "officedocument"])
                             if is_pdf or is_excel:

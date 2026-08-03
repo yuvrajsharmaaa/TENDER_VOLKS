@@ -1,7 +1,7 @@
 import uuid
 import logging
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Any, cast
 from pydantic import BaseModel
 from fastapi import APIRouter, File, UploadFile, HTTPException, Depends, Form, BackgroundTasks
 from fastapi.responses import FileResponse
@@ -85,7 +85,7 @@ from backend.app.schemas.tender_project import (
 @router.post("/upload", status_code=201, response_model=TenderUploadResponse)
 async def upload_tender(
     file: UploadFile = File(...),
-    background_tasks: BackgroundTasks = None
+    background_tasks: BackgroundTasks = None  # type: ignore
 ):
     """
     Validates an uploaded PDF file, saves it, creates job records,
@@ -137,12 +137,12 @@ async def create_tender(
     )
     
     return TenderProjectResponse(
-        tender_project_id=db_project.id,
-        project_id=db_project.project_id,
-        tender_name=db_project.tender_name,
-        source_label=db_project.source_label,
-        created_at=db_project.created_at,
-        updated_at=db_project.updated_at
+        tender_project_id=str(db_project.id),
+        project_id=str(db_project.project_id),
+        tender_name=str(db_project.tender_name) if db_project.tender_name is not None else None,
+        source_label=str(db_project.source_label) if db_project.source_label is not None else None,
+        created_at=cast(Any, db_project.created_at),
+        updated_at=cast(Any, db_project.updated_at)
     )
 
 
@@ -402,12 +402,12 @@ async def get_tender_details(
         )
         
     return TenderProjectDetailResponse(
-        tender_project_id=project.id,
-        project_id=project.project_id,
-        tender_name=project.tender_name,
-        source_label=project.source_label,
-        created_at=project.created_at,
-        updated_at=project.updated_at,
+        tender_project_id=str(project.id),
+        project_id=str(project.project_id),
+        tender_name=str(project.tender_name) if project.tender_name is not None else None,
+        source_label=str(project.source_label) if project.source_label is not None else None,
+        created_at=cast(Any, project.created_at),
+        updated_at=cast(Any, project.updated_at),
         documents=[
             DocumentResponse(
                 document_id=doc.id,
@@ -449,7 +449,7 @@ def background_ocr_worker(document_id: str, run_layoutlm: bool):
             temp_path = download_file_from_minio(document_id)
         except Exception as e:
             logger.error(f"Failed to download document {document_id} from MinIO: {e}", exc_info=True)
-            doc.processing_status = "failed"
+            setattr(doc, "processing_status", "failed")
             db.commit()
             return
             
@@ -469,19 +469,19 @@ def background_ocr_worker(document_id: str, run_layoutlm: bool):
                 pass
         except Exception as e:
             logger.error(f"Failed to move file to job directory for document {document_id}: {e}", exc_info=True)
-            doc.processing_status = "failed"
+            setattr(doc, "processing_status", "failed")
             db.commit()
             return
             
         # 4. Run PDF OCR processor
         try:
             process_pdf(job_id=document_id, pdf_path=local_pdf_path, run_layoutlm=run_layoutlm)
-            doc.processing_status = "completed"
+            setattr(doc, "processing_status", "completed")
             db.commit()
             logger.info(f"Background OCR processing completed successfully for Document {document_id}")
         except Exception as e:
             logger.error(f"OCR processing pipeline failed for Document {document_id}: {e}", exc_info=True)
-            doc.processing_status = "failed"
+            setattr(doc, "processing_status", "failed")
             db.commit()
             
     except Exception as e:
@@ -529,7 +529,7 @@ async def process_tender_document(
         )
         
     # 3. Validate current status
-    if doc.processing_status == "processing":
+    if str(doc.processing_status) == "processing":
         raise HTTPException(
             status_code=409,
             detail={
@@ -537,7 +537,7 @@ async def process_tender_document(
                 "message": "Document is already currently being processed"
             }
         )
-    elif doc.processing_status == "completed" and not force_reprocess:
+    elif str(doc.processing_status) == "completed" and not force_reprocess:
         raise HTTPException(
             status_code=400,
             detail={
@@ -547,7 +547,7 @@ async def process_tender_document(
         )
         
     # 4. Set status to processing and commit
-    doc.processing_status = "processing"
+    setattr(doc, "processing_status", "processing")
     try:
         db.commit()
         db.refresh(doc)
@@ -563,7 +563,7 @@ async def process_tender_document(
         )
         
     # 5. Enqueue background task
-    background_tasks.add_task(background_ocr_worker, doc.id, run_layoutlm)
+    background_tasks.add_task(background_ocr_worker, str(doc.id), run_layoutlm)
     
     logger.info(
         "document_processing_triggered",
@@ -656,7 +656,7 @@ async def process_complete(
         tender_project_id=payload.tender_id,
         document_id=payload.file_id,
         extracted_data=extracted_data,
-        tender_name=project.tender_name
+        tender_name=str(project.tender_name) if project.tender_name is not None else None
     )
     
     # 4. Upsert row in PostgreSQL (TenderInformation table)
@@ -668,7 +668,7 @@ async def process_complete(
     if db_info:
         for col in CSV_COLUMNS:
             setattr(db_info, col, getattr(mapped_info, col))
-        db_info.updated_at = datetime.now(timezone.utc)
+        setattr(db_info, "updated_at", datetime.now(timezone.utc))
         final_info = db_info
     else:
         db.add(mapped_info)
@@ -958,7 +958,7 @@ def _run_ingest_background(job_id: str, pdf_path: str, original_filename: str):
 @router.post("/workspace/ingest", status_code=201, response_model=TenderUploadResponse)
 async def workspace_ingest(
     file: UploadFile = File(...),
-    background_tasks: BackgroundTasks = None
+    background_tasks: BackgroundTasks = None  # type: ignore
 ):
     """
     Single-call workspace ingest endpoint: uploads PDF and immediately
@@ -1172,14 +1172,14 @@ async def download_extracted_document(document_id: str, db: Session = Depends(ge
     if not db_doc:
         raise HTTPException(status_code=404, detail="Document not found")
         
-    local_path = db_doc.storage_key
+    local_path = str(db_doc.storage_key) if db_doc.storage_key else None
     if not local_path or not os.path.exists(local_path):
         raise HTTPException(status_code=404, detail="File not found on local disk")
         
     return FileResponse(
         path=local_path,
-        media_type=db_doc.mime_type,
-        filename=db_doc.original_filename
+        media_type=str(db_doc.mime_type) if db_doc.mime_type else None,
+        filename=str(db_doc.original_filename) if db_doc.original_filename else None
     )
 
 

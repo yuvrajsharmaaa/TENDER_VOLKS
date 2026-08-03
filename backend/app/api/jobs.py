@@ -24,7 +24,7 @@ async def get_job_status_new(job_id: str):
     if not job and not job_dir.exists():
         raise HTTPException(status_code=404, detail="Job not found")
         
-    filename = job.get("original_filename") if job else "original.pdf"
+    filename = (job.get("original_filename") if job else None) or "original.pdf"
     status = job.get("status", "pending") if job else "pending"
     created_at = job.get("created_at") if job else None
     completed_at = job.get("completed_at") if job else None

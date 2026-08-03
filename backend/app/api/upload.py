@@ -2,6 +2,7 @@ import uuid
 import shutil
 import logging
 from pathlib import Path
+from typing import Optional
 from fastapi import APIRouter, BackgroundTasks, UploadFile, File, HTTPException
 from backend.app.schemas.tender_project import (
     TenderUploadResponse,
@@ -25,7 +26,7 @@ def _validate_pdf(file: UploadFile):
 @router.post("/tenders/upload", status_code=201, response_model=TenderUploadResponse)
 async def upload_pdf(
     file: UploadFile = File(...),
-    background_tasks: BackgroundTasks = None
+    background_tasks: BackgroundTasks = None  # type: ignore
 ) -> TenderUploadResponse:
     """
     Unified PDF upload endpoint:
@@ -44,7 +45,8 @@ async def upload_pdf(
     job_dir.mkdir(parents=True, exist_ok=True)
     
     # Save file under original filename and original.pdf alias
-    pdf_path = job_dir / file.filename
+    filename_str = str(file.filename) if file.filename else "original.pdf"
+    pdf_path = job_dir / filename_str
     original_alias_path = job_dir / "original.pdf"
     
     with open(pdf_path, "wb") as f:
@@ -56,18 +58,18 @@ async def upload_pdf(
             
     # Try uploading to MinIO storage if available
     try:
-        upload_file_to_minio(file_bytes, file.content_type or "application/pdf", file.filename)
+        upload_file_to_minio(file_bytes, file.content_type or "application/pdf", filename_str)
     except StorageError as e:
         logger.warning(f"MinIO storage upload skipped/failed during tender upload: {e}")
         
     # Register job in SQLite store
-    create_job(job_id=job_id, filename=file.filename, pdf_path=str(pdf_path))
+    create_job(job_id=job_id, filename=filename_str, pdf_path=str(pdf_path))
     
     # Auto-enqueue background ingest pipeline if background_tasks is present
     if background_tasks:
         from backend.app.api.routes.tenders import _run_ingest_background
         background_tasks.add_task(
-            _run_ingest_background, job_id, str(pdf_path), file.filename
+            _run_ingest_background, job_id, str(pdf_path), filename_str
         )
         
     logger.info(f"Unified tender upload successful: job_id={job_id}, filename={file.filename}")
@@ -77,7 +79,7 @@ async def upload_pdf(
         file_id=job_id,
         tender_id=job_id,
         status="pending",
-        original_filename=file.filename,
+        original_filename=filename_str,
         message="Upload complete and background processing queued."
     )
 
@@ -110,13 +112,13 @@ async def process_tender(
         
     # Re-trigger background pipeline if job is pending or failed
     current_status = job.get("status", "pending") if job else "pending"
-    pdf_path = job.get("pdf_path") if job else str(job_dir / "original.pdf")
-    filename = job.get("original_filename") if job else "original.pdf"
+    pdf_path_str = str(job.get("pdf_path")) if job and job.get("pdf_path") else str(job_dir / "original.pdf")
+    filename_str = str(job.get("original_filename")) if job and job.get("original_filename") else "original.pdf"
     
-    if current_status in ("pending", "failed") and Path(pdf_path).exists():
+    if current_status in ("pending", "failed") and Path(pdf_path_str).exists():
         from backend.app.api.routes.tenders import _run_ingest_background
         background_tasks.add_task(
-            _run_ingest_background, job_id, pdf_path, filename
+            _run_ingest_background, job_id, pdf_path_str, filename_str
         )
         current_status = "processing"
         

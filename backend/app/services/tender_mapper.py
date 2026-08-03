@@ -1409,10 +1409,10 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
                 age_in_yrs = str(word_to_num[raw_yr])
             else:
                 clean_y = re.sub(r"\D", "", raw_yr)
-                age_in_yrs = str(int(clean_y)) if clean_y else "7"
+                age_in_yrs = str(int(clean_y)) if clean_y else "NA"
             logger.info(f"[ATC_ANCHOR] Resolved field 'eligibility_criterion_years' via SECTION_HEADING: BEC Technical Criteria Sl. 1 ({age_in_yrs})")
         else:
-            age_in_yrs = "7"
+            age_in_yrs = "NA"
 
     def format_order_value_with_unit_check(raw_val: Any) -> str:
         if _is_missing(raw_val) or raw_val in ("NA", "Not Found", "—"):
