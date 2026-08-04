@@ -40,7 +40,7 @@ export const NotifyChatBox: React.FC = () => {
 
     try {
       // Determine API endpoint URL
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || "";
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
       const endpoint = `${backendUrl}/api/notify`;
 
       const response = await fetch(endpoint, {

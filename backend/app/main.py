@@ -3,10 +3,12 @@ import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-# Add backend directory to sys.path to resolve 'app' package imports
-backend_dir = str(Path(__file__).resolve().parent.parent)
-if backend_dir not in sys.path:
-    sys.path.insert(0, backend_dir)
+# Add backend directory and its parent to sys.path to resolve both 'app' and 'backend.app' package imports
+backend_dir = Path(__file__).resolve().parent.parent
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
+if str(backend_dir.parent) not in sys.path:
+    sys.path.insert(0, str(backend_dir.parent))
 from urllib.parse import urlparse
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
