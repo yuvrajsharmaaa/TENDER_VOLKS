@@ -191,7 +191,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpl
                   </button>
                   <button
                     onClick={handleUploadSubmit}
-                    className="px-4 py-2 bg-success-green hover:bg-cta-green text-panel-bg text-xs font-bold rounded-lg transition-colors shadow-sm"
+                    className="px-4 py-2 bg-[#E3552F] hover:bg-[#C94424] text-white text-xs font-medium rounded-[8px] transition-colors shadow-xs cursor-pointer"
                   >
                     Submit File
                   </button>

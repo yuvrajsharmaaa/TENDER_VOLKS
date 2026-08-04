@@ -24,6 +24,7 @@ from backend.app.core.constants import STORAGE_ROOT
 from backend.app.api import upload, jobs, visualizer
 from backend.app.api.routes.health import router as health_router
 from backend.app.api.routes.tenders import router as tenders_router
+from backend.app.api.routes.notify import router as notify_router
 
 # Setup structured logging prior to boot
 setup_logging(log_level=settings.log_level, service_name="tender_backend")
@@ -139,3 +140,4 @@ app.include_router(upload.router)
 app.include_router(jobs.router)
 app.include_router(visualizer.router)
 app.include_router(tenders_router)
+app.include_router(notify_router)

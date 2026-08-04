@@ -191,13 +191,13 @@ export const TenderDetailPane: React.FC<TenderDetailPaneProps> = ({
             <button
               onClick={onMarkReviewed}
               disabled={isProcessing}
-              className="px-3 py-1.8 bg-success-green hover:bg-cta-green text-panel-bg disabled:opacity-50 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors shadow-sm"
+              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-50 text-xs font-medium rounded-lg flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
             >
-              <CheckCircle2 className="h-3.5 w-3.5 stroke-[2.5]" />
+              <CheckCircle2 className="h-3.5 w-3.5 stroke-[2]" />
               <span>Mark Reviewed</span>
             </button>
           ) : (
-            <div className="px-3 py-1.8 bg-selected-green-bg border border-selected-green-border text-success-green text-xs font-semibold rounded-lg flex items-center gap-1.5">
+            <div className="px-3 py-1.8 bg-[#ECFDF5] border border-[#A7F3D0] text-[#047857] text-xs font-medium rounded-lg flex items-center gap-1.5">
               <CheckCircle2 className="h-3.5 w-3.5" />
               <span>Reviewed by {tender.reviewer_name}</span>
             </div>
