@@ -1514,16 +1514,28 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
     solvency_certificate_value_display = resolve_field(["Solvency Certificate Value", "Solvency Certificate"], r"Solvency Certificate Value[:\-\s]+([^\n]+)")
 
     normalized_full_text = re.sub(r"\s+", " ", full_text).lower()
-    if re.search(r"financial\s+criteria\s+.*?\s+not\s+applicable", normalized_full_text) or \
-       ("financial criteria" in normalized_full_text and "not applicable" in normalized_full_text):
-        avg_annual_turnover_type_display = "Not Applicable"
-        avg_annual_turnover_value_display = "₹0.00"
-        working_capital_type_display = "Not Applicable"
-        working_capital_value_display = "₹0.00"
-        solvency_certificate_type_display = "Not Applicable"
-        solvency_certificate_value_display = "₹0.00"
-        net_worth_type_display = "Not Applicable"
-        net_worth_value_display = "₹0.00"
+    m_fc_exempt = re.search(
+        r"financial\s+criteria\b(?:(?!financial\s+criteria).){0,150}?not\s+applicable",
+        normalized_full_text,
+        re.DOTALL,
+    )
+    if m_fc_exempt:
+        if avg_annual_turnover_type_display in ("—", "NA", "N/A", "", None, "Not Found"):
+            avg_annual_turnover_type_display = "Not Applicable"
+        if avg_annual_turnover_value_display in ("—", "NA", "N/A", "", None, "Not Found"):
+            avg_annual_turnover_value_display = "₹0.00"
+        if working_capital_type_display in ("—", "NA", "N/A", "", None, "Not Found"):
+            working_capital_type_display = "Not Applicable"
+        if working_capital_value_display in ("—", "NA", "N/A", "", None, "Not Found"):
+            working_capital_value_display = "₹0.00"
+        if solvency_certificate_type_display in ("—", "NA", "N/A", "", None, "Not Found"):
+            solvency_certificate_type_display = "Not Applicable"
+        if solvency_certificate_value_display in ("—", "NA", "N/A", "", None, "Not Found"):
+            solvency_certificate_value_display = "₹0.00"
+        if net_worth_type_display in ("—", "NA", "N/A", "", None, "Not Found"):
+            net_worth_type_display = "Not Applicable"
+        if net_worth_value_display in ("—", "NA", "N/A", "", None, "Not Found"):
+            net_worth_value_display = "₹0.00"
 
     # Page 2
     # 43. PQC Documents

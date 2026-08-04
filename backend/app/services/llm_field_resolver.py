@@ -912,7 +912,7 @@ class LLMFieldResolver:
         # 2. Custom eligibility criteria
         if "custom_eligibility_criteria_display" in missing_keys:
             m_bec = re.search(
-                r"(?:Table-1|Minimum\s+Executed\s+Order\s+value)(?:[^\n]*\n){1,4}",
+                r"(?:Table-1|Minimum\s+Executed\s+Order\s+value)(?:[^\n]*\n){1,8}",
                 full_text, re.IGNORECASE,
             )
             if m_bec:
@@ -927,7 +927,9 @@ class LLMFieldResolver:
                 
                 sliced_text = window_text[:cutoff_idx].strip()
                 clean_bec = re.sub(r"\s+", " ", sliced_text)
-                results["custom_eligibility_criteria_display"] = {"value": clean_bec[:500].strip(), "source": "heuristic_regex"}
+                bec_content_no_header = re.sub(r"Table-\d+", "", clean_bec, flags=re.IGNORECASE)
+                if re.search(r"\d", bec_content_no_header):
+                    results["custom_eligibility_criteria_display"] = {"value": clean_bec[:500].strip(), "source": "heuristic_regex"}
 
         # 3. Client Email / Phone / Name
         if "client_email_1_display" in missing_keys:
