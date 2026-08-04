@@ -901,6 +901,18 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
                 emd_amount_display = format_currency(emd_total)
                 logger.info(f"[ATC_ANCHOR] Resolved field 'emd_amount' via BDS_TAG: (E) BID SECURITY / EARNEST MONEY DEPOSIT ({emd_total})")
 
+    # GeM Portal multi-schedule / group EMD anchor check
+    if emd_amount_display == "NA":
+        gem_emd_matches = re.findall(r"EMD\s+Amount\s*\([^)]*\)\s*\n\s*([\d,]+(?:\.\d+)?)", full_text, re.IGNORECASE)
+        if gem_emd_matches:
+            from backend.app.services.normalizer import parse_money
+            total_gem_emd = sum(parse_money(m) for m in gem_emd_matches if parse_money(m) is not None)
+            if total_gem_emd > 0:
+                emd_total = total_gem_emd
+                emd_required_display = "Yes"
+                emd_amount_display = format_currency(emd_total)
+                logger.info(f"[ATC_ANCHOR] Resolved field 'emd_amount' via GeM EMD schedule sum ({emd_total})")
+
     if emd_amount_display == "NA":
         if _is_missing(emd_amount_raw):
             emd_amount_raw = extract_regex(r"\bEMD\s+Amount[:\-\s]+([^\n]+)", None)
@@ -1434,7 +1446,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
     if _is_missing(ov1_raw) or ov1_raw in ("NA", "Not Found"):
         m1 = re.search(r"(?:Schedule\s*1|1st\s+Work|1)\s+(?:Minimum[^\n]*?)?([\d\.]+\s*Lakhs?)", full_text, re.IGNORECASE)
         if m1: ov1_raw = m1.group(1)
-        else: ov1_raw = "34.02 Lakhs"
+        else: ov1_raw = "NA"
     order_value_1_display = format_order_value_with_unit_check(ov1_raw)
 
     # 36. Annual Avg Turnover, 38. Working Capital, 40. Net Worth, 42. Solvency Certificate
@@ -1453,7 +1465,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
             for line in lines:
                 if re.search(r"\bPart\s*-?\s*\d+\b", line, re.IGNORECASE) or "Part 1 & 2" in line or "Part 1&2" in line:
                     table_lines.append(line)
-            if table_lines:
+            if table_lines and any(re.search(r"[\d\%]", l) for l in table_lines):
                 avg_annual_turnover_value_display = "; ".join(table_lines)
                 logger.info(f"[ATC_ANCHOR] Resolved field 'avg_annual_turnover_value' via CLAUSE_NUMBER_FALLBACK: Clause 2.1 ({avg_annual_turnover_value_display})")
  
@@ -1462,7 +1474,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
     if _is_missing(ov2_raw) or ov2_raw in ("NA", "Not Found"):
         m2 = re.search(r"(?:Schedule\s*2|2nd\s+Work|2)\s+(?:Minimum[^\n]*?)?([\d\.]+\s*Lakhs?)", full_text, re.IGNORECASE)
         if m2: ov2_raw = m2.group(1)
-        else: ov2_raw = "34.90 Lakhs"
+        else: ov2_raw = "NA"
     order_value_2_display = format_order_value_with_unit_check(ov2_raw)
  
     # 38. Working Capital
@@ -1479,7 +1491,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
             for line in lines:
                 if re.search(r"\bPart\s*-?\s*\d+\b", line, re.IGNORECASE) or "Part 1 & 2" in line or "Part 1&2" in line:
                     table_lines.append(line)
-            if table_lines:
+            if table_lines and any(re.search(r"[\d\%]", l) for l in table_lines):
                 working_capital_value_display = "; ".join(table_lines)
                 note_match = re.search(r"(If\s+the\s+bidder.*?line\s+of\s+credit.*?(?:F-9| F9|\bformat\b|$))", c_text, re.IGNORECASE | re.DOTALL)
                 if note_match:
@@ -1492,7 +1504,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
     if _is_missing(ov3_raw) or ov3_raw in ("NA", "Not Found"):
         m3 = re.search(r"(?:Schedule\s*3|3rd\s+Work|3)\s+(?:Minimum[^\n]*?)?([\d\.]+\s*Lakhs?)", full_text, re.IGNORECASE)
         if m3: ov3_raw = m3.group(1)
-        else: ov3_raw = "13.39 Lakhs"
+        else: ov3_raw = "NA"
     order_value_3_display = format_order_value_with_unit_check(ov3_raw)
  
     # 40. Net Worth
@@ -1514,28 +1526,16 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
     solvency_certificate_value_display = resolve_field(["Solvency Certificate Value", "Solvency Certificate"], r"Solvency Certificate Value[:\-\s]+([^\n]+)")
 
     normalized_full_text = re.sub(r"\s+", " ", full_text).lower()
-    m_fc_exempt = re.search(
-        r"financial\s+criteria\b(?:(?!financial\s+criteria).){0,150}?not\s+applicable",
-        normalized_full_text,
-        re.DOTALL,
-    )
-    if m_fc_exempt:
-        if avg_annual_turnover_type_display in ("—", "NA", "N/A", "", None, "Not Found"):
-            avg_annual_turnover_type_display = "Not Applicable"
-        if avg_annual_turnover_value_display in ("—", "NA", "N/A", "", None, "Not Found"):
-            avg_annual_turnover_value_display = "₹0.00"
-        if working_capital_type_display in ("—", "NA", "N/A", "", None, "Not Found"):
-            working_capital_type_display = "Not Applicable"
-        if working_capital_value_display in ("—", "NA", "N/A", "", None, "Not Found"):
-            working_capital_value_display = "₹0.00"
-        if solvency_certificate_type_display in ("—", "NA", "N/A", "", None, "Not Found"):
-            solvency_certificate_type_display = "Not Applicable"
-        if solvency_certificate_value_display in ("—", "NA", "N/A", "", None, "Not Found"):
-            solvency_certificate_value_display = "₹0.00"
-        if net_worth_type_display in ("—", "NA", "N/A", "", None, "Not Found"):
-            net_worth_type_display = "Not Applicable"
-        if net_worth_value_display in ("—", "NA", "N/A", "", None, "Not Found"):
-            net_worth_value_display = "₹0.00"
+    if re.search(r"financial\s+criteria\s+.*?\s+not\s+applicable", normalized_full_text) or \
+       ("financial criteria" in normalized_full_text and "not applicable" in normalized_full_text):
+        avg_annual_turnover_type_display = "Not Applicable"
+        avg_annual_turnover_value_display = "₹0.00"
+        working_capital_type_display = "Not Applicable"
+        working_capital_value_display = "₹0.00"
+        solvency_certificate_type_display = "Not Applicable"
+        solvency_certificate_value_display = "₹0.00"
+        net_worth_type_display = "Not Applicable"
+        net_worth_value_display = "₹0.00"
 
     # Page 2
     # 43. PQC Documents
