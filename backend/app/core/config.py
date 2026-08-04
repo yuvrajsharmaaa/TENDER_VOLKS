@@ -29,6 +29,8 @@ class Settings(BaseSettings):
     
     # Third party integrations
     gemini_api_key: Union[str, None] = None
+    telegram_bot_token: Union[str, None] = None
+    telegram_chat_id: Union[str, None] = None
     
     # CORS Origins
     allowed_origins: Union[str, List[str]] = [

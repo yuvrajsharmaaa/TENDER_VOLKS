@@ -629,7 +629,7 @@ class LLMFieldResolver:
     ) -> Tuple[str, str]:
         """Build (system_instruction, user_prompt) for the API call."""
         # Truncate text to fit within model context without dropping mid-document clauses
-        max_chars = 48_000 if getattr(self, "provider", "") == "groq" else 800_000
+        max_chars = 48_000 if getattr(self, "provider", "") in ("groq", "openai") or "groq.com" in getattr(self, "base_url", "") else 800_000
         if len(full_text) > max_chars:
             third = max_chars // 3
             # Extract middle slice around key ATC terms if present

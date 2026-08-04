@@ -1513,16 +1513,16 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
     solvency_certificate_type_display = resolve_field("Solvency Certificate Type", r"Solvency Certificate Type[:\-\s]+([^\n]+)")
     solvency_certificate_value_display = resolve_field(["Solvency Certificate Value", "Solvency Certificate"], r"Solvency Certificate Value[:\-\s]+([^\n]+)")
 
-    if re.search(r"financial\s+criteria[^\n]{0,50}not\s+applicable", full_text, re.IGNORECASE):
+    normalized_full_text = re.sub(r"\s+", " ", full_text).lower()
+    if re.search(r"financial\s+criteria\s+.*?\s+not\s+applicable", normalized_full_text) or \
+       ("financial criteria" in normalized_full_text and "not applicable" in normalized_full_text):
         avg_annual_turnover_type_display = "Not Applicable"
         avg_annual_turnover_value_display = "₹0.00"
-        if _is_missing(working_capital_type_display) or working_capital_type_display in ("NA", "Not Found"):
-            working_capital_type_display = "Not Applicable"
+        working_capital_type_display = "Not Applicable"
         working_capital_value_display = "₹0.00"
         solvency_certificate_type_display = "Not Applicable"
         solvency_certificate_value_display = "₹0.00"
-        if _is_missing(net_worth_type_display) or net_worth_type_display in ("NA", "Not Found"):
-            net_worth_type_display = "Not Applicable"
+        net_worth_type_display = "Not Applicable"
         net_worth_value_display = "₹0.00"
 
     # Page 2

@@ -133,7 +133,7 @@ export const TenderDetailPane: React.FC<TenderDetailPaneProps> = ({
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-app-bg select-none">
       {/* Detail Page Toolbar Header */}
-      <div className="bg-panel-bg border-b border-divider px-6 py-4 flex items-center justify-between gap-4 shrink-0">
+      <div className="bg-panel-bg border-b border-divider px-4 py-3 sm:px-6 sm:py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shrink-0">
         <div className="flex items-center gap-3 min-w-0">
           <button
             onClick={onBack}
@@ -154,7 +154,7 @@ export const TenderDetailPane: React.FC<TenderDetailPaneProps> = ({
         </div>
 
         {/* Action Panel */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => {
               if (confirm(`Are you sure you want to delete "${tender.title}"?`)) {
@@ -206,10 +206,10 @@ export const TenderDetailPane: React.FC<TenderDetailPaneProps> = ({
       </div>
 
       {/* 50/50 Desktop Split Layout */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 min-h-0 overflow-hidden">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 min-h-0 overflow-y-auto lg:overflow-hidden">
         
         {/* Left Side: Summary Cards + Structured Data Tabs */}
-        <div className="flex flex-col bg-panel-bg border border-divider rounded-xl overflow-hidden min-h-0">
+        <div className="flex flex-col bg-panel-bg border border-divider rounded-xl overflow-hidden min-h-[500px] lg:min-h-0 lg:h-full">
           
           {/* Top highlight summary grid matching ContraVault */}
           <div className="bg-card-bg px-5 py-4 border-b border-divider grid grid-cols-2 md:grid-cols-4 gap-3.5 shrink-0 select-none">
@@ -253,55 +253,57 @@ export const TenderDetailPane: React.FC<TenderDetailPaneProps> = ({
           </div>
 
           {/* Tabs menu bar */}
-          <div className="bg-card-bg border-b border-divider flex p-1 gap-1 shrink-0">
-            <button
-              onClick={() => setActiveTab("info")}
-              className={`flex-1 py-2 text-center text-xs font-bold rounded-lg transition-colors ${
-                activeTab === "info" ? "bg-panel-bg text-success-green shadow-sm" : "text-text-muted hover:text-text-secondary"
-              }`}
-            >
-              Info Sheet
-            </button>
-            <button
-              onClick={() => setActiveTab("documents")}
-              className={`flex-1 py-2 text-center text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1.5 ${
-                activeTab === "documents" ? "bg-panel-bg text-success-green shadow-sm" : "text-text-muted hover:text-text-secondary"
-              }`}
-            >
-              <span>Documents ({
-                tender.documents.sourceDocuments.length + 
-                tender.documents.generatedOutputs.length + 
-                tender.documents.extractedLinkedPdfs.length + 
-                tender.documents.mentionedAttachments.length
-              })</span>
-              {tender.documents.mentionedAttachments.some((d: MentionedAttachmentItem) => !d.resolved) && (
-                <span className="h-1.5 w-1.5 rounded-full bg-warning-text animate-ping"></span>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab("summary")}
-              className={`flex-1 py-2 text-center text-xs font-bold rounded-lg transition-colors ${
-                activeTab === "summary" ? "bg-panel-bg text-success-green shadow-sm" : "text-text-muted hover:text-text-secondary"
-              }`}
-            >
-              Synopsis
-            </button>
-            <button
-              onClick={() => setActiveTab("ocr")}
-              className={`flex-1 py-2 text-center text-xs font-bold rounded-lg transition-colors ${
-                activeTab === "ocr" ? "bg-panel-bg text-success-green shadow-sm" : "text-text-muted hover:text-text-secondary"
-              }`}
-            >
-              OCR Text
-            </button>
-            <button
-              onClick={() => setActiveTab("review")}
-              className={`flex-1 py-2 text-center text-xs font-bold rounded-lg transition-colors ${
-                activeTab === "review" ? "bg-panel-bg text-success-green shadow-sm" : "text-text-muted hover:text-text-secondary"
-              }`}
-            >
-              Checklist
-            </button>
+          <div className="bg-card-bg border-b border-divider overflow-x-auto overflow-y-hidden shrink-0 select-none no-scrollbar">
+            <div className="flex p-1 gap-1 min-w-max md:min-w-0 md:w-full">
+              <button
+                onClick={() => setActiveTab("info")}
+                className={`flex-1 px-4 py-2 text-center text-xs font-bold rounded-lg transition-colors cursor-pointer ${
+                  activeTab === "info" ? "bg-panel-bg text-success-green shadow-sm" : "text-text-muted hover:text-text-secondary"
+                }`}
+              >
+                Info Sheet
+              </button>
+              <button
+                onClick={() => setActiveTab("documents")}
+                className={`flex-1 px-4 py-2 text-center text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
+                  activeTab === "documents" ? "bg-panel-bg text-success-green shadow-sm" : "text-text-muted hover:text-text-secondary"
+                }`}
+              >
+                <span>Documents ({
+                  tender.documents.sourceDocuments.length + 
+                  tender.documents.generatedOutputs.length + 
+                  tender.documents.extractedLinkedPdfs.length + 
+                  tender.documents.mentionedAttachments.length
+                })</span>
+                {tender.documents.mentionedAttachments.some((d: MentionedAttachmentItem) => !d.resolved) && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-warning-text animate-ping"></span>
+                )}
+              </button>
+              <button
+                onClick={() => setActiveTab("summary")}
+                className={`flex-1 px-4 py-2 text-center text-xs font-bold rounded-lg transition-colors cursor-pointer ${
+                  activeTab === "summary" ? "bg-panel-bg text-success-green shadow-sm" : "text-text-muted hover:text-text-secondary"
+                }`}
+              >
+                Synopsis
+              </button>
+              <button
+                onClick={() => setActiveTab("ocr")}
+                className={`flex-1 px-4 py-2 text-center text-xs font-bold rounded-lg transition-colors cursor-pointer ${
+                  activeTab === "ocr" ? "bg-panel-bg text-success-green shadow-sm" : "text-text-muted hover:text-text-secondary"
+                }`}
+              >
+                OCR Text
+              </button>
+              <button
+                onClick={() => setActiveTab("review")}
+                className={`flex-1 px-4 py-2 text-center text-xs font-bold rounded-lg transition-colors cursor-pointer ${
+                  activeTab === "review" ? "bg-panel-bg text-success-green shadow-sm" : "text-text-muted hover:text-text-secondary"
+                }`}
+              >
+                Checklist
+              </button>
+            </div>
           </div>
 
           {/* Active Tab Viewport */}
@@ -471,7 +473,7 @@ export const TenderDetailPane: React.FC<TenderDetailPaneProps> = ({
         </div>
 
         {/* Right Side: PDF Preview Pane docked */}
-        <div className="min-h-0 h-full">
+        <div className="min-h-[500px] lg:min-h-0 lg:h-full">
           <PDFPreviewPane activeDoc={activeDoc} infoSheetFields={tender.infoSheetSections.reduce((acc: InfoSheetField[], sec) => [...acc, ...sec.fields], [])} />
         </div>
       </div>

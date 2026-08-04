@@ -7,6 +7,8 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 from typing import Optional
 
+from backend.app.core.config import settings
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api", tags=["notify"])
@@ -22,11 +24,11 @@ async def send_team_notification(payload: NotifyRequest):
     """
     Sends review notes / alerts from the Tender OCR Dashboard directly to a Telegram team chat bot.
     """
-    bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
-    chat_id = os.getenv("TELEGRAM_CHAT_ID")
+    bot_token = os.getenv("TELEGRAM_BOT_TOKEN") or getattr(settings, "telegram_bot_token", None)
+    chat_id = os.getenv("TELEGRAM_CHAT_ID") or getattr(settings, "telegram_chat_id", None)
 
     if not bot_token or not chat_id or bot_token == "your_bot_token_here" or chat_id == "your_chat_id_here":
-        logger.error("[NOTIFY] Missing or unconfigured TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID in env vars.")
+        logger.error("[NOTIFY] Missing or unconfigured TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID in settings or env vars.")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Telegram bot credentials not configured on server (TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID missing)."
