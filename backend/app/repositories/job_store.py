@@ -70,7 +70,7 @@ def update_status(job_id: str, status: JobStatus, error_message: str = None, res
                 raise e
             time.sleep(1)
 
-def update_job_parameters(job_id: str, email_recipient: str, tender_id: int, db_path: Path = DB_PATH) -> None:
+def update_job_parameters(job_id: str, email_recipient: str, tender_id: Any, db_path: Path = DB_PATH) -> None:
     query = "UPDATE jobs SET email_recipient = ?, tender_id = ? WHERE job_id = ?"
     for i in range(3):
         try:

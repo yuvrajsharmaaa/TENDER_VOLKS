@@ -1,6 +1,122 @@
+import logging
 import re
 import os
-from typing import List, Dict, Any, Tuple
+import hashlib
+import socket
+import time
+from typing import List, Dict, Any, Optional, Tuple
+
+import requests
+
+logger = logging.getLogger(__name__)
+
+# Ensure DNS resolution + TCP connect obey a hard timeout, not just I/O.
+# On Windows, getaddrinfo can block 60-120 s if the host is unreachable;
+# requests timeout handling still keeps the same 15 second ceiling.
+socket.setdefaulttimeout(15)
+
+GEM_WARMUP_URL = "https://bidplus.gem.gov.in/all-bids"
+
+
+def _prime_gem_session(session: requests.Session, read_timeout: int = 15, warmup_url: Optional[str] = None) -> None:
+    if session.cookies:
+        return
+    target_url = warmup_url or GEM_WARMUP_URL
+    try:
+        warmup_response = session.get(target_url, timeout=read_timeout, allow_redirects=True)
+        warmup_response.close()
+        logger.info(
+            "[ATC_RESOLVER] Warmed GeM session via '%s' | status=%s | cookies=%s",
+            target_url,
+            warmup_response.status_code,
+            session.cookies.get_dict(),
+        )
+    except requests.RequestException as exc:
+        logger.warning("[ATC_RESOLVER] GeM session warm-up failed for '%s': %s", target_url, exc)
+
+
+
+def _download_with_retry(
+    session: requests.Session,
+    url: str,
+    *,
+    max_retries: int = 3,
+    base_delay: float = 2.0,
+    read_timeout: int = 15,
+) -> tuple:
+    """Download a URL with exponential-backoff retry on transient errors.
+
+    Returns (file_bytes, status_code, resp_headers_dict, content_type).
+    Raises the last exception if all retries are exhausted.
+    """
+    last_exc: Optional[Exception] = None
+    _prime_gem_session(session, read_timeout)
+    for attempt in range(max_retries):
+        try:
+            response = session.get(url, timeout=read_timeout, allow_redirects=True)
+            try:
+                if response.status_code in (429, 502, 503) and attempt < max_retries - 1:
+                    wait = base_delay * (2 ** attempt)
+                    time.sleep(wait)
+                    continue
+                response.raise_for_status()
+                return (
+                    response.content,
+                    response.status_code,
+                    dict(response.headers),
+                    response.headers.get("Content-Type", ""),
+                )
+            finally:
+                response.close()
+        except requests.RequestException as exc:
+            last_exc = exc
+            try:
+                if attempt == 0:
+                    response = session.get(url, timeout=read_timeout, allow_redirects=True, verify=False)
+                    try:
+                        if response.status_code in (429, 502, 503) and attempt < max_retries - 1:
+                            wait = base_delay * (2 ** attempt)
+                            time.sleep(wait)
+                            continue
+                        response.raise_for_status()
+                        return (
+                            response.content,
+                            response.status_code,
+                            dict(response.headers),
+                            response.headers.get("Content-Type", ""),
+                        )
+                    finally:
+                        response.close()
+            except requests.RequestException:
+                pass
+            if attempt < max_retries - 1:
+                time.sleep(base_delay * (2 ** attempt))
+                continue
+        except Exception as exc:
+            last_exc = exc
+            if attempt == 0:
+                try:
+                    response = session.get(url, timeout=read_timeout, allow_redirects=True, verify=False)
+                    try:
+                        if response.status_code in (429, 502, 503) and attempt < max_retries - 1:
+                            wait = base_delay * (2 ** attempt)
+                            time.sleep(wait)
+                            continue
+                        response.raise_for_status()
+                        return (
+                            response.content,
+                            response.status_code,
+                            dict(response.headers),
+                            response.headers.get("Content-Type", ""),
+                        )
+                    finally:
+                        response.close()
+                except Exception:
+                    pass
+            if attempt < max_retries - 1:
+                time.sleep(base_delay * (2 ** attempt))
+                continue
+    raise RuntimeError(f"ATC download failed after {max_retries} attempts") from last_exc
 
 def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
     import fitz
@@ -11,7 +127,6 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
     Layer 3: Regular expression textual file reference fallback
     Layer 4: Deduplication, confidence scoring, and mapping
     """
-    import urllib.request
     from pathlib import Path
     
     parent_dir = Path(pdf_path).parent
@@ -26,6 +141,50 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
     links = []
     mentions = []
     
+    # Reject generic portal/homepage URLs
+    def is_generic_homepage(url_str: str) -> bool:
+        if not url_str:
+            return True
+        clean_url = url_str.strip().lower().rstrip("/")
+        generic_domains = [
+            "https://gem.gov.in", "http://gem.gov.in",
+            "https://mkp.gem.gov.in", "http://mkp.gem.gov.in",
+            "https://eprocure.gov.in", "http://eprocure.gov.in"
+        ]
+        if clean_url in generic_domains:
+            return True
+        from urllib.parse import urlparse
+        parsed = urlparse(clean_url)
+        if parsed.netloc in ["gem.gov.in", "mkp.gem.gov.in", "eprocure.gov.in"] and (not parsed.path or parsed.path in ["", "/"]) and not parsed.query:
+            return True
+        return False
+
+    # BUG 2 FIX: Scope-protected should_download logic preventing arbitrary external HTTP downloads while allowing unverified tender document links
+    def is_tender_doc_url(url_str: str) -> bool:
+        if not url_str or not url_str.startswith("http"):
+            return False
+        if is_generic_homepage(url_str):
+            return False
+
+        url_lower = url_str.lower()
+        doc_exts = [".pdf", ".xlsx", ".xls", ".doc", ".docx", ".zip"]
+        if any(ext in url_lower for ext in doc_exts):
+            return True
+
+        from urllib.parse import urlparse
+        parsed = urlparse(url_lower)
+        domain = parsed.netloc
+        path = parsed.path
+
+        tender_domains = ["gem.gov.in", "mkp.gem.gov.in", "assets-bg.gem.gov.in", "bidplus.gem.gov.in", "eprocure.gov.in", "etenders.gov.in", "cppp.gov.in"]
+        tender_path_keywords = ["/buyer-atc/", "/atc/", "/doc/", "/download/", "/tenders/", "/files/", "/documents/", "/upload/", "/resources/"]
+
+        if any(td in domain for td in tender_domains):
+            if any(kw in path for kw in tender_path_keywords):
+                return True
+
+        return any(kw in url_lower for kw in ["/buyer-atc/", "/atc/doc/", "download_atc", "get_document", "/upload/shared/"])
+
     # Simple regex pattern to scan for referenced assets in prose
     mention_pattern = re.compile(
         r'\b(?:annexure|corrigendum|boq|volume|schedule|specification|addendum)[-_\s]*(?:[iIIVvXx]+|\d+)?(?:\.pdf|\.xlsx?|\.docx?|\b)',
@@ -73,7 +232,7 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
         # Fallback using pypdf if PyMuPDF count is 0
         if emb_count == 0:
             try:
-                from pypdf import PdfReader
+                from pypdf import PdfReader  # type: ignore
                 reader = PdfReader(pdf_path)
                 if reader.attachments:
                     for name, content_list in reader.attachments.items():
@@ -102,60 +261,213 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                 page = doc.load_page(page_num)
             except Exception:
                 continue
-                
+
+            page_text_raw = str(page.get_text())
+            page_text_lower = page_text_raw.lower()
+
+            # BUG 1 FIX: Evaluate per-page text quality to determine if native text is reliable
+            from backend.app.services.pdf_text_extractor import is_text_scrambled_or_garbage, preprocess_image_for_ocr
+            is_native_reliable = not is_text_scrambled_or_garbage(page_text_raw)
+
+            # Check if any ATC anchor phrase is present on this page via native text
+            atc_anchor_phrases = [
+                "buyer uploaded atc document",
+                "buyer added bid specific atc",
+                "click here to view the file",
+                "click here",
+                "atc"
+            ]
+            page_has_native_atc_phrase = is_native_reliable and (
+                any(phrase in page_text_lower for phrase in atc_anchor_phrases[:3]) or "atc" in page_text_lower
+            )
+
             # Layer 1: page.get_links()
             try:
                 page_links = page.get_links()
             except Exception:
                 page_links = []
-                
+
+            found_atc_uri_on_page = False
             for l in page_links:
                 try:
                     # Check LINK_URI
                     if l.get("kind") == fitz.LINK_URI:
-                        uri = l.get("uri", "")
+                        uri = l.get("uri", "").strip()
                         if uri:
-                            # Reconstruct anchor text by reading words in link bounding box
-                            rect_coords = l.get("from")
+                            # Reconstruct anchor text by reading words in padded link bounding box
+                            rect_coords = l.get("from") or l.get("rect")
                             anchor_text = ""
+                            padded_rect = None
                             if rect_coords:
                                 rect = fitz.Rect(rect_coords)
-                                words = page.get_text("words")
-                                anchor_words = [w[4] for w in words if fitz.Rect(w[:4]).intersects(rect)]
-                                anchor_text = " ".join(anchor_words).strip()
-                            
+                                # Apply padding tolerance (5 points) because PDF annotations are often sloppy
+                                padded_rect = rect + fitz.Rect(-5, -5, 5, 5)
+                                try:
+                                    anchor_text = page.get_textbox(padded_rect).strip()
+                                except Exception:
+                                    anchor_text = ""
+                                if not anchor_text:
+                                    words = page.get_text("words")
+                                    anchor_words = [w[4] for w in words if fitz.Rect(w[:4]).intersects(padded_rect)]
+                                    anchor_text = " ".join(anchor_words).strip()
+
+                            anchor_lower = anchor_text.lower()
+                            uri_lower = uri.lower()
+                            # Ignore GTC (General Terms & Conditions) links which are present on every GeM tender
+                            is_gtc = (
+                                "/gtc/" in uri_lower
+                                or "pdfbydate" in uri_lower
+                                or "general terms" in anchor_lower
+                                or "gtc" in anchor_lower
+                            )
+                            if is_gtc:
+                                is_atc_anchor = False
+                            else:
+                                # A link is an ATC anchor if its anchor text contains an ATC keyword
+                                is_atc_anchor_text = any(phrase in anchor_lower for phrase in atc_anchor_phrases if phrase != "atc") or (anchor_lower.strip() == "atc")
+                                # Or if the page has the native ATC phrase and the anchor text is clickable/view-oriented
+                                is_atc_page_assoc = page_has_native_atc_phrase and any(phrase in anchor_lower for phrase in ["click", "here", "view", "file", "download"])
+                                # Or if the URI explicitly contains buyer ATC keywords
+                                is_atc_url = any(kw in uri_lower for kw in ["/buyer-atc/", "/atc/doc/", "download_atc", "buyer_documents"])
+                                
+                                is_atc_anchor = is_atc_anchor_text or is_atc_page_assoc or is_atc_url
+                            anchor_detection_method = "native text" if is_atc_anchor else None
+
+                            # BUG 1 FIX: Lazy OCR fallback on scanned/image-heavy pages when native text is unreliable
+                            if not is_atc_anchor and not is_native_reliable and padded_rect:
+                                try:
+                                    zoom = 3.0
+                                    mat = fitz.Matrix(zoom, zoom)
+                                    pix = page.get_pixmap(matrix=mat, clip=padded_rect, alpha=False)
+                                    import tempfile
+                                    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_file:
+                                        tmp_img_path = Path(tmp_file.name)
+                                    pix.save(str(tmp_img_path))
+                                    pix = None
+
+                                    preprocessed_tmp = preprocess_image_for_ocr(tmp_img_path)
+                                    from ocr.ocr_engine import OcrEngine
+                                    ocr_engine = OcrEngine(lang="eng+hin")
+                                    try:
+                                        ocr_blocks = ocr_engine.run(preprocessed_tmp)
+                                        ocr_text = " ".join([b.text for b in ocr_blocks]).strip()
+                                    finally:
+                                        if tmp_img_path.exists():
+                                            try: tmp_img_path.unlink()
+                                            except Exception: pass
+                                        if preprocessed_tmp and preprocessed_tmp.exists() and preprocessed_tmp != tmp_img_path:
+                                            try: preprocessed_tmp.unlink()
+                                            except Exception: pass
+
+                                    ocr_lower = ocr_text.lower()
+                                    if any(phrase in ocr_lower for phrase in atc_anchor_phrases):
+                                        is_atc_anchor = True
+                                        anchor_text = ocr_text
+                                        anchor_detection_method = "OCR fallback"
+                                except Exception as ocr_err:
+                                    import logging
+                                    logging.getLogger("backend.app.services.pdf_link_extractor").debug(
+                                        f"[ATC_RESOLVER] Lazy OCR anchor check failed on Page {page_num + 1}: {ocr_err}"
+                                    )
+
+
+
+                            is_gtc = (
+                                "/gtc/" in uri_lower
+                                or "pdfbydate" in uri_lower
+                                or "general terms" in anchor_lower
+                                or "gtc" in anchor_lower
+                            )
+                            if is_generic_homepage(uri) or is_gtc:
+                                import logging
+                                logger = logging.getLogger("backend.app.services.pdf_link_extractor")
+                                logger.info(f"[ATC_RESOLVER] Rejected generic portal homepage or GTC URL: '{uri}' on Page {page_num + 1}")
+                                continue
+
+                            found_atc_uri_on_page = True
                             filename = uri.split("/")[-1].split("?")[0] or f"linked_file_p{page_num+1}.pdf"
                             if not filename.lower().endswith((".pdf", ".xlsx", ".xls", ".doc", ".docx", ".zip")):
                                 filename = f"{filename}.pdf" # fallback suffix
-                                
+
+                            import logging
+                            logger = logging.getLogger("backend.app.services.pdf_link_extractor")
+                            if is_atc_anchor:
+                                logger.info(f"[ATC_RESOLVER] anchor detected via {anchor_detection_method or 'native text'} on page {page_num + 1} (text='{anchor_text}')")
+                                logger.info(f"[ATC_RESOLVER] Hyperlink URL resolved: '{uri}'")
+
+                            # BUG 2 FIX: Assign 95.0 confidence for verified anchors, 70.0 for unverified best-effort detections
+                            conf = 95.0 if is_atc_anchor else 70.0
+
                             links.append({
                                 "name": filename,
                                 "url": uri,
                                 "sourcePage": page_num + 1,
                                 "anchorText": anchor_text or f"Clickable Hyperlink: {uri}",
-                                "extractionConfidence": 95.0
+                                "extractionConfidence": conf,
+                                "is_atc_anchor": is_atc_anchor
                             })
 
-                            # Save linked child PDF locally
-                            if uri.startswith("http") and any(ext in uri.lower() for ext in [".pdf", ".xlsx", ".xls", ".doc", ".docx", ".zip"]):
+
+
+                            should_download = is_atc_anchor or is_tender_doc_url(uri)
+                            if should_download:
                                 try:
-                                    import ssl
-                                    unique_filename = f"page{page_num+1}_{filename}"
-                                    req = urllib.request.Request(
-                                        uri,
-                                        headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+                                    logger.info(
+                                        "[ATC_RESOLVER] Downloading ATC child document from URL: '%s' "
+                                        "(verified_anchor=%s)", uri, is_atc_anchor
                                     )
-                                    context = ssl._create_unverified_context()
-                                    with urllib.request.urlopen(req, context=context, timeout=3) as response:
-                                        file_bytes = response.read()
+                                    # Stable cache filename derived from URL hash — survives server restarts.
+                                    url_hash = hashlib.sha256(uri.encode()).hexdigest()[:16]
+                                    ext = Path(filename).suffix or ".pdf"
+                                    unique_filename = f"atc_{url_hash}{ext}"
                                     out_path = output_dir / unique_filename
-                                    with open(out_path, "wb") as f:
-                                        f.write(file_bytes)
-                                    saved_paths.append(str(out_path))
-                                    external_count += 1
-                                    links[-1]["local_path"] = str(out_path)
+                                    if out_path.exists() and out_path.stat().st_size > 0:
+                                        logger.info(
+                                            "[ATC_RESOLVER] Using cached local child file at: '%s'", out_path
+                                        )
+                                        saved_paths.append(str(out_path))
+                                        external_count += 1
+                                        links[-1]["local_path"] = str(out_path)
+                                        continue
+                                    headers = {
+                                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                                        'Accept': 'application/pdf,application/octet-stream,*/*',
+                                        'Referer': 'https://bidplus.gem.gov.in/'
+                                    }
+                                    with requests.Session() as session:
+                                        session.headers.update(headers)
+                                        # _download_with_retry handles session warm-up + retry/backoff.
+                                        file_bytes, status_code, resp_headers, content_type = _download_with_retry(session, uri)
+
+                                    logger.info(
+                                        "[ATC_RESOLVER] HTTP %s response from '%s' | "
+                                        "Content-Type: '%s' | Length: %d bytes",
+                                        status_code, uri, content_type, len(file_bytes)
+                                    )
+
+                                    # Validate PDF magic bytes (%PDF), Excel ZIP magic bytes (PK\x03\x04), or Content-Type
+                                    is_pdf = file_bytes.startswith(b"%PDF") or "pdf" in content_type.lower()
+                                    is_excel = file_bytes.startswith(b"PK\x03\x04") or any(ct in content_type.lower() for ct in ["spreadsheet", "excel", "officedocument"])
+                                    if is_pdf or is_excel:
+                                        out_path = output_dir / unique_filename
+                                        with open(out_path, "wb") as f:
+                                            f.write(file_bytes)
+                                        saved_paths.append(str(out_path))
+                                        external_count += 1
+                                        links[-1]["local_path"] = str(out_path)
+                                        logger.info(f"[ATC_RESOLVER] ATC child document saved to: '{out_path}'")
+                                    else:
+                                        logger.warning(
+                                            f"[ATC_RESOLVER] ATC_DOWNLOAD_INVALID: URL '{uri}' returned non-document content "
+                                            f"(status={status_code}, content-type={content_type}, first bytes={file_bytes[:20]!r}). Not saving."
+                                        )
+                                except requests.exceptions.HTTPError as http_err:
+                                    logger.warning(
+                                        f"[ATC_RESOLVER] ATC_DOWNLOAD_FAILED: HTTP {http_err.response.status_code if http_err.response is not None else 'error'} for URL '{uri}' "
+                                        f"| Session auth or cookies may be required: {http_err}"
+                                    )
                                 except Exception as dl_err:
-                                    print(f"[DEBUG] Failed to download/save external link {uri}: {dl_err}")
+                                    logger.warning(f"[ATC_RESOLVER] ATC_DOWNLOAD_FAILED: Failed to download ATC child PDF from URL '{uri}': {dl_err}. Continuing with main tender parsing only.")
 
                     # Support GotoE (Embedded Document Links) or GoToR (Remote Document Links)
                     elif l.get("kind") in (fitz.LINK_GOTO, fitz.LINK_GOTOR, fitz.LINK_LAUNCH):
@@ -171,6 +483,11 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                             })
                 except Exception:
                     pass
+
+            if page_has_native_atc_phrase and not found_atc_uri_on_page:
+                import logging
+                logger = logging.getLogger("backend.app.services.pdf_link_extractor")
+                logger.warning(f"[ATC_RESOLVER] ATC_LINK_NOT_FOUND: Anchor phrase detected on Page {page_num + 1}, but no resolvable URI link annotation found.")
             
             # Layer 2b: Annotation-aware link harvesting
             try:
@@ -221,12 +538,60 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                     except Exception as ae:
                         print(f"[DEBUG] Failed to extract annotation file on page {page_num+1}: {ae}")
 
-            # Layer 3: Textual file reference fallback scanning
+            # Layer 3: Textual URL and file reference fallback scanning
             try:
-                page_text = page.get_text()
+                page_text = str(page.get_text())
             except Exception:
                 page_text = ""
-                
+
+            # 3a. Plain-text HTTP/HTTPS URL scanner for printed links without PDF LINK_URI annotations
+            raw_url_pattern = re.compile(r'https?://[^\s<>"\'\]\)]+', re.IGNORECASE)
+            for url_match in raw_url_pattern.finditer(page_text):
+                raw_url = url_match.group(0).rstrip(".,;)>")
+                if len(raw_url) > 10:
+                    already_captured = any(l.get("url", "").lower() == raw_url.lower() for l in links)
+                    if not already_captured and not is_generic_homepage(raw_url) and is_tender_doc_url(raw_url):
+                        import logging
+                        logger = logging.getLogger("backend.app.services.pdf_link_extractor")
+                        logger.info(f"[ATC_RESOLVER] Plain-text URL detected in PDF text on Page {page_num + 1}: '{raw_url}'")
+                        url_hash = hashlib.sha256(raw_url.encode()).hexdigest()[:16]
+                        filename = raw_url.split("/")[-1].split("?")[0] or f"text_url_p{page_num+1}.pdf"
+                        if not filename.lower().endswith((".pdf", ".xlsx", ".xls", ".doc", ".docx", ".zip")):
+                            filename = f"{filename}.pdf"
+                        unique_filename = f"atc_txt_{url_hash}_{filename}"
+                        out_path = output_dir / unique_filename
+
+                        links.append({
+                            "name": filename,
+                            "url": raw_url,
+                            "sourcePage": page_num + 1,
+                            "anchorText": f"Plain-Text Printed Hyperlink on Page {page_num + 1}",
+                            "extractionConfidence": 85.0,
+                            "is_atc_anchor": True
+                        })
+
+                        try:
+                            headers = {
+                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                                'Accept': 'application/pdf,application/octet-stream,*/*',
+                                'Referer': 'https://bidplus.gem.gov.in/'
+                            }
+                            with requests.Session() as session:
+                                session.headers.update(headers)
+                                file_bytes, status_code, resp_headers, content_type = _download_with_retry(session, raw_url)
+                            is_pdf = file_bytes.startswith(b"%PDF") or "pdf" in content_type.lower()
+                            is_excel = file_bytes.startswith(b"PK\x03\x04") or any(ct in content_type.lower() for ct in ["spreadsheet", "excel", "officedocument"])
+                            if is_pdf or is_excel:
+                                with open(out_path, "wb") as f:
+                                    f.write(file_bytes)
+                                saved_paths.append(str(out_path))
+                                external_count += 1
+                                links[-1]["local_path"] = str(out_path)
+                                logger.info(f"[ATC_RESOLVER] Plain-text URL ATC child document saved to: '{out_path}'")
+                        except Exception as dl_err:
+                            logger.warning(f"[ATC_RESOLVER] Failed to download plain-text URL '{raw_url}': {dl_err}")
+
+            # 3b. Mention pattern fallback scanning
             for match in mention_pattern.finditer(page_text):
                 mention_word = match.group(0).strip()
                 if len(mention_word) > 3:

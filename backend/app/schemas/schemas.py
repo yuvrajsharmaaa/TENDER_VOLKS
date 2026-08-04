@@ -79,3 +79,5 @@ class ExtractedFieldsResponse(BaseModel):
     extracted_products: List[ProductItemSchema] = []
     needs_stage2_atc_parse: Optional[bool] = None
     document_type: Optional[str] = "generic_nit"
+    atc_document_link_present: Optional[bool] = None
+    atc_link_url: Optional[str] = None

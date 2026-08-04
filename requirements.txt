@@ -6,6 +6,7 @@ pydantic-settings
 python-multipart
 pytest
 httpx
+requests
 numpy
 Pillow
 psycopg2-binary
@@ -16,3 +17,4 @@ pytesseract
 openpyxl
 pytest
 rapidfuzz
+google-generativeai>=0.8.0

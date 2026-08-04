@@ -163,17 +163,19 @@ def extract_pdf_text_hybrid(pdf_path: str, pages_dir: Path) -> List[Dict[str, An
         if is_digital:
             native_words = page.get_text("words")
             blocks = build_text_blocks_from_words(native_words)
+            cb_states = extract_checkbox_states(page)
             results.append({
                 "page": page_num + 1,
                 "text": native_text,
                 "source": "native",
                 "confidence": 100.0,
-                "blocks": blocks
+                "blocks": blocks,
+                "checkboxes": cb_states
             })
         else:
             # Scanned page detected -> render to image
             if not ocr_engine:
-                ocr_engine = OcrEngine()
+                ocr_engine = OcrEngine(lang="eng+hin")
                 
             zoom = 4.16  # ~300 DPI for high-precision character matching
             mat = fitz.Matrix(zoom, zoom)
@@ -237,5 +239,78 @@ def extract_pdf_text_hybrid(pdf_path: str, pages_dir: Path) -> List[Dict[str, An
             })
             
     doc.close()
+    return results
+
+
+def extract_checkbox_states(page) -> List[Dict[str, Any]]:
+    """
+    Extracts Wingdings checkbox states from a PyMuPDF page object using get_text("dict").
+    Recognizes \uf050 (Wingdings2 'P') as CHECKED and \uf04f (Wingdings2 'O') as UNCHECKED.
+    Associates each checkbox with its nearest binary text label by Euclidean proximity.
+    """
+    text_dict = page.get_text("dict")
+    checkboxes = []
+    text_spans = []
+
+    CHECKED_GLYPHS = {"\uf050", "þ", "✔", "☑"}
+    UNCHECKED_GLYPHS = {"\uf04f", "¨", "☐"}
+
+    for block in text_dict.get("blocks", []):
+        if block.get("type") == 0:  # Text block
+            for line in block.get("lines", []):
+                for span in line.get("spans", []):
+                    font_name = str(span.get("font", "")).lower()
+                    text = span.get("text", "")
+                    bbox = span.get("bbox", (0, 0, 0, 0))
+
+                    if "wingdings" in font_name or any(c in text for c in CHECKED_GLYPHS | UNCHECKED_GLYPHS):
+                        for char in text:
+                            if char in CHECKED_GLYPHS:
+                                status = "CHECKED"
+                            elif char in UNCHECKED_GLYPHS:
+                                status = "UNCHECKED"
+                            elif "wingdings" in font_name:
+                                status = "AMBIGUOUS_CHECKBOX"
+                            else:
+                                continue
+
+                            checkboxes.append({
+                                "char": char,
+                                "status": status,
+                                "bbox": bbox,
+                                "font": font_name,
+                                "page": getattr(page, "number", 0) + 1
+                            })
+                    else:
+                        text_str = text.strip()
+                        if text_str:
+                            text_spans.append({
+                                "text": text_str,
+                                "bbox": bbox
+                            })
+
+    results = []
+    for cb in checkboxes:
+        cb_x = (cb["bbox"][0] + cb["bbox"][2]) / 2.0
+        cb_y = (cb["bbox"][1] + cb["bbox"][3]) / 2.0
+
+        closest_label = None
+        min_dist = float("inf")
+
+        for ts in text_spans:
+            lbl_x = (ts["bbox"][0] + ts["bbox"][2]) / 2.0
+            lbl_y = (ts["bbox"][1] + ts["bbox"][3]) / 2.0
+
+            # Vertical row alignment check (tolerance ±25pt)
+            if abs(cb_y - lbl_y) <= 25.0:
+                dist = ((cb_x - lbl_x) ** 2 + (cb_y - lbl_y) ** 2) ** 0.5
+                if dist < min_dist:
+                    min_dist = dist
+                    closest_label = ts["text"]
+
+        if closest_label:
+            cb["associated_label"] = closest_label
+        results.append(cb)
+
     return results
 

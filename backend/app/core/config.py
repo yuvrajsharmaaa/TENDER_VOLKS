@@ -53,4 +53,4 @@ class Settings(BaseSettings):
     )
 
 # Instantiate settings to trigger validation on import
-settings = Settings()
+settings = Settings()  # type: ignore[call-arg]

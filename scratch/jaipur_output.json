@@ -1,0 +1,1166 @@
+{
+  "id": "test-jaipur-run",
+  "title": "GAIL NiCd Jaipur",
+  "authorityName": "",
+  "deadline": "17-03-2025 17:00:00",
+  "tenderValue": "",
+  "emdAmount": 744000.0,
+  "tenderFee": "",
+  "location": "",
+  "documents": {
+    "sourceDocuments": [
+      {
+        "id": "src-test-jaipur-run",
+        "name": "GAIL NiCd Jaipur.pdf",
+        "kind": "pdf",
+        "origin": "source",
+        "url": "/storage/jobs/test-jaipur-run/GAIL NiCd Jaipur.pdf",
+        "downloadable": true,
+        "openable": true,
+        "isPrimary": true,
+        "uploadedBy": "System"
+      }
+    ],
+    "generatedOutputs": [
+      {
+        "id": "out-test-jaipur-run",
+        "name": "GAIL NiCd Jaipur_InfoSheet.xlsx",
+        "kind": "xlsx",
+        "origin": "generated",
+        "url": "/storage/jobs/test-jaipur-run/GAIL NiCd Jaipur_InfoSheet.xlsx",
+        "downloadable": true,
+        "openable": true,
+        "generator": "ocr",
+        "outputKind": "info_sheet"
+      }
+    ],
+    "extractedLinkedPdfs": [
+      {
+        "id": "link-test-jaipur-run-1",
+        "name": "linked_file_p3.pdf",
+        "kind": "pdf",
+        "origin": "linked",
+        "url": "https://bidplus.gem.gov.in/bidding/downloadOmppdfile/",
+        "downloadable": true,
+        "openable": true,
+        "extractedFromDocumentId": "src-test-jaipur-run",
+        "sourcePage": 3,
+        "anchorText": "buyers are advised to refer the OM No.F.1/\nOM_No.1_4_2021_PPD_dated_18.05.2023 f\nfor Micro and Small Enterprises Order, 201",
+        "extractionConfidence": 70.0,
+        "local_path": null
+      },
+      {
+        "id": "link-test-jaipur-run-2",
+        "name": "linked_file_p4.pdf",
+        "kind": "pdf",
+        "origin": "linked",
+        "url": "https://bidplus.gem.gov.in/bidding/downloadOmppdfile/",
+        "downloadable": true,
+        "openable": true,
+        "extractedFromDocumentId": "src-test-jaipur-run",
+        "sourcePage": 4,
+        "anchorText": "Buyer) percentage of total quantity. The buy\n3 OM_No.1_4_2021_PPD_dated_18.05.2023 f\nPolicy for Micro and Small Enterprises Order,",
+        "extractionConfidence": 95.0,
+        "local_path": null
+      },
+      {
+        "id": "link-test-jaipur-run-3",
+        "name": "1740223675.xlsx",
+        "kind": "pdf",
+        "origin": "linked",
+        "url": "https://bidplus.gem.gov.in/resources/upload_nas/FebQ125/bidding/excel/bid-7536498/1740223675.xlsx",
+        "downloadable": true,
+        "openable": true,
+        "extractedFromDocumentId": "src-test-jaipur-run",
+        "sourcePage": 4,
+        "anchorText": "- 1740223675.xlsx",
+        "extractionConfidence": 95.0,
+        "local_path": "backend\\app\\storage\\jobs\\b04116ea-950f-4326-bccf-72cfddc6d218\\extracted_children\\page4_1740223675.xlsx"
+      },
+      {
+        "id": "link-test-jaipur-run-4",
+        "name": "part-1_2025-02-17-14-44-08_5c08b6281bdfb4c61d7b9bf3f67f4ea1.pdf",
+        "kind": "pdf",
+        "origin": "linked",
+        "url": "https://mkp.gem.gov.in/catalog_data/catalog_support_document/buyer_documents/458530/54/78/703/CatalogAttrs/SpecificationDocument/2025/2/17/part-1_2025-02-17-14-44-08_5c08b6281bdfb4c61d7b9bf3f67f4ea1.pdf",
+        "downloadable": true,
+        "openable": true,
+        "extractedFromDocumentId": "src-test-jaipur-run",
+        "sourcePage": 4,
+        "anchorText": "Download",
+        "extractionConfidence": 95.0,
+        "local_path": "backend\\app\\storage\\jobs\\b04116ea-950f-4326-bccf-72cfddc6d218\\extracted_children\\page4_part-1_2025-02-17-14-44-08_5c08b6281bdfb4c61d7b9bf3f67f4ea1.pdf"
+      },
+      {
+        "id": "link-test-jaipur-run-5",
+        "name": "part-2_2025-02-17-14-45-46_6e5b57fe0e5e3f74a228c9791c565ff0.pdf",
+        "kind": "pdf",
+        "origin": "linked",
+        "url": "https://mkp.gem.gov.in/catalog_data/catalog_support_document/buyer_documents/458530/54/78/703/CatalogAttrs/SpecificationDocument/2025/2/17/part-2_2025-02-17-14-45-46_6e5b57fe0e5e3f74a228c9791c565ff0.pdf",
+        "downloadable": true,
+        "openable": true,
+        "extractedFromDocumentId": "src-test-jaipur-run",
+        "sourcePage": 5,
+        "anchorText": "Download",
+        "extractionConfidence": 95.0,
+        "local_path": "backend\\app\\storage\\jobs\\b04116ea-950f-4326-bccf-72cfddc6d218\\extracted_children\\page5_part-2_2025-02-17-14-45-46_6e5b57fe0e5e3f74a228c9791c565ff0.pdf"
+      },
+      {
+        "id": "link-test-jaipur-run-6",
+        "name": "Tender_49afb59e-cd7d-4046-be001740223528293_buycon12.gail.jaipur.pdf",
+        "kind": "pdf",
+        "origin": "linked",
+        "url": "https://fulfilment.gem.gov.in/contract/slafds?fileDownloadPath=SLA_UPLOAD_PATH/2025/Feb/GEM_2025_B_5962340/CLM0010/Tender_49afb59e-cd7d-4046-be001740223528293_buycon12.gail.jaipur.pdf",
+        "downloadable": true,
+        "openable": true,
+        "extractedFromDocumentId": "src-test-jaipur-run",
+        "sourcePage": 6,
+        "anchorText": "t Click here to view the file.",
+        "extractionConfidence": 95.0,
+        "local_path": "backend\\app\\storage\\jobs\\b04116ea-950f-4326-bccf-72cfddc6d218\\extracted_children\\page6_Tender_49afb59e-cd7d-4046-be001740223528293_buycon12.gail.jaipur.pdf"
+      },
+      {
+        "id": "link-test-jaipur-run-7",
+        "name": "list-of-categories-where-trials-are-allowed_1712126171.pdf",
+        "kind": "pdf",
+        "origin": "linked",
+        "url": "https://assets-bg.gem.gov.in/resources/upload/shared_doc/list-of-categories-where-trials-are-allowed_1712126171.pdf",
+        "downloadable": true,
+        "openable": true,
+        "extractedFromDocumentId": "src-test-jaipur-run",
+        "sourcePage": 6,
+        "anchorText": "Seeking sample with \nattached categories, \n Mandating foreign / in",
+        "extractionConfidence": 95.0,
+        "local_path": "backend\\app\\storage\\jobs\\b04116ea-950f-4326-bccf-72cfddc6d218\\extracted_children\\page6_list-of-categories-where-trials-are-allowed_1712126171.pdf"
+      },
+      {
+        "id": "link-test-jaipur-run-8",
+        "name": "linked_file_p6.pdf",
+        "kind": "pdf",
+        "origin": "linked",
+        "url": "https://admin.gem.gov.in/apis/v1/gtc/pdfByDate/?date=20250222",
+        "downloadable": true,
+        "openable": true,
+        "extractedFromDocumentId": "src-test-jaipur-run",
+        "sourcePage": 6,
+        "anchorText": "This Bid is also governed by the General Terms and Conditions/ यह �बड सामा�य शत� के अंतग�त भी शािसत है",
+        "extractionConfidence": 95.0,
+        "local_path": "backend\\app\\storage\\jobs\\b04116ea-950f-4326-bccf-72cfddc6d218\\extracted_children\\page6_linked_file_p6.pdf"
+      }
+    ],
+    "mentionedAttachments": [
+      {
+        "id": "ment-test-jaipur-run-1",
+        "name": "Schedule 1.pdf",
+        "kind": "pdf",
+        "origin": "mentioned",
+        "mentionText": "Document required from seller/\u0001व&ेता से मांगे गए द-तावेज़ Experience Criteria,Bidder Turnover,Certificate (Requested in ATC),Additional Doc 1 (Requested in ATC),Additional Doc 2 (Requested in ATC) *In case any bidder is seeking exemption from Experience / Turnover Criteria, the supporting documents to prove his eligibility for exemption must be uploaded for evaluation by the buyer Do you want to show documents uploaded by bidders to all bidders participated in bid?/ No Bid to RA enabled/\u0001बड से /रवस% नीलामी स<&य <कया No ITC available to buyer/&ेता के िलए उपलDध आईट\u0012सी Yes Type of Bid/\u0001बड का 5कार Two Packet Bid Primary product category TOTAL QUOTED VALUE INCL GST FOR SITC OF NI CD BATTERY BANK FOR MANSARAMPURA REGION WITH BUY BACK Time allowed for Technical Clarifications during technical evaluation/तकनीक\u000f मूFयांकन के दौरान तकनीक\u000f -पHीकरण हेतु अनुमत समय 4 Days Inspection Required (By Empanelled Inspection Authority / Agencies pre- registered with GeM) No Evaluation Method/मूFयांकन पIित Item wise evaluation/ Financial Document Required/\u0001वJीय द-तावेज क\u000f आवKयकता है। Yes Arbitration Clause No Mediation Clause No Bid Details/\u0001बड \u0001ववरण EMD Detail/ईएमड\u0012 \u0001ववरण Advisory Bank/एडवाईजर\u0012 बMक State Bank of India Schedule 1 EMD Amount/ईएमड\u0012 रािश (In INR) 361000 Schedule 2 EMD Amount/ईएमड\u0012 रािश (In INR) 383000 ePBG Detail/ईपीबीजी \u0001ववरण Advisory Bank/एडवाइजर\u0012 बMक State Bank of India ePBG Percentage(%)/ईपीबीजी 5ितशत (%) 5.00 2 / 7",
+        "sourcePage": 2,
+        "resolved": false
+      },
+      {
+        "id": "ment-test-jaipur-run-2",
+        "name": "Schedule 2.pdf",
+        "kind": "pdf",
+        "origin": "mentioned",
+        "mentionText": "Document required from seller/\u0001व&ेता से मांगे गए द-तावेज़ Experience Criteria,Bidder Turnover,Certificate (Requested in ATC),Additional Doc 1 (Requested in ATC),Additional Doc 2 (Requested in ATC) *In case any bidder is seeking exemption from Experience / Turnover Criteria, the supporting documents to prove his eligibility for exemption must be uploaded for evaluation by the buyer Do you want to show documents uploaded by bidders to all bidders participated in bid?/ No Bid to RA enabled/\u0001बड से /रवस% नीलामी स<&य <कया No ITC available to buyer/&ेता के िलए उपलDध आईट\u0012सी Yes Type of Bid/\u0001बड का 5कार Two Packet Bid Primary product category TOTAL QUOTED VALUE INCL GST FOR SITC OF NI CD BATTERY BANK FOR MANSARAMPURA REGION WITH BUY BACK Time allowed for Technical Clarifications during technical evaluation/तकनीक\u000f मूFयांकन के दौरान तकनीक\u000f -पHीकरण हेतु अनुमत समय 4 Days Inspection Required (By Empanelled Inspection Authority / Agencies pre- registered with GeM) No Evaluation Method/मूFयांकन पIित Item wise evaluation/ Financial Document Required/\u0001वJीय द-तावेज क\u000f आवKयकता है। Yes Arbitration Clause No Mediation Clause No Bid Details/\u0001बड \u0001ववरण EMD Detail/ईएमड\u0012 \u0001ववरण Advisory Bank/एडवाईजर\u0012 बMक State Bank of India Schedule 1 EMD Amount/ईएमड\u0012 रािश (In INR) 361000 Schedule 2 EMD Amount/ईएमड\u0012 रािश (In INR) 383000 ePBG Detail/ईपीबीजी \u0001ववरण Advisory Bank/एडवाइजर\u0012 बMक State Bank of India ePBG Percentage(%)/ईपीबीजी 5ितशत (%) 5.00 2 / 7",
+        "sourcePage": 2,
+        "resolved": false
+      },
+      {
+        "id": "ment-test-jaipur-run-3",
+        "name": "schedule.pdf",
+        "kind": "pdf",
+        "origin": "mentioned",
+        "mentionText": "The EMD Amount will be applicable for each schedule/group selected during Bid creation.",
+        "sourcePage": 3,
+        "resolved": false
+      },
+      {
+        "id": "ment-test-jaipur-run-4",
+        "name": "Specification.pdf",
+        "kind": "pdf",
+        "origin": "mentioned",
+        "mentionText": "The details of item-consignee combination covered under each schedule are as under: Evaluation Schedules Item/Category Quanti ty Schedule 1 Total Quoted Value Incl Gst For Sitc Of Ni Cd Battery Bank For Mansarampura Region With Buy Back 1 Schedule 2 Total Quoted Value Incl Gst For Sitc Of Ni Cd Battery Banks For Nasirabad Region With Buy Back 1 TOTAL QUOTED VALUE INCL GST FOR SITC OF NI CD BATTERY BANK FOR MANSARAMPURA REGION WITH BUY BACK ( 1 pieces )  (Minimum 50% and 20% Local Content required for qualifying as Class 1 and Class 2 Local Supplier respectively/&मशः 6ेणी 1 और 6ेणी 2 के -थानीय आपूित%कता% के Zप म) अह%ता 5ा[ करने के िलए आवKयक) Technical Specifications/तकनीक\u000f \u0001विश\u0001Hयाँ  Buyer Specification Document/&ेता \u0001विश\u0001H द-तावेज़ Download 4 / 7",
+        "sourcePage": 4,
+        "resolved": false
+      }
+    ]
+  },
+  "infoSheetSections": [
+    {
+      "id": "sec-unified",
+      "title": "Unified Extraction",
+      "fields": [
+        {
+          "id": "f-title",
+          "label": "Tender Name / Title",
+          "value": "GAIL NiCd Jaipur",
+          "confidence": 90.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "Filename Title fallback: GAIL NiCd Jaipur",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-0",
+          "label": "tender_value_gst_inclusive",
+          "value": null,
+          "confidence": 0.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "This field lives in: gem_portal_bid_summary_page.",
+          "status": "missing",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-1",
+          "label": "eligibility_criterion_years",
+          "value": "7",
+          "confidence": 95.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "This field lives in: atc_pdf.",
+          "status": "extracted",
+          "source": "atc"
+        },
+        {
+          "id": "f-2",
+          "label": "annual_avg_turnover_value",
+          "value": "106.41 Lakh",
+          "confidence": 95.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "This field lives in: atc_pdf.",
+          "status": "extracted",
+          "source": "atc"
+        },
+        {
+          "id": "f-3",
+          "label": "working_capital_value",
+          "value": "Part - 1 MANSARAMPURA; Part - 2 NASIRABAD; Part 1 & [Note: If the bidder’s working capital is negative or inadequate, the bidder shall submit a letter from their bank having net worth not less than Rs.100 crores (or equivalent in USD), confirming the availabi...]",
+          "confidence": 95.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "This field lives in: atc_pdf.",
+          "status": "extracted",
+          "source": "atc"
+        },
+        {
+          "id": "f-4",
+          "label": "net_worth_type_value",
+          "value": "Positive for preceding financial | year | - do - | 2.3 WORKING CAPITAL: The minimum Working",
+          "confidence": 95.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "This field lives in: atc_pdf.",
+          "status": "extracted",
+          "source": "atc"
+        },
+        {
+          "id": "f-5",
+          "label": "solvency_certificate_value",
+          "value": "N/A",
+          "confidence": 100.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "This field lives in: atc_pdf.",
+          "status": "not_applicable",
+          "source": "atc"
+        },
+        {
+          "id": "f-6",
+          "label": "ld_applicable",
+          "value": null,
+          "confidence": 0.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "This field lives in: atc_pdf.",
+          "status": "missing",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-7",
+          "label": "ld_percentage_per_week",
+          "value": "0.5",
+          "confidence": 95.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "This field lives in: atc_pdf.",
+          "status": "extracted",
+          "source": "atc"
+        },
+        {
+          "id": "f-8",
+          "label": "max_ld_percentage",
+          "value": "5.0",
+          "confidence": 95.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "This field lives in: atc_pdf.",
+          "status": "extracted",
+          "source": "atc"
+        },
+        {
+          "id": "f-59",
+          "label": "Payment Terms %",
+          "value": "shall be as mentioned in GCC-Goods/SCC.",
+          "confidence": 0.95,
+          "critical": false,
+          "sourcePage": 63,
+          "sourceSnippet": "Payment terms shall be as mentioned in GCC-Goods/SCC.",
+          "status": "extracted",
+          "source": "atc"
+        },
+        {
+          "id": "f-10",
+          "label": "Payment Terms Installation (%)",
+          "value": null,
+          "confidence": 0.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "This field lives in: atc_pdf.",
+          "status": "missing",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-maf_required",
+          "label": "MAF Required",
+          "field_name": "maf_required",
+          "value": "No",
+          "status": "extracted",
+          "confidence": 95.0,
+          "source": "atc"
+        },
+        {
+          "id": "f-12",
+          "label": "Client Contacts",
+          "value": "Siddharth Kumar \nDesignation",
+          "confidence": 95.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "This field lives in: atc_pdf. Note: Parent PDF only has the schedule-level Consignee/Reporting Officer, which may differ from the buyer's actual nodal contact in the ATC.",
+          "status": "extracted",
+          "source": "atc"
+        },
+        {
+          "id": "f-13",
+          "label": "Courier Address",
+          "value": "GAIL Bhawan, Sector-6, Vidhyadhar Nagar, Jaipur | Kind Attn: Siddharth Kumar \nDesignation (siddharth.kumar@gail.co.in)",
+          "confidence": 95.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "This field lives in: atc_pdf_or_manual.",
+          "status": "extracted",
+          "source": "atc"
+        },
+        {
+          "id": "f-14",
+          "label": "Tender Fee",
+          "value": null,
+          "confidence": 0.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "This field lives in: gem_portal_or_default. Note: GeM bids generally levy no tender fee per standard GTC; consider defaulting to 0 rather than leaving NA, but flag as inferred not extracted.",
+          "status": "missing",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-15",
+          "label": "processing_fee_amount",
+          "value": null,
+          "confidence": 0.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "This field lives in: manual.",
+          "status": "missing",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-16",
+          "label": "schedules",
+          "value": [
+            {
+              "schedule_number": 1,
+              "consignee_name": "NIWARU (JHOTWARA) ,JAIPUR",
+              "consignee_address": "1",
+              "quantity": 150,
+              "delivery_days": "Not Found",
+              "item_description": "Not Found",
+              "technical_specs": {
+                "Purchase preference, the bidder must upload a certificate from the OEM regarding the percentage of the local": "content and the details of locations at which the local value addition is made along with their bid, failing which",
+                "and by a practicing cost accountant or a chartered accountant for OEMs other than companies as per the Public": "Procurement (preference to Make-in -India) order 2017 dated 04.06.2020. Only Class-I and Class-II Local suppliers",
+                "Purchase preference, the bidder must be the manufacturer / OEM of the offered product on GeM. Traders are": "excluded from the purview of Public Procurement Policy for Micro and Small Enterprises and hence resellers"
+              }
+            },
+            {
+              "schedule_number": 2,
+              "consignee_name": "ROAD, VILLAGE: DILWARI,",
+              "consignee_address": "1",
+              "quantity": 270,
+              "delivery_days": "Not Found",
+              "item_description": "TOTAL QUOTED VALUE INCL GST FOR SITC OF NI CD BATTERY BANK FOR MANSARAMPURA REGION WITH BUY BACK ( 1 pieces )",
+              "technical_specs": {
+                "Buyer Specification": "Document/&ेता विश H द-तावेज़ Download"
+              }
+            }
+          ],
+          "confidence": 0.9,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "Extracted 2 schedules/consignees.",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-17",
+          "label": "emd_by_schedule",
+          "value": {
+            "1": 361000.0,
+            "2": 383000.0
+          },
+          "confidence": 0.9,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "Extracted schedule EMDs: {1: 361000.0, 2: 383000.0}",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-18",
+          "label": "EMD Amount",
+          "value": 744000.0,
+          "confidence": 0.9,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "Derived sum of schedule EMDs: {1: 361000.0, 2: 383000.0}",
+          "status": "extracted",
+          "source": "derived"
+        },
+        {
+          "id": "f-19",
+          "label": "EMD Required",
+          "value": true,
+          "confidence": 0.9,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "Derived from EMD total: 744000.0",
+          "status": "extracted",
+          "source": "derived"
+        },
+        {
+          "id": "f-20",
+          "label": "emd_advisory_bank",
+          "value": "State Bank of India",
+          "confidence": 1.0,
+          "critical": false,
+          "sourcePage": 2,
+          "sourceSnippet": "Cell-pair match: Label 'Advisory Bank/एडवाईजर बMक' -> Value 'State Bank of India'",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-21",
+          "label": "pbg_advisory_bank",
+          "value": "State Bank of India",
+          "confidence": 1.0,
+          "critical": false,
+          "sourcePage": 2,
+          "sourceSnippet": "Cell-pair match: Label 'Advisory Bank/एडवाइजर बMक' -> Value 'State Bank of India'",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-22",
+          "label": "PBG Percentage",
+          "value": 5.0,
+          "confidence": 1.0,
+          "critical": false,
+          "sourcePage": 2,
+          "sourceSnippet": "Cell-pair match: Label 'ePBG Percentage(%)/ईपीबीजी 5ितशत (%)' -> Value '5.00'",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-23",
+          "label": "PBG Duration (Months)",
+          "value": null,
+          "confidence": 0.85,
+          "critical": false,
+          "sourcePage": 3,
+          "sourceSnippet": "Same-block prefix match: 'Duration of ePBG required (Months)/ईपीबीजी क'",
+          "status": "missing",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-24",
+          "label": "Reference ID / NIT No",
+          "value": "GEM/2025/B/5962340 Dated/<दनांक : 22-02-2025",
+          "confidence": 1.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "Same-cell colon match: 'Bid Number/बोली &मांक ( बड सं;या): GEM/2025/B/5962340 Dated/<दनांक : 22-02-2025'",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-25",
+          "label": "Bid Submission Deadline",
+          "value": "17-03-2025 17:00:00",
+          "confidence": 1.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "Cell-pair match: Label 'Bid End Date/Time/ बड बंद होने क तार ख/समय' -> Value '17-03-2025 17:00:00'",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-26",
+          "label": "Bid Validity Period",
+          "value": "90 Days",
+          "confidence": 95.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "Cell-pair match: Label 'Bid Offer Validity (From End Date)/ बड पेशकश वैधता (बंद होने क तार ख से)' -> Value '90 (Days)'",
+          "status": "extracted",
+          "source": "atc"
+        },
+        {
+          "id": "f-27",
+          "label": "Reverse Auction Applicable",
+          "value": false,
+          "confidence": 1.0,
+          "critical": false,
+          "sourcePage": 2,
+          "sourceSnippet": "Cell-pair match: Label 'Bid to RA enabled/ बड से /रवस% नीलामी स<&य <कया' -> Value 'No'",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-28",
+          "label": "RA Qualification Rule",
+          "value": null,
+          "confidence": 0.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "No matching values found in document.",
+          "status": "missing",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-29",
+          "label": "Commercial Evaluation Type",
+          "value": "Item wise evaluation/",
+          "confidence": 1.0,
+          "critical": false,
+          "sourcePage": 2,
+          "sourceSnippet": "Cell-pair match: Label 'Evaluation Method/मूFयांकन पIित' -> Value 'Item wise evaluation/'",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-30",
+          "label": "Organisation",
+          "value": "Gail India Limited",
+          "confidence": 1.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "Cell-pair match: Label 'Organisation Name/संगठन का नाम' -> Value 'Gail India Limited'",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-34",
+          "label": "total_quantity",
+          "value": 2,
+          "confidence": 1.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "Cell-pair match: Label 'Total Quantity/कुल मा ा' -> Value '2'",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-35",
+          "label": "bid_type",
+          "value": "Two Packet Bid",
+          "confidence": 1.0,
+          "critical": false,
+          "sourcePage": 2,
+          "sourceSnippet": "Cell-pair match: Label 'Type of Bid/ बड का 5कार' -> Value 'Two Packet Bid'",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-36",
+          "label": "bid_published_date",
+          "value": "22-02-2025",
+          "confidence": 1.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "Same-block colon match: 'Dated/<दनांक : 22-02-2025'",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-37",
+          "label": "item_category",
+          "value": "TOTAL QUOTED VALUE INCL GST FOR SITC OF NI CD BATTERY BANK FOR MANSARAMPURA REGION WITH BUY BACK , TOTAL QUOTED VALUE INCL GST FOR SITC OF NI CD BATTERY BANKS FOR NASIRABAD REGION WITH BUY BACK",
+          "confidence": 1.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "Cell-pair match: Label 'Item Category/मद केटेगर' -> Value 'TOTAL QUOTED VALUE INCL GST FOR SITC OF NI CD BATTERY BANK FOR MANSARAMPURA REGION WITH BUY BACK , TOTAL QUOTED VALUE INCL GST FOR SITC OF NI CD BATTERY BANKS FOR NASIRABAD REGION WITH BUY BACK'",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-38",
+          "label": "bid_opening_datetime",
+          "value": "17-03-2025 17:30:00",
+          "confidence": 1.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "Cell-pair match: Label 'Bid Opening Date/Time/ बड खुलने क तार ख/समय' -> Value '17-03-2025 17:30:00'",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-39",
+          "label": "auto_extension_days",
+          "value": null,
+          "confidence": 0.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "No matching values found in document.",
+          "status": "missing",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-40",
+          "label": "auto_extension_max_count",
+          "value": null,
+          "confidence": 0.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "No matching values found in document.",
+          "status": "missing",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-41",
+          "label": "min_bids_to_disable_auto_extension",
+          "value": null,
+          "confidence": 0.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "No matching values found in document.",
+          "status": "missing",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-42",
+          "label": "pre_bid_meeting",
+          "value": null,
+          "confidence": 0.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "No matching values found in document.",
+          "status": "missing",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-43",
+          "label": "beneficiary_name",
+          "value": "GAIL INDIA LIMITED JAIPUR, GAIL India Limited, GAIL India Limited, Ministry of Petroleum and Natural Gas (Gail India Limited)",
+          "confidence": 1.0,
+          "critical": false,
+          "sourcePage": 3,
+          "sourceSnippet": "Same-cell colon match: 'Beneficiary/लाभाथW : GAIL INDIA LIMITED JAIPUR, GAIL India Limited, GAIL India Limited, Ministry of Petroleum and Natural Gas (Gail India Limited)'",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-44",
+          "label": "inspection_required",
+          "value": false,
+          "confidence": 1.0,
+          "critical": false,
+          "sourcePage": 2,
+          "sourceSnippet": "Cell-pair match: Label 'Inspection Required (By Empanelled Inspection Authority / Agencies pre- registered with GeM)' -> Value 'No'",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-45",
+          "label": "arbitration_clause",
+          "value": false,
+          "confidence": 1.0,
+          "critical": false,
+          "sourcePage": 2,
+          "sourceSnippet": "Cell-pair match: Label 'Arbitration Clause' -> Value 'No'",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-46",
+          "label": "mediation_clause",
+          "value": false,
+          "confidence": 1.0,
+          "critical": false,
+          "sourcePage": 2,
+          "sourceSnippet": "Cell-pair match: Label 'Mediation Clause' -> Value 'No'",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-47",
+          "label": "mse_relaxation_experience_turnover",
+          "value": false,
+          "confidence": 0.9307,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "Cell-pair match: Label 'MSE Exemption for Years of Experience and Turnover/ अनुभव के वष9 से एमएसई छूट' -> Value 'No'",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-48",
+          "label": "startup_relaxation_experience_turnover",
+          "value": "No",
+          "confidence": 0.9358,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "Cell-pair match: Label 'Startup Exemption for Years of Experience and Turnover/ अनुभव के वष9 से -टाट%अप छूट' -> Value 'No'",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-49",
+          "label": "mse_purchase_preference",
+          "value": true,
+          "confidence": 0.85,
+          "critical": false,
+          "sourcePage": 3,
+          "sourceSnippet": "Same-cell prefix match: 'MSE Purchase Preference/एमएसई खर द वर यता Yes'",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-50",
+          "label": "mse_preference_price_band_percent",
+          "value": null,
+          "confidence": 0.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "No matching values found in document.",
+          "status": "missing",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-51",
+          "label": "mse_preference_max_qty_percent",
+          "value": null,
+          "confidence": 0.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "No matching values found in document.",
+          "status": "missing",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-52",
+          "label": "mii_purchase_preference",
+          "value": true,
+          "confidence": 0.85,
+          "critical": false,
+          "sourcePage": 3,
+          "sourceSnippet": "Same-cell prefix match: 'MII Purchase Preference/एमआईआई खर द वर यता Yes'",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-53",
+          "label": "mii_non_applicability_reason",
+          "value": null,
+          "confidence": 0.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "No matching values found in document.",
+          "status": "missing",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-54",
+          "label": "required_documents",
+          "value": [
+            {
+              "document_name": "Experience Criteria",
+              "needs_stage2": false
+            },
+            {
+              "document_name": "Bidder Turnover",
+              "needs_stage2": false
+            },
+            {
+              "document_name": "Certificate (Requested in ATC)",
+              "needs_stage2": true
+            },
+            {
+              "document_name": "Additional Doc 1 (Requested in ATC)",
+              "needs_stage2": true
+            },
+            {
+              "document_name": "Additional Doc 2 (Requested in ATC) *In case any bidder is seeking exemption from Experience / Turnover Criteria",
+              "needs_stage2": true
+            },
+            {
+              "document_name": "the supporting documents to prove his eligibility for exemption must be uploaded for evaluation by the buyer",
+              "needs_stage2": false
+            }
+          ],
+          "confidence": 1.0,
+          "critical": false,
+          "sourcePage": 2,
+          "sourceSnippet": "Cell-pair match: Label 'Document required from seller/ व&ेता से मांगे गए द-तावेज़' -> Value 'Experience Criteria,Bidder Turnover,Certificate (Requested in ATC),Additional Doc 1 (Requested in ATC),Additional Doc 2 (Requested in ATC) *In case any bidder is seeking exemption from Experience / Turnover Criteria, the supporting documents to prove his eligibility for exemption must be uploaded for evaluation by the buyer'",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-55",
+          "label": "atc_document_link_present",
+          "value": "https://bidplus.gem.gov.in/bidding/downloadOmppdfile/",
+          "confidence": 0.85,
+          "critical": false,
+          "sourcePage": 6,
+          "sourceSnippet": "Buyer) percentage of total quantity. The buy\n3 OM_No.1_4_2021_PPD_dated_18.05.2023 f\nPolicy for Micro and Small Enterprises Order,",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-56",
+          "label": "land_border_clause_present",
+          "value": false,
+          "confidence": 0.85,
+          "critical": false,
+          "sourcePage": 6,
+          "sourceSnippet": "Same-block prefix match: 'In terms of GeM GTC clause 26 regarding Restrictions on procurement from a bidder of a country which shares a land border with India, any bidder from a country which'",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "prod-386",
+          "label": "Requirement: ",
+          "value": "Name: Battery | Qty:  None | OEM: ",
+          "confidence": 90.0,
+          "critical": false,
+          "sourcePage": 241,
+          "sourceSnippet": "",
+          "status": "extracted",
+          "source": "atc"
+        },
+        {
+          "id": "prod-1",
+          "label": "Requirement: ",
+          "value": "Name: Battery | Qty:  None | OEM: ",
+          "confidence": 90.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "prod-2",
+          "label": "Requirement: ",
+          "value": "Name: Battery | Qty:  None | OEM: ",
+          "confidence": 90.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "prod-3",
+          "label": "Requirement: ",
+          "value": "Name: Battery | Qty:  None | OEM: ",
+          "confidence": 90.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "prod-4",
+          "label": "Requirement: ",
+          "value": "Name: Battery | Qty:  None | OEM: ",
+          "confidence": 90.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "prod-5",
+          "label": "Requirement: ",
+          "value": "Name: Battery | Qty:  None | OEM: ",
+          "confidence": 90.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "prod-6",
+          "label": "Requirement: ",
+          "value": "Name: Battery | Qty:  None | OEM: ",
+          "confidence": 90.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "prod-7",
+          "label": "Requirement: ",
+          "value": "Name: Battery | Qty:  None | OEM: ",
+          "confidence": 90.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "prod-8",
+          "label": "Requirement: ",
+          "value": "Name: Battery | Qty:  None | OEM: ",
+          "confidence": 90.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "prod-9",
+          "label": "Requirement: ",
+          "value": "Name: Battery | Qty:  None | OEM: ",
+          "confidence": 90.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "prod-10",
+          "label": "Requirement: ",
+          "value": "Name: Battery | Qty:  None | OEM: ",
+          "confidence": 90.0,
+          "critical": false,
+          "sourcePage": 4,
+          "sourceSnippet": "",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "prod-11",
+          "label": "Requirement: ",
+          "value": "Name: Battery | Qty:  None | OEM: ",
+          "confidence": 90.0,
+          "critical": false,
+          "sourcePage": 4,
+          "sourceSnippet": "",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "prod-12",
+          "label": "Requirement: ",
+          "value": "Name: Battery | Qty:  None | OEM: ",
+          "confidence": 90.0,
+          "critical": false,
+          "sourcePage": 4,
+          "sourceSnippet": "",
+          "status": "extracted",
+          "source": "main_tender"
+        },
+        {
+          "id": "f-client_email",
+          "label": "Client Email",
+          "field_name": "client_email",
+          "value": "siddharth.kumar@gail.co.in",
+          "status": "extracted",
+          "confidence": 95.0,
+          "source": "atc"
+        },
+        {
+          "id": "f-client_phone",
+          "label": "Client Phone",
+          "field_name": "client_phone",
+          "value": "0141-2230347 (Ext. 1383)",
+          "status": "extracted",
+          "confidence": 95.0,
+          "source": "atc"
+        },
+        {
+          "id": "f-physical_docs_required",
+          "label": "Physical Docs Required",
+          "field_name": "physical_docs_required",
+          "value": "Yes",
+          "status": "extracted",
+          "confidence": 95.0,
+          "source": "atc"
+        },
+        {
+          "id": "f-custom_eligibility_criteria",
+          "label": "Custom Eligibility Criteria",
+          "field_name": "custom_eligibility_criteria",
+          "value": "Part - 1 MANSARAMPURA; Part - 2 NASIRABAD; Part 1",
+          "status": "extracted",
+          "confidence": 95.0,
+          "source": "atc"
+        }
+      ]
+    },
+    {
+      "id": "sec-atc-sourced",
+      "title": "ATC-Sourced Fields",
+      "fields": [
+        {
+          "id": "f-10",
+          "label": "Period of Work",
+          "value": "3 Months",
+          "confidence": 0.95,
+          "critical": false,
+          "sourcePage": 67,
+          "sourceSnippet": "Contract period + DLP + 3 Months",
+          "status": "extracted",
+          "source": "atc"
+        },
+        {
+          "id": "f-22",
+          "label": "contract_period",
+          "value": "3 Months",
+          "confidence": 0.95,
+          "critical": false,
+          "sourcePage": 67,
+          "sourceSnippet": "Contract period + DLP + 3 Months",
+          "status": "extracted",
+          "source": "atc"
+        },
+        {
+          "id": "f-23",
+          "label": "Annual Avg Turnover",
+          "value": "106.41 Lakh",
+          "confidence": 95.0,
+          "critical": false,
+          "sourcePage": 9,
+          "sourceSnippet": "Average Annual Financial Turnover of the Bidder -> 106.41 Lakh",
+          "status": "extracted",
+          "source": "atc"
+        },
+        {
+          "id": "f-62",
+          "label": "Price Reduction Schedule (PRS)",
+          "value": "is the reduction in the consideration / contract value for the goods / services covered",
+          "confidence": 0.95,
+          "critical": false,
+          "sourcePage": 63,
+          "sourceSnippet": "PRS is the reduction in the consideration / contract value for the goods / services covered",
+          "status": "extracted",
+          "source": "atc"
+        },
+        {
+          "id": "f-67",
+          "label": "Net Worth",
+          "value": "Positive for preceding financial | year | - do - | 2.3 WORKING CAPITAL: The minimum Working",
+          "confidence": 95.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "Extracted Clause 2.2 text: Positive for preceding financial | year | - do - | 2.3 WORKING CAPITAL: The minimum Working",
+          "status": "extracted",
+          "source": "atc"
+        },
+        {
+          "id": "f-69",
+          "label": "Client Contacts 2",
+          "value": "Siddharth Kumar \nDesignation",
+          "confidence": 95.0,
+          "critical": false,
+          "sourcePage": 1,
+          "sourceSnippet": "Extracted Clause 39.2 block: Name and contact details of nodal officer are as under:\nShri Sheew Shankar, GM (O&M), Jaipur\nTel: 0141-2230347\nEmail: sheewshankar@gail.co.in",
+          "status": "extracted",
+          "source": "atc"
+        },
+        {
+          "id": "f-ld_percentage_per_week",
+          "label": "LD Percentage per Week",
+          "field_name": "ld_percentage_per_week",
+          "value": "0.5",
+          "status": "extracted",
+          "confidence": 95.0,
+          "source": "atc"
+        },
+        {
+          "id": "f-max_ld_percentage",
+          "label": "Max LD Percentage",
+          "field_name": "max_ld_percentage",
+          "value": "5.0",
+          "status": "extracted",
+          "confidence": 95.0,
+          "source": "atc"
+        },
+        {
+          "id": "f-sd_mode",
+          "label": "Security Deposit Mode",
+          "field_name": "sd_mode",
+          "value": "Bank Guarantee / DD / FDR / Online Transfer / Insurance Surety Bond",
+          "status": "extracted",
+          "confidence": 85.0,
+          "source": "atc"
+        }
+      ]
+    }
+  ],
+  "rawTextPages": [
+    {
+      "page": 1,
+      "text": "Bid Details/\u0001बड \u0001ववरण\nBid End Date/Time/\u0001बड बंद होने क\u000f तार\u0012ख/समय\n17-03-2025 17:00:00\nBid Opening Date/Time/\u0001बड खुलने क\u000f\nतार\u0012ख/समय\n17-03-2025 17:30:00\nBid Offer Validity (From End Date)/\u0001बड पेशकश\nवैधता (बंद होने क\u000f तार\u0012ख से)\n90 (Days)\nMinistry/State Name/मं ालय/रा!य का नाम\nMinistry Of Petroleum And Natural Gas\nDepartment Name/\u0001वभाग का नाम\nGail India Limited\nOrganisation Name/संगठन का नाम\nGail India Limited\nOffice Name/काया%लय का नाम\nJaipur\n&ेता ईमेल/Buyer Email\nbuyer14.gail.guna@gembuyer.in\nTotal Quantity/कुल मा ा\n2\nItem Category/मद केटेगर\u0012\nTOTAL QUOTED VALUE INCL GST FOR SITC OF NI CD\nBATTERY BANK FOR MANSARAMPURA REGION WITH BUY\nBACK , TOTAL QUOTED VALUE INCL GST FOR SITC OF NI CD\nBATTERY BANKS FOR NASIRABAD REGION WITH BUY BACK\nGeMARPTS म) खोजी गई ,-.ंग / Searched\nStrings used in GeMARPTS\n1195AH (1.2V/CELL) Battery Banks\nGeMARPTS म) खोजा गया प/रणाम / Searched\nResult generated in GeMARPTS\nButton Cell or Coin Cell Battery, Online UPS (V2), Portable\nSealed Rechargeable Single Cells - Nickel - Metal Hydride\n(Rechargeable Batteries) as per IS 16048, 16046, Drip - Leg\nDrain, Stationary Valve Regulated Lead Acid Batteries (V2)\nas per IS 15549, Emergency lighting and accessories\n(Portable Emergency Lighting System Tower type with\nBattery Bank), Lead Acid starter Batteries, Stationary Lead\nAcid Batteries (with Tubular Positive Plates) in Monobloc\nContainers as per IS 13369, Breath Alcohol Analyzers,\nBattery Secondary Lead Acid MT Type (Defence)\nअिधसूचना के िलए चयिनत 5ासंिगक 6े,णयाँ / Relevant\nCategories selected for notification\nPortable LED Light Tower with Inbuilt Battery Bank (NLC)\nMSE Exemption for Years of Experience and\nTurnover/ अनुभव के वष9 से एमएसई छूट\nNo\nStartup Exemption for Years of Experience\nand Turnover/ अनुभव के वष9 से -टाट%अप छूट\nNo\n \nBid Number/बोली &मांक (\u0001बड सं;या):\nGEM/2025/B/5962340\nDated/<दनांक : 22-02-2025\nBid Document/ \u0001बड द-तावेज़\n1 / 7\n"
+    },
+    {
+      "page": 2,
+      "text": "Document required from seller/\u0001व&ेता से मांगे\nगए द-तावेज़\nExperience Criteria,Bidder Turnover,Certificate (Requested\nin ATC),Additional Doc 1 (Requested in ATC),Additional Doc\n2 (Requested in ATC)\n*In case any bidder is seeking exemption from Experience /\nTurnover Criteria, the supporting documents to prove his\neligibility for exemption must be uploaded for evaluation by\nthe buyer\nDo you want to show documents uploaded\nby bidders to all bidders participated in\nbid?/\nNo\nBid to RA enabled/\u0001बड से /रवस% नीलामी स<&य <कया\nNo\nITC available to buyer/&ेता के िलए उपलDध\nआईट\u0012सी\nYes\nType of Bid/\u0001बड का 5कार\nTwo Packet Bid\nPrimary product category\nTOTAL QUOTED VALUE INCL GST FOR SITC OF NI CD\nBATTERY BANK FOR MANSARAMPURA REGION WITH BUY\nBACK\nTime allowed for Technical Clarifications\nduring technical evaluation/तकनीक\u000f मूFयांकन के\nदौरान तकनीक\u000f -पHीकरण हेतु अनुमत समय\n4 Days\nInspection Required (By Empanelled\nInspection Authority / Agencies pre-\nregistered with GeM)\nNo\nEvaluation Method/मूFयांकन पIित\nItem wise evaluation/\nFinancial Document Required/\u0001वJीय द-तावेज\nक\u000f आवKयकता है।\nYes\nArbitration Clause\nNo\nMediation Clause\nNo\nBid Details/\u0001बड \u0001ववरण\nEMD Detail/ईएमड\u0012 \u0001ववरण\nAdvisory Bank/एडवाईजर\u0012 बMक\nState Bank of India\nSchedule 1 EMD Amount/ईएमड\u0012 रािश (In INR)\n361000\nSchedule 2 EMD Amount/ईएमड\u0012 रािश (In INR)\n383000\nePBG Detail/ईपीबीजी \u0001ववरण\nAdvisory Bank/एडवाइजर\u0012 बMक\nState Bank of India\nePBG Percentage(%)/ईपीबीजी 5ितशत (%)\n5.00\n2 / 7\n"
+    },
+    {
+      "page": 3,
+      "text": "Duration of ePBG required (Months)/ईपीबीजी क\u000f\nअपे,Pत अविध (मह\u0012ने).\n30\n(a). EMD EXEMPTION: The bidder seeking EMD exemption, must submit the valid supporting document for the\nrelevant category as per GeM GTC with the bid. Under MSE category, only manufacturers for goods and Service\nProviders for Services are eligible for exemption from EMD. Traders are excluded from the purview of this\nPolicy./जेम क\u000f शत9 के अनुसार ईएमड\u0012 छूट के इQछुक \u0001बडर को संबंिधत केटेगर\u0012 के िलए \u0001बड के साथ वैध समिथ%त द-तावेज़ 5-तुत करने है।\nएमएसई केटेगर\u0012 के अंतग%त केवल व-तुओं के िलए \u0001विनमा%ता तथा सेवाओं के िलए सेवा 5दाता ईएमड\u0012 से छूट के पा  हM। Tयापा/रयU को इस नीित के\nदायरे से बाहर रखा गया है।\n(b). The EMD Amount will be applicable for each schedule/group selected during Bid creation.\n(c). EMD & Performance security should be in favour of Beneﬁciary, wherever it is applicable./ईएमड\u0012 और संपादन\nजमानत रािश, जहां यह लागू होती है, लाभाथW के पP म) होनी चा<हए। \nBeneficiary/लाभाथW : \nGAIL INDIA LIMITED\nJAIPUR, GAIL India Limited, GAIL India Limited, Ministry of Petroleum and Natural Gas\n(Gail India Limited)\nMII Purchase Preference/एमआईआई खर\u0012द वर\u0012यता\nMII Purchase Preference/एमआईआई खर\u0012द वर\u0012यता\nYes\nMSE Purchase Preference/एमएसई खर\u0012द वर\u0012यता\nMSE Purchase Preference/एमएसई खर\u0012द वर\u0012यता\nYes\n1. Preference to Make In India products (For bids < 200 Crore):Preference shall be given to Class 1 local supplier\nas defined in public procurement (Preference to Make in India), Order 2017 as amended from time to time and its\nsubsequent Orders/Notifications issued by concerned Nodal Ministry for specific Goods/Products. The minimum\nlocal content to qualify as a Class 1 local supplier is denoted in the bid document. If the bidder wants to avail the\nPurchase preference, the bidder must upload a certificate from the OEM regarding the percentage of the local\ncontent and the details of locations at which the local value addition is made along with their bid, failing which\nno purchase preference shall be granted. In case the bid value is more than Rs 10 Crore, the declaration relating\nto percentage of local content shall be certified by the statutory auditor or cost auditor, if the OEM is a company\nand by a practicing cost accountant or a chartered accountant for OEMs other than companies as per the Public\nProcurement (preference to Make-in -India) order 2017 dated 04.06.2020. Only Class-I and Class-II Local suppliers\nas per MII order dated 4.6.2020 will be eligible to bid. Non - Local suppliers as per MII order dated 04.06.2020 are\nnot eligible to participate. However, eligible micro and small enterprises will be allowed to participate .The\nbuyers are advised to refer the OM No.F.1/4/2021-PPD dated 18.05.2023.\nOM_No.1_4_2021_PPD_dated_18.05.2023 for compliance of Concurrent application of Public Procurement Policy\nfor Micro and Small Enterprises Order, 2012 and Public Procurement (Preference to Make in India) Order, 2017. \n2. Purchase preference will be given to MSEs having valid Udyam Registration and whose credentials are\nvalidated online through Udyam Registration portal as defined in Public Procurement Policy for Micro and Small\nEnterprises (MSEs) Order, 2012 dated 23.03.2012 issued by Ministry of Micro, Small and Medium Enterprises and\nits subsequent Orders/Notifications issued by concerned Ministry. If the bidder wants to avail themselves of the\nPurchase preference, the bidder must be the manufacturer / OEM of the offered product on GeM. Traders are\nexcluded from the purview of Public Procurement Policy for Micro and Small Enterprises and hence resellers\noffering products manufactured by some other OEM are not eligible for any purchase preference. In respect of bid\n3 / 7\n"
+    },
+    {
+      "page": 4,
+      "text": "for Services, the bidder must be the Service provider of the offered Service. Relevant documentary evidence in\nthis regard shall be uploaded along with the bid in respect of the offered product or service and Buyer will decide\neligibility for purchase preference based on documentary evidence submitted, while evaluating the bid. If L-1 is\nnot an MSE and MSE Seller (s) has / have quoted price within L-1+ 15% (Selected by Buyer) of margin of\npurchase preference /price band defined in relevant policy, such MSE Seller shall be given opportunity to match\nL-1 price and contract will be awarded for 100% (selected by Buyer) percentage of total quantity. The buyers are\nadvised to refer the OM No. F.1/4/2021-PPD dated 18.05.2023 OM_No.1_4_2021_PPD_dated_18.05.2023 for\ncompliance of Concurrent application of Public Procurement Policy for Micro and Small Enterprises Order, 2012\nand Public Procurement (Preference to Make in India) Order, 2017. Benefits of MSE will be allowed only if seller is\nvalidated on-line in GeM profile as well as validated and approved by Buyer after evaluation of documents\nsubmitted. \n3. Estimated Bid Value indicated above is being declared solely for the purpose of guidance on EMD amount and\nfor determining the Eligibility Criteria related to Turn Over, Past Performance and Project / Past Experience etc.\nThis has no relevance or bearing on the price to be quoted by the bidders and is also not going to have any\nimpact on bid participation. Also this is not going to be used as a criteria in determining reasonableness of\nquoted prices which would be determined by the buyer based on its own assessment of reasonableness and\nbased on competitive prices received in Bid / RA process.\nIf buyer has mentioned MSE purchase preference in ATC then service provider is required to upload MSE\ncertificate of the corresponding service category for buyer’s evaluation.\nExcel Upload Required/एXसेल म) अपलोड <कए जाने क\u000f आवKयकता :\nPRICE BREAKUP - 1740223675.xlsx\nPre Bid Detail(s)\nPre-Bid Date and Time\nPre-Bid Venue\n27-02-2025 15:00:00\nVC LINK ON REQUEST AT SIDDHARTH.KUMAR@GAIL.CO.IN\nEvaluation Method ( Item Wise Evaluation Method )\nContract will be awarded schedulewise and the determination of L1 will be done separately for each schedule.\nThe details of item-consignee combination covered under each schedule are as under:\nEvaluation\nSchedules\nItem/Category\nQuanti\nty\nSchedule 1\nTotal Quoted Value Incl Gst For Sitc Of Ni Cd Battery Bank For Mansarampura\nRegion With Buy Back\n1\nSchedule 2\nTotal Quoted Value Incl Gst For Sitc Of Ni Cd Battery Banks For Nasirabad\nRegion With Buy Back\n1\nTOTAL QUOTED VALUE INCL GST FOR SITC OF NI CD BATTERY BANK FOR\nMANSARAMPURA REGION WITH BUY BACK ( 1 pieces ) \n(Minimum 50% and 20% Local Content required for qualifying as Class 1 and Class 2 Local Supplier\nrespectively/&मशः 6ेणी 1 और 6ेणी 2 के -थानीय आपूित%कता% के Zप म) अह%ता 5ा[ करने के िलए आवKयक)\nTechnical Specifications/तकनीक\u000f \u0001विश\u0001Hयाँ \nBuyer Specification\nDocument/&ेता \u0001विश\u0001H द-तावेज़\nDownload\n4 / 7\n"
+    },
+    {
+      "page": 5,
+      "text": "Input Tax Credit(ITC)/इनपुट कर &े<डट(आईट\u0012सी) and/ तथा Reverse Charge(RCM)//रवस% 5भार (आरसीएम) Details\nITC on GST/जीएसट\u0012 पर इनपुट कर &े<डट\nITC on GST Cess/जीएसट\u0012 उपकर कर &े<डट\n100%\nNA\nConsignees/Reporting Officer/परे\u0001षती//रपो<ट\\ग अिधकार\u0012 and/ तथा Quantity/मा ा\nS.No./&.\nसं.\nConsignee\nReporting/Officer/\nपरे\u0001षती//रपो<ट\\ग\nअिधकार\u0012\nAddress/पता\nQuantity/मा ा\nDelivery Days/<डलीवर\u0012 के\n<दन\n1\nRaj Kumar Kamal\n302012,GAIL (INDIA) LIMITED,\nPS MANSARAMPURA, POST:\nNIWARU (JHOTWARA) ,JAIPUR\n1\n150\nTOTAL QUOTED VALUE INCL GST FOR SITC OF NI CD BATTERY BANKS FOR NASIRABAD\nREGION WITH BUY BACK ( 1 pieces ) \n(Minimum 50% and 20% Local Content required for qualifying as Class 1 and Class 2 Local Supplier\nrespectively/&मशः 6ेणी 1 और 6ेणी 2 के -थानीय आपूित%कता% के Zप म) अह%ता 5ा[ करने के िलए आवKयक)\nTechnical Specifications/तकनीक\u000f \u0001विश\u0001Hयाँ \nBuyer Specification\nDocument/&ेता \u0001विश\u0001H द-तावेज़\nDownload\nInput Tax Credit(ITC)/इनपुट कर &े<डट(आईट\u0012सी) and/ तथा Reverse Charge(RCM)//रवस% 5भार (आरसीएम) Details\nITC on GST/जीएसट\u0012 पर इनपुट कर &े<डट\nITC on GST Cess/जीएसट\u0012 उपकर कर &े<डट\n100%\nNA\nConsignees/Reporting Officer/परे\u0001षती//रपो<ट\\ग अिधकार\u0012 and/ तथा Quantity/मा ा\nS.No./&.\nसं.\nConsignee\nReporting/Officer/\nपरे\u0001षती//रपो<ट\\ग\nअिधकार\u0012\nAddress/पता\nQuantity/मा ा\nDelivery Days/<डलीवर\u0012 के\n<दन\n1\nBhooralal Meena\n305002,GAIL (INDIA) LTD.,\nNASIRABAD, KISHANGARH\nROAD, VILLAGE: DILWARI,\nNASIRABAD, DIST: AJMER\n1\n270\n5 / 7\n"
+    },
+    {
+      "page": 6,
+      "text": "Buyer Added Bid Specific Terms and Conditions/&ेता ^ारा जोड़\u0012 गई \u0001बड क\u000f \u0001वशेष शत`\n1. Buyer Added Bid Specific ATC\nBuyer uploaded ATC document Click here to view the file.\nDisclaimer/अ-वीकरण\nThe additional terms and conditions have been incorporated by the Buyer after approval of the Competent\nAuthority in Buyer Organization, whereby Buyer organization is solely responsible for the impact of these clauses\non the bidding process, its outcome, and consequences thereof including any eccentricity / restriction arising in\nthe bidding process due to these ATCs and due to modification of technical specifications and / or terms and\nconditions governing the bid. If any clause(s) is / are incorporated by the Buyer regarding following, the bid and\nresultant contracts shall be treated as null and void and such bids may be cancelled by GeM at any stage of\nbidding process without any notice:-\n1. Definition of Class I and Class II suppliers in the bid not in line with the extant Order / Office Memorandum\nissued by DPIIT in this regard.\n2. Seeking EMD submission from bidder(s), including via Additional Terms & Conditions, in contravention to\nexemption provided to such sellers under GeM GTC.\n3. Publishing Custom / BOQ bids for items for which regular GeM categories are available without any\nCategory item bunched with it.\n4. Creating BoQ bid for single item.\n5. Mentioning specific Brand or Make or Model or Manufacturer or Dealer name.\n6. Mandating submission of documents in physical form as a pre-requisite to qualify bidders.\n7. Floating / creation of work contracts as Custom Bids in Services.\n8. Seeking sample with bid or approval of samples during bid evaluation process. (However, in bids for\nattached categories, trials are allowed as per approved procurement policy of the buyer nodal Ministries)\n9. Mandating foreign / international certifications even in case of existence of Indian Standards without\nspecifying equivalent Indian Certification / standards.\n10. Seeking experience from specific organization / department / institute only or from foreign / export\nexperience.\n11. Creating bid for items from irrelevant categories.\n12. Incorporating any clause against the MSME policy and Preference to Make in India Policy.\n13. Reference of conditions published on any external site or reference to external documents/clauses.\n14. Asking for any Tender fee / Bid Participation fee / Auction fee in case of Bids / Forward Auction, as the\ncase may be.\nFurther, if any seller has any objection/grievance against these additional clauses or otherwise on any aspect of\nthis bid, they can raise their representation against the same by using the Representation window provided in\nthe bid details field in Seller dashboard after logging in as a seller within 4 days of bid publication on GeM. Buyer\nis duty bound to reply to all such representations and would not be allowed to open bids if he fails to reply to\nsuch representations.\nAll GeM Sellers / Service Providers are mandated to ensure compliance with all the applicable laws /\nacts / rules including but not limited to all Labour Laws such as The Minimum Wages Act, 1948, The\nPayment of Wages Act, 1936, The Payment of Bonus Act, 1965, The Equal Remuneration Act, 1976,\nThe Payment of Gratuity Act, 1972 etc. Any non-compliance will be treated as breach of contract\nand Buyer may take suitable actions as per GeM Contract.\nThis Bid is also governed by the General Terms and Conditions/ यह \u0001बड सामाaय शत9 के अंतग%त भी शािसत है\nIn terms of GeM GTC clause 26 regarding Restrictions on procurement from a bidder of a country which shares a land border with India, any bidder from a country which\nshares a land border with India will be eligible to bid in this tender only if the bidder is registered with the Competent Authority. While participating in bid, Bidder has to\nundertake compliance of this and any false declaration and non-compliance of this would be a ground for immediate termination of the contract and further legal action\n6 / 7\n"
+    },
+    {
+      "page": 7,
+      "text": "in accordance with the laws./जेम क\u000f सामाaय शत9 के खंड 26 के संदभ% म) भारत के साथ भूिम सीमा साझा करने वाले देश के \u0001बडर से खर\u0012द\nपर 5ितबंध के संबंध म) भारत के साथ भूिम सीमा साझा करने वाले देश का कोई भी \u0001बडर इस िन\u0001वदा म) \u0001बड देने के िलए तभी पा  होगा\nजब वह \u0001बड देने वाला सPम 5ािधकार\u0012 के पास पंजीकृत हो।\u0001बड म) भाग लेते समय \u0001बडर को इसका अनुपालन करना होगा और कोई भी\nगलत घोषणा <कए जाने व इसका अनुपालन न करने पर अनुबंध को तfकाल समा[ करने और कानून के अनुसार आगे क\u000f कानूनी कार%वाई\nका आधार होगा।\n---Thank You/धaयवाद---\n7 / 7\n"
+    }
+  ],
+  "parse_status": "completed",
+  "parse_confidence": 89.6,
+  "review_status": "unreviewed",
+  "issues_count": 4
+}

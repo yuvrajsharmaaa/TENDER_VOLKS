@@ -69,3 +69,50 @@ def test_export_page_aware_tender_sheets(temp_output_dir):
     summary_path, evidence_path = export_page_aware_tender_sheets(summary_data, evidence_data, temp_output_dir)
     assert os.path.exists(summary_path)
     assert os.path.exists(evidence_path)
+
+
+def test_generate_info_sheet_with_atc_sources(temp_output_dir):
+    from backend.app.services.info_sheet_generator import generate_info_sheet_csv
+    from openpyxl import load_workbook
+
+    data = {
+        "bid_validity_days_display": "120 Days",
+        "_info_sheet_sources": {
+            "bid_validity_days_display": "atc"
+        },
+        "_info_sheet_sections": [
+            {
+                "title": "General Info",
+                "fields": [
+                    {
+                        "label": "Bid Validity",
+                        "value": "120 Days",
+                        "confidence": 95,
+                        "status": "extracted",
+                        "source": "atc",
+                        "sourceSnippet": "Bid Offer Validity: 120 Days"
+                    }
+                ]
+            }
+        ]
+    }
+    
+    output_path = os.path.join(temp_output_dir, "test_info_sheet.xlsx")
+    generate_info_sheet_csv(data, output_path)
+    
+    assert os.path.exists(output_path)
+    wb = load_workbook(output_path)
+    assert "InfoSheet" in wb.sheetnames
+    assert "Preview Fields" in wb.sheetnames
+
+    # Check Preview Fields headers for Document Source
+    ws_preview = wb["Preview Fields"]
+    headers = [cell.value for cell in ws_preview[1]]
+    assert "Document Source" in headers
+    
+    # Check data row in Preview Fields
+    row2_vals = [cell.value for cell in ws_preview[2]]
+    assert "ATC" in row2_vals
+
+    wb.close()
+

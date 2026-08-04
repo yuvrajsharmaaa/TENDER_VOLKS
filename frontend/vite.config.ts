@@ -5,9 +5,10 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: '0.0.0.0',
-    port: 5000,
+    port: 5173,
     allowedHosts: true,
     proxy: {
+      '/api':      { target: 'http://127.0.0.1:8000', changeOrigin: true },
       '/tenders':  { target: 'http://127.0.0.1:8000', changeOrigin: true },
       '/job':      { target: 'http://127.0.0.1:8000', changeOrigin: true },
       '/jobs':     { target: 'http://127.0.0.1:8000', changeOrigin: true },

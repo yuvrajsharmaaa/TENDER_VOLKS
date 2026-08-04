@@ -375,7 +375,7 @@ class GemFieldExtractor(FieldExtractor):
         self.fields_spec = self.spec.get("fields", {})
         self.out_of_scope_spec = self.spec.get("out_of_scope_stage1", [])
 
-    def extract_fields(self, pages: List[PageResult]) -> List[ExtractedFieldSchema]:
+    def extract_fields(self, pages: List[PageResult], doc_source: str = "main_tender") -> List[ExtractedFieldSchema]:
         extracted = []
         logger.info(f"Starting GeM field extraction on {len(pages)} page(s).")
 
@@ -411,8 +411,21 @@ class GemFieldExtractor(FieldExtractor):
                 row_text = " ".join(b.text for b in row)
                 
                 m_sch = re.search(r"Schedule\s*(\d+)", row_text, re.IGNORECASE)
+                m_item_header = re.search(r"^(.{5,120}?)\(\s*(\d+)\s*(?:pieces|piece|pcs|nos|no|qty)?\s*\)", row_text, re.IGNORECASE)
                 if m_sch:
                     current_schedule_num = int(m_sch.group(1))
+                elif m_item_header:
+                    if current_schedule_num in schedules_data and (schedules_data[current_schedule_num]["quantity"] != "Not Found" or schedules_data[current_schedule_num]["item_description"] != "Not Found"):
+                        current_schedule_num += 1
+                    schedules_data.setdefault(current_schedule_num, {
+                        "schedule_number": current_schedule_num,
+                        "consignee_name": "Not Found",
+                        "consignee_address": "Not Found",
+                        "quantity": int(m_item_header.group(2).strip()),
+                        "delivery_days": "Not Found",
+                        "item_description": m_item_header.group(0).strip(),
+                        "technical_specs": {}
+                    })
                     
                 is_tech_spec = False
                 if len(row) >= 2:
@@ -497,7 +510,8 @@ class GemFieldExtractor(FieldExtractor):
                 if current_schedule_num in schedules_data:
                     if "pieces" in block.text or "quantity" in block.text.lower() or "stationary" in block.text.lower():
                         if not any(k in block.text.lower() for k in ["dated", "consignee", "address", "delivery", "schedule"]):
-                            schedules_data[current_schedule_num]["item_description"] = block.text.strip()
+                            if schedules_data[current_schedule_num]["item_description"] == "Not Found":
+                                schedules_data[current_schedule_num]["item_description"] = block.text.strip()
 
         if schedules_data:
             flat_schedules = list(schedules_data.values())
@@ -967,7 +981,7 @@ class GemFieldExtractor(FieldExtractor):
                     source_page=best_cand["source_page"],
                     evidence=best_cand["evidence"],
                     source_blocks=best_cand["source_blocks"],
-                    source="gem_parent_pdf",
+                    source=doc_source,
                     needs_review=needs_review
                 ))
             else:
@@ -979,7 +993,7 @@ class GemFieldExtractor(FieldExtractor):
                     source_page=1,
                     evidence="No matching values found in document.",
                     source_blocks=[],
-                    source="gem_parent_pdf"
+                    source=doc_source
                 ))
 
         logger.info(f"Finished GeM field extraction. Total fields: {len(extracted)}")

@@ -90,13 +90,8 @@ class FieldExtractor:
             "net_worth_type_value",
             "solvency_certificate_value",
             "ld_applicable",
-            "ld_percentage_per_week",
-            "max_ld_percentage",
-            "payment_terms_supply_percent",
             "payment_terms_installation_percent",
             "maf_required",
-            "client_contact_person",
-            "full_courier_address_with_pincode",
             "tender_fee_amount",
             "processing_fee_amount",
             
@@ -114,7 +109,7 @@ class FieldExtractor:
         self.rules = {
             # Legacy Fields
             "EMD": {
-                "anchors": ["emd", "earnest money", "security deposit", "bid security"],
+                "anchors": ["emd amount", "emd value", "emd (rs)", "emd (inr)", "earnest money deposit", "earnest money amount", "bid security amount", "emd:", "earnest money"],
                 "hindi": ["धरोहर राशि", "ईएमडी", "बोली सुरक्षा"],
                 "type": "currency"
             },
@@ -411,6 +406,61 @@ class FieldExtractor:
                 "anchors": ["Restrictions on procurement from a bidder of a country which shares a land border with India"],
                 "hindi": [],
                 "type": "yes_no"
+            },
+            "payment_terms_supply_percent": {
+                "anchors": ["PAYMENT TERMS", "Payment Terms", "Terms of Payment", "For Supply Portion"],
+                "hindi": ["भुगतान की शर्तें"],
+                "type": "text"
+            },
+            "payment_terms_installation_percent": {
+                "anchors": ["balance", "successful installation", "installation & commissioning", "Payment Terms Installation"],
+                "hindi": [],
+                "type": "text"
+            },
+            "maf_required": {
+                "anchors": ["Manufacturer Authorization Form", "MAF Required", "Authorized Partner/ Distributor/ Dealer"],
+                "hindi": [],
+                "type": "yes_no"
+            },
+            "prs_ld": {
+                "anchors": ["PRICE REDUCTION SCHEDULE", "Price Reduction Schedule", "PRS", "Price Reduction"],
+                "hindi": ["मूल्य कटौती अनुसूची"],
+                "type": "text"
+            },
+            "client_contact_person": {
+                "anchors": ["CONTACT DETAILS OF TENDER DEALING OFFICER", "Kind Attn:", "Nodal Officer", "Contact Officer", "TENDER DEALING OFFICER"],
+                "hindi": ["संपर्क अधिकारी"],
+                "type": "text"
+            },
+            "full_courier_address_with_pincode": {
+                "anchors": ["DEALING GAIL'S OFFICE ADDRESS", "GAIL Bhawan", "OFFICE ADDRESS", "Communication Address"],
+                "hindi": ["कार्यालय पता"],
+                "type": "text"
+            },
+            "eligibility_executed_value": {
+                "anchors": ["Required Minimum executed Value", "executed Value"],
+                "hindi": [],
+                "type": "text"
+            },
+            "financial_avg_turnover": {
+                "anchors": ["Required Minimum Turnover"],
+                "hindi": [],
+                "type": "text"
+            },
+            "financial_net_worth": {
+                "anchors": ["Positive for preceding financial year", "- do -"],
+                "hindi": [],
+                "type": "text"
+            },
+            "financial_working_capital": {
+                "anchors": ["Required Minimum Working Capital"],
+                "hindi": [],
+                "type": "text"
+            },
+            "nodal_officer_contact": {
+                "anchors": ["Name and contact details of nodal officer"],
+                "hindi": [],
+                "type": "text"
             }
         }
 
@@ -449,24 +499,32 @@ class FieldExtractor:
         substring matches (e.g. "06-06-2025" stays "06 06 2025")."""
         return re.sub(r"\s+", " ", re.sub(r"[/\\_.:\-]", " ", text.lower())).strip()
 
-    def _anchor_matches(self, anchor: str, text: str) -> bool:
+    def _anchor_matches(self, anchor: str, text: str, max_gap: int = 1) -> bool:
         """Check if the anchor words appear in order inside the text words,
-        allowing small gaps. This is stricter than raw substring (so it
-        avoids "value" matching inside "devalued") but more forgiving than
-        exact phrase matching (so "ministry name" matches
-        "ministry / state name")."""
+        allowing small gaps (at most max_gap words between consecutive anchor words).
+        This prevents broad multi-column matching like "emd" ... "value" across table headers."""
         anchor_words = self._normalize_for_match(anchor).split()
         text_words = self._normalize_for_match(text).split()
         if not anchor_words:
             return False
-        i = 0
-        for aw in anchor_words:
-            while i < len(text_words) and text_words[i] != aw:
-                i += 1
-            if i >= len(text_words):
-                return False
-            i += 1
-        return True
+        for start_idx in range(len(text_words)):
+            if text_words[start_idx] == anchor_words[0]:
+                curr_idx = start_idx
+                matched_all = True
+                for aw in anchor_words[1:]:
+                    found = False
+                    for step in range(1, max_gap + 2):
+                        next_idx = curr_idx + step
+                        if next_idx < len(text_words) and text_words[next_idx] == aw:
+                            curr_idx = next_idx
+                            found = True
+                            break
+                    if not found:
+                        matched_all = False
+                        break
+                if matched_all:
+                    return True
+        return False
 
     def _anchor_at_start_or_short(self, anchor: str, text: str) -> bool:
         """True if the anchor is at the very start of the text or the text is
@@ -696,9 +754,9 @@ class FieldExtractor:
 
         return products
 
-    def extract_fields(self, pages: List[PageResult]) -> List[ExtractedFieldSchema]:
+    def extract_fields(self, pages: List[PageResult], doc_source: str = "main_tender") -> List[ExtractedFieldSchema]:
         extracted = []
-        print(f"\n[FIELD_EXTRACTOR_DEBUG] Starting field extraction on {len(pages)} page(s).", flush=True)
+        print(f"\n[FIELD_EXTRACTOR_DEBUG] Starting field extraction on {len(pages)} page(s) (doc_source: '{doc_source}').", flush=True)
         
         for field_name, rule in self.rules.items():
             # 1. Custom Multi-Instance Field Processing
@@ -777,7 +835,8 @@ class FieldExtractor:
                         confidence=0.9,
                         source_page=1,
                         evidence=" | ".join(evidence_parts),
-                        source_blocks=source_blocks
+                        source_blocks=source_blocks,
+                        source=doc_source
                     ))
                 else:
                     default_val = "Out of Scope (Stage 1)" if "emd_by_schedule" in self.out_of_scope_stage1 else "Not Found"
@@ -787,7 +846,8 @@ class FieldExtractor:
                         confidence=0.0,
                         source_page=1,
                         evidence="No schedule EMD amounts found.",
-                        source_blocks=[]
+                        source_blocks=[],
+                        source=doc_source
                     ))
                 continue
 
@@ -896,7 +956,8 @@ class FieldExtractor:
                         confidence=0.9,
                         source_page=1,
                         evidence=f"Extracted {len(flat_schedules)} schedules/consignees.",
-                        source_blocks=[]
+                        source_blocks=[],
+                        source=doc_source
                     ))
                 else:
                     default_val = "Out of Scope (Stage 1)" if "schedules" in self.out_of_scope_stage1 else "Not Found"
@@ -906,7 +967,273 @@ class FieldExtractor:
                         confidence=0.0,
                         source_page=1,
                         evidence="No schedules found.",
-                        source_blocks=[]
+                        source_blocks=[],
+                        source=doc_source
+                    ))
+                continue
+
+            if field_name == "eligibility_executed_value":
+                extracted_val = None
+                source_blocks = []
+                for page in pages:
+                    page_num = page.page_number
+                    blocks = page.text_blocks
+                    regions = page.layout_regions
+                    table_regions = [r for r in regions if r.region_type.lower() == "table"]
+                    for table in table_regions:
+                        table_blocks = [b for b in blocks if is_contained(b.bounding_box, table.bounding_box)]
+                        if not table_blocks:
+                            continue
+                        table_blocks.sort(key=lambda b: (round(b.bounding_box["y1"] / 10) * 10, b.bounding_box["x1"]))
+                        table_text = " ".join([b.text.strip() for b in table_blocks])
+                        clause_ctx = None
+                        table_bbox = table.bounding_box
+                        blocks_above = [b for b in blocks if b.bounding_box["y2"] < table_bbox["y1"]]
+                        blocks_above.sort(key=lambda b: table_bbox["y1"] - b.bounding_box["y2"])
+                        for b in blocks_above:
+                            m = re.search(r'\b(1\.2|2\.1|2\.3|2\.2)\b', b.text)
+                            if m:
+                                clause_ctx = m.group(1)
+                                break
+                        if clause_ctx == "1.2" or (clause_ctx is None and "executed" in table_text.lower() and "value" in table_text.lower()):
+                            matches = re.findall(r"(Part\s*(?:-?\s*\d+|1\s*&\s*2)[\s\S]*?[\d\.]+\s*(?:Lakh|Crore|Cr))", table_text, re.IGNORECASE)
+                            if matches:
+                                extracted_val = "; ".join([m.strip() for m in matches])
+                                source_blocks.extend([SourceBlockRef(page_number=page_num, block_id=b.block_id, text=b.text, bounding_box=BoundingBox(**b.bounding_box)) for b in table_blocks])
+                                break
+                if extracted_val:
+                    extracted.append(ExtractedFieldSchema(
+                        field_name="eligibility_executed_value",
+                        value=extracted_val,
+                        confidence=0.95,
+                        source_page=1,
+                        evidence=f"Extracted Clause 1.2 table rows: {extracted_val}",
+                        source_blocks=source_blocks,
+                        source=doc_source
+                    ))
+                else:
+                    default_val = "Out of Scope (Stage 1)" if "eligibility_executed_value" in self.out_of_scope_stage1 else "Not Found"
+                    extracted.append(ExtractedFieldSchema(
+                        field_name="eligibility_executed_value",
+                        value=default_val,
+                        confidence=0.0,
+                        source_page=1,
+                        evidence="No technical eligibility executed value table found.",
+                        source_blocks=[],
+                        source=doc_source
+                    ))
+                continue
+
+            if field_name == "financial_avg_turnover":
+                extracted_val = None
+                source_blocks = []
+                for page in pages:
+                    page_num = page.page_number
+                    blocks = page.text_blocks
+                    regions = page.layout_regions
+                    table_regions = [r for r in regions if r.region_type.lower() == "table"]
+                    for table in table_regions:
+                        table_blocks = [b for b in blocks if is_contained(b.bounding_box, table.bounding_box)]
+                        if not table_blocks:
+                            continue
+                        table_blocks.sort(key=lambda b: (round(b.bounding_box["y1"] / 10) * 10, b.bounding_box["x1"]))
+                        table_text = " ".join([b.text.strip() for b in table_blocks])
+                        clause_ctx = None
+                        table_bbox = table.bounding_box
+                        blocks_above = [b for b in blocks if b.bounding_box["y2"] < table_bbox["y1"]]
+                        blocks_above.sort(key=lambda b: table_bbox["y1"] - b.bounding_box["y2"])
+                        for b in blocks_above:
+                            m = re.search(r'\b(1\.2|2\.1|2\.3|2\.2)\b', b.text)
+                            if m:
+                                clause_ctx = m.group(1)
+                                break
+                        if clause_ctx == "2.1" or (clause_ctx is None and "turnover" in table_text.lower()):
+                            matches = re.findall(r"(Part\s*(?:-?\s*\d+|1\s*&\s*2)[\s\S]*?[\d\.]+\s*(?:Lakh|Crore|Cr))", table_text, re.IGNORECASE)
+                            if matches:
+                                extracted_val = "; ".join([m.strip() for m in matches])
+                                source_blocks.extend([SourceBlockRef(page_number=page_num, block_id=b.block_id, text=b.text, bounding_box=BoundingBox(**b.bounding_box)) for b in table_blocks])
+                                break
+                if extracted_val:
+                    extracted.append(ExtractedFieldSchema(
+                        field_name="financial_avg_turnover",
+                        value=extracted_val,
+                        confidence=0.95,
+                        source_page=1,
+                        evidence=f"Extracted Clause 2.1 table rows: {extracted_val}",
+                        source_blocks=source_blocks,
+                        source=doc_source
+                    ))
+                else:
+                    default_val = "Out of Scope (Stage 1)" if "financial_avg_turnover" in self.out_of_scope_stage1 else "Not Found"
+                    extracted.append(ExtractedFieldSchema(
+                        field_name="financial_avg_turnover",
+                        value=default_val,
+                        confidence=0.0,
+                        source_page=1,
+                        evidence="No financial average annual turnover table found.",
+                        source_blocks=[],
+                        source=doc_source
+                    ))
+                continue
+
+            if field_name == "financial_net_worth":
+                extracted_val = None
+                source_blocks = []
+                for page in pages:
+                    page_num = page.page_number
+                    blocks = page.text_blocks
+                    for idx, block in enumerate(blocks):
+                        text_lower = block.text.lower()
+                        if "2.2" in text_lower and "net" in text_lower and "worth" in text_lower:
+                            val_str = block.text.strip()
+                            m_prefix = re.search(r"2\.2\s*net\s*worth\s*[:\-]?\s*", val_str, re.IGNORECASE)
+                            if m_prefix:
+                                val_str = val_str[m_prefix.end():].strip()
+                            nxt_texts = []
+                            for other in blocks[idx+1:idx+4]:
+                                if abs(other.bounding_box["y1"] - block.bounding_box["y1"]) < 50 or "do" in other.text.lower():
+                                    nxt_texts.append(other.text.strip())
+                            if nxt_texts:
+                                val_str += " | " + " | ".join(nxt_texts)
+                            extracted_val = val_str
+                            source_blocks.append(SourceBlockRef(page_number=page_num, block_id=block.block_id, text=block.text, bounding_box=BoundingBox(**block.bounding_box)))
+                            break
+                    if extracted_val:
+                        break
+                if extracted_val:
+                    extracted.append(ExtractedFieldSchema(
+                        field_name="financial_net_worth",
+                        value=extracted_val,
+                        confidence=0.95,
+                        source_page=1,
+                        evidence=f"Extracted Clause 2.2 text: {extracted_val}",
+                        source_blocks=source_blocks,
+                        source=doc_source
+                    ))
+                else:
+                    default_val = "Out of Scope (Stage 1)" if "financial_net_worth" in self.out_of_scope_stage1 else "Not Found"
+                    extracted.append(ExtractedFieldSchema(
+                        field_name="financial_net_worth",
+                        value=default_val,
+                        confidence=0.0,
+                        source_page=1,
+                        evidence="No financial net worth clause found.",
+                        source_blocks=[],
+                        source=doc_source
+                    ))
+                continue
+
+            if field_name == "financial_working_capital":
+                extracted_val = None
+                source_blocks = []
+                for page in pages:
+                    page_num = page.page_number
+                    blocks = page.text_blocks
+                    regions = page.layout_regions
+                    table_regions = [r for r in regions if r.region_type.lower() == "table"]
+                    for table in table_regions:
+                        table_blocks = [b for b in blocks if is_contained(b.bounding_box, table.bounding_box)]
+                        if not table_blocks:
+                            continue
+                        table_blocks.sort(key=lambda b: (round(b.bounding_box["y1"] / 10) * 10, b.bounding_box["x1"]))
+                        table_text = " ".join([b.text.strip() for b in table_blocks])
+                        clause_ctx = None
+                        table_bbox = table.bounding_box
+                        blocks_above = [b for b in blocks if b.bounding_box["y2"] < table_bbox["y1"]]
+                        blocks_above.sort(key=lambda b: table_bbox["y1"] - b.bounding_box["y2"])
+                        for b in blocks_above:
+                            m = re.search(r'\b(1\.2|2\.1|2\.3|2\.2)\b', b.text)
+                            if m:
+                                clause_ctx = m.group(1)
+                                break
+                        if clause_ctx == "2.3" or (clause_ctx is None and "working" in table_text.lower() and "capital" in table_text.lower()):
+                            matches = re.findall(r"(Part\s*(?:-?\s*\d+|1\s*&\s*2)[\s\S]*?[\d\.]+\s*(?:Lakh|Crore|Cr))", table_text, re.IGNORECASE)
+                            note_text = ""
+                            blocks_below = [b for b in blocks if b.bounding_box["y1"] > table_bbox["y2"]]
+                            blocks_below.sort(key=lambda b: b.bounding_box["y1"] - table_bbox["y2"])
+                            for b in blocks_below[:10]:
+                                if "line of credit" in b.text.lower() or "bank" in b.text.lower():
+                                    note_text = b.text.strip()
+                                    source_blocks.append(SourceBlockRef(page_number=page_num, block_id=b.block_id, text=b.text, bounding_box=BoundingBox(**b.bounding_box)))
+                                    break
+                            if matches:
+                                extracted_val = "; ".join([m.strip() for m in matches])
+                                if note_text:
+                                    extracted_val += " [Note: " + re.sub(r"\s+", " ", note_text)[:200] + "...]"
+                                source_blocks.extend([SourceBlockRef(page_number=page_num, block_id=b.block_id, text=b.text, bounding_box=BoundingBox(**b.bounding_box)) for b in table_blocks])
+                                break
+                if extracted_val:
+                    extracted.append(ExtractedFieldSchema(
+                        field_name="financial_working_capital",
+                        value=extracted_val,
+                        confidence=0.95,
+                        source_page=1,
+                        evidence=f"Extracted Clause 2.3 table rows: {extracted_val}",
+                        source_blocks=source_blocks,
+                        source=doc_source
+                    ))
+                else:
+                    default_val = "Out of Scope (Stage 1)" if "financial_working_capital" in self.out_of_scope_stage1 else "Not Found"
+                    extracted.append(ExtractedFieldSchema(
+                        field_name="financial_working_capital",
+                        value=default_val,
+                        confidence=0.0,
+                        source_page=1,
+                        evidence="No financial working capital table found.",
+                        source_blocks=[],
+                        source=doc_source
+                    ))
+                continue
+
+            if field_name == "nodal_officer_contact":
+                extracted_val = None
+                source_blocks = []
+                for page in pages:
+                    page_num = page.page_number
+                    blocks = page.text_blocks
+                    for idx, block in enumerate(blocks):
+                        text_lower = block.text.lower()
+                        if "39.2" in text_lower:
+                            window_blocks = blocks[idx:idx+4]
+                            window_texts = [b.text.lower() for b in window_blocks]
+                            has_nodal = any("nodal" in txt or "contact details of nodal" in txt or "officer" in txt for txt in window_texts)
+                            if has_nodal:
+                                contact_parts = []
+                                for other in blocks[idx+1:idx+6]:
+                                    other_text = other.text.strip()
+                                    if other_text:
+                                        if re.match(r"^(?:40|41|42)\b", other_text):
+                                            break
+                                        contact_parts.append(other_text)
+                                        source_blocks.append(SourceBlockRef(page_number=page_num, block_id=other.block_id, text=other.text, bounding_box=BoundingBox(**other.bounding_box)))
+                                if contact_parts:
+                                    temp_val = "\n".join(contact_parts)
+                                    if "@" in temp_val or any(p in temp_val.lower() for p in ["tel", "phone", "email", "mobile", "contact no"]):
+                                        extracted_val = temp_val
+                                        source_blocks.append(SourceBlockRef(page_number=page_num, block_id=block.block_id, text=block.text, bounding_box=BoundingBox(**block.bounding_box)))
+                                        break
+                    if extracted_val:
+                        break
+                if extracted_val:
+                    extracted.append(ExtractedFieldSchema(
+                        field_name="nodal_officer_contact",
+                        value=extracted_val,
+                        confidence=0.95,
+                        source_page=1,
+                        evidence=f"Extracted Clause 39.2 block: {extracted_val}",
+                        source_blocks=source_blocks,
+                        source=doc_source
+                    ))
+                else:
+                    default_val = "Out of Scope (Stage 1)" if "nodal_officer_contact" in self.out_of_scope_stage1 else "Not Found"
+                    extracted.append(ExtractedFieldSchema(
+                        field_name="nodal_officer_contact",
+                        value=default_val,
+                        confidence=0.0,
+                        source_page=1,
+                        evidence="No nodal officer contact block found.",
+                        source_blocks=[],
+                        source=doc_source
                     ))
                 continue
 
@@ -1184,7 +1511,8 @@ class FieldExtractor:
                         confidence=0.0,
                         source_page=1,
                         evidence="No matching anchors or value patterns found in document.",
-                        source_blocks=[]
+                        source_blocks=[],
+                        source=doc_source
                     ))
                     continue
                 extracted.append(ExtractedFieldSchema(
@@ -1193,7 +1521,8 @@ class FieldExtractor:
                     confidence=best_cand["confidence"],
                     source_page=best_cand["source_page"],
                     evidence=best_cand["evidence"],
-                    source_blocks=best_cand["source_blocks"]
+                    source_blocks=best_cand["source_blocks"],
+                    source=doc_source
                 ))
             else:
                 print(f"[FIELD_EXTRACTOR_DEBUG] Extracted value for '{field_name}': Not Found", flush=True)
@@ -1205,7 +1534,8 @@ class FieldExtractor:
                     confidence=0.0,
                     source_page=1,
                     evidence=evidence,
-                    source_blocks=[]
+                    source_blocks=[],
+                    source=doc_source
                 ))
                 
         # Compute derived EMD fields if emd_by_schedule was processed
@@ -1221,7 +1551,8 @@ class FieldExtractor:
                     confidence=0.9,
                     source_page=1,
                     evidence=f"Derived sum of schedule EMDs: {emd_by_sch_field.value}",
-                    source_blocks=[]
+                    source_blocks=[],
+                    source="derived"
                 ))
                 extracted.append(ExtractedFieldSchema(
                     field_name="emd_required",
@@ -1229,7 +1560,8 @@ class FieldExtractor:
                     confidence=0.9,
                     source_page=1,
                     evidence=f"Derived from EMD total: {total_val}",
-                    source_blocks=[]
+                    source_blocks=[],
+                    source="derived"
                 ))
             except Exception as e:
                 print(f"[FIELD_EXTRACTOR_DEBUG] Failed to parse emd_by_schedule: {e}", flush=True)
@@ -1240,7 +1572,8 @@ class FieldExtractor:
                 confidence=0.0,
                 source_page=1,
                 evidence="Derived field, parent EMD details not found.",
-                source_blocks=[]
+                source_blocks=[],
+                source="derived"
             ))
             extracted.append(ExtractedFieldSchema(
                 field_name="emd_required",
@@ -1248,7 +1581,8 @@ class FieldExtractor:
                 confidence=0.0,
                 source_page=1,
                 evidence="Derived field, parent EMD details not found.",
-                source_blocks=[]
+                source_blocks=[],
+                source="derived"
             ))
 
         # Ensure all out of scope fields are represented in the output list
@@ -1260,8 +1594,95 @@ class FieldExtractor:
                     confidence=0.0,
                     source_page=1,
                     evidence="This field is designated as out of scope for Stage 1 (Parent Tender PDF).",
-                    source_blocks=[]
+                    source_blocks=[],
+                    source=doc_source
                 ))
 
         print(f"[FIELD_EXTRACTOR_DEBUG] Finished extraction. Total extracted fields count: {len(extracted)}\n", flush=True)
         return extracted
+
+    def extract_atc_fields(self, atc_pages: List[PageResult]) -> List[ExtractedFieldSchema]:
+        """
+        Extracts fields specifically from Additional Terms and Conditions (ATC) PDF
+        using existing Hindi and English anchor lists.
+        """
+        return self.extract_fields(atc_pages, doc_source="atc")
+
+
+AMBIGUOUS_MERGE_FIELDS = {
+    "custom_eligibility_criteria",
+    "delivery_time_installation_inclusive",
+    "custom_rules"
+}
+
+MAIN_SOURCED_FIELD_NAMES = {
+    "PBG Required", "PBG Percentage", "PBG Duration", "PBG Duration (Months)",
+    "Eligibility Criterion (Years)", "Bid Validity (Days)", "Bid Validity Period",
+    "Tender Name / Title", "Reference ID / NIT No", "Estimated Tender Value",
+    "Organisation", "Authority Agency", "bid_number", "bid_validity_days", "tender_value"
+}
+
+def merge_tender_and_atc_fields(
+    main_fields: List[ExtractedFieldSchema],
+    atc_fields: List[ExtractedFieldSchema]
+) -> List[ExtractedFieldSchema]:
+    """
+    Merges extracted fields from main_tender and atc documents applying priority rules.
+
+    Priority Rules:
+    1. ATC field overrides main_tender field if ATC has a valid value (explicit ATC clause wins,
+       removing confidence carve-outs).
+    2. Retains main tender field if only main_tender found a valid value or field belongs to MAIN_SOURCED_FIELD_NAMES.
+    3. For ambiguous fields ('custom_eligibility_criteria', 'delivery_time_installation_inclusive', 'custom_rules'),
+       preserves both candidates when both documents contain values without premature resolution.
+    4. Derived fields recalculated on merged dataset.
+
+    Logs winning document, text source, and page number.
+    """
+    merged_map: Dict[str, ExtractedFieldSchema] = {f.field_name: f for f in main_fields}
+
+    for atc_f in atc_fields:
+        fn = atc_f.field_name
+        main_f = merged_map.get(fn)
+
+        if not main_f:
+            win_field = atc_f
+        else:
+            main_valid = main_f.value not in (None, "", "Not Found", "Out of Scope (Stage 1)", 0, 0.0, "0", "0.0", "0.00")
+            atc_valid = atc_f.value not in (None, "", "Not Found", "Out of Scope (Stage 1)", 0, 0.0, "0", "0.0", "0.00")
+
+            if fn in MAIN_SOURCED_FIELD_NAMES and main_valid:
+                win_field = main_f
+            elif fn in AMBIGUOUS_MERGE_FIELDS and main_valid and atc_valid:
+                # Preserve both candidates without resolving prematurely
+                combined_val = {
+                    "main_tender": main_f.value,
+                    "atc": atc_f.value
+                }
+                win_field = ExtractedFieldSchema(
+                    field_name=fn,
+                    value=combined_val,
+                    confidence=min(main_f.confidence, atc_f.confidence),
+                    source_page=atc_f.source_page,
+                    evidence=f"Ambiguous candidates preserved: main_tender='{main_f.value}' | atc='{atc_f.value}'",
+                    source_blocks=main_f.source_blocks + atc_f.source_blocks,
+                    source="ambiguous_preserved"
+                )
+            elif atc_valid:
+                # Explicit ATC clause always wins over main tender (no confidence carve-out)
+                win_field = atc_f
+            elif main_valid:
+                win_field = main_f
+            else:
+                win_field = main_f
+
+        merged_map[fn] = win_field
+
+        text_src = "native/ocr"
+        page_num = win_field.source_page
+        logger.info(
+            f"[FIELD_MERGE] Field: {fn} | Winning Source: {win_field.source} | "
+            f"Text Source: {text_src} | Page: {page_num} | Value: {win_field.value}"
+        )
+
+    return list(merged_map.values())

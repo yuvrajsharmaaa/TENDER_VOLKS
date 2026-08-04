@@ -74,7 +74,14 @@ def extract_tender_fields(
                 is_gem = True
                 break
 
-    if is_gem:
+    GEM_DOC_TYPES = {"gem_structured", "gem_parent", "gem"}
+    if document_type in GEM_DOC_TYPES:
+        extractor = GemFieldExtractor()
+    elif document_type is not None:
+        # Explicit caller document_type wins over content-sniffing heuristic
+        extractor = FieldExtractor()
+    elif is_gem:
+        # Fallback to content-sniffing ONLY when caller passed document_type=None
         extractor = GemFieldExtractor()
     else:
         extractor = FieldExtractor()
@@ -107,7 +114,26 @@ def extract_tender_fields(
         "department_name": "Organisation",
         "office_name": "Organisation",
         "Tender Fee": "Tender Fee",
-        "tender_fee_amount": "Tender Fee"
+        "tender_fee_amount": "Tender Fee",
+        "prs_ld": "Price Reduction Schedule (PRS)",
+        "price_reduction_schedule": "Price Reduction Schedule (PRS)",
+        "prs_rate": "LD Percentage per Week",
+        "prs_max": "Max LD Percentage",
+        "payment_terms": "Payment Terms",
+        "payment_terms_supply_percent": "Payment Terms %",
+        "payment_terms_installation_percent": "Payment Terms Installation (%)",
+        "maf_required": "MAF Required",
+        "client_contact_person": "Client Contacts",
+        "client_contacts": "Client Contacts",
+        "full_courier_address_with_pincode": "Courier Address",
+        "courier_address": "Courier Address",
+        "courier_info": "Courier Information",
+        "eligibility_executed_value": "Custom Eligibility Criteria",
+        "financial_avg_turnover": "Annual Avg Turnover",
+        "minimum_average_annual_turnover": "Annual Avg Turnover",
+        "financial_net_worth": "Net Worth",
+        "financial_working_capital": "Working Capital",
+        "nodal_officer_contact": "Client Contacts 2"
     }
     
     fields = []
@@ -121,7 +147,8 @@ def extract_tender_fields(
         "critical": False,
         "sourcePage": 1,
         "sourceSnippet": f"Filename Title fallback: {filename_title}",
-        "status": "extracted"
+        "status": "extracted",
+        "source": "main_tender"
     })
     
     # Deduplicate fields by label, prioritizing valid values and higher confidence
@@ -129,6 +156,16 @@ def extract_tender_fields(
     for i, f in enumerate(extracted):
         label = label_mapping.get(f.field_name, f.field_name)
         status = "missing" if (f.value is None or f.value == "Not Found") else "extracted"
+        
+        # Determine and normalize source tag per canonical set
+        raw_source = getattr(f, "source", None) or "main_tender"
+        if raw_source in ("gem_parent_pdf", "not_available_stage1"):
+            canonical_source = "main_tender"
+        elif raw_source in ("main_tender", "atc", "derived", "ambiguous_preserved"):
+            canonical_source = raw_source
+        else:
+            canonical_source = "main_tender"
+
         field_dict = {
             "id": f"f-{i}",
             "label": label,
@@ -137,7 +174,8 @@ def extract_tender_fields(
             "critical": getattr(f, "critical", False),
             "sourcePage": getattr(f, "page", getattr(f, "source_page", 1)),
             "sourceSnippet": getattr(f, "source_snippet", getattr(f, "evidence", "")),
-            "status": status
+            "status": status,
+            "source": canonical_source
         }
         existing = label_to_field.get(label)
         if not existing:
@@ -148,7 +186,7 @@ def extract_tender_fields(
             elif field_dict["status"] == existing["status"]:
                 if field_dict["confidence"] > existing["confidence"]:
                     label_to_field[label] = field_dict
-
+ 
     for label, field_dict in label_to_field.items():
         fields.append(field_dict)
         
@@ -163,7 +201,8 @@ def extract_tender_fields(
             "critical": False,
             "sourcePage": p.get("page_number", 1),
             "sourceSnippet": p.get("evidence", ""),
-            "status": "extracted"
+            "status": "extracted",
+            "source": "main_tender"
         })
 
     return [{"id": "sec-unified", "title": "Unified Extraction", "fields": fields}]

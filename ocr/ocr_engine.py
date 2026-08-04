@@ -8,7 +8,7 @@ from backend.app.models.models import TextBlock
 
 class OcrEngine:
     """
-    Line-level OCR using Tesseract (via pytesseract).
+    Line-level OCR using PaddleOCR (primary) and Tesseract (fallback).
 
     Executes line-level character recognition and extracts word/line bounding
     boxes into standardized TextBlock outputs for layout detection and field extraction.
@@ -16,12 +16,81 @@ class OcrEngine:
 
     # Class-level cache to share raw OCR results and avoid double-processing in layout detection
     _cache: dict[str, dict] = {}
+    _paddle_instance = None
+    _paddle_attempted = False
 
-    def __init__(self, lang: str = "eng"):
-        self.lang = lang
+    def __init__(self, lang: str = "eng+hin"):
+        self.lang = self._verify_languages(lang)
+        self._init_paddle()
+
+    @classmethod
+    def _init_paddle(cls):
+        if not cls._paddle_attempted:
+            cls._paddle_attempted = True
+            try:
+                from paddleocr import PaddleOCR
+                cls._paddle_instance = PaddleOCR(
+                    use_angle_cls=True, lang="en", use_gpu=False, show_log=False
+                )
+                import logging
+                logging.getLogger("ocr.ocr_engine").info("[OCR_DIAGNOSTICS] PaddleOCR initialized successfully as primary OCR engine.")
+            except Exception as e:
+                import logging
+                logging.getLogger("ocr.ocr_engine").warning(
+                    f"[OCR_DIAGNOSTICS] Failed to initialize PaddleOCR: {e}. Falling back to Tesseract."
+                )
+
+    @staticmethod
+    def _verify_languages(lang: str) -> str:
+        """System diagnostic: verifies that requested Tesseract language packs exist before initializing engine."""
+        try:
+            available = set(pytesseract.get_languages())
+            requested = lang.split("+")
+            missing = [l for l in requested if l not in available]
+            if missing:
+                import logging
+                logging.getLogger("ocr.ocr_engine").warning(
+                    f"[OCR_DIAGNOSTICS] Missing requested Tesseract language pack(s): {missing}. "
+                    f"Available languages: {available}. Ensure 'tesseract-ocr-hin' is installed on system."
+                )
+                valid = [l for l in requested if l in available]
+                return "+".join(valid) if valid else "eng"
+        except Exception as e:
+            import logging
+            logging.getLogger("ocr.ocr_engine").debug(f"[OCR_DIAGNOSTICS] Language verification skipped: {e}")
+        return lang
 
     def run(self, image_path: Path) -> list[TextBlock]:
         cache_key = str(image_path)
+
+        # Primary pass: PaddleOCR
+        if OcrEngine._paddle_instance is not None:
+            try:
+                res = OcrEngine._paddle_instance.ocr(str(image_path), cls=True)
+                if res and res[0]:
+                    text_blocks = []
+                    for idx, line in enumerate(res[0]):
+                        box, (text, conf) = line
+                        if not text or not text.strip():
+                            continue
+                        xs = [pt[0] for pt in box]
+                        ys = [pt[1] for pt in box]
+                        x1, y1, x2, y2 = int(min(xs)), int(min(ys)), int(max(xs)), int(max(ys))
+                        text_blocks.append(TextBlock(
+                            block_id=f"blk_{idx+1:04d}",
+                            text=text.strip(),
+                            confidence=round(float(conf), 4),
+                            bounding_box={"x1": x1, "y1": y1, "x2": x2, "y2": y2},
+                            language_hint=self.lang
+                        ))
+                    return text_blocks
+            except Exception as p_err:
+                import logging
+                logging.getLogger("ocr.ocr_engine").warning(
+                    f"[OCR_DIAGNOSTICS] PaddleOCR execution failed on {image_path.name}: {p_err}. Falling back to Tesseract."
+                )
+
+        # Fallback pass: Tesseract OCR
         if cache_key in OcrEngine._cache:
             data = OcrEngine._cache[cache_key]
         else:
