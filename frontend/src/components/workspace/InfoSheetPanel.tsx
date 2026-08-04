@@ -41,8 +41,8 @@ export const InfoSheetPanel: React.FC<InfoSheetPanelProps> = ({
           No structured metadata fields extracted yet. Trigger parser extraction.
         </div>
       ) : (
-        sections.map((section) => (
-          <div key={section.id} className="space-y-3">
+        sections.map((section, secIdx) => (
+          <div key={`${section.id || "sec"}-${secIdx}-${section.title || ""}`} className="space-y-3">
             <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-widest border-b border-divider pb-2">
               {section.title}
             </h3>
@@ -51,7 +51,7 @@ export const InfoSheetPanel: React.FC<InfoSheetPanelProps> = ({
               {section.fields.map((field, fieldIdx) => {
                 const isEditing = editingFieldId === field.id;
                 const isLowConfidence = field.confidence && field.confidence < 70 && field.status === "extracted";
-                const fieldKey = field.id ? `${section.id}-${field.id}` : `${section.id}-field-${fieldIdx}`;
+                const fieldKey = `${section.id || "sec"}-${field.id || "f"}-${fieldIdx}-${field.label || ""}`;
 
                 return (
                   <div

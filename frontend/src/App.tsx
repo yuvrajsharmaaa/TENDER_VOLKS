@@ -322,51 +322,59 @@ function App() {
           <div className="flex-1 flex flex-col min-h-0 max-w-[1440px] mx-auto w-full">
             
             {/* ── Stats KPI row ──────────────────────────────────── */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5 shrink-0 select-none">
-              {[
-                {
-                  label: "Live Tenders",
-                  value: statsLive,
-                  icon: <Activity className="h-5 w-5 stroke-[1.75]" aria-hidden />,
-                  iconContainerCls: "bg-[#EFF6FF] text-[#2563EB]",
-                },
-                {
-                  label: "Ingesting",
-                  value: statsNew,
-                  icon: <Loader2 className="h-5 w-5 animate-spin stroke-[1.75]" aria-hidden />,
-                  iconContainerCls: "bg-[#F3F4F6] text-[#6B7280]",
-                },
-                {
-                  label: "Closing Soon",
-                  value: statsClosing,
-                  icon: <Calendar className="h-5 w-5 stroke-[1.75]" aria-hidden />,
-                  iconContainerCls: "bg-[#FFFBEB] text-[#D97706]",
-                },
-                {
-                  label: "High Match",
-                  value: statsHighMatch,
-                  icon: <Sparkles className="h-5 w-5 stroke-[1.75]" aria-hidden />,
-                  iconContainerCls: "bg-[#F5F3FF] text-[#7C3AED]",
-                },
-              ].map(({ label, value, icon, iconContainerCls }) => (
-                <div
-                  key={label}
-                  className="bg-white border border-divider rounded-[12px] p-4
-                    shadow-xs flex items-center justify-between gap-3"
-                >
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium text-text-muted mb-1 truncate tracking-[0.01em]">
-                      {label}
-                    </p>
-                    <p className={`text-[28px] font-semibold leading-none tabular-nums font-mono ${value === 0 ? "text-[#9CA3AF]" : "text-text-primary"}`}>
-                      {value}
-                    </p>
+            <div className="relative mb-5 shrink-0 select-none">
+              <div
+                className="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-1 no-scrollbar
+                  md:grid md:grid-cols-4 md:overflow-visible md:pb-0"
+              >
+                {[
+                  {
+                    label: "Live Tenders",
+                    value: statsLive,
+                    icon: <Activity className="h-5 w-5 stroke-[1.75]" aria-hidden />,
+                    iconContainerCls: "bg-[#EFF6FF] text-[#2563EB]",
+                  },
+                  {
+                    label: "Ingesting",
+                    value: statsNew,
+                    icon: <Loader2 className="h-5 w-5 animate-spin stroke-[1.75]" aria-hidden />,
+                    iconContainerCls: "bg-[#F3F4F6] text-[#6B7280]",
+                  },
+                  {
+                    label: "Closing Soon",
+                    value: statsClosing,
+                    icon: <Calendar className="h-5 w-5 stroke-[1.75]" aria-hidden />,
+                    iconContainerCls: "bg-[#FFFBEB] text-[#D97706]",
+                  },
+                  {
+                    label: "High Match",
+                    value: statsHighMatch,
+                    icon: <Sparkles className="h-5 w-5 stroke-[1.75]" aria-hidden />,
+                    iconContainerCls: "bg-[#F5F3FF] text-[#7C3AED]",
+                  },
+                ].map(({ label, value, icon, iconContainerCls }) => (
+                  <div
+                    key={label}
+                    className="bg-white border border-divider rounded-[12px] p-4
+                      shadow-xs flex items-center justify-between gap-3
+                      snap-start shrink-0 min-w-[170px] sm:min-w-[200px] md:min-w-0 md:shrink"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-text-muted mb-1 truncate tracking-[0.01em]">
+                        {label}
+                      </p>
+                      <p className={`text-[28px] font-semibold leading-none tabular-nums font-mono ${value === 0 ? "text-[#9CA3AF]" : "text-text-primary"}`}>
+                        {value}
+                      </p>
+                    </div>
+                    <div className={`h-10 w-10 shrink-0 flex items-center justify-center rounded-[10px] ${iconContainerCls}`}>
+                      {icon}
+                    </div>
                   </div>
-                  <div className={`h-10 w-10 shrink-0 flex items-center justify-center rounded-[10px] ${iconContainerCls}`}>
-                    {icon}
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
+              {/* Mobile scroll visual affordance gradient */}
+              <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-app-bg to-transparent md:hidden" />
             </div>
 
             {/* ── Results toolbar ────────────────────────────────── */}

@@ -85,3 +85,12 @@
 .animate-fadeIn {
   animation: fadeIn 0.15s ease-out forwards;
 }
+
+/* Utility to hide scrollbars visually on snap-scroll containers */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
