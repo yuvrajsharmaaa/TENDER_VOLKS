@@ -264,41 +264,6 @@ FIELD_PROMPT_MAP: Dict[str, Tuple[str, str, str, Any]] = {
         "Is Reverse Auction applicable for this bid? (true/false)",
         _fmt_bool,
     ),
-    "order_value_1_display": (
-        "order_value_1", "string",
-        "Minimum value required for 1st work order / 3 works value in Section-II BEC (e.g. '₹61.00 Lakhs')",
-        _fmt_str,
-    ),
-    "order_value_2_display": (
-        "order_value_2", "string",
-        "Minimum value required for 2nd work order / 2 works value in Section-II BEC",
-        _fmt_str,
-    ),
-    "order_value_3_display": (
-        "order_value_3", "string",
-        "Minimum value required for 3rd work order / 1 work value in Section-II BEC",
-        _fmt_str,
-    ),
-    "avg_annual_turnover_value_display": (
-        "avg_annual_turnover_value", "string",
-        "Minimum average annual financial turnover required in BEC Section-II",
-        _fmt_str,
-    ),
-    "working_capital_value_display": (
-        "working_capital_value", "string",
-        "Minimum working capital required in BEC Section-II",
-        _fmt_str,
-    ),
-    "solvency_certificate_value_display": (
-        "solvency_certificate_value", "string",
-        "Solvency certificate value required in BEC Section-II",
-        _fmt_str,
-    ),
-    "net_worth_value_display": (
-        "net_worth_value", "string",
-        "Minimum Net Worth required in BEC Section-II",
-        _fmt_str,
-    ),
 }
 
 

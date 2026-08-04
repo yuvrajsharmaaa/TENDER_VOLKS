@@ -440,13 +440,6 @@ def ingest_parent_tender_pdf(
                     "pbg_mode_display": "PBG Mode",
                     "commercial_evaluation_display": "Commercial Evaluation Type",
                     "reverse_auction_applicable_display": "Reverse Auction Applicable",
-                    "order_value_1_display": "Value of 1st Work Order",
-                    "order_value_2_display": "Value of 2nd Work Order",
-                    "order_value_3_display": "Value of 3rd Work Order",
-                    "avg_annual_turnover_value_display": "Avg Annual Turnover Value",
-                    "working_capital_value_display": "Working Capital Value",
-                    "solvency_certificate_value_display": "Solvency Certificate Value",
-                    "net_worth_value_display": "Net Worth Value",
                 }
                 _FALLBACK_KEYS = list(FIELD_PROMPT_MAP.keys())
                 _stub_vals = ("NA", "N/A", None, "", "Not Found", "NOT_APPLICABLE", "Not Applicable")
