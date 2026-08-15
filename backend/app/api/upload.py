@@ -34,10 +34,12 @@ async def upload_pdf(
     and automatically enqueues background OCR / ingestion processing.
     Returns unified job_id, file_id, and tender_id.
     """
+    logger.info(f"[STEP 1/5][UPLOAD] Received file upload request: filename='{file.filename}', content_type='{file.content_type}'")
     _validate_pdf(file)
     
     file_bytes = await file.read()
     if len(file_bytes) == 0:
+        logger.error("[UPLOAD] Uploaded file is 0 bytes")
         raise HTTPException(status_code=400, detail="Uploaded file is empty")
         
     job_id = str(uuid.uuid4())
@@ -49,6 +51,7 @@ async def upload_pdf(
     pdf_path = job_dir / filename_str
     original_alias_path = job_dir / "original.pdf"
     
+    logger.info(f"[STEP 2/5][UPLOAD] Saving {len(file_bytes)} bytes to local disk: {pdf_path}")
     with open(pdf_path, "wb") as f:
         f.write(file_bytes)
         
@@ -58,21 +61,26 @@ async def upload_pdf(
             
     # Try uploading to MinIO storage if available
     try:
+        logger.info(f"[STEP 3/5][UPLOAD] Uploading to MinIO storage bucket...")
         upload_file_to_minio(file_bytes, file.content_type or "application/pdf", filename_str)
     except StorageError as e:
-        logger.warning(f"MinIO storage upload skipped/failed during tender upload: {e}")
+        logger.warning(f"[UPLOAD] MinIO storage upload skipped/failed: {e}")
         
     # Register job in SQLite store
+    logger.info(f"[STEP 4/5][UPLOAD] Registering job {job_id} in SQLite job store...")
     create_job(job_id=job_id, filename=filename_str, pdf_path=str(pdf_path))
     
     # Auto-enqueue background ingest pipeline if background_tasks is present
     if background_tasks:
+        logger.info(f"[STEP 5/5][UPLOAD] Enqueueing background extraction & LLM fallback pipeline for job {job_id}...")
         from backend.app.api.routes.tenders import _run_ingest_background
         background_tasks.add_task(
             _run_ingest_background, job_id, str(pdf_path), filename_str
         )
+    else:
+        logger.warning(f"[UPLOAD] background_tasks object is None for job {job_id}!")
         
-    logger.info(f"Unified tender upload successful: job_id={job_id}, filename={file.filename}")
+    logger.info(f"[UPLOAD_COMPLETE] Unified tender upload successful: job_id={job_id}, filename={file.filename}")
     
     return TenderUploadResponse(
         job_id=job_id,

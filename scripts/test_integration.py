@@ -10,7 +10,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Set dummy env vars for local host testing since internal compose dns hostnames (e.g. postgres, redis, minio)
 # resolve only inside the compose network, but this script runs on the host machine.
-os.environ["DATABASE_URL"] = "postgresql://postgres:postgres@localhost:5432/tender_db"
+os.environ["DATABASE_URL"] = "postgresql://tender_volks_user:volks@localhost:5432/tender_volks"
 os.environ["REDIS_URL"] = "redis://localhost:6379/0"
 os.environ["MINIO_ENDPOINT"] = "localhost:9000"
 

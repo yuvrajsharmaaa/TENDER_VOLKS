@@ -68,7 +68,11 @@ export const InfoSheetPanel: React.FC<InfoSheetPanelProps> = ({
                         </span>
 
                         {/* Provenance chips near titles/metadata */}
-                        {((field as any).source === "atc" || field.label.toLowerCase().includes("atc") || (field as any).isAtcOverride) ? (
+                        {((field as any).source === "atc_llm" || (field as any).resolution_layer === "layer_2" || (field as any).resolution_source === "llm") ? (
+                          <span className="px-2 py-0.5 text-[10px] bg-purple-50 text-purple-700 border border-purple-200 rounded-md font-medium">
+                            AI (LLM Layer)
+                          </span>
+                        ) : ((field as any).source === "atc" || field.label.toLowerCase().includes("atc") || (field as any).isAtcOverride) ? (
                           <span className="px-2 py-0.5 text-[10px] bg-orange-50 text-orange-800 border border-orange-200 rounded-md font-medium">
                             ATC Clause Override
                           </span>

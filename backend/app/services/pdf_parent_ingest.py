@@ -104,14 +104,19 @@ def ingest_parent_tender_pdf(
     Coordinates the full OCR, hyperlink extraction, and info-sheet generation pipeline.
     Saves outputs in the job directory and returns structured conforming tender details.
     """
+    logger.info(f"[INGEST_PIPELINE][Job {job_id}] Starting ingestion pipeline for '{original_filename}'")
     job_dir = pdf_path.parent
     pages_dir = job_dir / "pages"
 
+    logger.info(f"[INGEST_PIPELINE][Job {job_id}] Step 1: Extracting text & page structures from PDF...")
     page_texts = extract_pdf_text_hybrid(str(pdf_path), pages_dir)
     all_pages = list(page_texts)
+    logger.info(f"[INGEST_PIPELINE][Job {job_id}] Step 1 complete: Extracted {len(all_pages)} text pages")
 
     # 2. Extract clickable hyperlinks and document mentions
+    logger.info(f"[INGEST_PIPELINE][Job {job_id}] Step 2: Extracting hyperlinks & ATC document mentions...")
     links, mentions = extract_links_and_mentions(str(pdf_path))
+    logger.info(f"[INGEST_PIPELINE][Job {job_id}] Step 2 complete: Found {len(links)} links, {len(mentions)} mentions")
 
     # 3. Deterministic Field Extraction
     title_raw = original_filename.replace(".pdf", "").replace("_", " ").replace("-", " ")
@@ -121,6 +126,7 @@ def ingest_parent_tender_pdf(
     from ocr.pipeline import classify_document_type
     doc_type = classify_document_type(page1_text)
     
+    logger.info(f"[INGEST_PIPELINE][Job {job_id}] Step 3: Running Layer 1 spatial field extraction (doc_type='{doc_type}')...")
     sections = extract_tender_fields(page_texts, title_raw, document_type=doc_type)
 
     # 3a. Bridge resolved ATC link URL to sections atc_document_link_present field
@@ -421,6 +427,7 @@ def ingest_parent_tender_pdf(
                     "payment_terms_installation_display": "Payment Terms Installation",
                     "ld_percentage_display": "LD Percentage Per Week",
                     "max_ld_percentage_display": "Max LD Percentage",
+                    "sd_required_display": "Security Deposit Required",
                     "sd_mode_display": "Security Deposit Mode",
                     "sd_percentage_display": "Security Deposit %",
                     "sd_duration_display": "SD Duration (Months)",
@@ -440,13 +447,20 @@ def ingest_parent_tender_pdf(
                     "pbg_mode_display": "PBG Mode",
                     "commercial_evaluation_display": "Commercial Evaluation Type",
                     "reverse_auction_applicable_display": "Reverse Auction Applicable",
+                    "order_value_1_display": "Order Value 1",
+                    "order_value_2_display": "Order Value 2",
+                    "order_value_3_display": "Order Value 3",
+                    "avg_annual_turnover_value_display": "Average Annual Turnover Value",
                 }
-                _FALLBACK_KEYS = list(FIELD_PROMPT_MAP.keys())
-                _stub_vals = ("NA", "N/A", None, "", "Not Found", "NOT_APPLICABLE", "Not Applicable")
-                missing_keys = [k for k in _FALLBACK_KEYS if infosheet_data.get(k) in _stub_vals]
+                _stub_vals = ("NA", "N/A", None, "", "Not Found", "NOT_APPLICABLE", "Not Applicable", "0", "0.0", "0.00", "₹0.00", 0, 0.0, "⚠️ MISSING")
+                # Dynamically collect ALL infosheet fields that are still NA / missing after Layer 1 regex pass
+                missing_keys = [
+                    k for k, v in infosheet_data.items()
+                    if not k.startswith("_") and (v in _stub_vals or (isinstance(v, str) and not v.strip()))
+                ]
                 # Combine parent and ATC child texts to ensure LLM has full context
                 parent_text = "\n".join([p.get("text", "") for p in all_pages])
-                target_text = f"{parent_text}\n\n{atc_full_text}".strip()
+                target_text = f"{parent_text}\n\n{atc_full_text}".strip() if atc_full_text else parent_text.strip()
                 if missing_keys and target_text:
                     logger.info("[LLM_FALLBACK][Layer 2] %d fields still NA after regex pass — invoking LLM", len(missing_keys))
                     resolver = LLMFieldResolver()
@@ -457,7 +471,9 @@ def ingest_parent_tender_pdf(
                     status_summary = cast(Dict[str, int], infosheet_data.get("status_summary", {}))
                     
                     for key, item in llm_resolved.items():
-                        val = item["value"]
+                        if key.startswith("_") or not isinstance(item, dict):
+                            continue
+                        val = item.get("value")
                         if val and infosheet_data.get(key) in _stub_vals:
                             infosheet_data[key] = val
                             logger.info("[LLM_FALLBACK][Layer 2] Merged '%s' = %r into infosheet_data", key, val)
@@ -471,12 +487,15 @@ def ingest_parent_tender_pdf(
                             status_summary[FIELD_STATUS_OK_FALLBACK] = status_summary.get(FIELD_STATUS_OK_FALLBACK, 0) + 1
                             
                             # 2. Sync to infoSheetSections for UI preview
-                            target_label = _DISPLAY_KEY_TO_LABEL.get(key)
-                            if target_label and sections:
+                            target_label = _DISPLAY_KEY_TO_LABEL.get(key, key.replace("_display", "").replace("_", " ").title())
+                            if sections:
                                 field_found = False
+                                raw_key_name = key.replace("_display", "")
                                 for sec in sections:
                                     for f in sec.get("fields", []):
-                                        if f.get("label") == target_label or f.get("field_name") == key:
+                                        f_name = f.get("field_name", "")
+                                        f_lbl = f.get("label", "")
+                                        if f_lbl == target_label or f_name == key or f_name == raw_key_name or f.get("id") == f"f-{key}":
                                             f["value"] = val
                                             f["status"] = "extracted"
                                             f["confidence"] = 90.0

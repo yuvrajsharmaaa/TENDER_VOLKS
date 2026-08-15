@@ -58,6 +58,9 @@ export interface InfoSheetField {
   sourcePage?: number;
   sourceSnippet?: string;
   status?: "extracted" | "verified" | "edited" | "missing";
+  source?: string;
+  resolution_source?: string;
+  resolution_layer?: string;
 }
 
 export interface InfoSheetSection {
@@ -101,6 +104,14 @@ export interface TenderDetail {
   location_state: string;
   sector: string;
   snippet: string;
+  status_summary?: {
+    OK?: number;
+    OK_FALLBACK?: number;
+    NOT_APPLICABLE?: number;
+    MISSING?: number;
+  };
+  missing_fields?: string[];
+  field_statuses?: Record<string, string>;
   updated_at: string;
 }
 export type PreviewDocument = SourceDocumentItem | GeneratedOutputItem | ExtractedLinkedPdfItem | MentionedAttachmentItem;

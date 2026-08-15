@@ -19,11 +19,14 @@ import importlib
 import json
 import logging
 import os
+import random
 import re
 import time
+import urllib.error
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional, Tuple, Set
 
 logger = logging.getLogger(__name__)
 
@@ -264,6 +267,46 @@ FIELD_PROMPT_MAP: Dict[str, Tuple[str, str, str, Any]] = {
         "Is Reverse Auction applicable for this bid? (true/false)",
         _fmt_bool,
     ),
+    "order_value_1_display": (
+        "order_value_1", "string",
+        "Executed work order value for 1st/single executed order from BEC technical eligibility. If presented as a multi-part split table (Part A + Part B), extract or sum the values for all quoted parts (e.g. 'Rs. 61.00 Lac' or '₹61,00,000.00').",
+        _fmt_str,
+    ),
+    "order_value_2_display": (
+        "order_value_2", "string",
+        "Executed work order value for 2nd executed order (if 2 orders required in BEC criteria).",
+        _fmt_str,
+    ),
+    "order_value_3_display": (
+        "order_value_3", "string",
+        "Executed work order value for 3rd executed order (if 3 orders required in BEC criteria).",
+        _fmt_str,
+    ),
+    "avg_annual_turnover_value_display": (
+        "avg_annual_turnover_value", "string",
+        "Minimum Average Annual Turnover value required in BEC criteria. Extract single or combined multi-part total (e.g. 'Rs. 61.00 Lac' or '₹61,00,000.00').",
+        _fmt_str,
+    ),
+    "working_capital_value_display": (
+        "working_capital_value", "string",
+        "Minimum Working Capital value required in BEC criteria. Extract single or combined multi-part total (e.g. 'Rs. 12.00 Lac' or '₹12,00,000.00').",
+        _fmt_str,
+    ),
+    "solvency_certificate_value_display": (
+        "solvency_certificate_value", "string",
+        "Minimum Solvency Certificate value required in BEC criteria (e.g. 'Rs. 50.00 Lac' or 'Not Applicable').",
+        _fmt_str,
+    ),
+    "net_worth_value_display": (
+        "net_worth_value", "string",
+        "Net worth requirement from BEC criteria (e.g. 'Must be positive' or monetary threshold).",
+        _fmt_str,
+    ),
+    "eligibility_criterion_years_display": (
+        "eligibility_criterion_years", "string",
+        "Number of years of prior experience required in BEC technical criteria (e.g. '7' or '3'). Return number string.",
+        _fmt_str,
+    ),
 }
 
 
@@ -426,28 +469,34 @@ class LLMFieldResolver:
     - No markdown stripping needed (schema-constrained output is always valid JSON)
     """
 
-    def __init__(self):
-        self.provider = os.getenv("LLM_PROVIDER", "gemini").lower()
-        self.api_key = os.getenv("LLM_API_KEY", os.getenv("GEMINI_API_KEY", ""))
-        if self.provider == "groq" and not self.api_key:
-            self.api_key = os.getenv("GROQ_API_KEY", "")
-        self.model_name = os.getenv("LLM_MODEL", os.getenv("GEMINI_MODEL", "gemini-flash-latest"))
-        if self.provider == "groq" and self.model_name == "gemini-flash-latest":
-            self.model_name = os.getenv("GROQ_MODEL", "llama-3.1-70b-versatile")
-        # Normalize legacy model name aliases
-        _aliases = {
-            "gemini-1.5-flash": "gemini-flash-latest",
-            "gemini-1.5-flash-latest": "gemini-flash-latest",
-            "gemini-2.5-flash": "gemini-flash-latest",  # 2.5-flash restricted for new API keys
-        }
-        self.model_name = _aliases.get(self.model_name, self.model_name)
-        # Schema-mode model: gemini-flash-lite-latest supports response_schema correctly.
-        # gemini-flash-latest (=2.0-flash) ignores response_mime_type when used with schema.
-        # Flash-lite has the same context window for ATC docs and is faster for structured extraction.
+    def __init__(
+        self,
+        *,
+        provider: Optional[str] = None,
+        base_url: Optional[str] = None,
+        model: Optional[str] = None,
+        api_key: Optional[str] = None,
+    ):
+        self.api_key = api_key or os.getenv("LLM_API_KEY", os.getenv("GROQ_API_KEY", os.getenv("GEMINI_API_KEY", "")))
+        
+        detected_provider = (provider or os.getenv("LLM_PROVIDER", "")).lower()
+        if not detected_provider:
+            if self.api_key.startswith("gsk_"):
+                detected_provider = "groq"
+            else:
+                detected_provider = "gemini"
+        self.provider = detected_provider
+
+        # Always initialize self.base_url to ensure the attribute exists on every instance
+        default_base_url = os.getenv("LLM_BASE_URL", os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1/chat/completions"))
+        self.base_url = base_url or default_base_url
+
+        self.model_name = model or os.getenv("LLM_MODEL", os.getenv("GEMINI_MODEL", "gemini-flash-latest"))
+        if self.provider == "groq":
+            if self.model_name in ("gemini-flash-latest", "gemini-1.5-flash"):
+                self.model_name = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+        
         self.schema_model = os.getenv("LLM_SCHEMA_MODEL", "gemini-flash-lite-latest")
-        self.base_url = os.getenv("LLM_BASE_URL", "")
-        if self.provider == "groq" and not self.base_url:
-            self.base_url = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1/chat/completions")
         self.enabled = os.getenv("LLM_FALLBACK_ENABLED", "true").lower() == "true"
         self._genai_client: Any = None  # google.genai.Client (v2 SDK) or legacy GenerativeModel
         self._sdk_type: Optional[str] = None  # "genai_v2" | "genai_legacy" | None
@@ -580,14 +629,19 @@ class LLMFieldResolver:
         )
         return response.text.strip()
 
-    def _call_openai_compatible(self, system_prompt: str, user_prompt: str) -> str:
+    def _call_openai_compatible(self, system_prompt: str, user_prompt: str, timeout: int = 30) -> str:
         """Call any OpenAI-compatible API endpoint via standard Python urllib (no external SDK required)."""
         import urllib.request
 
-        url = self.base_url or "https://api.openai.com/v1/chat/completions"
+        base_url = getattr(self, "base_url", None) or os.getenv("LLM_BASE_URL", os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1/chat/completions"))
+        logger.info("[LLM_FALLBACK] resolver base_url=%r, provider=%r, model=%r", base_url, getattr(self, "provider", "unknown"), getattr(self, "model_name", "unknown"))
+
+        url = base_url.strip()
         if url and not url.endswith("/chat/completions"):
             url = url.rstrip("/") + "/chat/completions"
         
+        logger.info("[LLM_FALLBACK] API request started to %s", url)
+
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}",
@@ -608,7 +662,9 @@ class LLMFieldResolver:
             headers=headers,
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=30) as response:
+        with urllib.request.urlopen(req, timeout=timeout) as response:
+            status_code = getattr(response, "status", getattr(response, "code", 200))
+            logger.info("[LLM_FALLBACK] API request completed with status %s", status_code)
             res_data = json.loads(response.read().decode("utf-8"))
             return res_data["choices"][0]["message"]["content"]
 
@@ -629,7 +685,8 @@ class LLMFieldResolver:
     ) -> Tuple[str, str]:
         """Build (system_instruction, user_prompt) for the API call."""
         # Truncate text to fit within model context without dropping mid-document clauses
-        max_chars = 48_000 if getattr(self, "provider", "") in ("groq", "openai") or "groq.com" in getattr(self, "base_url", "") else 800_000
+        # Groq HTTP gateway enforces ~30 KB payload limit (approx 20,000 chars text payload)
+        max_chars = 20_000 if getattr(self, "provider", "") in ("groq", "openai") or "groq.com" in getattr(self, "base_url", "") else 800_000
         if len(full_text) > max_chars:
             third = max_chars // 3
             # Extract middle slice around key ATC terms if present
@@ -801,45 +858,101 @@ class LLMFieldResolver:
             atc_full_text, known_missing, few_shot_section
         )
 
-        # ── API call ──────────────────────────────────────────────────────────
+        # ── API Call Execution with Retry Loop & Error Classification ──────────────
         raw_text = "{}"
-        try:
+        max_retries = int(os.getenv("LLM_MAX_RETRIES", "3"))
+        no_retry_status_codes = {400, 401, 403, 404, 413, 422}
+        
+        attempt = 0
+        call_success = False
+
+        while attempt < max_retries:
+            attempt += 1
             t0 = time.time()
-            if self.provider == "gemini":
-                try:
-                    if self._sdk_type == "genai_v2":
-                        raw_text = self._call_gemini_v2(system_instruction, user_prompt, known_missing)
-                    else:
-                        raw_text = self._call_gemini_legacy(system_instruction, user_prompt)
-                        # Legacy SDK may return markdown fences — strip them
-                        raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)
-                        raw_text = re.sub(r"\s*```$", "", raw_text)
-                except Exception as gemini_err:
-                    groq_key = os.getenv("GROQ_API_KEY") or os.getenv("LLM_API_KEY")
-                    if groq_key and "placeholder" not in groq_key.lower():
-                        logger.warning("[LLM_FALLBACK] Gemini API call failed (%s). Falling back to Groq API LLM...", gemini_err)
-                        self.provider = "groq"
-                        self.api_key = groq_key
-                        self.model_name = os.getenv("GROQ_MODEL", "llama-3.1-70b-versatile")
-                        self.base_url = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1/chat/completions")
-                        # Re-build prompt with Groq token optimization
-                        system_instruction, user_prompt = self._build_prompts(atc_full_text, known_missing, few_shot_section)
-                        raw_text = self._call_openai_compatible(system_instruction, user_prompt)
-                    else:
-                        raise gemini_err
-            elif self.provider == "groq":
-                raw_text = self._call_openai_compatible(system_instruction, user_prompt)
-            else:
-                raw_text = self._call_openai_compatible(system_instruction, user_prompt)
+            try:
+                if self.provider == "gemini":
+                    try:
+                        if self._sdk_type == "genai_v2":
+                            raw_text = self._call_gemini_v2(system_instruction, user_prompt, known_missing)
+                        else:
+                            raw_text = self._call_gemini_legacy(system_instruction, user_prompt)
+                            raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)
+                            raw_text = re.sub(r"\s*```$", "", raw_text)
+                    except Exception as gemini_err:
+                        groq_key = os.getenv("GROQ_API_KEY") or os.getenv("LLM_API_KEY")
+                        if groq_key and "placeholder" not in groq_key.lower():
+                            logger.warning("[LLM_FALLBACK][Layer 2] Gemini API call failed (%s). Falling back to Groq API LLM...", gemini_err)
+                            self.provider = "groq"
+                            self.api_key = groq_key
+                            self.model_name = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+                            self.base_url = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1/chat/completions")
+                            system_instruction, user_prompt = self._build_prompts(atc_full_text, known_missing, few_shot_section)
+                            raw_text = self._call_openai_compatible(system_instruction, user_prompt, timeout=30)
+                        else:
+                            raise gemini_err
+                elif self.provider == "groq":
+                    raw_text = self._call_openai_compatible(system_instruction, user_prompt, timeout=30)
+                else:
+                    raw_text = self._call_openai_compatible(system_instruction, user_prompt, timeout=30)
 
-            elapsed = time.time() - t0
-            logger.info("[LLM_FALLBACK] LLM (%s/%s) responded in %.2fs", self.provider, self._sdk_type or "openai", elapsed)
+                elapsed = time.time() - t0
+                logger.info("[LLM_FALLBACK][Layer 2] LLM call succeeded on attempt %d (%s/%s in %.2fs)", attempt, self.provider, self._sdk_type or "openai", elapsed)
+                call_success = True
+                break
 
-        except Exception as e:
-            logger.error("[LLM_FALLBACK] LLM API call failed (provider_error): %s", e, exc_info=True)
+            except urllib.error.HTTPError as e:
+                status_code = e.code
+                reason = getattr(e, "reason", str(e))
+                logger.error("[LLM_FALLBACK][Layer 2] HTTP %d on attempt %d: %s", status_code, attempt, reason)
+
+                if status_code in no_retry_status_codes:
+                    logger.error("[LLM_FALLBACK][Layer 2] Non-retryable error %d — falling back to heuristics immediately", status_code)
+                    break
+
+                if attempt >= max_retries:
+                    logger.error("[LLM_FALLBACK][Layer 2] Max retries (%d) exceeded — falling back to heuristics", max_retries)
+                    break
+
+                delay = (2 ** attempt) + random.uniform(0, 1)
+                logger.info("[LLM_FALLBACK][Layer 2] Retrying in %.2f seconds...", delay)
+                time.sleep(delay)
+
+            except urllib.error.URLError as e:
+                err_msg = str(e)
+                if "timed out" in err_msg.lower():
+                    logger.warning("[LLM_FALLBACK][Layer 2] Request timed out on attempt %d — retrying once with shorter timeout", attempt)
+                else:
+                    logger.error("[LLM_FALLBACK][Layer 2] URLError on attempt %d: %s", attempt, err_msg)
+                
+                if attempt >= max_retries:
+                    logger.error("[LLM_FALLBACK][Layer 2] Max retries exceeded after network error — falling back to heuristics")
+                    break
+
+                delay = (2 ** attempt) + random.uniform(0, 1)
+                logger.info("[LLM_FALLBACK][Layer 2] Retrying in %.2f seconds...", delay)
+                time.sleep(delay)
+
+            except Exception as e:
+                err_str = str(e)
+                code_match = re.search(r"\b(400|401|403|404|413|422)\b", err_str)
+                if code_match or "api key not valid" in err_str.lower() or "unauthorized" in err_str.lower():
+                    status_code = int(code_match.group(1)) if code_match else 400
+                    logger.error("[LLM_FALLBACK][Layer 2] Non-retryable client error (%s) on attempt %d — falling back to heuristics immediately: %s", status_code, attempt, e)
+                    break
+
+                logger.error("[LLM_FALLBACK][Layer 2] Unexpected error on attempt %d: %s", attempt, e, exc_info=True)
+                if attempt >= max_retries:
+                    logger.error("[LLM_FALLBACK][Layer 2] Max retries exceeded after unexpected error — falling back to heuristics")
+                    break
+
+                delay = (2 ** attempt) + random.uniform(0, 1)
+                logger.info("[LLM_FALLBACK][Layer 2] Retrying in %.2f seconds...", delay)
+                time.sleep(delay)
+
+        if not call_success:
             logger.info("[LLM_FALLBACK] Provider failure encountered — executing local heuristics fallback")
             heuristics_res = self._resolve_local_heuristics(atc_full_text, known_missing)
-            heuristics_res["_llm_status"] = {"status": "provider_error", "error": str(e), "provider": self.provider}
+            heuristics_res["_llm_status"] = {"status": "provider_error", "provider": self.provider}
             return heuristics_res
 
         # ── Parse response ────────────────────────────────────────────────────
@@ -871,10 +984,9 @@ class LLMFieldResolver:
             display_val = self._map_to_display_value(display_key, raw_value)
             if display_val:
                 results[display_key] = {"value": display_val, "source": "llm", "layer": "layer_2"}
-                logger.info("[LLM_FALLBACK] Resolved '%s' = %r", display_key, display_val)
-                # Persist to learning memory
-                if anchor_snippet and anchor_snippet != "boolean_value":
-                    _save_memory(display_key, anchor_snippet, raw_value, detected_type)
+                # Learning memory is gated behind human review (record_correction) or validated ground truth seeds
+                # Runtime auto-writes are bypassed to prevent hallucination pollution.
+                logger.debug("[LLM_MEMORY] Runtime auto-write bypassed for '%s' (gated behind human review)", display_key)
 
         logger.info("[LLM_FALLBACK] Resolved %d/%d fields via %s", len(results), len(known_missing), self.provider)
 
@@ -896,20 +1008,20 @@ class LLMFieldResolver:
 
         # 1. Payment terms supply/installation %
         if "payment_terms_supply_display" in missing_keys or "payment_terms_installation_display" in missing_keys:
-            m_s = re.search(
-                r"(\d+)\%\s*(?:Payment\s+of\s+Supply|portion\s+on\s+receipt|against\s+supply|upon\s+receipt)",
-                full_text, re.IGNORECASE,
+            m_s = (
+                re.search(r"(\d+)\%\s*(?:Payment\s+of\s+Supply|portion\s+on\s+receipt|against\s+supply|upon\s+receipt)", full_text, re.IGNORECASE)
+                or re.search(r"(\d+)\%\s*(?:payment\s+against\s+delivery)", full_text, re.IGNORECASE)
             )
-            m_i = re.search(
-                r"(\d+)\%\s*(?:payment\s+of\s+installation|portion[''s]+and\s+payment|installation\s+&\s+commissioning)",
-                full_text, re.IGNORECASE,
+            m_i = (
+                re.search(r"(\d+)\%\s*(?:payment\s+of\s+installation|portion[''s]+and\s+payment|installation\s+&\s+commissioning)", full_text, re.IGNORECASE)
+                or re.search(r"(\d+)\%\s*(?:after\s+installation)", full_text, re.IGNORECASE)
             )
             if m_s:
                 results["payment_terms_supply_display"] = {"value": f"{m_s.group(1)}%", "source": "heuristic_regex"}
             if m_i:
                 results["payment_terms_installation_display"] = {"value": f"{m_i.group(1)}%", "source": "heuristic_regex"}
 
-        # 2. Custom eligibility criteria
+        # 2. Custom eligibility criteria & Work Order values
         if "custom_eligibility_criteria_display" in missing_keys:
             m_bec = re.search(
                 r"(?:Table-1|Minimum\s+Executed\s+Order\s+value)(?:[^\n]*\n){1,8}",
@@ -931,7 +1043,36 @@ class LLMFieldResolver:
                 if re.search(r"\d", bec_content_no_header):
                     results["custom_eligibility_criteria_display"] = {"value": clean_bec[:500].strip(), "source": "heuristic_regex"}
 
-        # 3. Client Email / Phone / Name
+        # Work Order 1 / 2 / 3 values extraction
+        if "order_value_1_display" in missing_keys:
+            m_wo1 = re.search(r"(?:single|1st|one)\s+(?:order|work|po)[^\n]{0,80}?(?:value\s+of|valuing|rs\.?)\s*([\d\.,\s]+(?:lacs|lakhs|crore|cr)?)", full_text, re.IGNORECASE)
+            if m_wo1:
+                results["order_value_1_display"] = {"value": m_wo1.group(1).strip(), "source": "heuristic_regex"}
+
+        if "order_value_2_display" in missing_keys:
+            m_wo2 = re.search(r"(?:two|2nd)\s+(?:orders|works|pos)[^\n]{0,80}?(?:value\s+of|valuing|rs\.?)\s*([\d\.,\s]+(?:lacs|lakhs|crore|cr)?)", full_text, re.IGNORECASE)
+            if m_wo2:
+                results["order_value_2_display"] = {"value": m_wo2.group(1).strip(), "source": "heuristic_regex"}
+
+        if "order_value_3_display" in missing_keys:
+            m_wo3 = re.search(r"(?:three|3rd)\s+(?:orders|works|pos)[^\n]{0,80}?(?:value\s+of|valuing|rs\.?)\s*([\d\.,\s]+(?:lacs|lakhs|crore|cr)?)", full_text, re.IGNORECASE)
+            if m_wo3:
+                results["order_value_3_display"] = {"value": m_wo3.group(1).strip(), "source": "heuristic_regex"}
+
+        # 3. Financial Criteria (Turnover, Working Capital, Net Worth, Solvency)
+        if "avg_annual_turnover_value_display" in missing_keys:
+            m_to = re.search(r"(?:annual\s+turnover|turn\s*over)[^\n]{0,80}?(?:rs\.?|\b)\s*([\d\.,\s]+(?:lacs|lakhs|crore|cr)?)", full_text, re.IGNORECASE)
+            if m_to and re.search(r"\d", m_to.group(1)):
+                results["avg_annual_turnover_value_display"] = {"value": m_to.group(1).strip(), "source": "heuristic_regex"}
+
+        if "working_capital_value_display" in missing_keys:
+            m_wc = re.search(r"(?:working\s+capital)[^\n]{0,80}?(?:rs\.?|\b)\s*([\d\.,\s]+(?:lacs|lakhs|crore|cr)?)", full_text, re.IGNORECASE)
+            if m_wc and re.search(r"\d", m_wc.group(1)):
+                match_context = full_text[max(0, m_wc.start()-100):min(len(full_text), m_wc.end()+100)].lower()
+                if not any(k in match_context for k in ["bank guarantee", "bank net worth", "issuing bank", "scheduled bank"]):
+                    results["working_capital_value_display"] = {"value": m_wc.group(1).strip(), "source": "heuristic_regex"}
+
+        # 4. Client Email / Phone / Name
         if "client_email_1_display" in missing_keys:
             m_em = re.search(r"([a-zA-Z0-9\._%+\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,})", full_text)
             if m_em:
@@ -944,5 +1085,10 @@ class LLMFieldResolver:
             )
             if m_nm:
                 results["client_name_1_display"] = {"value": m_nm.group(0).strip(), "source": "heuristic_regex"}
+
+        if "eligibility_criterion_years_display" in missing_keys:
+            m_yr = re.search(r"(?:preceding|past|previous)\s+(?:financial\s+)?(\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten)\s+years?", full_text, re.IGNORECASE)
+            if m_yr:
+                results["eligibility_criterion_years_display"] = {"value": m_yr.group(1).strip(), "source": "heuristic_regex"}
 
         return results

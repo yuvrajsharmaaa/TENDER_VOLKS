@@ -241,20 +241,21 @@ FIELD_ANCHORS = {
     "inspection_required": {"section": None, "anchors": ["Inspection Required"]},
     "arbitration_clause": {"section": None, "anchors": ["Arbitration Clause"]},
     "mediation_clause": {"section": None, "anchors": ["Mediation Clause"]},
-    "mse_relaxation_experience_turnover": {"section": None, "anchors": ["MSE Relaxation for Years of Experience and Turnover"]},
-    "startup_relaxation_experience_turnover": {"section": None, "anchors": ["Startup Relaxation for Years Of Experience and Turnover"]},
-    "mse_purchase_preference": {"section": None, "anchors": ["MSE Purchase Preference"]},
+    "mse_relaxation_experience_turnover": {"section": None, "anchors": ["MSE Relaxation for Years of Experience and Turnover", "MSE Exemption for Years of Experience and Turnover", "MSE Relaxation"]},
+    "startup_relaxation_experience_turnover": {"section": None, "anchors": ["Startup Relaxation for Years Of Experience and Turnover", "Startup Exemption for Years of Experience and Turnover", "Startup Exemption for Years Of Experience and Turnover", "Startup Relaxation"]},
+    "mse_purchase_preference": {"section": None, "anchors": ["MSE Purchase Preference", "MSE Purchase Preference / एमएसई खरीद वरीयता"]},
     "mse_preference_price_band_percent": {"section": None, "anchors": ["Purchase Preference to MSE OEMs available upto price within L1+X%"]},
     "mse_preference_max_qty_percent": {"section": None, "anchors": ["Maximum Percentage of Bid quantity for MSE purchase preference"]},
-    "mii_purchase_preference": {"section": None, "anchors": ["MII Purchase Preference"]},
+    "mii_purchase_preference": {"section": None, "anchors": ["MII Purchase Preference", "MII Purchase Preference / एमआईआई खरीद वरीयता"]},
     "mii_non_applicability_reason": {"section": None, "anchors": ["Brief Description of the Approval Granted by Competent Authority"]},
     "required_documents": {"section": None, "anchors": ["Document required from seller"]},
+    "pre_bid_meeting": {"section": None, "anchors": ["Pre-Bid Date and Time", "Pre-Bid Venue", "Pre-Bid Meeting Details"]},
     "atc_document_link_present": {"section": None, "anchors": ["Buyer uploaded ATC document"]},
     "land_border_clause_present": {"section": None, "anchors": ["Restrictions on procurement from a bidder of a country which shares a land border with India"]},
     
     # Out of scope mappings
     "tender_value_gst_inclusive": {"section": None, "anchors": ["Estimated Bid Value", "Tender Value (GST Inclusive)", "Estimated Bid Value / अनुमानित बिड मूल्य"]},
-    "eligibility_criterion_years": {"section": None, "anchors": ["Minimum Experience (Years)"]},
+    "eligibility_criterion_years": {"section": None, "anchors": ["Minimum Experience (Years)", "Experience Criteria", "Years of Past Experience Required"]},
     "annual_avg_turnover_value": {"section": None, "anchors": ["Annual Turnover Limit", "Annual Avg Turnover"]},
     "working_capital_value": {"section": None, "anchors": ["Working Capital Value", "Working Capital"]},
     "net_worth_type_value": {"section": None, "anchors": ["Net Worth Value", "Net Worth"]},
@@ -368,12 +369,32 @@ def segment_by_schedule(layout_regions: List[LayoutRegion], text_blocks: List[Te
 class GemFieldExtractor(FieldExtractor):
     def __init__(self):
         super().__init__()
-        yaml_path = Path(__file__).resolve().parent.parent.parent / "gem_parent_tender_extraction_map.yaml"
+        # Candidate paths for extraction map
+        current_dir = Path(__file__).resolve().parent
+        candidate_paths = [
+            current_dir.parent / "gem_parent_tender_extraction_map.yaml",  # ocr/gem_parent_tender_extraction_map.yaml
+            current_dir / "gem_parent_tender_extraction_map.yaml",         # ocr/extractors/gem_parent_tender_extraction_map.yaml
+            Path("/app/gem_parent_tender_extraction_map.yaml"),            # Docker /app mount root
+            current_dir.parent.parent / "gem_parent_tender_extraction_map.yaml"  # Project root
+        ]
+        
+        yaml_path = None
+        for path in candidate_paths:
+            if path.exists():
+                yaml_path = path
+                break
+                
+        if not yaml_path:
+            raise FileNotFoundError(
+                f"Could not find gem_parent_tender_extraction_map.yaml in any of the searched locations: {candidate_paths}"
+            )
+            
         logger.info(f"Loading GeM extraction spec from: {yaml_path}")
         with open(yaml_path, "r", encoding="utf-8") as f:
             self.spec = yaml.safe_load(f)
         self.fields_spec = self.spec.get("fields", {})
         self.out_of_scope_spec = self.spec.get("out_of_scope_stage1", [])
+
 
     def extract_fields(self, pages: List[PageResult], doc_source: str = "main_tender") -> List[ExtractedFieldSchema]:
         extracted = []

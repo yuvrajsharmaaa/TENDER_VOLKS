@@ -1,0 +1,1185 @@
+{
+  "summary": {
+    "total_fields_checked": 168,
+    "match_count": 168,
+    "accuracy_percentage": 100.0
+  },
+  "results": [
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "tender_id_display",
+      "expected": "GEM/2025/B/7021103",
+      "actual": "GEM/2025/B/7021103",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "organization",
+      "expected": "Gail India Limited",
+      "actual": "Gail India Limited",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "emd_amount_display",
+      "expected": "₹0.00",
+      "actual": "₹0.00",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "emd_required_display",
+      "expected": "No",
+      "actual": "No",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "pbg_percentage_display",
+      "expected": "5%",
+      "actual": "5%",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "pbg_duration_display",
+      "expected": "30",
+      "actual": "30",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "bid_validity_days_display",
+      "expected": "90 Days",
+      "actual": "90 Days",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "delivery_time_supply_display",
+      "expected": "90 Days",
+      "actual": "90 Days",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "delivery_time_installation_display",
+      "expected": "90 Days",
+      "actual": "90 Days",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "ld_percentage_display",
+      "expected": "0.5",
+      "actual": "0.5",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "max_ld_percentage_display",
+      "expected": "5.0",
+      "actual": "5.0",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "mse_preference_display",
+      "expected": "Yes",
+      "actual": "Yes",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "mii_preference_display",
+      "expected": "No",
+      "actual": "No",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "startup_relaxation_display",
+      "expected": "Yes | Complete",
+      "actual": "Yes | Complete",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "avg_annual_turnover_type_display",
+      "expected": "Not Applicable",
+      "actual": "Not Applicable",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "avg_annual_turnover_value_display",
+      "expected": "₹0.00",
+      "actual": "₹0.00",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "working_capital_type_display",
+      "expected": "Not Applicable",
+      "actual": "Not Applicable",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "working_capital_value_display",
+      "expected": "₹0.00",
+      "actual": "₹0.00",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "solvency_certificate_type_display",
+      "expected": "Not Applicable",
+      "actual": "Not Applicable",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "solvency_certificate_value_display",
+      "expected": "₹0.00",
+      "actual": "₹0.00",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "net_worth_type_display",
+      "expected": "Not Applicable",
+      "actual": "Not Applicable",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "net_worth_value_display",
+      "expected": "₹0.00",
+      "actual": "₹0.00",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "client_email_1_display",
+      "expected": "dgeorge@gail.co.in",
+      "actual": "dgeorge@gail.co.in",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "client_name_2_display",
+      "expected": "Shri D S DIVEKAR",
+      "actual": "Shri D S DIVEKAR",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "client_email_2_display",
+      "expected": "dsd04504@gail.co.in",
+      "actual": "dsd04504@gail.co.in",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "client_name_3_display",
+      "expected": "N/A",
+      "actual": "N/A",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "client_email_3_display",
+      "expected": "N/A",
+      "actual": "N/A",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "doc_1_display",
+      "expected": "Experience Criteria",
+      "actual": "Experience Criteria",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "doc_2_display",
+      "expected": "Bidder Turnover",
+      "actual": "Bidder Turnover",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "doc_3_display",
+      "expected": "Certificate (Requested in ATC)",
+      "actual": "Certificate (Requested in ATC)",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "doc_4_display",
+      "expected": "OEM Authorization Certificate",
+      "actual": "OEM Authorization Certificate",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "doc_5_display",
+      "expected": "Additional Doc 1 (Requested in ATC)",
+      "actual": "Additional Doc 1 (Requested in ATC)",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "doc_6_display",
+      "expected": "Additional Doc 2 (Requested in ATC)",
+      "actual": "Additional Doc 2 (Requested in ATC)",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Split Morena",
+      "field_name": "doc_7_display",
+      "expected": "N/A",
+      "actual": "N/A",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "tender_id_display",
+      "expected": "GEM/2026/B/7786440",
+      "actual": "GEM/2026/B/7786440",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "organization",
+      "expected": "Gail India Limited",
+      "actual": "Gail India Limited",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "emd_amount_display",
+      "expected": "₹1,14,163",
+      "actual": "₹1,14,163",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "emd_required_display",
+      "expected": "Yes",
+      "actual": "Yes",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "emd_mode_display",
+      "expected": "BT/DD/SB/FDR/BG",
+      "actual": "BT/DD/SB/FDR/BG",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "pbg_percentage_display",
+      "expected": "5%",
+      "actual": "5%",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "pbg_duration_display",
+      "expected": "33",
+      "actual": "33",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "bid_validity_days_display",
+      "expected": "90 Days",
+      "actual": "90 Days",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "delivery_time_supply_display",
+      "expected": "549 Days",
+      "actual": "549 Days",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "delivery_time_installation_display",
+      "expected": "549 Days",
+      "actual": "549 Days",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "ld_percentage_display",
+      "expected": "0.5",
+      "actual": "0.5",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "max_ld_percentage_display",
+      "expected": "5.0",
+      "actual": "5.0",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "mse_preference_display",
+      "expected": "No",
+      "actual": "No",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "mii_preference_display",
+      "expected": "No",
+      "actual": "No",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "startup_relaxation_display",
+      "expected": "No",
+      "actual": "No",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "avg_annual_turnover_type_display",
+      "expected": "Not Applicable",
+      "actual": "Not Applicable",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "avg_annual_turnover_value_display",
+      "expected": "₹0.00",
+      "actual": "₹0.00",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "working_capital_type_display",
+      "expected": "Not Applicable",
+      "actual": "Not Applicable",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "working_capital_value_display",
+      "expected": "₹0.00",
+      "actual": "₹0.00",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "solvency_certificate_type_display",
+      "expected": "Not Applicable",
+      "actual": "Not Applicable",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "solvency_certificate_value_display",
+      "expected": "₹0.00",
+      "actual": "₹0.00",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "net_worth_type_display",
+      "expected": "Not Applicable",
+      "actual": "Not Applicable",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "net_worth_value_display",
+      "expected": "₹0.00",
+      "actual": "₹0.00",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "client_email_1_display",
+      "expected": "k.kartheek@gail.co.in",
+      "actual": "k.kartheek@gail.co.in",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "client_name_2_display",
+      "expected": "Shri Tanmoy Shome",
+      "actual": "Shri Tanmoy Shome",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "client_email_2_display",
+      "expected": "tshome@gail.co.in",
+      "actual": "tshome@gail.co.in",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "client_name_3_display",
+      "expected": "N/A",
+      "actual": "N/A",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "client_email_3_display",
+      "expected": "N/A",
+      "actual": "N/A",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "doc_1_display",
+      "expected": "OEM Authorization Certificate",
+      "actual": "OEM Authorization Certificate",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "doc_2_display",
+      "expected": "Additional Doc 1 (Requested in ATC)",
+      "actual": "Additional Doc 1 (Requested in ATC)",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "doc_3_display",
+      "expected": "Additional Doc 2 (Requested in ATC)",
+      "actual": "Additional Doc 2 (Requested in ATC)",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "doc_4_display",
+      "expected": "Additional Doc 3 (Requested in ATC)",
+      "actual": "Additional Doc 3 (Requested in ATC)",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "doc_5_display",
+      "expected": "N/A",
+      "actual": "N/A",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Vadodra",
+      "field_name": "doc_6_display",
+      "expected": "N/A",
+      "actual": "N/A",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "tender_id_display",
+      "expected": "GEM/2026/B/7357339",
+      "actual": "GEM/2026/B/7357339",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "organization",
+      "expected": "Gail India Limited",
+      "actual": "Gail India Limited",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "emd_amount_display",
+      "expected": "₹42,000",
+      "actual": "₹42,000",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "emd_required_display",
+      "expected": "Yes",
+      "actual": "Yes",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "emd_mode_display",
+      "expected": "BT/DD/SB/FDR/BG",
+      "actual": "BT/DD/SB/FDR/BG",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "pbg_percentage_display",
+      "expected": "5%",
+      "actual": "5%",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "pbg_duration_display",
+      "expected": "19",
+      "actual": "19",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "bid_validity_days_display",
+      "expected": "90 Days",
+      "actual": "90 Days",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "delivery_time_supply_display",
+      "expected": "105 Days",
+      "actual": "105 Days",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "delivery_time_installation_display",
+      "expected": "105 Days",
+      "actual": "105 Days",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "payment_terms_supply_display",
+      "expected": "70.0",
+      "actual": "70.0",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "payment_terms_installation_display",
+      "expected": "30.0",
+      "actual": "30.0",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "ld_percentage_display",
+      "expected": "0.5",
+      "actual": "0.5",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "max_ld_percentage_display",
+      "expected": "5.0",
+      "actual": "5.0",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "mse_preference_display",
+      "expected": "Yes",
+      "actual": "Yes",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "mii_preference_display",
+      "expected": "No",
+      "actual": "No",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "startup_relaxation_display",
+      "expected": "Yes | Complete",
+      "actual": "Yes | Complete",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "avg_annual_turnover_type_display",
+      "expected": "Not Applicable",
+      "actual": "Not Applicable",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "avg_annual_turnover_value_display",
+      "expected": "₹0.00",
+      "actual": "₹0.00",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "working_capital_type_display",
+      "expected": "Not Applicable",
+      "actual": "Not Applicable",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "working_capital_value_display",
+      "expected": "₹0.00",
+      "actual": "₹0.00",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "solvency_certificate_type_display",
+      "expected": "Not Applicable",
+      "actual": "Not Applicable",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "solvency_certificate_value_display",
+      "expected": "₹0.00",
+      "actual": "₹0.00",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "net_worth_type_display",
+      "expected": "Not Applicable",
+      "actual": "Not Applicable",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "net_worth_value_display",
+      "expected": "₹0.00",
+      "actual": "₹0.00",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "client_email_1_display",
+      "expected": "vishal1@gail.co.in",
+      "actual": "vishal1@gail.co.in",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "client_name_2_display",
+      "expected": "Shri S. Patta",
+      "actual": "Shri S. Patta",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "client_email_2_display",
+      "expected": "s.patta@gail.co.in",
+      "actual": "s.patta@gail.co.in",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "client_name_3_display",
+      "expected": "N/A",
+      "actual": "N/A",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "client_email_3_display",
+      "expected": "N/A",
+      "actual": "N/A",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "doc_1_display",
+      "expected": "Experience Criteria",
+      "actual": "Experience Criteria",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "doc_2_display",
+      "expected": "Bidder Turnover",
+      "actual": "Bidder Turnover",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "doc_3_display",
+      "expected": "Certificate (Requested in ATC)",
+      "actual": "Certificate (Requested in ATC)",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "doc_4_display",
+      "expected": "Additional Doc 1 (Requested in ATC)",
+      "actual": "Additional Doc 1 (Requested in ATC)",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "doc_5_display",
+      "expected": "Additional Doc 2 (Requested in ATC)",
+      "actual": "Additional Doc 2 (Requested in ATC)",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "doc_6_display",
+      "expected": "Additional Doc 3 (Requested in ATC)",
+      "actual": "Additional Doc 3 (Requested in ATC)",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GAIL Visakhapatnam B&BC VRLA",
+      "field_name": "doc_7_display",
+      "expected": "N/A",
+      "actual": "N/A",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "tender_id_display",
+      "expected": "GEM/2026/B/7306631",
+      "actual": "GEM/2026/B/7306631",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "organization",
+      "expected": "Gail India Limited",
+      "actual": "Gail India Limited",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "emd_amount_display",
+      "expected": "₹1,94,177",
+      "actual": "₹1,94,177",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "emd_required_display",
+      "expected": "Yes",
+      "actual": "Yes",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "emd_mode_display",
+      "expected": "BT/DD/SB/FDR/BG",
+      "actual": "BT/DD/SB/FDR/BG",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "pbg_percentage_display",
+      "expected": "5%",
+      "actual": "5%",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "pbg_duration_display",
+      "expected": "21",
+      "actual": "21",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "bid_validity_days_display",
+      "expected": "90 Days",
+      "actual": "90 Days",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "delivery_time_supply_display",
+      "expected": "150 Days",
+      "actual": "150 Days",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "delivery_time_installation_display",
+      "expected": "150 Days",
+      "actual": "150 Days",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "payment_terms_supply_display",
+      "expected": "80.0",
+      "actual": "80.0",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "payment_terms_installation_display",
+      "expected": "20.0",
+      "actual": "20.0",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "ld_percentage_display",
+      "expected": "0.5",
+      "actual": "0.5",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "max_ld_percentage_display",
+      "expected": "5.0",
+      "actual": "5.0",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "mse_preference_display",
+      "expected": "Yes",
+      "actual": "Yes",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "mii_preference_display",
+      "expected": "No",
+      "actual": "No",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "startup_relaxation_display",
+      "expected": "Yes | Complete",
+      "actual": "Yes | Complete",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "avg_annual_turnover_type_display",
+      "expected": "Not Applicable",
+      "actual": "Not Applicable",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "avg_annual_turnover_value_display",
+      "expected": "₹0.00",
+      "actual": "₹0.00",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "working_capital_type_display",
+      "expected": "Not Applicable",
+      "actual": "Not Applicable",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "working_capital_value_display",
+      "expected": "₹0.00",
+      "actual": "₹0.00",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "solvency_certificate_type_display",
+      "expected": "Not Applicable",
+      "actual": "Not Applicable",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "solvency_certificate_value_display",
+      "expected": "₹0.00",
+      "actual": "₹0.00",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "net_worth_type_display",
+      "expected": "Not Applicable",
+      "actual": "Not Applicable",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "net_worth_value_display",
+      "expected": "₹0.00",
+      "actual": "₹0.00",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "client_email_1_display",
+      "expected": "poolsingh.boda@gail.co.in",
+      "actual": "poolsingh.boda@gail.co.in",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "client_email_2_display",
+      "expected": "sheewshankar@gail.co.in",
+      "actual": "sheewshankar@gail.co.in",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "client_name_3_display",
+      "expected": "N/A",
+      "actual": "N/A",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "client_email_3_display",
+      "expected": "N/A",
+      "actual": "N/A",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "doc_1_display",
+      "expected": "Experience Criteria",
+      "actual": "Experience Criteria",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "doc_2_display",
+      "expected": "Certificate (Requested in ATC)",
+      "actual": "Certificate (Requested in ATC)",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "doc_3_display",
+      "expected": "OEM Authorization Certificate",
+      "actual": "OEM Authorization Certificate",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "doc_4_display",
+      "expected": "Additional Doc 1 (Requested in ATC)",
+      "actual": "Additional Doc 1 (Requested in ATC)",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "doc_5_display",
+      "expected": "Additional Doc 2 (Requested in ATC)",
+      "actual": "Additional Doc 2 (Requested in ATC)",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "doc_6_display",
+      "expected": "N/A",
+      "actual": "N/A",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "courier_address_display",
+      "expected": "GAIL (India) Limited, LPG Booster Station, IPS, NH-27, PO Khadat, Abu Road, Dist. Sirohi, Rajasthan - 307026",
+      "actual": "GAIL (India) Limited, LPG Booster Station, IPS, NH-27, PO Khadat, Abu Road, Dist. Sirohi, Rajasthan - 307026",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "schedule_1_details_display",
+      "expected": "Sch 1 | Qty: 12 | Delivery: 150 days | SUPPLY OF NI-CD BATTERY BANKS UNDER BUY BACK",
+      "actual": "Sch 1 | Qty: 12 | Delivery: 150 days | SUPPLY OF NI-CD BATTERY BANKS UNDER BUY BACK",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9062837",
+      "field_name": "schedule_2_details_display",
+      "expected": "Sch 2 | Qty: 6 | Delivery: 150 days | INSTALLATION, TESTING AND COMMISSIONING OF NI-CD BATTERY BANKS ( 6 pieces )",
+      "actual": "Sch 2 | Qty: 6 | Delivery: 150 days | INSTALLATION, TESTING AND COMMISSIONING OF NI-CD BATTERY BANKS ( 6 pieces )",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9487565",
+      "field_name": "tender_id_display",
+      "expected": "GEM/2026/B/7681659",
+      "actual": "GEM/2026/B/7681659",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9487565",
+      "field_name": "organization",
+      "expected": "Power Grid Corporation Of India Limited",
+      "actual": "Power Grid Corporation Of India Limited",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9487565",
+      "field_name": "emd_amount_display",
+      "expected": "₹67,000",
+      "actual": "₹67,000",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9487565",
+      "field_name": "emd_required_display",
+      "expected": "Yes",
+      "actual": "Yes",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9487565",
+      "field_name": "emd_mode_display",
+      "expected": "BT/DD/SB",
+      "actual": "BT/DD/SB",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9487565",
+      "field_name": "pbg_percentage_display",
+      "expected": "5%",
+      "actual": "5%",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9487565",
+      "field_name": "pbg_duration_display",
+      "expected": "50",
+      "actual": "50",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9487565",
+      "field_name": "bid_validity_days_display",
+      "expected": "120 Days",
+      "actual": "120 Days",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9487565",
+      "field_name": "delivery_time_supply_display",
+      "expected": "140 Days",
+      "actual": "140 Days",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9487565",
+      "field_name": "delivery_time_installation_display",
+      "expected": "140 Days",
+      "actual": "140 Days",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9487565",
+      "field_name": "payment_terms_supply_display",
+      "expected": "85%",
+      "actual": "85%",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9487565",
+      "field_name": "payment_terms_installation_display",
+      "expected": "85%",
+      "actual": "85%",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9487565",
+      "field_name": "mse_preference_display",
+      "expected": "No",
+      "actual": "No",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9487565",
+      "field_name": "mii_preference_display",
+      "expected": "No",
+      "actual": "No",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9487565",
+      "field_name": "startup_relaxation_display",
+      "expected": "No",
+      "actual": "No",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9487565",
+      "field_name": "client_email_1_display",
+      "expected": "con202.pgcil.jk@gembuyer.in",
+      "actual": "con202.pgcil.jk@gembuyer.in",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9487565",
+      "field_name": "client_name_2_display",
+      "expected": "Ms. Insha Feroz Khan",
+      "actual": "Ms. Insha Feroz Khan",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9487565",
+      "field_name": "client_email_2_display",
+      "expected": "insha.khan@powergrid.in",
+      "actual": "insha.khan@powergrid.in",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9487565",
+      "field_name": "client_name_3_display",
+      "expected": "N/A",
+      "actual": "N/A",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9487565",
+      "field_name": "client_email_3_display",
+      "expected": "N/A",
+      "actual": "N/A",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9487565",
+      "field_name": "doc_1_display",
+      "expected": "Experience Criteria",
+      "actual": "Experience Criteria",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9487565",
+      "field_name": "doc_2_display",
+      "expected": "Certificate (Requested in ATC)",
+      "actual": "Certificate (Requested in ATC)",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9487565",
+      "field_name": "doc_3_display",
+      "expected": "OEM Authorization Certificate",
+      "actual": "OEM Authorization Certificate",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9487565",
+      "field_name": "doc_4_display",
+      "expected": "N/A",
+      "actual": "N/A",
+      "status": "MATCH"
+    },
+    {
+      "tender_id": "GeM-Bidding-9487565",
+      "field_name": "doc_5_display",
+      "expected": "N/A",
+      "actual": "N/A",
+      "status": "MATCH"
+    }
+  ]
+}

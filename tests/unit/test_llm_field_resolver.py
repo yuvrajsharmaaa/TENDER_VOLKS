@@ -15,19 +15,17 @@ def test_llm_resolver_missing_fields_empty():
 
 def test_llm_resolver_unconfigured_api_key():
     resolver = LLMFieldResolver()
-    resolver.api_key = "AIzaSyFakeKeyPlaceholderForTenderOCR"  # placeholder key
+    resolver.api_key = "LLM_API_KEY"  # placeholder key
     res = resolver.resolve("Some ATC text", ["payment_terms_supply_display"])
-    assert res == {}
+    extracted = {k: v for k, v in res.items() if k != "_llm_status"}
+    assert extracted == {}
 
 def test_llm_resolver_successful_parse():
     resolver = LLMFieldResolver()
     resolver.api_key = "AIzaSyRealKeyStyleForTesting"
     resolver.enabled = True
     
-    # Mock client and response
-    mock_client = MagicMock()
-    mock_resp = MagicMock()
-    mock_resp.text = """
+    mock_json = """
     {
         "payment_terms_supply_pct": 70,
         "payment_terms_installation_pct": 30,
@@ -37,8 +35,7 @@ def test_llm_resolver_successful_parse():
         "client_email_1": "ramar@gail.co.in"
     }
     """
-    mock_client.generate_content.return_value = mock_resp
-    resolver._get_client = MagicMock(return_value=mock_client)
+    resolver._call_gemini_v2 = MagicMock(return_value=mock_json)
     
     atc_text = "GAIL payment terms: 70% of supply value and 30% installation. RAMAR E nodal officer email ramar@gail.co.in. PRS delay 0.5%. MAF Required."
     
@@ -51,29 +48,25 @@ def test_llm_resolver_successful_parse():
         "client_email_1_display"
     ])
     
-    assert res["payment_terms_supply_display"] == "70%"
-    assert res["payment_terms_installation_display"] == "30%"
-    assert res["ld_percentage_display"] == "0.5%"
-    assert res["maf_required_display"] == "Yes"
-    assert res["client_name_1_display"] == "RAMAR E"
-    assert res["client_email_1_display"] == "ramar@gail.co.in"
+    assert res["payment_terms_supply_display"]["value"] == "70%"
+    assert res["payment_terms_installation_display"]["value"] == "30%"
+    assert res["ld_percentage_display"]["value"] == "0.5%"
+    assert res["maf_required_display"]["value"] == "Yes"
+    assert res["client_name_1_display"]["value"] == "RAMAR E"
+    assert res["client_email_1_display"]["value"] == "ramar@gail.co.in"
 
 def test_llm_resolver_hallucination_filtering():
     resolver = LLMFieldResolver()
     resolver.api_key = "AIzaSyRealKeyStyleForTesting"
     resolver.enabled = True
     
-    # Mock client and response
-    mock_client = MagicMock()
-    mock_resp = MagicMock()
-    mock_resp.text = """
+    mock_json = """
     {
         "client_name_1": "JOHN DOE",
         "client_name_2": "RAMAR E"
     }
     """
-    mock_client.generate_content.return_value = mock_resp
-    resolver._get_client = MagicMock(return_value=mock_client)
+    resolver._call_gemini_v2 = MagicMock(return_value=mock_json)
     
     atc_text = "Tender officer is RAMAR E."
     
@@ -84,7 +77,7 @@ def test_llm_resolver_hallucination_filtering():
     
     # client_name_1 ("JOHN DOE") should be filtered out because it can't be anchored
     assert "client_name_1_display" not in res
-    assert res["client_name_2_display"] == "RAMAR E"
+    assert res["client_name_2_display"]["value"] == "RAMAR E"
 
 
 def test_llm_resolver_openai_compatible():
@@ -110,8 +103,8 @@ def test_llm_resolver_openai_compatible():
         "payment_terms_installation_display"
     ])
     
-    assert res["payment_terms_supply_display"] == "80%"
-    assert res["payment_terms_installation_display"] == "20%"
+    assert res["payment_terms_supply_display"]["value"] == "80%"
+    assert res["payment_terms_installation_display"]["value"] == "20%"
     resolver._call_openai_compatible.assert_called_once()
 
 

@@ -66,7 +66,12 @@ MAIN_FIELD_ALIASES: Dict[str, List[str]] = {
         "Delivery Time Supply",
         "delivery_time_supply",
         "delivery_time_supply_days",
-        "delivery_time_supply_display"
+        "delivery_time_supply_display",
+        "Delivery Period (In Days)",
+        "Delivery Schedules",
+        "Delivery Period",
+        "Delivery Days",
+        "Delivery Period (Days)"
     ],
     "delivery_time_installation": [
         "Delivery Time Installation (Days)",
@@ -80,10 +85,8 @@ MAIN_FIELD_ALIASES: Dict[str, List[str]] = {
         "Eligibility Criterion",
         "Years of Experience",
         "Minimum Experience (Years)",
-        "Bidder Turnover",
-        "Experience Criteria",
+        "Years of Past Experience Required",
         "Experience Required",
-        "Past Performance",
         "eligibility_criterion_years"
     ],
     "bid_validity": [
@@ -193,5 +196,33 @@ MAIN_FIELD_ALIASES: Dict[str, List[str]] = {
         "PBG Required",
         "pbg_required",
         "pbg_required_display"
+    ],
+    "startup_relaxation_experience_turnover": [
+        "Startup Relaxation for Years Of Experience and Turnover",
+        "Startup Exemption for Years of Experience and Turnover",
+        "Startup Exemption for Years Of Experience and Turnover",
+        "Startup Relaxation"
+    ],
+    "mse_relaxation_experience_turnover": [
+        "MSE Relaxation for Years of Experience and Turnover",
+        "MSE Exemption for Years of Experience and Turnover",
+        "MSE Relaxation"
+    ],
+    "mse_purchase_preference": [
+        "MSE Purchase Preference",
+        "MSE Purchase Preference / एमएसई खरीद वरीयता",
+        "Purchase Preference to MSE"
+    ],
+    "mii_purchase_preference": [
+        "MII Purchase Preference",
+        "MII Purchase Preference / एमआईआई खरीद वरीयता",
+        "Make In India Preference",
+        "Preference to Make In India"
+    ],
+    "pre_bid_meeting": [
+        "Pre-Bid Meeting Details",
+        "Pre-Bid Date and Time",
+        "Pre-Bid Venue",
+        "pre_bid_meeting"
     ]
 }

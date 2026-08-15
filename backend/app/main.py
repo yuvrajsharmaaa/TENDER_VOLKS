@@ -120,11 +120,18 @@ app = FastAPI(
 # Attach Request ID Tracing Middleware (must be first/early in chain)
 app.add_middleware(RequestIDMiddleware)
 
-# CORS Configuration
+# CORS Configuration — Explicitly permit frontend dev ports (5174, 5173) and wildcards
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=[
+        "http://localhost:5174",
+        "http://localhost:5173",
+        "http://127.0.0.1:5174",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "*"
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
