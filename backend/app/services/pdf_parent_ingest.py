@@ -131,13 +131,24 @@ def ingest_parent_tender_pdf(
 
     # 3a. Bridge resolved ATC link URL to sections atc_document_link_present field
     matched_atc_link = None
+    # First pass: verified is_atc_anchor links (fulfilment.gem.gov.in / Buyer ATC)
     for l in links:
-        url_str = l.get("url", "")
-        name_str = l.get("name", "")
-        anchor_str = l.get("anchorText", "")
-        if l.get("is_atc_anchor") or any("atc" in s.lower() for s in (url_str, name_str, anchor_str)):
+        if l.get("is_atc_anchor"):
             matched_atc_link = l
             break
+
+    # Second pass: links containing explicit ATC keywords, excluding non-ATC endpoints
+    if not matched_atc_link:
+        non_atc_excl = ["specificationdocument", "boqdocument", "boqlineitemsdocument", "excel/bid-", ".xlsx", ".csv", "downloadomppdfile", "list-of-categories", "/gtc/", "pdfbydate"]
+        for l in links:
+            url_str = l.get("url", "").lower()
+            name_str = l.get("name", "").lower()
+            anchor_str = l.get("anchorText", "").lower()
+            if any(ex in url_str for ex in non_atc_excl):
+                continue
+            if any(k in s for s in (url_str, name_str, anchor_str) for k in ["buyer-atc", "buyer uploaded atc", "bid specific atc", "atc"]):
+                matched_atc_link = l
+                break
 
     if matched_atc_link and matched_atc_link.get("url"):
         target_url = matched_atc_link["url"]

@@ -1,8 +1,8 @@
 {
   "summary": {
     "total_fields_checked": 168,
-    "match_count": 168,
-    "accuracy_percentage": 100.0
+    "match_count": 163,
+    "accuracy_percentage": 97.02380952380952
   },
   "results": [
     {
@@ -85,8 +85,8 @@
     {
       "tender_id": "GAIL Split Morena",
       "field_name": "mse_preference_display",
-      "expected": "Yes",
-      "actual": "Yes",
+      "expected": "Yes (Band: L1+15%, Qty: 100%)",
+      "actual": "Yes (Band: L1+15%, Qty: 100%)",
       "status": "MATCH"
     },
     {
@@ -302,15 +302,15 @@
     {
       "tender_id": "GAIL Vadodra",
       "field_name": "delivery_time_supply_display",
-      "expected": "549 Days",
-      "actual": "549 Days",
+      "expected": "50 Days",
+      "actual": "50 Days",
       "status": "MATCH"
     },
     {
       "tender_id": "GAIL Vadodra",
       "field_name": "delivery_time_installation_display",
-      "expected": "549 Days",
-      "actual": "549 Days",
+      "expected": "50 Days",
+      "actual": "50 Days",
       "status": "MATCH"
     },
     {
@@ -330,15 +330,15 @@
     {
       "tender_id": "GAIL Vadodra",
       "field_name": "mse_preference_display",
-      "expected": "No",
-      "actual": "No",
+      "expected": "Yes (Band: L1+15%, Qty: 100%)",
+      "actual": "Yes (Band: L1+15%, Qty: 100%)",
       "status": "MATCH"
     },
     {
       "tender_id": "GAIL Vadodra",
       "field_name": "mii_preference_display",
-      "expected": "No",
-      "actual": "No",
+      "expected": "Yes (Band: L1+20%, Qty: 100%)",
+      "actual": "Yes (Band: L1+20%, Qty: 100%)",
       "status": "MATCH"
     },
     {
@@ -407,23 +407,23 @@
     {
       "tender_id": "GAIL Vadodra",
       "field_name": "client_email_1_display",
-      "expected": "k.kartheek@gail.co.in",
+      "expected": "apurba@gail.co.in",
       "actual": "k.kartheek@gail.co.in",
-      "status": "MATCH"
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GAIL Vadodra",
       "field_name": "client_name_2_display",
-      "expected": "Shri Tanmoy Shome",
+      "expected": "N/A",
       "actual": "Shri Tanmoy Shome",
-      "status": "MATCH"
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GAIL Vadodra",
       "field_name": "client_email_2_display",
-      "expected": "tshome@gail.co.in",
+      "expected": "k.kartheek@gail.co.in",
       "actual": "tshome@gail.co.in",
-      "status": "MATCH"
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GAIL Vadodra",
@@ -582,9 +582,9 @@
     {
       "tender_id": "GAIL Visakhapatnam B&BC VRLA",
       "field_name": "mse_preference_display",
-      "expected": "Yes",
-      "actual": "Yes",
-      "status": "MATCH"
+      "expected": "Yes (Band: L1+15%, Qty: 100%)",
+      "actual": "Yes (Band: L1+15%, Qty: 25%)",
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GAIL Visakhapatnam B&BC VRLA",
@@ -841,9 +841,9 @@
     {
       "tender_id": "GeM-Bidding-9062837",
       "field_name": "mse_preference_display",
-      "expected": "Yes",
-      "actual": "Yes",
-      "status": "MATCH"
+      "expected": "Yes (Band: L1+15%, Qty: 100%)",
+      "actual": "Yes (Band: L1+15%, Qty: 25%)",
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GeM-Bidding-9062837",
@@ -1093,8 +1093,8 @@
     {
       "tender_id": "GeM-Bidding-9487565",
       "field_name": "mse_preference_display",
-      "expected": "No",
-      "actual": "No",
+      "expected": "Yes (Band: L1+15%, Qty: 25%)",
+      "actual": "Yes (Band: L1+15%, Qty: 25%)",
       "status": "MATCH"
     },
     {

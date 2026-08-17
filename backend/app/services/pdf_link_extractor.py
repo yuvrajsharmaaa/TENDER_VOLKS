@@ -297,44 +297,69 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                             # Reconstruct anchor text by reading words in padded link bounding box
                             rect_coords = l.get("from") or l.get("rect")
                             anchor_text = ""
+                            surrounding_context = ""
                             padded_rect = None
                             if rect_coords:
                                 rect = fitz.Rect(rect_coords)
-                                # Apply padding tolerance (5 points) because PDF annotations are often sloppy
                                 padded_rect = rect + fitz.Rect(-5, -5, 5, 5)
+                                # Extended context box: inspect 45 points above and surrounding the link
+                                context_rect = fitz.Rect(max(0, rect.x0 - 50), max(0, rect.y0 - 45), rect.x1 + 50, rect.y1 + 10)
                                 try:
                                     anchor_text = page.get_textbox(padded_rect).strip()
                                 except Exception:
                                     anchor_text = ""
+                                try:
+                                    surrounding_context = page.get_textbox(context_rect).strip()
+                                except Exception:
+                                    surrounding_context = ""
                                 if not anchor_text:
                                     words = page.get_text("words")
                                     anchor_words = [w[4] for w in words if fitz.Rect(w[:4]).intersects(padded_rect)]
                                     anchor_text = " ".join(anchor_words).strip()
 
                             anchor_lower = anchor_text.lower()
+                            context_lower = surrounding_context.lower()
+                            combined_text = f"{anchor_lower} {context_lower}"
                             uri_lower = uri.lower()
-                            # Ignore GTC (General Terms & Conditions) links which are present on every GeM tender
+
+                            # Exclude known false-positive non-ATC link types (specifications, BOQ sheets, Excel price bids, GTC)
+                            NON_ATC_EXCLUSIONS = [
+                                "specificationdocument", "boqdocument", "boqlineitemsdocument",
+                                "excel/bid-", ".xlsx", ".xls", ".csv", "downloadomppdfile",
+                                "list-of-categories", "/gtc/", "pdfbydate", "specification_"
+                            ]
+                            is_excluded_non_atc = any(ex in uri_lower for ex in NON_ATC_EXCLUSIONS)
+
                             is_gtc = (
                                 "/gtc/" in uri_lower
                                 or "pdfbydate" in uri_lower
                                 or "general terms" in anchor_lower
                                 or "gtc" in anchor_lower
                             )
-                            if is_gtc:
+                            if is_generic_homepage(uri) or is_gtc or is_excluded_non_atc:
                                 is_atc_anchor = False
                             else:
-                                # A link is an ATC anchor if its anchor text contains an ATC keyword
-                                is_atc_anchor_text = any(phrase in anchor_lower for phrase in atc_anchor_phrases if phrase != "atc") or (anchor_lower.strip() == "atc")
-                                # Or if the page has the native ATC phrase and the anchor text is clickable/view-oriented
-                                is_atc_page_assoc = page_has_native_atc_phrase and any(phrase in anchor_lower for phrase in ["click", "here", "view", "file", "download"])
-                                # Or if the URI explicitly contains buyer ATC keywords
-                                is_atc_url = any(kw in uri_lower for kw in ["/buyer-atc/", "/atc/doc/", "download_atc", "buyer_documents"])
-                                
-                                is_atc_anchor = is_atc_anchor_text or is_atc_page_assoc or is_atc_url
+                                # Primary high-priority ATC domain and path pattern
+                                is_real_atc_domain_path = (
+                                    ("fulfilment.gem.gov.in" in uri_lower and "/contract/slafds" in uri_lower)
+                                    or "/buyer-atc/" in uri_lower
+                                    or "/atc/doc/" in uri_lower
+                                    or "download_atc" in uri_lower
+                                )
+                                # Anchor text / preceding heading match
+                                is_explicit_atc_text = (
+                                    "buyer uploaded atc document" in combined_text
+                                    or "buyer added bid specific atc" in combined_text
+                                    or "bid specific atc" in combined_text
+                                    or ("click here to view the file" in combined_text and ("atc" in page_text_lower or is_real_atc_domain_path))
+                                    or any(phrase in anchor_lower for phrase in atc_anchor_phrases if phrase != "atc")
+                                )
+                                is_atc_anchor = (is_explicit_atc_text or is_real_atc_domain_path) and not is_excluded_non_atc
+
                             anchor_detection_method = "native text" if is_atc_anchor else None
 
-                            # BUG 1 FIX: Lazy OCR fallback on scanned/image-heavy pages when native text is unreliable
-                            if not is_atc_anchor and not is_native_reliable and padded_rect:
+                            # Lazy OCR fallback on scanned/image-heavy pages when native text is unreliable
+                            if not is_atc_anchor and not is_native_reliable and padded_rect and not is_excluded_non_atc:
                                 try:
                                     zoom = 3.0
                                     mat = fitz.Matrix(zoom, zoom)
@@ -370,14 +395,6 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                                         f"[ATC_RESOLVER] Lazy OCR anchor check failed on Page {page_num + 1}: {ocr_err}"
                                     )
 
-
-
-                            is_gtc = (
-                                "/gtc/" in uri_lower
-                                or "pdfbydate" in uri_lower
-                                or "general terms" in anchor_lower
-                                or "gtc" in anchor_lower
-                            )
                             if is_generic_homepage(uri) or is_gtc:
                                 import logging
                                 logger = logging.getLogger("backend.app.services.pdf_link_extractor")
@@ -392,11 +409,11 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                             import logging
                             logger = logging.getLogger("backend.app.services.pdf_link_extractor")
                             if is_atc_anchor:
-                                logger.info(f"[ATC_RESOLVER] anchor detected via {anchor_detection_method or 'native text'} on page {page_num + 1} (text='{anchor_text}')")
+                                logger.info(f"[ATC_RESOLVER] ATC anchor detected via {anchor_detection_method or 'native text'} on page {page_num + 1} (text='{anchor_text}')")
                                 logger.info(f"[ATC_RESOLVER] Hyperlink URL resolved: '{uri}'")
 
-                            # BUG 2 FIX: Assign 95.0 confidence for verified anchors, 70.0 for unverified best-effort detections
-                            conf = 95.0 if is_atc_anchor else 70.0
+                            # Assign 98.0 confidence for verified ATC anchors, 70.0 for unverified best-effort detections
+                            conf = 98.0 if is_atc_anchor else 70.0
 
                             links.append({
                                 "name": filename,
@@ -407,9 +424,8 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                                 "is_atc_anchor": is_atc_anchor
                             })
 
-
-
-                            should_download = is_atc_anchor or is_tender_doc_url(uri)
+                            # Do not download excluded non-ATC endpoints as candidate ATC files
+                            should_download = is_atc_anchor or (is_tender_doc_url(uri) and not is_excluded_non_atc)
                             if should_download:
                                 try:
                                     logger.info(

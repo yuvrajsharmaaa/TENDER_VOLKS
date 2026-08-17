@@ -504,8 +504,72 @@ INFOSHEET_PAGE2_LAYOUT = [
     ], height=40),
 ]
 
+BIDDER_READINESS_SUMMARY_LAYOUT = [
+    _row([
+        _cell(6, "label", "BIDDER READINESS & QUALIFICATION SUMMARY", style=STYLE_SECTION_HEADER, bold=True, align="center")
+    ], height=24),
+    _row([
+        _cell(2, "label", "Site Visit Required?", bold=True),
+        _cell(4, "value", key="readiness_site_visit_display"),
+    ], height=22),
+    _row([
+        _cell(2, "label", "Pre-Bid Meeting", bold=True),
+        _cell(4, "value", key="readiness_pre_bid_display"),
+    ], height=22),
+    _row([
+        _cell(2, "label", "Key Deadline Timeline", bold=True),
+        _cell(4, "value", key="readiness_timeline_display"),
+    ], height=22),
+    _row([
+        _cell(2, "label", "Capital to Arrange (EMD + PBG)", bold=True),
+        _cell(4, "value", key="readiness_capital_display"),
+    ], height=22),
+    _row([
+        _cell(2, "label", "Can We Qualify? (BEC Snapshot)", bold=True),
+        _cell(4, "value", key="readiness_bec_display"),
+    ], height=22),
+    _row([
+        _cell(2, "label", "Mandatory Certifications / Auth", bold=True),
+        _cell(4, "value", key="readiness_certifications_display"),
+    ], height=22),
+    _row([
+        _cell(2, "label", "Delivery Feasibility", bold=True),
+        _cell(4, "value", key="readiness_delivery_display"),
+    ], height=22),
+    _row([
+        _cell(2, "label", "Buyback / Reverse-Logistics", bold=True),
+        _cell(4, "value", key="readiness_buyback_display"),
+    ], height=22),
+    _row([
+        _cell(2, "label", "Reverse Auction (RA) Exposure", bold=True),
+        _cell(4, "value", key="readiness_ra_display"),
+    ], height=22),
+    _row([
+        _cell(2, "label", "Outright Disqualifiers / Deviations", bold=True),
+        _cell(4, "value", key="readiness_disqualifiers_display"),
+    ], height=22),
+    _row([
+        _cell(2, "label", "Penalty / Risk Exposure", bold=True),
+        _cell(4, "value", key="readiness_penalty_risk_display"),
+    ], height=22),
+]
+
 # Column width plan (characters) for the 6-column A-F grid used by both pages.
 INFOSHEET_COLUMN_WIDTHS = [24, 16, 26, 24, 16, 20]
+
+READINESS_DATA_KEYS = [
+    "readiness_site_visit_display",
+    "readiness_pre_bid_display",
+    "readiness_timeline_display",
+    "readiness_capital_display",
+    "readiness_bec_display",
+    "readiness_certifications_display",
+    "readiness_delivery_display",
+    "readiness_buyback_display",
+    "readiness_ra_display",
+    "readiness_disqualifiers_display",
+    "readiness_penalty_risk_display",
+]
 
 # All flat keys the visual sheet expects to find in the data dict passed into
 # generate_info_sheet_csv(). tender_mapper.build_infosheet_data() is
@@ -542,4 +606,4 @@ INFOSHEET_DATA_KEYS = [
     "mse_preference_display", "mii_preference_display",
     "pre_bid_meeting_display",
     "schedule_1_details_display", "schedule_2_details_display", "schedule_3_details_display",
-]
+] + READINESS_DATA_KEYS
