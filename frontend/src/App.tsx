@@ -7,6 +7,7 @@ import { TenderCard } from "./components/workspace/TenderCard";
 import { TenderCardSkeleton } from "./components/workspace/TenderCardSkeleton";
 import { TenderDetailPane } from "./components/workspace/TenderDetailPane";
 import { UploadModal } from "./components/workspace/UploadModal";
+import { NotifyChatBox } from "./components/NotifyChatBox";
 import { LayoutGrid, Loader2, Sparkles, Calendar, Activity, ArrowUpDown, SearchX } from "lucide-react";
 
 function App() {
@@ -321,59 +322,66 @@ function App() {
           <div className="flex-1 flex flex-col min-h-0 max-w-[1440px] mx-auto w-full">
             
             {/* ── Stats KPI row ──────────────────────────────────── */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5 shrink-0 select-none">
-              {[
-                {
-                  label: "Live Tenders",
-                  value: statsLive,
-                  icon: <Activity className="h-5 w-5" aria-hidden />,
-                  iconCls: "bg-selected-green-bg border-selected-green-border text-success-green",
-                },
-                {
-                  label: "Ingesting",
-                  value: statsNew,
-                  icon: <Loader2 className="h-5 w-5 animate-spin" aria-hidden />,
-                  iconCls: "bg-blue-50 border-blue-200 text-blue-600",
-                },
-                {
-                  label: "Closing Soon",
-                  value: statsClosing,
-                  icon: <Calendar className="h-5 w-5" aria-hidden />,
-                  iconCls: "bg-warning-bg border-warning-text/20 text-warning-text",
-                },
-                {
-                  label: "High AI Match",
-                  value: statsHighMatch,
-                  icon: <Sparkles className="h-5 w-5" aria-hidden />,
-                  iconCls: "bg-selected-green-bg border-success-green/20 text-success-green",
-                },
-              ].map(({ label, value, icon, iconCls }) => (
-                <div
-                  key={label}
-                  className="bg-card-bg border border-divider/60 rounded-2xl px-5 py-4
-                    shadow-[0_1px_3px_rgba(0,0,0,0.02),0_4px_12px_rgba(0,0,0,0.03)]
-                    flex items-center justify-between gap-3"
-                >
-                  <div className="min-w-0">
-                    <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest leading-none mb-1.5 truncate">
-                      {label}
-                    </p>
-                    <p className="text-2xl font-bold text-text-primary leading-none font-mono tabular-nums">
-                      {value}
-                    </p>
+            <div className="relative mb-5 shrink-0 select-none">
+              <div
+                className="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-1 no-scrollbar
+                  md:grid md:grid-cols-4 md:overflow-visible md:pb-0"
+              >
+                {[
+                  {
+                    label: "Live Tenders",
+                    value: statsLive,
+                    icon: <Activity className="h-5 w-5 stroke-[1.75]" aria-hidden />,
+                    iconContainerCls: "bg-[#EFF6FF] text-[#2563EB]",
+                  },
+                  {
+                    label: "Ingesting",
+                    value: statsNew,
+                    icon: <Loader2 className="h-5 w-5 animate-spin stroke-[1.75]" aria-hidden />,
+                    iconContainerCls: "bg-[#F3F4F6] text-[#6B7280]",
+                  },
+                  {
+                    label: "Closing Soon",
+                    value: statsClosing,
+                    icon: <Calendar className="h-5 w-5 stroke-[1.75]" aria-hidden />,
+                    iconContainerCls: "bg-[#FFFBEB] text-[#D97706]",
+                  },
+                  {
+                    label: "High Match",
+                    value: statsHighMatch,
+                    icon: <Sparkles className="h-5 w-5 stroke-[1.75]" aria-hidden />,
+                    iconContainerCls: "bg-[#F5F3FF] text-[#7C3AED]",
+                  },
+                ].map(({ label, value, icon, iconContainerCls }) => (
+                  <div
+                    key={label}
+                    className="bg-white border border-divider rounded-[12px] p-4
+                      shadow-xs flex items-center justify-between gap-3
+                      snap-start shrink-0 min-w-[170px] sm:min-w-[200px] md:min-w-0 md:shrink"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-text-muted mb-1 truncate tracking-[0.01em]">
+                        {label}
+                      </p>
+                      <p className={`text-[28px] font-semibold leading-none tabular-nums font-mono ${value === 0 ? "text-[#9CA3AF]" : "text-text-primary"}`}>
+                        {value}
+                      </p>
+                    </div>
+                    <div className={`h-10 w-10 shrink-0 flex items-center justify-center rounded-[10px] ${iconContainerCls}`}>
+                      {icon}
+                    </div>
                   </div>
-                  <div className={`h-10 w-10 shrink-0 flex items-center justify-center rounded-xl border ${iconCls}`}>
-                    {icon}
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
+              {/* Mobile scroll visual affordance gradient */}
+              <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-app-bg to-transparent md:hidden" />
             </div>
 
             {/* ── Results toolbar ────────────────────────────────── */}
             <div className="flex items-center justify-between mb-4 shrink-0 select-none">
               <div>
-                <h2 className="text-sm font-bold text-text-primary font-sans tracking-tight">Tender Results</h2>
-                <p className="text-[11px] text-text-muted mt-0.5 font-mono">
+                <h2 className="text-sm font-medium text-text-primary font-sans tracking-[0.01em]">Tender Results</h2>
+                <p className="text-[11px] text-text-muted mt-0.5 font-mono tabular-nums">
                   {sortedTenders.length} tender{sortedTenders.length !== 1 ? "s" : ""} found
                 </p>
               </div>
@@ -381,26 +389,26 @@ function App() {
               <div className="flex items-center gap-2">
                 {/* Sort control */}
                 <label htmlFor="sort-select" className="sr-only">Sort by</label>
-                <div className="flex items-center gap-1.5 bg-card-bg border border-divider rounded-xl px-3 py-2 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-                  <ArrowUpDown className="h-3 w-3 text-text-muted shrink-0" aria-hidden />
+                <div className="flex items-center gap-1.5 bg-white border border-divider rounded-[8px] px-3 py-1.5 shadow-xs">
+                  <ArrowUpDown className="h-3.5 w-3.5 text-text-muted shrink-0" aria-hidden />
                   <select
                     id="sort-select"
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                    className="bg-transparent text-[11px] font-bold text-text-secondary
+                    className="bg-transparent text-xs font-medium text-text-secondary
                       focus:outline-none cursor-pointer font-sans appearance-none pr-1"
                   >
                     <option value="updated">Recently Updated</option>
                     <option value="deadline">Deadline (Soonest)</option>
                     <option value="value">Value (Highest)</option>
-                    <option value="ai_match">AI Match (Best)</option>
+                    <option value="ai_match">Match Score (Best)</option>
                   </select>
                 </div>
 
                 {/* Card view badge */}
-                <div className="flex items-center gap-1 bg-card-bg border border-divider px-2.5 py-2 rounded-xl text-[10px] text-text-secondary font-bold font-mono uppercase shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+                <div className="flex items-center gap-1.5 bg-white border border-divider px-3 py-1.5 rounded-[8px] text-xs text-text-secondary font-medium shadow-xs">
                   <LayoutGrid className="h-3.5 w-3.5" aria-hidden />
-                  <span className="hidden sm:inline">Card</span>
+                  <span className="hidden sm:inline">Card View</span>
                 </div>
               </div>
             </div>
@@ -451,6 +459,9 @@ function App() {
         onClose={() => setIsUploadModalOpen(false)}
         onUpload={handleUploadTender}
       />
+
+      {/* Notify Team Telegram Chat Box */}
+      <NotifyChatBox />
     </div>
   );
 }

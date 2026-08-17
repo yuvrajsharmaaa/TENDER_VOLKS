@@ -67,6 +67,7 @@ def _regenerate_infosheet_workbook(job_id: str, payload: dict) -> Path:
     infosheet_data = build_infosheet_data(
         payload.get("infoSheetSections", []),
         payload.get("rawTextPages", []),
+        job_id=job_id,
     )
     infosheet_data["_info_sheet_sections"] = payload.get("infoSheetSections", [])
     generate_info_sheet_csv(infosheet_data, str(xlsx_path))
@@ -847,7 +848,7 @@ def _run_ingest_background(job_id: str, pdf_path: str, original_filename: str):
     import mimetypes
     from pathlib import Path
 
-    logger.info(f"[OBSERVABILITY] status changed to ingestion for job {job_id}")
+    logger.info(f"[BACKGROUND_TASK][Job {job_id}] Ingest background task started for '{original_filename}' at path '{pdf_path}'")
     try:
         logger.info(f"[OBSERVABILITY] status changed to processing for job {job_id}")
         update_status(job_id, JobStatus.PROCESSING)
@@ -888,7 +889,7 @@ def _run_ingest_background(job_id: str, pdf_path: str, original_filename: str):
                     storage_bucket="local-disk",
                     storage_key=pdf_path,
                     mime_type="application/pdf",
-                    size_bytes=os.path.getsize(pdf_path),
+                    size_bytes=os.path.getsize(pdf_path) if os.path.exists(pdf_path) else 0,
                     upload_status="uploaded",
                     processing_status="completed",
                     document_type="parent"
@@ -900,10 +901,7 @@ def _run_ingest_background(job_id: str, pdf_path: str, original_filename: str):
             for l in result.get("documents", {}).get("extractedLinkedPdfs", []):
                 local_path = l.get("local_path")
                 if local_path and os.path.exists(local_path):
-                    # Generate a unique document UUID
                     doc_uuid = str(uuid.uuid4())
-                    
-                    # Guess MIME type
                     mime_type, _ = mimetypes.guess_type(local_path)
                     mime_type = mime_type or "application/pdf"
                     
@@ -922,7 +920,6 @@ def _run_ingest_background(job_id: str, pdf_path: str, original_filename: str):
                     db.add(db_doc)
                     db.commit()
                     
-                    # Update API payload so the frontend accesses this document directly
                     l["id"] = doc_uuid
                     l["url"] = f"/tenders/documents/{doc_uuid}/download"
             
@@ -947,7 +944,7 @@ def _run_ingest_background(job_id: str, pdf_path: str, original_filename: str):
         )
         logger.info(f"[OBSERVABILITY] final completion written for job {job_id}")
     except Exception as e:
-        logger.error(f"Workspace ingest failed for job {job_id}: {e}", exc_info=True)
+        logger.error(f"[BACKGROUND_TASK_FAILED] Workspace ingest background task failed for job {job_id}: {e}", exc_info=True)
         try:
             update_status(job_id, JobStatus.FAILED, error_message=str(e))
             logger.info(f"[OBSERVABILITY] failure written with error message for job {job_id}: {e}")

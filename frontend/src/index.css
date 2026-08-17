@@ -2,38 +2,38 @@
 
 @theme {
   /* Surfaces */
-  --color-app-bg: #F4F2EC;
-  --color-card-bg: #FBFAF7;
+  --color-app-bg: #F5F6F8;
+  --color-card-bg: #FFFFFF;
   --color-panel-bg: #FFFFFF;
-  --color-section-tint: #F1EEE7;
-  --color-divider: #E5E0D7;
-  --color-input-bg: #FCFBF8;
+  --color-section-tint: #F8FAFC;
+  --color-divider: #E2E8F0;
+  --color-input-bg: #FFFFFF;
 
   /* Typography Colors */
-  --color-text-primary: #26231E;
-  --color-text-secondary: #5E5A52;
-  --color-text-muted: #8A867D;
-  --color-text-disabled: #B7B2A8;
+  --color-text-primary: #111827;
+  --color-text-secondary: #4B5563;
+  --color-text-muted: #9CA3AF;
+  --color-text-disabled: #D1D5DB;
 
-  /* Brand Accent */
+  /* Brand Accent - Terracotta/Orange ONLY for Upload & Pulse dot */
   --color-success-green: #E3552F;
   --color-cta-green: #C94424;
   --color-selected-green-bg: #FFF1EC;
   --color-selected-green-border: #F4B6A5;
 
   /* Commercial highlights */
-  --color-gold-fill: #E4C98A;
-  --color-gold-text: #6B5421;
-  --color-gold-bg: #F6E7B8;
+  --color-gold-fill: #FDE68A;
+  --color-gold-text: #B45309;
+  --color-gold-bg: #FFFBEB;
 
   /* Warnings & Alerts */
-  --color-warning-bg: #F4E7BF;
-  --color-warning-text: #7A5B17;
-  --color-alert-bg: #F7DFDF;
-  --color-alert-text: #8B4A4A;
+  --color-warning-bg: #FEF3C7;
+  --color-warning-text: #D97706;
+  --color-alert-bg: #FEE2E2;
+  --color-alert-text: #DC2626;
 
   /* Typography Fonts Override */
-  --font-sans: 'Outfit', 'Inter', 'Manrope', sans-serif;
+  --font-sans: 'Inter', 'Outfit', 'Manrope', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 }
 
@@ -50,16 +50,16 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #F4F2EC;
+  background: #F5F6F8;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #E5E0D7;
+  background: #CBD5E1;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #B7B2A8;
+  background: #94A3B8;
 }
 
 /* Pulsing outline for active elements */
@@ -84,4 +84,13 @@
 
 .animate-fadeIn {
   animation: fadeIn 0.15s ease-out forwards;
+}
+
+/* Utility to hide scrollbars visually on snap-scroll containers */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }

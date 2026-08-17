@@ -25,10 +25,23 @@ coverage.xml
 *.cover
 .pytest_cache/
 .ipynb_checkpoints/
-.env
-.env.dev
 
-# PaddleOCR
+# Environment variables & secrets (CRITICAL)
+.env
+.env.*
+!.env.example
+*.env
+*.env.dev
+*.env.prod
+*.env.local
+*.env.*.local
+backend/.env
+backend/.env.*
+!backend/.env.example
+frontend/.env.local
+frontend/.env.*.local
+
+# PaddleOCR & models
 .paddleocr/
 models/
 !backend/app/models/
@@ -38,9 +51,10 @@ whl/
 # Local tool & scratch artifacts
 tmc/
 scripts/test_extraction_runner.py
-scratch/*.txt
+scratch/
 
 # Storage (local dev data — not for version control)
+storage/
 storage/jobs/
 storage/logs/
 backend/app/storage/
@@ -54,6 +68,7 @@ backend/app/storage/
 # Frontend build artifacts
 frontend/tsconfig.tsbuildinfo
 frontend/dist/
+node_modules/
 
 # IDE & OS
 .vscode/

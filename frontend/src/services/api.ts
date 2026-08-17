@@ -297,21 +297,16 @@ const initialTenders: TenderDetail[] = [
 // Backend connectivity & adapter layer
 // ============================================================================
 
-let _backendReachable: boolean | null = null;
-
 /**
  * Checks if the real backend API is reachable.
- * Caches the result to avoid repeated pings.
  */
 async function isBackendReachable(): Promise<boolean> {
-  if (_backendReachable === true) return true;
   try {
-    const res = await fetch(`${BACKEND_URL}/health`, { method: "GET", signal: AbortSignal.timeout(5000) });
-    _backendReachable = res.ok;
+    const res = await fetch(`${BACKEND_URL}/health`, { method: "GET", signal: AbortSignal.timeout(3000) });
+    return res.ok;
   } catch {
-    _backendReachable = false;
+    return false;
   }
-  return _backendReachable;
 }
 
 /**
@@ -371,6 +366,9 @@ function adaptBackendPayload(raw: Record<string, unknown>): TenderDetail {
     location_state: r.location_state ?? "",
     sector: r.sector ?? "Infrastructure",
     snippet: r.snippet ?? "",
+    status_summary: r.status_summary ?? undefined,
+    missing_fields: r.missing_fields ?? [],
+    field_statuses: r.field_statuses ?? {},
     updated_at: r.updated_at ?? "",
   } as TenderDetail;
 }
@@ -553,19 +551,20 @@ export const apiService = {
    * Falls back to in-memory mock creation.
    */
   uploadTender: async (file: File): Promise<TenderDetail> => {
-    // Try real backend first
+    console.log(`[FRONTEND_UPLOAD] Preparing file upload: '${file.name}' (${file.size} bytes, type='${file.type}')`);
     try {
       if (await isBackendReachable()) {
         const formData = new FormData();
         formData.append("file", file);
-        const res = await fetch(`${BACKEND_URL}/tenders/workspace/ingest`, {
+        console.log(`[FRONTEND_UPLOAD] Sending POST request to ${BACKEND_URL}/tenders/upload...`);
+        const res = await fetch(`${BACKEND_URL}/tenders/upload`, {
           method: "POST",
           body: formData,
         });
         if (res.ok) {
           const data = await res.json();
+          console.log(`[FRONTEND_UPLOAD] Upload successful! Returned backend job_id:`, data.job_id);
           const jobId = data.job_id;
-          // Return a pending skeleton — the polling in App.tsx will update it
           return adaptBackendPayload({
             id: jobId,
             title: file.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " "),
@@ -595,10 +594,15 @@ export const apiService = {
             infoSheetSections: [],
             snippet: `Uploading: ${file.name}. Pipeline queued.`,
           });
+        } else {
+          const errText = await res.text();
+          console.error(`[FRONTEND_UPLOAD] Backend returned HTTP ${res.status}:`, errText);
         }
+      } else {
+        console.warn("[FRONTEND_UPLOAD] Backend /health check failed — using browser mock store");
       }
-    } catch {
-      // Fall through to mock
+    } catch (err) {
+      console.error("[FRONTEND_UPLOAD] Network exception during file upload:", err);
     }
 
     // Mock fallback

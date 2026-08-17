@@ -69,44 +69,46 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
           </div>
           <div className="h-4 w-px bg-divider hidden sm:block" />
 
-          <nav className="hidden lg:flex items-center gap-4 text-xs font-semibold text-text-secondary" aria-label="Workspace navigation">
-            <span className="text-success-green cursor-pointer">Live Tenders</span>
+          <nav className="hidden lg:flex items-center gap-4 text-xs font-medium text-text-secondary" aria-label="Workspace navigation">
+            <span className="text-blue-600 font-semibold cursor-pointer">Live Tenders</span>
             <span className="hover:text-text-primary cursor-pointer transition-colors">Workspace Logs</span>
             <span className="hover:text-text-primary cursor-pointer transition-colors">Rule Auditing</span>
           </nav>
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Pipeline status */}
-          <div className="flex items-center gap-1.5 text-xs text-text-secondary">
-            <span
-              className={`h-2 w-2 rounded-full ${
-                isBackendConnected
-                  ? "bg-success-green shadow-[0_0_0_2px_rgba(227,85,47,0.2)]"
-                  : "bg-alert-text"
-              }`}
-            />
-            <span className="hidden sm:inline">{isBackendConnected ? "Pipeline Active" : "Offline"}</span>
+          {/* Pipeline status with live 8px pulse dot */}
+          <div className="flex items-center gap-2 text-xs text-text-secondary">
+            {isBackendConnected ? (
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#E3552F] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#E3552F]"></span>
+              </span>
+            ) : (
+              <span className="h-2 w-2 rounded-full bg-red-500" />
+            )}
+            <span className="hidden sm:inline font-medium">{isBackendConnected ? "Pipeline Active" : "Offline"}</span>
           </div>
 
           <button
             type="button"
             onClick={onRefreshClick}
             aria-label="Refresh workspace"
-            className="p-1.5 bg-input-bg border border-divider hover:bg-section-tint text-text-secondary
+            className="p-2 bg-white border border-divider hover:bg-gray-100 text-text-secondary
               hover:text-text-primary rounded-lg transition-colors
-              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success-green/40"
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
           >
             <RefreshCw className="h-3.5 w-3.5" aria-hidden />
           </button>
 
+          {/* Primary Upload button - Terracotta brand color */}
           <button
             type="button"
             onClick={onUploadClick}
             aria-label="Upload tender document"
-            className="bg-success-green hover:bg-cta-green text-panel-bg font-bold text-xs px-3.5 py-2
-              rounded-lg flex items-center gap-1.5 shadow-sm transition-colors
-              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success-green/50 focus-visible:ring-offset-2"
+            className="bg-[#E3552F] hover:bg-[#C94424] text-white font-medium text-xs px-3.5 py-2
+              rounded-[8px] flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E3552F]/50 focus-visible:ring-offset-2"
           >
             <Plus className="h-3.5 w-3.5 stroke-[2.5]" aria-hidden />
             Upload Tender
@@ -115,7 +117,7 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
       </header>
 
       {/* ── Sub-nav tabs ─────────────────────────────────── */}
-      <div className="px-6 py-2 bg-card-bg border-b border-divider flex items-center gap-2" role="tablist" aria-label="View mode">
+      <div className="px-6 py-2 bg-gray-50/50 border-b border-divider flex items-center gap-2" role="tablist" aria-label="View mode">
         {(["keywords", "pinned"] as const).map((tab) => (
           <button
             key={tab}
@@ -123,10 +125,10 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
             role="tab"
             aria-selected={activeTab === tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-3 py-1 rounded text-xs font-bold transition-all capitalize
-              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success-green/40 ${
+            className={`px-3 py-1 rounded-md text-xs font-medium transition-all capitalize
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 ${
               activeTab === tab
-                ? "bg-section-tint text-text-primary"
+                ? "bg-white text-text-primary border border-divider shadow-xs font-semibold"
                 : "text-text-muted hover:text-text-secondary"
             }`}
           >
@@ -139,51 +141,51 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
       <div className="px-6 py-4 max-w-[1440px] w-full mx-auto space-y-3">
 
         {/* Search row */}
-        <div className="flex flex-col md:flex-row gap-3">
-          <div className="relative flex-1">
+        <div className="flex flex-col md:flex-row gap-3 items-center">
+          <div className="relative flex-1 w-full">
             <label htmlFor={`${uid}-search`} className="sr-only">Search tenders</label>
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted pointer-events-none" aria-hidden />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted pointer-events-none" aria-hidden />
             <input
               id={`${uid}-search`}
               type="search"
               placeholder="Search by title, department, location, tender ID..."
-              className="w-full bg-input-bg border border-divider rounded-xl pl-11 pr-16 py-3 text-sm
+              className="w-full h-10 bg-white border border-divider rounded-[8px] pl-10 pr-16 text-sm
                 text-text-primary placeholder-text-disabled
-                focus:outline-none focus:border-success-green focus:ring-2 focus:ring-success-green/20
-                transition-all font-sans shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
+                focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
+                transition-all duration-150 font-sans shadow-xs"
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
               autoComplete="off"
             />
             <div
               aria-hidden
-              className="absolute right-4 top-1/2 -translate-y-1/2 hidden sm:flex items-center
-                text-[10px] bg-section-tint text-text-muted px-2 py-0.5 rounded border border-divider
-                font-mono font-bold pointer-events-none"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 hidden sm:flex items-center
+                text-[10px] bg-gray-100 text-text-muted px-1.5 py-0.5 rounded border border-divider
+                font-mono font-medium pointer-events-none"
             >
               ⌘K
             </div>
           </div>
 
-          <div className="flex gap-2 shrink-0">
+          <div className="flex gap-2 shrink-0 w-full md:w-auto">
             <button
               type="button"
               onClick={() => setIsFiltersOpen(!isFiltersOpen)}
               aria-expanded={isFiltersOpen}
               aria-controls={`${uid}-adv-filters`}
               aria-label={`Advanced filters${activeFiltersCount > 0 ? `, ${activeFiltersCount} active` : ""}`}
-              className={`px-4 py-3 border rounded-xl text-xs font-bold flex items-center gap-2
-                transition-all cursor-pointer shadow-[0_1px_2px_rgba(0,0,0,0.02)]
-                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success-green/40 ${
+              className={`h-10 px-4 border rounded-[8px] text-xs font-medium flex items-center gap-2
+                transition-colors duration-150 cursor-pointer shadow-xs
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 ${
                 isFiltersOpen || activeFiltersCount > 0
-                  ? "bg-selected-green-bg border-selected-green-border text-success-green"
-                  : "bg-input-bg border-divider text-text-secondary hover:text-text-primary hover:border-text-muted"
+                  ? "bg-blue-50 border-blue-200 text-blue-700 font-semibold"
+                  : "bg-white border-divider text-text-secondary hover:text-text-primary hover:bg-gray-100"
               }`}
             >
               <SlidersHorizontal className="h-4 w-4" aria-hidden />
               Filters
               {activeFiltersCount > 0 && (
-                <span className="bg-success-green text-panel-bg text-[9px] px-1.5 py-0.5 rounded-full font-bold leading-none">
+                <span className="bg-blue-600 text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold leading-none">
                   {activeFiltersCount}
                 </span>
               )}
@@ -195,9 +197,9 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
 
             <button
               type="button"
-              className="bg-success-green hover:bg-cta-green text-panel-bg font-bold text-xs
-                px-6 py-3 rounded-xl transition-colors shadow-sm cursor-pointer
-                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success-green/50 focus-visible:ring-offset-2"
+              className="h-10 bg-gray-900 hover:bg-black text-white font-medium text-xs
+                px-5 rounded-[8px] transition-colors shadow-xs cursor-pointer
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/50 focus-visible:ring-offset-2"
             >
               Search
             </button>
@@ -206,24 +208,24 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
 
         {/* Quick-view chips */}
         <div className="flex items-center gap-2 overflow-x-auto pb-0.5" role="group" aria-label="Quick view filters">
-          <span className="text-[10px] text-text-muted uppercase font-bold tracking-wider font-sans shrink-0">
+          <span className="text-[11px] text-text-muted font-medium tracking-wide font-sans shrink-0">
             Quick view:
           </span>
           {([
-            { label: "All Tenders",      value: "",          active: "bg-text-primary border-text-primary text-panel-bg" },
-            { label: "Open Tenders",     value: "Live",      active: "bg-success-green border-success-green text-panel-bg" },
-            { label: "Closed / Reviewed",value: "Completed", active: "bg-text-secondary border-text-secondary text-panel-bg" },
+            { label: "All Tenders",      value: "",          active: "bg-gray-900 border-gray-900 text-white font-semibold" },
+            { label: "Open Tenders",     value: "Live",      active: "bg-blue-600 border-blue-600 text-white font-semibold" },
+            { label: "Closed / Reviewed",value: "Completed", active: "bg-gray-700 border-gray-700 text-white font-semibold" },
           ] as const).map(({ label, value, active }) => (
             <button
               key={value}
               type="button"
               aria-pressed={filters.tenderType === value}
               onClick={() => f("tenderType", value)}
-              className={`px-3 py-1 rounded-full text-xs font-bold border transition-all shrink-0
-                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success-green/40 ${
+              className={`px-3 py-1 rounded-full text-xs font-medium border transition-all shrink-0
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 ${
                 filters.tenderType === value
-                  ? `${active} shadow-sm`
-                  : "bg-card-bg border-divider text-text-secondary hover:text-text-primary"
+                  ? `${active} shadow-xs`
+                  : "bg-white border-divider text-text-secondary hover:text-text-primary hover:bg-gray-50"
               }`}
             >
               {label}

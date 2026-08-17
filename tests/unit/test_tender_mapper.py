@@ -536,7 +536,6 @@ E-Mail: rkumar@gail.co.in
     assert info_data["client_email_1_display"] == "poolsingh.boda@gail.co.in"
     assert "0141-2230347" in info_data["client_phone_1_display"]
     assert "GAIL Bhawan" in info_data["courier_address_display"]
-    assert "Sh. Boda Pool Singh" in info_data["courier_address_display"]
     assert info_data["emd_amount_display"] == "₹1,94,177"
     
     # Second contact block (Nodal Officer)

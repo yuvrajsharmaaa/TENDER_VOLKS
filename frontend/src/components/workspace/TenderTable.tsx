@@ -84,19 +84,19 @@ export const TenderTable: React.FC<TenderTableProps> = ({
 
   if (loading) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-500 mb-2" />
-        <span>Loading procurement workspace...</span>
+      <div className="flex-1 flex flex-col items-center justify-center text-text-muted py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-2" />
+        <span className="text-xs font-medium">Loading procurement workspace...</span>
       </div>
     );
   }
 
   if (tenders.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-400">
-        <FileText className="h-12 w-12 text-slate-600 mb-3" />
-        <h3 className="text-lg font-semibold text-slate-200 mb-1">No Tenders Found</h3>
-        <p className="text-sm text-slate-500 max-w-md">
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-text-muted">
+        <FileText className="h-12 w-12 text-text-disabled mb-3" />
+        <h3 className="text-sm font-semibold text-text-primary mb-1">No Tenders Found</h3>
+        <p className="text-xs text-text-muted max-w-md">
           There are no tender documents in this workspace. Upload a tender PDF above to trigger visual OCR and field extraction.
         </p>
       </div>
@@ -104,20 +104,20 @@ export const TenderTable: React.FC<TenderTableProps> = ({
   }
 
   return (
-    <div className="flex-1 overflow-auto border border-slate-800/80 rounded-lg bg-slate-900/40">
+    <div className="flex-1 overflow-auto border border-divider rounded-xl bg-white shadow-xs">
       <table className="w-full border-collapse text-left">
         <thead>
-          <tr className="border-b border-slate-800 bg-slate-900/80 text-slate-400 text-xs font-semibold uppercase tracking-wider sticky top-0 z-[5]">
-            <th className="py-3.5 px-4 w-[40%]">Tender Details / Scope</th>
-            <th className="py-3.5 px-4">Authority & Dept</th>
-            <th className="py-3.5 px-4">Est. Value & EMD</th>
-            <th className="py-3.5 px-4">Submission Deadline</th>
-            <th className="py-3.5 px-4 text-center">Status</th>
-            <th className="py-3.5 px-4 text-center">Confidence</th>
-            <th className="py-3.5 px-4 text-center">Alerts</th>
+          <tr className="border-b border-divider bg-gray-50 text-text-muted text-xs font-medium uppercase tracking-wider sticky top-0 z-[5]">
+            <th className="py-3 px-4 w-[40%]">Tender Details / Scope</th>
+            <th className="py-3 px-4">Authority & Dept</th>
+            <th className="py-3 px-4">Est. Value & EMD</th>
+            <th className="py-3 px-4">Submission Deadline</th>
+            <th className="py-3 px-4 text-center">Status</th>
+            <th className="py-3 px-4 text-center">Match Score</th>
+            <th className="py-3 px-4 text-center">Alerts</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-800/50">
+        <tbody className="divide-y divide-divider/60">
           {tenders.map((tender) => {
             const isSelected = selectedTenderId === tender.id;
             return (
@@ -125,55 +125,55 @@ export const TenderTable: React.FC<TenderTableProps> = ({
                 key={tender.id}
                 onClick={() => onSelectTender(tender)}
                 className={`cursor-pointer transition-colors group ${
-                  isSelected ? "bg-blue-950/20 border-l-2 border-l-blue-500" : "hover:bg-slate-900/60"
+                  isSelected ? "bg-blue-50/60 border-l-2 border-l-blue-600" : "hover:bg-gray-50/80"
                 }`}
               >
                 {/* Details */}
-                <td className="py-4 px-4">
+                <td className="py-3.5 px-4">
                   <div className="flex flex-col gap-1">
-                    <span className="font-semibold text-slate-200 text-sm group-hover:text-blue-400 transition-colors line-clamp-2">
+                    <span className="font-semibold text-text-primary text-sm group-hover:text-blue-600 transition-colors line-clamp-2">
                       {tender.title}
                     </span>
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
-                      <span className="font-mono bg-slate-800 px-1.5 py-0.5 rounded text-slate-400">{tender.id}</span>
+                    <div className="flex items-center gap-2 text-xs text-text-muted">
+                      <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-text-secondary">{tender.id}</span>
                       <span>Ref: {tender.reference_number || "Pending"}</span>
                     </div>
                   </div>
                 </td>
 
                 {/* Authority */}
-                <td className="py-4 px-4">
+                <td className="py-3.5 px-4">
                   <div className="flex flex-col">
-                    <span className="text-slate-300 text-xs font-medium">{tender.authorityName}</span>
-                    <span className="text-slate-500 text-[11px]">{tender.department}</span>
+                    <span className="text-text-primary text-xs font-medium">{tender.authorityName}</span>
+                    <span className="text-text-muted text-[11px]">{tender.department}</span>
                   </div>
                 </td>
 
                 {/* Pricing */}
-                <td className="py-4 px-4">
+                <td className="py-3.5 px-4">
                   <div className="flex flex-col">
-                    <span className="text-slate-300 text-xs font-mono font-semibold">{tender.tenderValue}</span>
-                    <span className="text-slate-500 text-[11px]">
+                    <span className="text-text-primary text-xs font-mono font-semibold tabular-nums">{tender.tenderValue}</span>
+                    <span className="text-text-muted text-[11px] font-mono tabular-nums">
                       EMD: {tender.emdAmount || "N/A"}
                     </span>
                   </div>
                 </td>
 
                 {/* Timeline */}
-                <td className="py-4 px-4 text-xs text-slate-400">
-                  <div className="flex items-center gap-1.5">
-                    <Calendar className="h-3.5 w-3.5 text-slate-500" />
+                <td className="py-3.5 px-4 text-xs text-text-secondary">
+                  <div className="flex items-center gap-1.5 font-mono tabular-nums">
+                    <Calendar className="h-3.5 w-3.5 text-text-muted" />
                     <span>{tender.deadline ? formatDate(tender.deadline) : "Not Extracted"}</span>
                   </div>
                 </td>
 
                 {/* Status */}
-                <td className="py-4 px-4 text-center">
+                <td className="py-3.5 px-4 text-center">
                   {getStatusBadge(tender.parse_status, tender.review_status)}
                 </td>
 
                 {/* Confidence */}
-                <td className="py-4 px-4 text-center">
+                <td className="py-3.5 px-4 text-center">
                   {getConfidenceBadge(tender.parse_confidence)}
                 </td>
 

@@ -41,8 +41,8 @@ export const InfoSheetPanel: React.FC<InfoSheetPanelProps> = ({
           No structured metadata fields extracted yet. Trigger parser extraction.
         </div>
       ) : (
-        sections.map((section) => (
-          <div key={section.id} className="space-y-3">
+        sections.map((section, secIdx) => (
+          <div key={`${section.id || "sec"}-${secIdx}-${section.title || ""}`} className="space-y-3">
             <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-widest border-b border-divider pb-2">
               {section.title}
             </h3>
@@ -51,7 +51,7 @@ export const InfoSheetPanel: React.FC<InfoSheetPanelProps> = ({
               {section.fields.map((field, fieldIdx) => {
                 const isEditing = editingFieldId === field.id;
                 const isLowConfidence = field.confidence && field.confidence < 70 && field.status === "extracted";
-                const fieldKey = field.id ? `${section.id}-${field.id}` : `${section.id}-field-${fieldIdx}`;
+                const fieldKey = `${section.id || "sec"}-${field.id || "f"}-${fieldIdx}-${field.label || ""}`;
 
                 return (
                   <div
@@ -63,27 +63,43 @@ export const InfoSheetPanel: React.FC<InfoSheetPanelProps> = ({
                     <div className="flex-1 space-y-1 min-w-0">
                       {/* Label & Badges */}
                       <div className="flex items-center gap-2 flex-wrap font-sans">
-                        <span className="text-xs font-semibold text-text-secondary">
+                        <span className="text-xs font-semibold text-text-primary">
                           {field.label}
                         </span>
+
+                        {/* Provenance chips near titles/metadata */}
+                        {((field as any).source === "atc_llm" || (field as any).resolution_layer === "layer_2" || (field as any).resolution_source === "llm") ? (
+                          <span className="px-2 py-0.5 text-[10px] bg-purple-50 text-purple-700 border border-purple-200 rounded-md font-medium">
+                            AI (LLM Layer)
+                          </span>
+                        ) : ((field as any).source === "atc" || field.label.toLowerCase().includes("atc") || (field as any).isAtcOverride) ? (
+                          <span className="px-2 py-0.5 text-[10px] bg-orange-50 text-orange-800 border border-orange-200 rounded-md font-medium">
+                            ATC Clause Override
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 text-[10px] bg-amber-50 text-amber-800 border border-amber-200 rounded-md font-medium">
+                            Main Tender
+                          </span>
+                        )}
+
                         {field.critical && (
-                          <span className="text-[9px] bg-alert-bg text-alert-text font-bold px-1.5 py-0.5 rounded border border-alert-text/10">
+                          <span className="text-[9px] bg-red-50 text-red-700 font-medium px-1.5 py-0.5 rounded-full border border-red-200">
                             CRITICAL
                           </span>
                         )}
                         {field.status === "edited" && (
-                          <span className="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded border border-blue-200">
+                          <span className="text-[9px] bg-blue-50 text-blue-700 font-medium px-1.5 py-0.5 rounded-full border border-blue-200">
                             EDITED
                           </span>
                         )}
                         {field.status === "verified" && (
-                          <span className="text-[9px] bg-selected-green-bg text-success-green px-1.5 py-0.5 rounded border border-selected-green-border flex items-center gap-0.5 font-bold">
-                            <Check className="h-2 w-2" />
+                          <span className="text-[9px] bg-[#ECFDF5] text-[#047857] px-1.5 py-0.5 rounded-full border border-[#A7F3D0] flex items-center gap-0.5 font-medium">
+                            <Check className="h-2.5 w-2.5" />
                             VERIFIED
                           </span>
                         )}
                         {isLowConfidence && (
-                          <span className="text-[9px] bg-warning-bg text-warning-text px-1.5 py-0.5 rounded border border-warning-text/10 flex items-center gap-0.5 font-bold animate-pulse">
+                          <span className="text-[9px] bg-[#FFFBEB] text-[#B45309] px-1.5 py-0.5 rounded-full border border-[#FDE68A] flex items-center gap-0.5 font-medium">
                             <AlertTriangle className="h-2.5 w-2.5" />
                             LOW CONFIDENCE ({field.confidence}%)
                           </span>

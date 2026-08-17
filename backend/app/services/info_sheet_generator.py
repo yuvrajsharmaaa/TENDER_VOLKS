@@ -68,6 +68,7 @@ def _preview_aliases_for(display_key: str) -> List[str]:
     return alias_map.get(display_key, [])
 
 from backend.app.services.csv_schema import (
+    BIDDER_READINESS_SUMMARY_LAYOUT,
     INFOSHEET_PAGE1_LAYOUT,
     INFOSHEET_PAGE2_LAYOUT,
     INFOSHEET_COLUMN_WIDTHS,
@@ -363,7 +364,14 @@ def generate_info_sheet_csv(data: Any, output_path: str) -> None:
         # Row 4 spacer
         ws.row_dimensions[4].height = 12
 
-        next_row = render_layout(ws, INFOSHEET_PAGE1_LAYOUT, data, field_sources=field_sources, field_statuses=field_statuses, start_row=5)
+        # Render Bidder Readiness & Qualification Summary Block
+        next_row = render_layout(ws, BIDDER_READINESS_SUMMARY_LAYOUT, data, field_sources=field_sources, field_statuses=field_statuses, start_row=5)
+
+        # Spacer row between Readiness Summary and Detailed Fields
+        ws.row_dimensions[next_row].height = 15
+        next_row += 1
+
+        next_row = render_layout(ws, INFOSHEET_PAGE1_LAYOUT, data, field_sources=field_sources, field_statuses=field_statuses, start_row=next_row)
         
         # Spacer row between pages
         ws.row_dimensions[next_row].height = 15

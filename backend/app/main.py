@@ -3,10 +3,12 @@ import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-# Add backend directory to sys.path to resolve 'app' package imports
-backend_dir = str(Path(__file__).resolve().parent.parent)
-if backend_dir not in sys.path:
-    sys.path.insert(0, backend_dir)
+# Add backend directory and its parent to sys.path to resolve both 'app' and 'backend.app' package imports
+backend_dir = Path(__file__).resolve().parent.parent
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
+if str(backend_dir.parent) not in sys.path:
+    sys.path.insert(0, str(backend_dir.parent))
 from urllib.parse import urlparse
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
@@ -25,6 +27,7 @@ from backend.app.core.constants import STORAGE_ROOT
 from backend.app.api import upload, jobs, visualizer
 from backend.app.api.routes.health import router as health_router
 from backend.app.api.routes.tenders import router as tenders_router
+from backend.app.api.routes.notify import router as notify_router
 
 # Setup structured logging prior to boot
 setup_logging(log_level=settings.log_level, service_name="tender_backend")
@@ -117,11 +120,18 @@ app = FastAPI(
 # Attach Request ID Tracing Middleware (must be first/early in chain)
 app.add_middleware(RequestIDMiddleware)
 
-# CORS Configuration
+# CORS Configuration — Explicitly permit frontend dev ports (5174, 5173) and wildcards
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=[
+        "http://localhost:5174",
+        "http://localhost:5173",
+        "http://127.0.0.1:5174",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "*"
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -140,6 +150,7 @@ app.include_router(upload.router)
 app.include_router(jobs.router)
 app.include_router(visualizer.router)
 app.include_router(tenders_router)
+app.include_router(notify_router)
 
 # Mount Built React Frontend & SPA Fallback Route for Production LAN Access
 frontend_dist = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
@@ -155,4 +166,3 @@ if frontend_dist.exists():
         if full_path and file_path.exists() and file_path.is_file():
             return FileResponse(file_path)
         return FileResponse(frontend_dist / "index.html")
-
