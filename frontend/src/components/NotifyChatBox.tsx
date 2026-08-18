@@ -23,7 +23,9 @@ export const NotifyChatBox: React.FC = () => {
     const trimmed = messageText.trim();
     if (!trimmed || isSubmitting) return;
 
-    const msgId = Date.now().toString();
+    const msgId = typeof crypto !== "undefined" && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     const timeStr = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     const newMsg: ChatMessage = {
       id: msgId,
@@ -202,6 +204,7 @@ export const NotifyChatBox: React.FC = () => {
             <div className="flex items-center gap-2">
               <input
                 type="text"
+                maxLength={100}
                 placeholder="Sender name"
                 value={senderName}
                 onChange={(e) => setSenderName(e.target.value)}
@@ -213,6 +216,7 @@ export const NotifyChatBox: React.FC = () => {
             <div className="flex items-center gap-2">
               <textarea
                 rows={2}
+                maxLength={4096}
                 placeholder="Type note for team... (e.g. This update is needed)"
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}

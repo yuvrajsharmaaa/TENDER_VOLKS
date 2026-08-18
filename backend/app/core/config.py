@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     MINIO_SECRET_KEY: str = "minioadmin"
     MINIO_BUCKET: str = "tender-pdfs"
     MINIO_USE_SSL: bool = False
+    MINIO_SECURE: bool = False
     
     # Third party integrations
     gemini_api_key: Union[str, None] = None

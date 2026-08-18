@@ -9,7 +9,7 @@ router = APIRouter()
 
 @router.get("/api/jobs")
 async def list_jobs():
-    from backend.app.repositories.job_store import get_all_jobs
+    from backend.app.repositories.job_repository import get_all_jobs
     from backend.app.core.constants import PROJECT_ROOT
     db_jobs = get_all_jobs()
     

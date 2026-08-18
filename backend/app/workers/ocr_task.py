@@ -1,7 +1,7 @@
 import json
 import logging
 from pathlib import Path
-from backend.app.repositories.job_store import update_status
+from backend.app.repositories.job_repository import update_status
 from backend.app.core.constants import JobStatus, STORAGE_ROOT
 from ocr.pipeline import process_pdf
 from backend.app.services.tender_mapper import map_occurrences_to_tender_payloads
