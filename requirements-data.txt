@@ -1,0 +1,5 @@
+PyMuPDF
+pdfplumber
+pytesseract
+python-dotenv
+tqdm

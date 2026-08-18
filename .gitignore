@@ -77,3 +77,10 @@ node_modules/
 *~
 .DS_Store
 Thumbs.db
+
+# Fine-Tuning & Data Pipeline (Raw Corpus & Derived Datasets)
+tender-documents/
+*.jsonl
+data/processed/
+data/corpus/
+output/
