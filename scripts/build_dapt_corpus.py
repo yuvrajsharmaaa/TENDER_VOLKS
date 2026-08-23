@@ -74,81 +74,15 @@ def log_special_event(log_file: Path, message: str):
         f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} | {message}\n")
 
 
-# ---------------------------------------------------------------------------
-# Text Quality & Garbage Detection
-# ---------------------------------------------------------------------------
-def is_text_scrambled_or_garbage(text: str) -> bool:
-    """Detects if native PDF text is scrambled, contains (cid:X) codes, or corrupted fonts."""
-    if not text:
-        return True
-    if text.count("(cid:") > 3:
-        return True
-    cleaned = text.strip()
-    if not cleaned:
-        return True
-    total_len = len(cleaned)
-    # Count alphanumeric characters (ASCII + Devanagari) + whitespace
-    valid_count = sum(1 for c in cleaned if c.isalnum() or c.isspace() or '\u0900' <= c <= '\u097F')
-    if (valid_count / total_len) < 0.55:
-        return True
-    return False
+# Add workspace root to sys.path
+sys.path.insert(0, os.getcwd())
 
-
-# ---------------------------------------------------------------------------
-# Checkbox & Symbol Normalization
-# ---------------------------------------------------------------------------
-def normalize_symbols_and_checkboxes(text: str) -> str:
-    """Replaces Wingdings/Unicode checkbox glyphs with clear readable text."""
-    if not text:
-        return ""
-    # Wingdings checked/unchecked
-    text = text.replace("\uf050", " [X] ").replace("\uf0fe", " [X] ").replace("\u2611", " [X] ")
-    text = text.replace("\uf04f", " [ ] ").replace("\u2610", " [ ] ")
-    return text
-
-
-# ---------------------------------------------------------------------------
-# Cleaning Pipeline
-# ---------------------------------------------------------------------------
-RE_PAGINATION_1 = re.compile(r'(?i)\bPage\s+\d+\s+(?:of|/)\s+\d+\b')
-RE_PAGINATION_2 = re.compile(r'(?i)\bPage\s*[-–—]?\s*\d+\s*[-–—]?\b')
-RE_PAGINATION_3 = re.compile(r'(?i)\b(?:Pg|Page)\.?\s*\d+\b')
-
-RE_GEM_BOILERPLATE_1 = re.compile(r'(?i)This Bid is also governed by the General Terms and Conditions\.?')
-RE_GEM_BOILERPLATE_2 = re.compile(r'(?i)In terms of GeM GTC clause 26 regarding Restrictions on procurement[^\n]*')
-RE_GEM_BOILERPLATE_3 = re.compile(r'---\s*Thank You\s*---', re.IGNORECASE)
-RE_GEM_BOILERPLATE_4 = re.compile(r'(?i)Bidder must comply with the provisions specified in GeM GTC.*')
-
-RE_CID_GLYPHS = re.compile(r'\(cid:\d+\)')
-
-# Control characters (strip unprintable chars, keep \n, \t, \r, Hindi \u0900-\u097F, and symbols)
-RE_CONTROL_CHARS = re.compile(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]')
-RE_EXCESS_NEWLINES = re.compile(r'\n{3,}')
-RE_EXCESS_SPACES = re.compile(r'[ \t]{2,}')
-
-
-def clean_text_block(text: str) -> str:
-    """Applies clean-up filters while preserving Hindi, currency, and markdown formatting."""
-    if not text:
-        return ""
-
-    text = normalize_symbols_and_checkboxes(text)
-    text = RE_CID_GLYPHS.sub('', text)
-    text = RE_PAGINATION_1.sub('', text)
-    text = RE_PAGINATION_2.sub('', text)
-    text = RE_PAGINATION_3.sub('', text)
-
-    text = RE_GEM_BOILERPLATE_1.sub('', text)
-    text = RE_GEM_BOILERPLATE_2.sub('', text)
-    text = RE_GEM_BOILERPLATE_3.sub('', text)
-    text = RE_GEM_BOILERPLATE_4.sub('', text)
-
-    text = RE_CONTROL_CHARS.sub('', text)
-
-    lines = [RE_EXCESS_SPACES.sub(' ', line).strip() for line in text.splitlines()]
-    text = '\n'.join(line for line in lines if line)
-    text = RE_EXCESS_NEWLINES.sub('\n\n', text)
-    return text.strip()
+from scripts.tender_text_extractor import (
+    clean_text_block,
+    normalize_symbols_and_checkboxes,
+    is_text_scrambled_or_garbage,
+    repair_gem_font_glyphs,
+)
 
 
 # ---------------------------------------------------------------------------

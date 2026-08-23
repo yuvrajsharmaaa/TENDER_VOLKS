@@ -150,24 +150,50 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False, atc_pdf
             except Exception:
                 pass
         
-        # Spatial containment and reading order mapping
-        for idx, region in enumerate(layout_regions):
-            region.reading_order_index = idx + 1
-            # Find contained text blocks
-            contained_blocks = [tb for tb in text_blocks if is_contained(tb.bounding_box, region.bounding_box)]
-            # Sort contained blocks in layout-aware reading order
-            sorted_contained = sort_blocks_by_reading_order(contained_blocks)
-            
-            region.contained_block_ids = [b.block_id for b in sorted_contained]
-            region.text_content = "\n".join([b.text for b in sorted_contained])
-            
-            if region.region_type.lower() == "table":
-                from ocr.table_grid_parser import build_table_structure
-                region.table_structure = build_table_structure(contained_blocks)
-        
         # Get actual image dimensions
         with Image.open(img_path) as img:
             width, height = img.size
+
+        # Direct Vector Table Extraction via pdfplumber
+        from ocr.table_grid_parser import extract_tables_with_pdfplumber, filter_blocks_outside_tables, build_table_structure
+        plumber_tables = extract_tables_with_pdfplumber(pdf_path, page_number=i+1, image_width_px=width, image_height_px=height)
+        
+        table_regions = []
+        table_bboxes = []
+        if plumber_tables:
+            for t_idx, t_data in enumerate(plumber_tables):
+                t_box = t_data["bbox"]
+                table_bboxes.append(t_box)
+                grid_text = "\n".join([" | ".join(row) for row in t_data.get("grid", [])])
+                t_contained_blocks = [tb for tb in text_blocks if is_contained(tb.bounding_box, t_box)]
+                table_regions.append(LayoutRegion(
+                    region_id=f"reg_tbl_{i+1:02d}_{t_idx+1:02d}",
+                    region_type="table",
+                    bounding_box=t_box,
+                    contained_block_ids=[b.block_id for b in t_contained_blocks],
+                    table_structure=t_data,
+                    text_content=grid_text,
+                    confidence=1.0
+                ))
+            # Exclude paragraph layout regions that overlap detected table bounds to avoid duplicates
+            layout_regions = [r for r in layout_regions if not any(is_contained(r.bounding_box, tb_box, threshold=0.7) for tb_box in table_bboxes)]
+            layout_regions.extend(table_regions)
+            layout_regions = sorted(layout_regions, key=lambda r: (r.bounding_box["y1"], r.bounding_box["x1"]))
+        else:
+            # Fallback table structure parsing for heuristic layout regions
+            for idx, region in enumerate(layout_regions):
+                if region.region_type.lower() == "table" and region.table_structure is None:
+                    contained_blocks = [tb for tb in text_blocks if is_contained(tb.bounding_box, region.bounding_box)]
+                    region.table_structure = build_table_structure(contained_blocks)
+
+        # Spatial containment and reading order mapping for non-table regions
+        for idx, region in enumerate(layout_regions):
+            region.reading_order_index = idx + 1
+            if region.region_type.lower() != "table":
+                contained_blocks = [tb for tb in text_blocks if is_contained(tb.bounding_box, region.bounding_box)]
+                sorted_contained = sort_blocks_by_reading_order(contained_blocks)
+                region.contained_block_ids = [b.block_id for b in sorted_contained]
+                region.text_content = "\n".join([b.text for b in sorted_contained])
             
         # Run LayoutLM stage if enabled
         layoutlm_results = None

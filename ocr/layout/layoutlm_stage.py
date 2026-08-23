@@ -1,7 +1,9 @@
 import os
 import re
 import logging
-from typing import List, Dict, Any, Optional
+from pathlib import Path
+from typing import List, Dict, Any, Optional, Union
+from PIL import Image
 from backend.app.models.models import TextBlock
 
 
@@ -14,30 +16,33 @@ logger = logging.getLogger(__name__)
 HAS_TORCH_AND_TRANSFORMERS = False
 try:
     import torch
-    from transformers import LayoutLMTokenizerFast, LayoutLMForTokenClassification
+    from transformers import LayoutLMv3Processor, LayoutLMv3ForTokenClassification
     HAS_TORCH_AND_TRANSFORMERS = True
 except (ImportError, OSError) as e:
     logger.warning(
-        f"LayoutLM core dependencies failed to import (e.g. PyTorch DLL load error: {e}). "
+        f"LayoutLMv3 core dependencies failed to import (e.g. PyTorch DLL load error: {e}). "
         "The stage will run in fallback rule-based mode. Please reinstall PyTorch (pip install torch) to enable ML inference."
     )
 
-# Default BIO labels for Key Information Extraction (KIE) on tenders
+# Document-structure classification label space
 DEFAULT_LABELS = [
     "O",
-    "B-BID_NO", "I-BID_NO",
-    "B-DATE", "I-DATE",
-    "B-ORG", "I-ORG",
-    "B-AMOUNT", "I-AMOUNT"
+    "TITLE",
+    "SECTION_HEADER",
+    "PARAGRAPH",
+    "TABLE",
+    "FIGURE",
+    "CAPTION"
 ]
 
+
 class LayoutLmStage:
-    def __init__(self, model_name_or_path: str = "microsoft/layoutlm-base-uncased"):
+    def __init__(self, model_name_or_path: str = "microsoft/layoutlmv3-base"):
         self.model_name_or_path = model_name_or_path
-        self.tokenizer = None
+        self.processor = None
         self.model = None
         
-        # BIO label mappings
+        # Document structure label mappings
         self.id2label = {i: label for i, label in enumerate(DEFAULT_LABELS)}
         self.label2id = {label: i for i, label in enumerate(DEFAULT_LABELS)}
         self.use_fallback = not HAS_TORCH_AND_TRANSFORMERS
@@ -48,13 +53,13 @@ class LayoutLmStage:
             return
             
         try:
-            if self.tokenizer is None:
-                logger.info(f"Initializing LayoutLM Tokenizer from {self.model_name_or_path}...")
-                self.tokenizer = LayoutLMTokenizerFast.from_pretrained(self.model_name_or_path)
+            if self.processor is None:
+                logger.info(f"Initializing LayoutLMv3 Processor from {self.model_name_or_path}...")
+                self.processor = LayoutLMv3Processor.from_pretrained(self.model_name_or_path, apply_ocr=False)
                 
             if self.model is None:
-                logger.info(f"Initializing LayoutLM Model from {self.model_name_or_path}...")
-                self.model = LayoutLMForTokenClassification.from_pretrained(
+                logger.info(f"Initializing LayoutLMv3 Model from {self.model_name_or_path}...")
+                self.model = LayoutLMv3ForTokenClassification.from_pretrained(
                     self.model_name_or_path,
                     num_labels=len(DEFAULT_LABELS),
                     id2label=self.id2label,
@@ -62,43 +67,52 @@ class LayoutLmStage:
                 )
                 self.model.eval()
         except Exception as e:
-            logger.error(f"Failed to load LayoutLM model weights ({e}). Switched to fallback mode.")
+            logger.error(f"Failed to load LayoutLMv3 model weights ({e}). Switched to fallback mode.")
             self.use_fallback = True
 
-    def normalize_bbox(self, bbox: Dict[str, int], width: int, height: int) -> List[int]:
+    def normalize_bbox(self, bbox: Dict[str, Any], width: int, height: int) -> List[int]:
         """
-        Converts absolute pixel box coordinates to LayoutLM's 0-1000 coordinate space.
-        Ensures x0 <= x1 and y0 <= y1 and clamps to valid limits.
+        Converts bounding box coordinates in PDF point/pixel space to LayoutLMv3's 0-1000 coordinate space.
+        Formula:
+            norm_x = int(1000 * (x / page_width))
+            norm_y = int(1000 * (y / page_height))
+        Clamps output to [0, 1000] and ensures x0 <= x1 and y0 <= y1.
         """
+        w_scale = width if width > 0 else 1
+        h_scale = height if height > 0 else 1
+        
         x1 = bbox.get("x1", 0)
         y1 = bbox.get("y1", 0)
         x2 = bbox.get("x2", 0)
         y2 = bbox.get("y2", 0)
         
-        x0 = min(x1, x2)
-        x1_new = max(x1, x2)
-        y0 = min(y1, y2)
-        y1_new = max(y1, y2)
+        x_min = min(x1, x2)
+        x_max = max(x1, x2)
+        y_min = min(y1, y2)
+        y_max = max(y1, y2)
         
-        w_scale = width if width > 0 else 1
-        h_scale = height if height > 0 else 1
+        norm_x0 = max(0, min(1000, int(1000 * (x_min / w_scale))))
+        norm_y0 = max(0, min(1000, int(1000 * (y_min / h_scale))))
+        norm_x1 = max(0, min(1000, int(1000 * (x_max / w_scale))))
+        norm_y1 = max(0, min(1000, int(1000 * (y_max / h_scale))))
         
-        x0_norm = max(0, min(1000, int(1000 * x0 / w_scale)))
-        y0_norm = max(0, min(1000, int(1000 * y0 / h_scale)))
-        x1_norm = max(0, min(1000, int(1000 * x1_new / w_scale)))
-        y1_norm = max(0, min(1000, int(1000 * y1_new / h_scale)))
-        
-        if x0_norm > x1_norm:
-            x0_norm, x1_norm = x1_norm, x0_norm
-        if y0_norm > y1_norm:
-            y0_norm, y1_norm = y1_norm, y0_norm
+        if norm_x0 > norm_x1:
+            norm_x0, norm_x1 = norm_x1, norm_x0
+        if norm_y0 > norm_y1:
+            norm_y0, norm_y1 = norm_y1, norm_y0
             
-        return [x0_norm, y0_norm, x1_norm, y1_norm]
+        return [norm_x0, norm_y0, norm_x1, norm_y1]
 
-    def run(self, text_blocks: List[TextBlock], width: int, height: int) -> Dict[str, Any]:
+    def run(
+        self,
+        text_blocks: List[TextBlock],
+        width: int,
+        height: int,
+        image: Optional[Union[Image.Image, str, Path]] = None
+    ) -> Dict[str, Any]:
         """
-        Adapts PaddleOCR line-level blocks, normalizes coordinates, performs tokenizer alignment, 
-        and runs LayoutLM inference to extract entities.
+        Adapts OCR line-level blocks, normalizes coordinates to 0-1000, performs LayoutLMv3 
+        token/box/image alignment, and executes LayoutLMv3 inference to classify document structure.
         """
         self._lazy_init()
         
@@ -115,7 +129,7 @@ class LayoutLmStage:
         for idx, block in enumerate(text_blocks):
             line_words = block.text.strip().split()
             if not line_words:
-                continue
+               continue
                 
             norm_box = self.normalize_bbox(block.bounding_box, width, height)
             for w in line_words:
@@ -142,25 +156,29 @@ class LayoutLmStage:
             }
 
         # ----------------- ML Inference Mode -----------------
-        encoding = self.tokenizer(
+        # Prepare page image for LayoutLMv3 multimodal processing
+        pil_image = None
+        if image is not None:
+            if isinstance(image, Image.Image):
+                pil_image = image.convert("RGB")
+            elif isinstance(image, (str, Path)):
+                pil_image = Image.open(image).convert("RGB")
+        
+        # If no image provided by caller, generate a blank RGB canvas of the specified page size
+        if pil_image is None:
+            img_w = max(width, 1)
+            img_h = max(height, 1)
+            pil_image = Image.new("RGB", (img_w, img_h), color=(255, 255, 255))
+
+        encoding = self.processor(
+            pil_image,
             words,
-            is_split_into_words=True,
+            boxes=normalized_boxes,
             truncation=True,
             max_length=512,
             padding="max_length",
             return_tensors="pt"
         )
-        
-        token_boxes = []
-        word_ids = encoding.word_ids(batch_index=0)
-        
-        for w_id in word_ids:
-            if w_id is None:
-                token_boxes.append([0, 0, 0, 0])
-            else:
-                token_boxes.append(normalized_boxes[w_id])
-                
-        encoding["bbox"] = torch.tensor([token_boxes])
 
         with torch.no_grad():
             outputs = self.model(**encoding)
@@ -170,7 +188,9 @@ class LayoutLmStage:
         if not isinstance(predictions, list):
             predictions = [predictions]
             
-        input_tokens = self.tokenizer.convert_ids_to_tokens(encoding["input_ids"].squeeze().tolist())
+        word_ids = encoding.word_ids(batch_index=0)
+        input_ids = encoding["input_ids"].squeeze().tolist()
+        input_tokens = self.processor.tokenizer.convert_ids_to_tokens(input_ids)
         token_predictions = [self.id2label[p] for p in predictions]
 
         entities = self._extract_entities(
@@ -191,76 +211,44 @@ class LayoutLmStage:
             "entities": entities
         }
 
-    def _run_fallback_rules(self, text_blocks: List[TextBlock], normalized_boxes: List[List[int]], word_to_block_idx: List[int]) -> List[Dict[str, Any]]:
+    def _run_fallback_rules(
+        self,
+        text_blocks: List[TextBlock],
+        normalized_boxes: List[List[int]],
+        word_to_block_idx: List[int]
+    ) -> List[Dict[str, Any]]:
         """
-        Rule-based KIE parser used when PyTorch fails to load.
-        Matches Bid Number patterns, Date patterns, and Organisation names.
+        Rule-based document structure classifier used when PyTorch fails to load.
+        Classifies blocks into TITLE, SECTION_HEADER, TABLE, and PARAGRAPH.
         """
         entities = []
         
-        # Regex compiled patterns
-        date_pattern = re.compile(r"\b\d{2}-\d{2}-\d{4}\b")
-        bid_pattern = re.compile(r"\bGEM/20\d{2}/[A-Z]/\d+\b")
-        amount_pattern = re.compile(r"\b\d+\s+Lakh\b|\bINR\s+\d+\b")
-        
-        org_keywords = ["ministry", "department", "central bureau", "office of", "corporation"]
+        title_pattern = re.compile(r"\b(TENDER|BID|NOTICE|INVITATION|DOCUMENT|REQUEST FOR PROPOSAL|RFP|NIT)\b", re.IGNORECASE)
+        section_pattern = re.compile(r"^(SECTION|CLAUSE|PART|ARTICLE|ANNEXURE|APPENDIX|CHAPTER|SCHEDULE)\b|^\d+(\.\d+)*\s+[A-Z]", re.IGNORECASE)
+        table_pattern = re.compile(r"(\b(SL\.?\s*NO|ITEM\s*NO|DESCRIPTION|QTY|QUANTITY|PRICE|RATE|AMOUNT|UNIT)\b.*){2,}", re.IGNORECASE)
 
-        # Loop over lines directly for high accuracy parsing
         for idx, block in enumerate(text_blocks):
-            txt_lower = block.text.lower()
-            norm_box = normalized_boxes[word_to_block_idx.index(idx)] if idx in word_to_block_idx else [0, 0, 0, 0]
-
-            # 1. Bid Number Match
-            bid_match = bid_pattern.search(block.text)
-            if bid_match:
-                entities.append({
-                    "text": bid_match.group(),
-                    "label": "BID_NO",
-                    "score": 1.0,
-                    "box": norm_box
-                })
+            txt = block.text.strip()
+            if not txt:
                 continue
                 
-            # 2. Date Match
-            date_match = date_pattern.search(block.text)
-            if date_match:
-                entities.append({
-                    "text": date_match.group(),
-                    "label": "DATE",
-                    "score": 1.0,
-                    "box": norm_box
-                })
-                continue
-                
-            # 3. Amount/Turnover Match
-            amount_match = amount_pattern.search(block.text)
-            if amount_match:
-                entities.append({
-                    "text": amount_match.group(),
-                    "label": "AMOUNT",
-                    "score": 1.0,
-                    "box": norm_box
-                })
-                continue
+            norm_box = normalized_boxes[word_to_block_idx.index(idx)] if idx in word_to_block_idx else [0, 0, 1000, 1000]
 
-            # 4. Organisation Keywords Match
-            if any(keyword in txt_lower for keyword in org_keywords):
-                # Clean up prefix text (e.g. "Department Name/विभाग") to isolate entity value
-                text_clean = block.text
-                if "/" in text_clean:
-                    parts = text_clean.split("/")
-                    # If organization keyword is in the second part, keep it, otherwise keep first/clean value
-                    if any(keyword in parts[1].lower() for keyword in org_keywords):
-                        text_clean = parts[1].strip()
-                    else:
-                        text_clean = parts[0].strip()
-                        
-                entities.append({
-                    "text": text_clean,
-                    "label": "ORG",
-                    "score": 1.0,
-                    "box": norm_box
-                })
+            if idx == 0 and title_pattern.search(txt):
+                label = "TITLE"
+            elif section_pattern.search(txt) and len(txt.split()) < 15:
+                label = "SECTION_HEADER"
+            elif table_pattern.search(txt) or "\t" in txt or " | " in txt:
+                label = "TABLE"
+            else:
+                label = "PARAGRAPH"
+
+            entities.append({
+                "text": txt,
+                "label": label,
+                "score": 1.0,
+                "box": norm_box
+            })
 
         return entities
 
@@ -275,14 +263,21 @@ class LayoutLmStage:
         word_to_block_idx: List[int]
     ) -> List[Dict[str, Any]]:
         """
-        BIO tagging parser to group consecutive classification tokens into entities.
+        Groups token classification predictions into document structure elements
+        (TITLE, SECTION_HEADER, PARAGRAPH, TABLE, FIGURE, CAPTION).
         """
         entities = []
         current_entity = None
+        seen_word_ids = set()
         
         for idx, (token, pred, w_id) in enumerate(zip(tokens, predictions, word_ids)):
             if w_id is None:
                 continue
+            
+            # Process each word once based on its first subtoken
+            if w_id in seen_word_ids:
+                continue
+            seen_word_ids.add(w_id)
                 
             box = normalized_boxes[w_id]
             block_idx = word_to_block_idx[w_id]
@@ -291,22 +286,14 @@ class LayoutLmStage:
                 if current_entity:
                     entities.append(current_entity)
                     current_entity = None
-            elif pred.startswith("B-"):
-                if current_entity:
-                    entities.append(current_entity)
-                entity_type = pred.split("-")[1]
-                current_entity = {
-                    "text": original_words[w_id],
-                    "label": entity_type,
-                    "score": 1.0,
-                    "box": box,
-                    "word_indices": [w_id]
-                }
-            elif pred.startswith("I-"):
-                entity_type = pred.split("-")[1]
-                if current_entity and current_entity["label"] == entity_type:
+            else:
+                if current_entity and current_entity["label"] == pred and (
+                    block_idx in current_entity["block_indices"] or block_idx == current_entity["block_indices"][-1] + 1
+                ):
                     current_entity["text"] += " " + original_words[w_id]
                     current_entity["word_indices"].append(w_id)
+                    if block_idx not in current_entity["block_indices"]:
+                        current_entity["block_indices"].append(block_idx)
                     cur_box = current_entity["box"]
                     current_entity["box"] = [
                         min(cur_box[0], box[0]),
@@ -319,31 +306,21 @@ class LayoutLmStage:
                         entities.append(current_entity)
                     current_entity = {
                         "text": original_words[w_id],
-                        "label": entity_type,
+                        "label": pred,
                         "score": 1.0,
                         "box": box,
-                        "word_indices": [w_id]
+                        "word_indices": [w_id],
+                        "block_indices": [block_idx]
                     }
                     
         if current_entity:
             entities.append(current_entity)
 
-        # Merge adjacent words representing parts of the same OCR line blocks
+        # Clean up temporary index lists
         for ent in entities:
-            unique_block_indices = []
-            for w_idx in ent["word_indices"]:
-                b_idx = word_to_block_idx[w_idx]
-                if b_idx not in unique_block_indices:
-                    unique_block_indices.append(b_idx)
-            
-            if len(unique_block_indices) == 1:
-                clean_words = []
-                for w_idx in ent["word_indices"]:
-                    clean_words.append(original_words[w_idx])
-                ent["text"] = " ".join(clean_words)
-            else:
-                ent["text"] = " ".join([text_blocks[b_idx].text for b_idx in unique_block_indices])
-                
-            del ent["word_indices"]
+            if "word_indices" in ent:
+                del ent["word_indices"]
+            if "block_indices" in ent:
+                del ent["block_indices"]
 
         return entities
