@@ -4,9 +4,9 @@ services:
     container_name: tender_postgres
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: yuvi@2006
-      POSTGRES_DB: tender_db
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-tender_db}
     ports:
       - "5433:5432"
     volumes:
@@ -50,6 +50,38 @@ services:
       timeout: 3s
       retries: 5
 
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: tender_qdrant
+    restart: always
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: [ "CMD-SHELL", "bash -c 'cat < /dev/null > /dev/tcp/localhost/6333' || exit 1" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  neo4j:
+    image: neo4j:5.26.0
+    container_name: tender_neo4j
+    restart: always
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      NEO4J_AUTH: ${NEO4J_AUTH}
+    volumes:
+      - neo4j_data:/data
+    healthcheck:
+      test: [ "CMD-SHELL", "bash -c 'cat < /dev/null > /dev/tcp/localhost/7687' || exit 1" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   backend:
     build:
       context: ../backend
@@ -75,7 +107,32 @@ services:
       minio:
         condition: service_healthy
 
+  celery_worker:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: tender_celery_worker
+    restart: always
+    volumes:
+      - ../backend:/app/backend
+      - ../ocr:/app/ocr
+      - ../gem_parent_tender_extraction_map.yaml:/app/gem_parent_tender_extraction_map.yaml
+    env_file:
+      - ../.env.dev
+    environment:
+      - PYTHONPATH=/app
+    command: celery -A backend.app.celery_app.celery_app worker --loglevel=info --concurrency=2
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
 volumes:
   postgres_data:
   redis_data:
   minio_data:
+  qdrant_data:
+  neo4j_data:

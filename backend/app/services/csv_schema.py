@@ -455,9 +455,12 @@ INFOSHEET_PAGE2_LAYOUT = [
         _cell(1, "label", "Doc 8"), _cell(1, "value", key="doc_8_display"),
         _cell(1, "label", "Doc 9"), _cell(1, "value", key="doc_9_display"),
     ]),
-
     _row([
-        _cell(2, "label", "Courier Delivery Address"),
+        _cell(2, "label", "Consignee Delivery Address"),
+        _cell(4, "value", key="consignee_address_display"),
+    ]),
+    _row([
+        _cell(2, "label", "Physical Docs Courier Address"),
         _cell(4, "value", key="courier_address_display"),
     ]),
     _row([
@@ -502,6 +505,10 @@ INFOSHEET_PAGE2_LAYOUT = [
         _cell(2, "label", "Schedule 3 Details"),
         _cell(4, "value", key="schedule_3_details_display"),
     ], height=40),
+    _row([
+        _cell(2, "label", "Schedule 4 Details"),
+        _cell(4, "value", key="schedule_4_details_display"),
+    ], height=40),
 ]
 
 BIDDER_READINESS_SUMMARY_LAYOUT = [
@@ -521,37 +528,51 @@ BIDDER_READINESS_SUMMARY_LAYOUT = [
         _cell(4, "value", key="readiness_timeline_display"),
     ], height=22),
     _row([
-        _cell(2, "label", "Capital to Arrange (EMD + PBG)", bold=True),
+        _cell(2, "label", "Required Capital Outlay", bold=True),
         _cell(4, "value", key="readiness_capital_display"),
     ], height=22),
     _row([
-        _cell(2, "label", "Can We Qualify? (BEC Snapshot)", bold=True),
+        _cell(2, "label", "Technical & Financial BEC", bold=True),
         _cell(4, "value", key="readiness_bec_display"),
     ], height=22),
     _row([
-        _cell(2, "label", "Mandatory Certifications / Auth", bold=True),
+        _cell(2, "label", "Mandatory Certifications", bold=True),
         _cell(4, "value", key="readiness_certifications_display"),
     ], height=22),
     _row([
-        _cell(2, "label", "Delivery Feasibility", bold=True),
+        _cell(2, "label", "Delivery Commitment Feasibility", bold=True),
         _cell(4, "value", key="readiness_delivery_display"),
     ], height=22),
     _row([
-        _cell(2, "label", "Buyback / Reverse-Logistics", bold=True),
+        _cell(2, "label", "Buyback / Reverse-Logistics Scope", bold=True),
         _cell(4, "value", key="readiness_buyback_display"),
     ], height=22),
     _row([
-        _cell(2, "label", "Reverse Auction (RA) Exposure", bold=True),
+        _cell(2, "label", "Reverse Auction (RA) Risk", bold=True),
         _cell(4, "value", key="readiness_ra_display"),
     ], height=22),
     _row([
-        _cell(2, "label", "Outright Disqualifiers / Deviations", bold=True),
+        _cell(2, "label", "Zero-Tolerance Disqualifiers", bold=True),
         _cell(4, "value", key="readiness_disqualifiers_display"),
     ], height=22),
     _row([
-        _cell(2, "label", "Penalty / Risk Exposure", bold=True),
+        _cell(2, "label", "Penalty & Delay Risk", bold=True),
         _cell(4, "value", key="readiness_penalty_risk_display"),
     ], height=22),
+]
+
+# Section headers for CSV metadata
+SECTION_HEADERS = [
+    "--- 1. IDENTIFIERS ---",
+    "--- 2. TENDER CORE ATTRIBUTES ---",
+    "--- 3. FINANCIAL/EMD/FEES ---",
+    "--- 4. DATES & DEADLINES ---",
+    "--- 5. BIDDER QUALIFICATIONS (BEC) ---",
+    "--- 6. POST-QUALIFICATION POLICIES & COMPLIANCE ---",
+    "--- 7. CLIENT DETAILS ---",
+    "--- 8. PHYSICAL DOCUMENTS SUBMITTED ---",
+    "--- 9. COURIER / DOCKET TRACKING ---",
+    "--- 10. SYSTEM METADATA ---"
 ]
 
 # Column width plan (characters) for the 6-column A-F grid used by both pages.
@@ -599,11 +620,11 @@ INFOSHEET_DATA_KEYS = [
     "doc_1_display", "doc_2_display", "doc_3_display",
     "doc_4_display", "doc_5_display", "doc_6_display",
     "doc_7_display", "doc_8_display", "doc_9_display",
-    "courier_address_display", "courier_provider_display",
+    "consignee_address_display", "courier_address_display", "courier_provider_display",
     "courier_docket_no_display", "courier_delivery_time_display",
     "docket_slip_upload_display", "physical_docs_uploaded_display",
     "mse_relaxation_display", "startup_relaxation_display",
     "mse_preference_display", "mii_preference_display",
     "pre_bid_meeting_display",
-    "schedule_1_details_display", "schedule_2_details_display", "schedule_3_details_display",
+    "schedule_1_details_display", "schedule_2_details_display", "schedule_3_details_display", "schedule_4_details_display",
 ] + READINESS_DATA_KEYS

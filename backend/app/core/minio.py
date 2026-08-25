@@ -4,10 +4,16 @@ Local-disk object storage shim.
 Re-implements the subset of the `minio.Minio` client surface used by the application,
 backed by files on disk under STORAGE_ROOT/objects/<bucket>/<key>.
 """
+import os
 import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import BinaryIO, Iterable, List, Optional
+
+try:
+    from minio import Minio
+except ImportError:
+    Minio = None  # type: ignore
 
 from backend.app.core.config import settings
 from backend.app.core.constants import STORAGE_ROOT
@@ -130,6 +136,147 @@ class LocalObjectStore:
                 logger.warning(f"Failed to remove object {bucket_name}/{object_name}: {e}")
 
 
-# Shared instance used throughout the backend in place of a real MinIO client.
-# Evaluates root dynamically to prevent read-only filesystem crash during module import.
-minio_client = LocalObjectStore()
+class MinioObjectStore:
+    """Real S3/MinIO-backed object storage implementation using official minio SDK."""
+
+    def __init__(
+        self,
+        endpoint: Optional[str] = None,
+        access_key: Optional[str] = None,
+        secret_key: Optional[str] = None,
+        secure: Optional[bool] = None,
+        default_bucket: Optional[str] = None,
+    ):
+        raw_endpoint = (
+            endpoint
+            or os.getenv("MINIO_ENDPOINT")
+            or getattr(settings, "MINIO_ENDPOINT", None)
+            or getattr(settings, "minio_endpoint", "localhost:9000")
+        )
+        self._access_key = (
+            access_key
+            or os.getenv("MINIO_ACCESS_KEY")
+            or getattr(settings, "MINIO_ACCESS_KEY", None)
+            or getattr(settings, "minio_access_key", "minioadmin")
+        )
+        self._secret_key = (
+            secret_key
+            or os.getenv("MINIO_SECRET_KEY")
+            or getattr(settings, "MINIO_SECRET_KEY", None)
+            or getattr(settings, "minio_secret_key", "minioadmin")
+        )
+
+        if secure is not None:
+            self._secure = secure
+        else:
+            sec_env = os.getenv("MINIO_SECURE") or os.getenv("MINIO_USE_SSL")
+            if sec_env is not None:
+                self._secure = sec_env.lower() in ("true", "1", "yes")
+            else:
+                self._secure = getattr(
+                    settings, "MINIO_SECURE", getattr(settings, "MINIO_USE_SSL", False)
+                )
+
+        self.default_bucket = (
+            default_bucket
+            or os.getenv("MINIO_BUCKET")
+            or getattr(settings, "MINIO_BUCKET", "tender-pdfs")
+        )
+
+        endpoint_clean = raw_endpoint
+        if "://" in endpoint_clean:
+            if endpoint_clean.startswith("https://"):
+                self._secure = True
+            endpoint_clean = endpoint_clean.split("://", 1)[1]
+        self._endpoint = endpoint_clean.rstrip("/")
+
+        from minio import Minio
+        self._client = Minio(
+            endpoint=self._endpoint,
+            access_key=self._access_key,
+            secret_key=self._secret_key,
+            secure=self._secure,
+        )
+        logger.info(
+            f"Initialized MinioObjectStore client pointing to {self._endpoint} (secure={self._secure})"
+        )
+
+    def ensure_default_bucket(self) -> None:
+        """Ensures the configured default bucket exists on startup (creates if missing)."""
+        try:
+            if self.default_bucket and not self.bucket_exists(self.default_bucket):
+                self.make_bucket(self.default_bucket)
+                logger.info(f"Created default MinIO bucket: {self.default_bucket}")
+        except Exception as e:
+            logger.warning(
+                f"Could not auto-verify/create default bucket {self.default_bucket} on startup: {e}"
+            )
+
+    def bucket_exists(self, bucket_name: str) -> bool:
+        return self._client.bucket_exists(bucket_name)
+
+    def make_bucket(self, bucket_name: str) -> None:
+        if not self._client.bucket_exists(bucket_name):
+            self._client.make_bucket(bucket_name)
+
+    def list_buckets(self) -> List[str]:
+        buckets = self._client.list_buckets()
+        return [b.name for b in buckets]
+
+    def put_object(
+        self,
+        bucket_name: str,
+        object_name: str,
+        data: BinaryIO,
+        length: int,
+        content_type: Optional[str] = None,
+    ) -> None:
+        if not self.bucket_exists(bucket_name):
+            self.make_bucket(bucket_name)
+        part_size = 10 * 1024 * 1024 if length is None or length < 0 else 0
+        self._client.put_object(
+            bucket_name=bucket_name,
+            object_name=object_name,
+            data=data,
+            length=length if length is not None else -1,
+            part_size=part_size,
+            content_type=content_type or "application/octet-stream",
+        )
+
+    def list_objects(
+        self, bucket_name: str, prefix: str = "", recursive: bool = True
+    ) -> Iterable[_ObjectInfo]:
+        objs = self._client.list_objects(bucket_name, prefix=prefix, recursive=recursive)
+        return [_ObjectInfo(object_name=obj.object_name) for obj in objs]
+
+    def fget_object(self, bucket_name: str, object_name: str, file_path: str) -> None:
+        Path(file_path).parent.mkdir(parents=True, exist_ok=True)
+        self._client.fget_object(bucket_name, object_name, file_path)
+
+    def remove_object(self, bucket_name: str, object_name: str) -> None:
+        self._client.remove_object(bucket_name, object_name)
+
+
+def get_object_store():
+    """
+    Returns MinioObjectStore if minio SDK is available and configured,
+    otherwise falls back gracefully to LocalObjectStore.
+    """
+    if Minio is not None:
+        try:
+            return MinioObjectStore()
+        except Exception as e:
+            logger.warning(
+                f"Failed to initialize MinioObjectStore, falling back to LocalObjectStore: {e}"
+            )
+            return LocalObjectStore()
+    else:
+        logger.warning(
+            "minio Python package not installed; falling back to LocalObjectStore. "
+            "Rebuild backend container with: docker compose -f infra/docker-compose.dev.yml up -d --build backend"
+        )
+        return LocalObjectStore()
+
+
+# Default object store used across the application.
+minio_client = get_object_store()

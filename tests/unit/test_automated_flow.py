@@ -1,11 +1,9 @@
 import pytest
-import sqlite3
 from pathlib import Path
 from fastapi.testclient import TestClient
 from unittest.mock import patch
 from backend.app.main import app
-from backend.app.repositories.job_store import create_job, get_job
-from backend.app.core.constants import DB_PATH
+from backend.app.repositories.job_repository import create_job, get_job, delete_job
 
 client = TestClient(app)
 
@@ -20,9 +18,9 @@ def cleanup_jobs():
     created_ids = []
     yield created_ids
     # Cleanup DB after test runs
-    with sqlite3.connect(DB_PATH) as conn:
-        for jid in created_ids:
-            conn.execute("DELETE FROM jobs WHERE job_id = ?", (jid,))
+    for jid in created_ids:
+        delete_job(jid)
+
 
 def test_automated_upload_success(cleanup_jobs):
     """

@@ -9,8 +9,13 @@ from backend.app.schemas.tender_project import (
     TenderProcessRequest,
     TenderProcessResponse
 )
-from backend.app.repositories.job_store import create_job, get_job, update_job_parameters
-from backend.app.core.constants import STORAGE_ROOT
+from backend.app.repositories.job_repository import (
+    create_job,
+    get_job,
+    update_job_parameters,
+    update_status
+)
+from backend.app.core.constants import STORAGE_ROOT, JobStatus
 from backend.app.services.storage import upload_file_to_minio, StorageError
 
 logger = logging.getLogger(__name__)
@@ -30,9 +35,9 @@ async def upload_pdf(
 ) -> TenderUploadResponse:
     """
     Unified PDF upload endpoint:
-    Validates PDF, saves file to local disk and MinIO, creates SQLite job entry,
-    and automatically enqueues background OCR / ingestion processing.
-    Returns unified job_id, file_id, and tender_id.
+    Validates PDF, saves file to local disk and MinIO, creates database job entry,
+    and automatically enqueues Celery background OCR / ingestion processing.
+    Returns unified job_id, file_id, and tender_id with status 'queued'.
     """
     logger.info(f"[STEP 1/5][UPLOAD] Received file upload request: filename='{file.filename}', content_type='{file.content_type}'")
     _validate_pdf(file)
@@ -66,19 +71,14 @@ async def upload_pdf(
     except StorageError as e:
         logger.warning(f"[UPLOAD] MinIO storage upload skipped/failed: {e}")
         
-    # Register job in SQLite store
-    logger.info(f"[STEP 4/5][UPLOAD] Registering job {job_id} in SQLite job store...")
-    create_job(job_id=job_id, filename=filename_str, pdf_path=str(pdf_path))
-    
-    # Auto-enqueue background ingest pipeline if background_tasks is present
-    if background_tasks:
-        logger.info(f"[STEP 5/5][UPLOAD] Enqueueing background extraction & LLM fallback pipeline for job {job_id}...")
-        from backend.app.api.routes.tenders import _run_ingest_background
-        background_tasks.add_task(
-            _run_ingest_background, job_id, str(pdf_path), filename_str
-        )
-    else:
-        logger.warning(f"[UPLOAD] background_tasks object is None for job {job_id}!")
+    # Register job in PostgreSQL store with 'queued' status
+    logger.info(f"[STEP 4/5][UPLOAD] Registering job {job_id} in PostgreSQL job store with 'queued' status...")
+    create_job(job_id=job_id, filename=filename_str, pdf_path=str(pdf_path), status=JobStatus.QUEUED)
+
+    # Auto-enqueue background Celery task
+    logger.info(f"[STEP 5/5][UPLOAD] Enqueueing Celery background extraction & LLM fallback task for job {job_id}...")
+    from backend.app.api.routes.tenders import _run_ingest_background
+    _run_ingest_background.delay(job_id, str(pdf_path), filename_str)
         
     logger.info(f"[UPLOAD_COMPLETE] Unified tender upload successful: job_id={job_id}, filename={file.filename}")
     
@@ -86,7 +86,7 @@ async def upload_pdf(
         job_id=job_id,
         file_id=job_id,
         tender_id=job_id,
-        status="pending",
+        status="queued",
         original_filename=filename_str,
         message="Upload complete and background processing queued."
     )
@@ -94,7 +94,7 @@ async def upload_pdf(
 @router.post("/tenders/process", response_model=TenderProcessResponse)
 async def process_tender(
     payload: TenderProcessRequest,
-    background_tasks: BackgroundTasks
+    background_tasks: BackgroundTasks = None  # type: ignore
 ) -> TenderProcessResponse:
     """
     Unified process trigger endpoint:
@@ -118,17 +118,16 @@ async def process_tender(
     if email and job:
         update_job_parameters(job_id, email, job_id)
         
-    # Re-trigger background pipeline if job is pending or failed
+    # Re-trigger background Celery pipeline if job is pending, queued or failed
     current_status = job.get("status", "pending") if job else "pending"
     pdf_path_str = str(job.get("pdf_path")) if job and job.get("pdf_path") else str(job_dir / "original.pdf")
     filename_str = str(job.get("original_filename")) if job and job.get("original_filename") else "original.pdf"
     
-    if current_status in ("pending", "failed") and Path(pdf_path_str).exists():
+    if current_status in ("pending", "queued", "failed") and Path(pdf_path_str).exists():
         from backend.app.api.routes.tenders import _run_ingest_background
-        background_tasks.add_task(
-            _run_ingest_background, job_id, pdf_path_str, filename_str
-        )
-        current_status = "processing"
+        update_status(job_id, JobStatus.QUEUED)
+        _run_ingest_background.delay(job_id, pdf_path_str, filename_str)
+        current_status = "queued"
         
     return TenderProcessResponse(
         job_id=job_id,

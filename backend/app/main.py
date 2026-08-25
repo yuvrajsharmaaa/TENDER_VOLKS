@@ -22,7 +22,6 @@ from backend.app.core.logging import setup_logging
 from backend.app.core.request_id import RequestIDMiddleware
 
 # Existing Routers and Repositories
-from backend.app.repositories.migrations import init_db
 from backend.app.core.constants import STORAGE_ROOT
 from backend.app.api import upload, jobs, visualizer
 from backend.app.api.routes.health import router as health_router
@@ -56,14 +55,7 @@ async def lifespan(app: FastAPI):
         "debug": settings.debug
     }})
     
-    # 1. Initialize DB migrations (SQLite for jobs)
-    try:
-        init_db()
-        logger.info("Local SQLite job database schema validated")
-    except Exception as e:
-        logger.error(f"Local database migration failed: {e}", exc_info=True)
-        
-    # 1b. Initialize PostgreSQL database tables
+    # 1. Initialize PostgreSQL database tables
     try:
         from backend.app.db.session import engine, Base
         from backend.app.models.tender_project import TenderProject
@@ -71,7 +63,7 @@ async def lifespan(app: FastAPI):
         from backend.app.models.tender_information import TenderInformation
         from backend.app.models.job import Job
         Base.metadata.create_all(bind=engine)
-        logger.info("SQLAlchemy database tables initialized")
+        logger.info("SQLAlchemy database tables verified")
     except Exception as e:
         logger.error(f"SQLAlchemy database initialization failed: {e}", exc_info=True)
         
@@ -82,9 +74,9 @@ async def lifespan(app: FastAPI):
     # 3. Initialize storage buckets in S3 (MinIO)
     ensure_minio_buckets()
     
-    # 4. Automatically recover and resume stuck jobs (pending/processing)
+    # 4. Automatically recover and resume stuck jobs (pending/queued/processing)
     try:
-        from backend.app.repositories.job_store import get_all_jobs
+        from backend.app.repositories.job_repository import get_all_jobs
         import asyncio
         from backend.app.api.routes.tenders import _run_ingest_background
         
@@ -92,12 +84,9 @@ async def lifespan(app: FastAPI):
             await asyncio.sleep(2)
             jobs = get_all_jobs()
             for j in jobs:
-                if j.get("status") in ("pending", "processing"):
-                    logger.info(f"Resuming stuck job {j['job_id']} on startup")
-                    loop = asyncio.get_running_loop()
-                    loop.run_in_executor(
-                        None,
-                        _run_ingest_background,
+                if j.get("status") in ("pending", "queued", "processing"):
+                    logger.info(f"Resuming stuck job {j['job_id']} via Celery on startup")
+                    _run_ingest_background.delay(
                         j["job_id"],
                         j["pdf_path"],
                         j["original_filename"]
@@ -106,9 +95,29 @@ async def lifespan(app: FastAPI):
     except Exception as recovery_err:
         logger.error(f"Failed to trigger startup job recovery: {recovery_err}", exc_info=True)
 
+
+    # 5. Initialize Neo4j graph schema (constraints)
+    try:
+        from backend.app.db.neo4j_session import get_neo4j_driver, init_neo4j_schema
+        neo4j_driver = get_neo4j_driver(
+            uri=settings.NEO4J_URI,
+            user=settings.NEO4J_USER,
+            password=settings.NEO4J_PASSWORD
+        )
+        init_neo4j_schema(driver=neo4j_driver)
+        logger.info("Neo4j graph schema initialized successfully")
+    except Exception as e:
+        logger.warning(f"Neo4j initialization skipped (non-fatal): {e}")
+
     yield
     # Shutdown Events
     logger.info("Shutting down VolksEnergies Tender OCR Backend")
+    try:
+        from backend.app.db.neo4j_session import close_neo4j_driver
+        close_neo4j_driver()
+        logger.info("Neo4j driver closed cleanly")
+    except Exception as e:
+        logger.warning(f"Neo4j driver close failed: {e}")
 
 # Initialize FastAPI App
 app = FastAPI(

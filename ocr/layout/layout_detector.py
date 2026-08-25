@@ -25,9 +25,11 @@ class LayoutDetector:
     def __init__(self, lang: str = "eng"):
         self.lang = lang
 
-    def detect(self, image_path: Path) -> list[LayoutRegion]:
+    def detect(self, image_path: Path, text_blocks: list = None, page_number: int = 1) -> list[LayoutRegion]:
         cache_key = str(image_path)
         from ocr.ocr_engine import OcrEngine
+        from ocr.layout.clause_segmenter import segment_text_blocks_into_clauses
+
         if cache_key in OcrEngine._cache:
             data = OcrEngine._cache[cache_key]
         else:
@@ -39,12 +41,21 @@ class LayoutDetector:
                 OcrEngine._cache[cache_key] = data
             except Exception as e:
                 import logging
-                logging.getLogger("ocr.layout.layout_detector").debug(f"Layout detection skipped/failed: {e}. Returning fallback region.")
+                logging.getLogger("ocr.layout.layout_detector").debug(f"Pytesseract layout detection unavailable: {e}.")
+                if text_blocks:
+                    return segment_text_blocks_into_clauses(text_blocks, page_number=page_number)
+                
+                # If no text blocks provided, compute from image dimensions
+                try:
+                    with Image.open(image_path) as img:
+                        w, h = img.size
+                except Exception:
+                    w, h = 1000, 1000
                 return [
                     LayoutRegion(
-                        region_id="reg_0001",
+                        region_id=f"reg_p{page_number:02d}_001",
                         region_type="paragraph",
-                        bounding_box={"x1": 0, "y1": 0, "x2": 1000, "y2": 1000},
+                        bounding_box={"x1": 0, "y1": 0, "x2": w, "y2": h},
                         contained_block_ids=[],
                         confidence=1.0
                     )

@@ -535,37 +535,28 @@ class GemFieldExtractor(FieldExtractor):
                                 schedules_data[current_schedule_num]["item_description"] = block.text.strip()
 
         # Dedicated pass: parse Evaluation Schedules / Item Wise Evaluation table if present
-        for page in pages:
-            page_text = " ".join(b.text for b in page.text_blocks)
-            if "Evaluation Schedules" in page_text or "मूल्यांकन कार्यक्रम" in page_text:
-                for m_eval in re.finditer(
-                    r"Schedule\s*(\d+)[\s\S]*?(?:Item(?:\/|\s+)Category[^\n]*\n)?([\s\S]*?)\n\s*(\d{1,4})\s*(?=\n\s*(?:Schedule\s*\d+|Technical\s+Specifications|\Z))",
-                    page_text, re.IGNORECASE
-                ):
-                    s_num = int(m_eval.group(1))
-                    raw_desc = m_eval.group(2).strip()
-                    raw_desc = re.sub(r"(?:Item(?:\/|\s+)Category|Quantity|मात्रा|[^\x00-\x7F]+)", "", raw_desc).strip()
-                    raw_desc = re.sub(r"\s+", " ", raw_desc)
-                    try:
-                        s_qty = int(m_eval.group(3))
-                    except ValueError:
-                        s_qty = "Not Found"
-                    if s_num not in schedules_data:
-                        schedules_data[s_num] = {
-                            "schedule_number": s_num,
-                            "consignee_name": "Not Found",
-                            "consignee_address": "Not Found",
-                            "quantity": s_qty,
-                            "delivery_days": "Not Found",
-                            "item_description": raw_desc or "Not Found",
-                            "technical_specs": {}
-                        }
-                    else:
-                        if schedules_data[s_num]["item_description"] in ("Not Found", "", "NA") or any(k in schedules_data[s_num]["item_description"].lower() for k in ["total quantity", "कुल मात्रा", "item/category"]):
-                            if raw_desc:
-                                schedules_data[s_num]["item_description"] = raw_desc
-                        if schedules_data[s_num]["quantity"] in ("Not Found", "NA") and s_qty != "Not Found":
-                            schedules_data[s_num]["quantity"] = s_qty
+        full_tender_text = "\n".join("\n".join(b.text for b in p.text_blocks) for p in pages)
+        eval_sched_m = re.search(r"(?:Evaluation\s+Schedules|मूVयांकन\s+अनुसूिचयां)[\s\S]+?(?=(?:Consignees|\n\s*[A-Z\s]{4,}\s*\(\s*\d+\s*(?:set|pieces|nos|meter|foot)\s*\)|Buyer\s+Added|तकनीक|\Z))", full_tender_text, re.IGNORECASE)
+        if eval_sched_m:
+            sched_block = eval_sched_m.group(0)
+            sched_pattern = r"(?:Schedule\s+(\d+)|Schedule-(\d+))\s*\n\s*([\s\S]+?)\n\s*(\d{1,6})\b"
+            for m_eval in re.finditer(sched_pattern, sched_block, re.IGNORECASE):
+                s_num = int(m_eval.group(1) or m_eval.group(2))
+                raw_desc = re.sub(r"\s+", " ", m_eval.group(3)).strip()
+                raw_desc = re.sub(r"^(?:Item/Category|वस्तु/श्रेणी|Item\s+Description)\s*", "", raw_desc, flags=re.IGNORECASE).strip()
+                try:
+                    s_qty = int(m_eval.group(4))
+                except ValueError:
+                    s_qty = "Not Found"
+                schedules_data[s_num] = {
+                    "schedule_number": s_num,
+                    "consignee_name": "Not Found",
+                    "consignee_address": "Not Found",
+                    "quantity": s_qty,
+                    "delivery_days": "Not Found",
+                    "item_description": raw_desc or "Not Found",
+                    "technical_specs": {}
+                }
 
         if schedules_data:
             flat_schedules = list(schedules_data.values())

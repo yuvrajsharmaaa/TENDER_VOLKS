@@ -827,19 +827,18 @@ async def process_tender(
 
 
 # ==============================================================================
-# WORKSPACE API ENDPOINTS — Frontend-facing unified tender detail flow
-# ==============================================================================
-
 import json as _json
 import shutil as _shutil
+from backend.app.celery_app import celery_app
 
-def _run_ingest_background(job_id: str, pdf_path: str, original_filename: str):
+@celery_app.task(name="backend.app.api.routes.tenders._run_ingest_background")
+def _run_ingest_background(job_id: str, pdf_path: Optional[str] = None, original_filename: Optional[str] = None):
     """
     Background task: runs the parent tender ingest pipeline and persists
     the conforming tender detail JSON to disk.
     """
     from backend.app.services.pdf_parent_ingest import ingest_parent_tender_pdf
-    from backend.app.repositories.job_store import update_status
+    from backend.app.repositories.job_repository import update_status, get_job
     from backend.app.core.constants import JobStatus
     from backend.app.db.session import SessionLocal
     from backend.app.models.tender_project import TenderProject
@@ -847,6 +846,16 @@ def _run_ingest_background(job_id: str, pdf_path: str, original_filename: str):
     import os
     import mimetypes
     from pathlib import Path
+
+    if not pdf_path or not original_filename:
+        job_record = get_job(job_id)
+        if job_record:
+            pdf_path = pdf_path or job_record.get("pdf_path")
+            original_filename = original_filename or job_record.get("original_filename")
+        if not pdf_path:
+            pdf_path = str(STORAGE_ROOT / "jobs" / job_id / "original.pdf")
+        if not original_filename:
+            original_filename = "original.pdf"
 
     logger.info(f"[BACKGROUND_TASK][Job {job_id}] Ingest background task started for '{original_filename}' at path '{pdf_path}'")
     try:
@@ -972,7 +981,7 @@ async def workspace_list_tenders():
     Returns all completed tender detail payloads as an array.
     For pending/processing/failed jobs, returns skeleton entries.
     """
-    from backend.app.repositories.job_store import get_all_jobs
+    from backend.app.repositories.job_repository import get_all_jobs
 
     all_jobs = get_all_jobs()
     results = []
@@ -1061,7 +1070,7 @@ async def workspace_get_tender(job_id: str):
     """
     Returns the full conforming tender detail for a single job.
     """
-    from backend.app.repositories.job_store import get_job
+    from backend.app.repositories.job_repository import get_job
 
     job = get_job(job_id)
     if not job:
@@ -1187,7 +1196,7 @@ async def workspace_delete_tender(job_id: str, db: Session = Depends(get_db)):
     records in PostgreSQL, and its files on disk.
     """
     import shutil
-    from backend.app.repositories.job_store import get_job, delete_job
+    from backend.app.repositories.job_repository import get_job, delete_job
     from backend.app.models.tender_project import TenderProject
     
     # 1. Check if job exists in SQLite

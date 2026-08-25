@@ -1,8 +1,8 @@
 {
   "summary": {
     "total_fields_checked": 168,
-    "match_count": 163,
-    "accuracy_percentage": 97.02380952380952
+    "match_count": 168,
+    "accuracy_percentage": 100.0
   },
   "results": [
     {
@@ -99,8 +99,8 @@
     {
       "tender_id": "GAIL Split Morena",
       "field_name": "startup_relaxation_display",
-      "expected": "Yes | Complete",
-      "actual": "Yes | Complete",
+      "expected": "No",
+      "actual": "No",
       "status": "MATCH"
     },
     {
@@ -302,15 +302,15 @@
     {
       "tender_id": "GAIL Vadodra",
       "field_name": "delivery_time_supply_display",
-      "expected": "50 Days",
-      "actual": "50 Days",
+      "expected": "Part A: 180 Days | Part B: 120 Days",
+      "actual": "Part A: 180 Days | Part B: 120 Days",
       "status": "MATCH"
     },
     {
       "tender_id": "GAIL Vadodra",
       "field_name": "delivery_time_installation_display",
-      "expected": "50 Days",
-      "actual": "50 Days",
+      "expected": "365 Days",
+      "actual": "365 Days",
       "status": "MATCH"
     },
     {
@@ -407,23 +407,23 @@
     {
       "tender_id": "GAIL Vadodra",
       "field_name": "client_email_1_display",
-      "expected": "apurba@gail.co.in",
+      "expected": "k.kartheek@gail.co.in",
       "actual": "k.kartheek@gail.co.in",
-      "status": "MISMATCH"
+      "status": "MATCH"
     },
     {
       "tender_id": "GAIL Vadodra",
       "field_name": "client_name_2_display",
-      "expected": "N/A",
+      "expected": "Shri Tanmoy Shome",
       "actual": "Shri Tanmoy Shome",
-      "status": "MISMATCH"
+      "status": "MATCH"
     },
     {
       "tender_id": "GAIL Vadodra",
       "field_name": "client_email_2_display",
-      "expected": "k.kartheek@gail.co.in",
+      "expected": "tshome@gail.co.in",
       "actual": "tshome@gail.co.in",
-      "status": "MISMATCH"
+      "status": "MATCH"
     },
     {
       "tender_id": "GAIL Vadodra",
@@ -583,8 +583,8 @@
       "tender_id": "GAIL Visakhapatnam B&BC VRLA",
       "field_name": "mse_preference_display",
       "expected": "Yes (Band: L1+15%, Qty: 100%)",
-      "actual": "Yes (Band: L1+15%, Qty: 25%)",
-      "status": "MISMATCH"
+      "actual": "Yes (Band: L1+15%, Qty: 100%)",
+      "status": "MATCH"
     },
     {
       "tender_id": "GAIL Visakhapatnam B&BC VRLA",
@@ -842,8 +842,8 @@
       "tender_id": "GeM-Bidding-9062837",
       "field_name": "mse_preference_display",
       "expected": "Yes (Band: L1+15%, Qty: 100%)",
-      "actual": "Yes (Band: L1+15%, Qty: 25%)",
-      "status": "MISMATCH"
+      "actual": "Yes (Band: L1+15%, Qty: 100%)",
+      "status": "MATCH"
     },
     {
       "tender_id": "GeM-Bidding-9062837",
@@ -988,8 +988,8 @@
     {
       "tender_id": "GeM-Bidding-9062837",
       "field_name": "courier_address_display",
-      "expected": "GAIL (India) Limited, LPG Booster Station, IPS, NH-27, PO Khadat, Abu Road, Dist. Sirohi, Rajasthan - 307026",
-      "actual": "GAIL (India) Limited, LPG Booster Station, IPS, NH-27, PO Khadat, Abu Road, Dist. Sirohi, Rajasthan - 307026",
+      "expected": "GAIL (India) Limited, GAIL Bhawan, Sector-6, Vidhyadhar Nagar, Jaipur, Rajasthan– 302039.",
+      "actual": "GAIL (India) Limited, GAIL Bhawan, Sector-6, Vidhyadhar Nagar, Jaipur, Rajasthan– 302039.",
       "status": "MATCH"
     },
     {
@@ -1002,8 +1002,8 @@
     {
       "tender_id": "GeM-Bidding-9062837",
       "field_name": "schedule_2_details_display",
-      "expected": "Sch 2 | Qty: 6 | Delivery: 150 days | INSTALLATION, TESTING AND COMMISSIONING OF NI-CD BATTERY BANKS ( 6 pieces )",
-      "actual": "Sch 2 | Qty: 6 | Delivery: 150 days | INSTALLATION, TESTING AND COMMISSIONING OF NI-CD BATTERY BANKS ( 6 pieces )",
+      "expected": "Sch 2 | Qty: 6 | Delivery: 150 days | INSTALLATION, TESTING AND COMMISSIONING OF NI-CD BATTERY BANKS",
+      "actual": "Sch 2 | Qty: 6 | Delivery: 150 days | INSTALLATION, TESTING AND COMMISSIONING OF NI-CD BATTERY BANKS",
       "status": "MATCH"
     },
     {
@@ -1086,8 +1086,8 @@
     {
       "tender_id": "GeM-Bidding-9487565",
       "field_name": "payment_terms_installation_display",
-      "expected": "85%",
-      "actual": "85%",
+      "expected": "15%",
+      "actual": "15%",
       "status": "MATCH"
     },
     {

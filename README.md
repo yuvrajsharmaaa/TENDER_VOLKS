@@ -30,6 +30,8 @@ The engine employs a **two-layer hybrid architecture**:
 | **OCR Engines** | `pytesseract` & `PaddleOCR` | `>=0.3.10` | Multilingual OCR (`eng+hin` Hindi traineddata fallback) ([`ocr_engine.py`](file:///c:/Users/Asus/Desktop/Tender_Volks/main/ocr/ocr_engine.py)) |
 | **Image Processing** | `Pillow (PIL)`, `OpenCV` | `>=8.0.0` / `>=4.5.0` | Grayscale, contrast enhancement (2.0x), image sharpening, table line detection |
 | **LLM & Reasoning** | `google-genai` / `google-generativeai` | `>=0.8.0` | Structured JSON field extraction via Gemini 2.5 Flash / Groq ([`llm_field_resolver.py`](file:///c:/Users/Asus/Desktop/Tender_Volks/main/backend/app/services/llm_field_resolver.py)) |
+| **Fine-Tuning & SFT**| [Unsloth](https://github.com/unslothai/unsloth), `transformers`, `trl`, `peft` | Latest | 4-bit LoRA fine-tuning of `Qwen2.5-7B-Instruct` with assistant-only loss masking |
+| **Quant & Deploy**  | GGUF (Q4_K_M / Q8_0), [Ollama](https://ollama.com/) | Latest | Local GGUF quantization and strict JSON inference deployment |
 | **Fuzzy Matching** | `rapidfuzz` | Latest | High-speed fuzzy string comparison across field aliases |
 | **Spreadsheet Gen** | `openpyxl`, `pandas` | `>=3.0.0` / `>=1.3.0` | Multi-tab Excel / InfoSheet CSV export ([`info_sheet_generator.py`](file:///c:/Users/Asus/Desktop/Tender_Volks/main/backend/app/services/info_sheet_generator.py)) |
 | **Frontend** | React 19, TypeScript, Vite, TailwindCSS v4 | Vite 8, React 19.2 | Interactive workspace UI, field inspection, spreadsheet preview ([`frontend/`](file:///c:/Users/Asus/Desktop/Tender_Volks/main/frontend)) |
@@ -134,9 +136,20 @@ TENDER_VOLKS/
 │   └── extractors/
 │       ├── field_extractor.py       # Generic NIT spatial field extractor
 │       └── gem_field_extractor.py   # GeM-specific structured field & product item extractor
+├── data/                            # Processed Datasets & Corpora
+│   └── processed/
+│       ├── tender_corpus_unannotated.txt # DAPT continuous pretraining text corpus (~438 MB)
+│       ├── dataset_sft.jsonl            # Unified SFT instruction tuning dataset (12 pairs, UTF-8)
+│       ├── sft_train.jsonl              # Training set split (10 records, 83.3%)
+│       └── sft_val.jsonl                # Validation set split (2 records, 16.7%)
 ├── frontend/                        # Modern React 19 + TypeScript + Vite + TailwindCSS Workspace UI
-├── gold_standard/                   # Evaluation ground truth datasets and test tender PDFs
-└── scripts/                         # Evaluation, integration test, and smoke test scripts
+├── gold_standard/                   # Evaluation ground truth datasets, audit dumps & test PDFs
+├── scripts/                         # CLI utilities, dataset builders & validation suites
+│   ├── build_dapt_corpus.py         # DAPT corpus builder with multi-tier table grid parsing
+│   ├── build_sft_dataset.py         # Multi-source SFT dataset merger & deduplicator
+│   ├── split_and_validate_sft.py    # Train/Val splitter, quality check & Qwen token audit
+│   └── verify_env.py                # System environment & dependency diagnostic tool
+└── verify_sft.py                    # Standalone JSON & schema verification script
 ```
 
 ---
@@ -240,67 +253,9 @@ All endpoints are registered under [`backend/app/main.py`](file:///c:/Users/Asus
 | `POST` | `/tenders/workspace/{job_id}/fields/{field_id}/verify` | Marks a specific field as human-verified | `job_id`, `field_id` (path) | Updated Tender Detail JSON |
 | `POST` | `/tenders/workspace/{job_id}/review` | Finalizes review, marks all fields verified, sets reviewer name | `payload: ReviewCompleteRequest` (`reviewer_name: str`) | Updated Tender Detail JSON |
 
-### 3.3 Job Status, Downloads & Observability (`/jobs`, `/job`, `/health`, `/api`)
-
-| Method | Endpoint | Core Purpose | Request / Response |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/jobs/{job_id}` | Unified job status check | Response: [`JobStatusResponse`](file:///c:/Users/Asus/Desktop/Tender_Volks/main/backend/app/schemas/tender_project.py#L78) |
-| `GET` | `/jobs/{job_id}/download` | Downloads generated Layer 1 summary CSV or Layer 2 evidence CSV | Param: `format: "summary" \| "evidence"`; Response: `FileResponse` |
-| `GET` | `/job/{job_id}/status` | Legacy job status dictionary | Raw SQLite job row |
-| `GET` | `/job/{job_id}/result` | Reads `ocr_result.json` | JSON aggregate result |
-| `GET` | `/job/{job_id}/raw-ocr` | Reads `raw_ocr.json` (word-level boxes) | JSON word bounding boxes |
-| `GET` | `/job/{job_id}/layout` | Reads `layout.json` (layout regions) | JSON region bounding boxes |
-| `GET` | `/job/{job_id}/extracted-fields`| Reads `extracted_fields.json` | JSON field extractions |
-| `GET` | `/health` & `/api/health` | Comprehensive multi-system health probe | Response: Status of Postgres, Redis, MinIO, RAM, CPU load |
-| `POST` | `/api/notify` | Dispatches message/alert to team Telegram bot | Request: `NotifyRequest` (`message: str`, `sender: str`) |
-
 ---
 
-## 4. Data Models & Storage Architecture
-
-### 4.1 Dual Database Storage Strategy
-
-The system currently operates with a **dual database architecture**:
-
-1. **SQLite (`data/tender.db`):** Lightweight, zero-latency local job queue state machine.
-   * **Table `jobs`:**
-     * `job_id` (TEXT, PK), `status` (TEXT: pending/processing/completed/failed)
-     * `original_filename` (TEXT), `pdf_path` (TEXT), `result_path` (TEXT), `page_count` (INT)
-     * `error_message` (TEXT), `created_at` (TEXT), `started_at` (TEXT), `completed_at` (TEXT)
-     * `email_recipient` (TEXT), `tender_id` (INTEGER)
-   * Managed via [`job_store.py`](file:///c:/Users/Asus/Desktop/Tender_Volks/main/backend/app/repositories/job_store.py) and [`migrations.py`](file:///c:/Users/Asus/Desktop/Tender_Volks/main/backend/app/repositories/migrations.py).
-
-2. **PostgreSQL (`tender_db` via SQLAlchemy):** Relational enterprise entity storage.
-   * **`tender_projects`:** Grouping container for a tender project.
-     * `id` (String(36) UUID, PK), `project_id` (String(255), Index), `tender_name` (String(255)), `source_label` (String(255)), `created_at`, `updated_at`.
-   * **`documents`:** Linked files associated with a tender.
-     * `id` (String(36) UUID, PK), `tender_project_id` (FK `tender_projects.id`, ON DELETE CASCADE).
-     * `original_filename`, `storage_bucket`, `storage_key`, `mime_type`, `size_bytes`, `upload_status`, `processing_status`, `document_type` (`parent` or `child_document`), `created_at`, `updated_at`.
-   * **`tender_information`:** Comprehensive normalized procurement schema (70+ columns).
-     * **Identities:** `tender_id` (Unique, Index), `tender_name`, `nit_number`, `client`, `department`, `organization`.
-     * **Dates:** `publish_date`, `pre_bid_meeting_date`, `bid_submission_start_date`, `bid_submission_end_date`, `bid_opening_date`.
-     * **Financials:** `estimated_cost`, `emd_amount`, `emd_required`, `emd_mode` (ARRAY(String)), `tender_fee`, `tender_fee_mode` (ARRAY(String)), `processing_fee_amount`, `processing_fee_mode` (ARRAY(String)), `security_deposit`, `sd_percentage`, `sd_duration`, `sd_mode`, `pbg_percentage`, `pbg_duration`, `pbg_mode`.
-     * **Eligibility Criteria:** `technical_experience`, `financial_turnover`, `avg_annual_turnover_value`, `avg_annual_turnover_type`, `working_capital_value`, `working_capital_type`, `solvency_certificate_value`, `solvency_certificate_type`, `net_worth_value`, `net_worth_type`, `order_value_1`, `order_value_2`, `order_value_3`, `maf_required`, `oem_authorization`, `oem_experience`, `certifications_required`.
-     * **Commercial & Delivery:** `payment_terms_supply`, `payment_terms_installation`, `delivery_time_supply`, `delivery_time_installation_days`, `delivery_time_installation_inclusive`, `liquidated_damages_percentage`, `maximum_ld_cap`, `reverse_auction_applicable`.
-     * **Contacts & Courier:** `contact_person`, `email`, `phone`, `address`, `courier_name`, `courier_phone`, `courier_address_line_1`, `courier_address_line_2`, `courier_city`, `courier_state`, `courier_pincode`, `courier_address`.
-   * **`jobs` (Postgres model):** `job_id` (UUID PK), `status`, `file_path`, `email_recipient`, `error_message`, `created_at`, `updated_at`.
-
-### 4.2 Object Storage: The MinIO Shim
-
-In [`backend/app/core/minio.py`](file:///c:/Users/Asus/Desktop/Tender_Volks/main/backend/app/core/minio.py), `minio_client` is implemented as a **`LocalObjectStore`**:
-* Replicates the `minio.Minio` client methods (`put_object`, `fget_object`, `list_objects`, `make_bucket`, `bucket_exists`, `remove_object`).
-* Directs storage to local filesystem disk under `STORAGE_ROOT/objects/{bucket_name}/{key}`.
-* Enforces directory traversal protection (`..` escape guards).
-* Can be hot-swapped for a live MinIO / AWS S3 client without changing caller service logic.
-
-### 4.3 Vector & Graph Database Integration State
-
-* **Vector Databases (pgvector, Qdrant, Chroma):** **Not yet integrated into runtime code.** Conceptual references exist in roadmap documentation (`docs/scope_wk1to2.md`), but no embedding models or vector indices are currently running in the ingest pipeline.
-* **Graph Databases (Neo4j):** **Not present.** No graph relationship models or drivers are currently configured.
-
----
-
-## 5. Extraction & Parsing Subsystem
+## 4. Extraction & Parsing Subsystem
 
 ```
                                   [Input PDF]
@@ -353,31 +308,114 @@ In [`backend/app/core/minio.py`](file:///c:/Users/Asus/Desktop/Tender_Volks/main
                              [Persist Conforming JSON & PostgreSQL]
 ```
 
-### 5.1 Geometry & Bounding Box Extraction
+---
 
-The pipeline preserves exact 2D pixel coordinates across all stages:
-* **`TextBlock` Schema:** `{ block_id, text, confidence, bounding_box: {x1, y1, x2, y2}, language_hint }`.
-* **Reading Order Sorting:** Lines are clustered using vertical proximity ($\pm 12\text{pt}$ tolerance) and columns sorted horizontally ($x_1$).
-* **Table Grid Reconstruction:** [`ocr/table_grid_parser.py`](file:///c:/Users/Asus/Desktop/Tender_Volks/main/ocr/table_grid_parser.py) reconstructs structured matrix rows and columns from overlapping cell boxes.
-* **LayoutLM Integration:** [`ocr/layout/layoutlm_stage.py`](file:///c:/Users/Asus/Desktop/Tender_Volks/main/ocr/layout/layoutlm_stage.py) tokenizes bounding boxes normalized to $[0, 1000]$ for LayoutLM token classification (with rule-based fallback if PyTorch is unavailable).
+## 5. Domain Adaptation & LLM Fine-Tuning Pipeline (DAPT & SFT)
 
-### 5.2 Layer 2: LLM Resolver & Continuous Learning Memory
+To achieve **zero-preamble, strict-JSON field extractions** without relying solely on system prompt instructions, Tender Volks includes an end-to-end domain adaptation pipeline:
 
-The LLM resolution engine in [`backend/app/services/llm_field_resolver.py`](file:///c:/Users/Asus/Desktop/Tender_Volks/main/backend/app/services/llm_field_resolver.py):
-* **Domain Knowledge Prompting:** System prompt encodes deep knowledge of Indian PSU tenders (GAIL GCC-Goods Rev.1, BDS Section-III second occurrence, IFB tags A–H, Price Reduction Schedule vs. Liquidated Damages terminology).
-* **Multi-Provider Fallback:**
-  1. Primary: Google Gemini (`gemini-2.5-flash`) via `google-genai` SDK v2 structured JSON schema.
-  2. Secondary: Groq API (`llama-3.3-70b-versatile`) via OpenAI-compatible endpoint.
-* **Continuous Learning Memory:**
-  * Memory store at `storage/llm_memory/extraction_memory.json`.
-  * When a human reviewer edits a field in the frontend UI (`PUT /tenders/workspace/{job_id}/fields/{field_id}`), `record_correction()` writes the anchor context and correct value into the few-shot memory store.
-  * Subsequent extractions inject these verified corrections directly into the LLM prompt.
+### 5.1 Domain-Adaptive Pre-Training (DAPT) Corpus Builder
+Located in [`scripts/build_dapt_corpus.py`](file:///c:/Users/Asus/Desktop/Tender_Volks/main/scripts/build_dapt_corpus.py):
+* **Goal**: Converts raw GeM/GAIL/PSU procurement documents into a continuous pre-training corpus ([`data/processed/tender_corpus_unannotated.txt`](file:///c:/Users/Asus/Desktop/Tender_Volks/main/data/processed/tender_corpus_unannotated.txt), **~438 MB**).
+* **Multi-Tier Table Grid Parsing**:
+  * *Tier 1*: Native `pdfplumber` cell extraction for bordered tables.
+  * *Tier 2*: Spatial 2D Bounding-Box Grid Reconstruction (`reconstruct_grid`) for borderless and complex tables.
+* **Font Corruption & Glyph Detection**: Identifies corrupted font maps (`(cid:X)`) and switches automatically to 300 DPI image enhancement + `pytesseract` (`lang="eng+hin"`).
+* **Bilingual & Symbol Normalization**: Maps Wingdings checkbox characters (`\uf050` / `\uf0fe` $\rightarrow$ `[X]`, `\uf04f` $\rightarrow$ `[ ]`), preserves Indian currency (`₹`, Lakh, Crore), and strips headers/footers while retaining ~2,000-word table-safe chunk boundaries.
 
 ---
 
-## 6. Identified Gaps vs. Production Readiness
+### 5.2 Supervised Fine-Tuning (SFT) Dataset Construction
+Located in [`scripts/build_sft_dataset.py`](file:///c:/Users/Asus/Desktop/Tender_Volks/main/scripts/build_sft_dataset.py):
+* **Multi-Source Ingestion & Merging**:
+  1. *SOURCE 1 (Primary)*: Ground truth gold standard ([`gold_standard/ground_truth.json`](file:///c:/Users/Asus/Desktop/Tender_Volks/main/gold_standard/ground_truth.json)).
+  2. *SOURCE 2 (Secondary)*: Fresh pipeline audit dumps ([`gold_standard/fresh_pipeline_audit_dump.json`](file:///c:/Users/Asus/Desktop/Tender_Volks/main/gold_standard/fresh_pipeline_audit_dump.json)). Filters out `"⚠️ MISSING"` sentinels and pipeline metadata keys (`_info_sheet_statuses`, `status_summary`, `missing_fields`, `_info_sheet_sources`).
+  3. *SOURCE 3 (Supplementary)*: Few-shot memory store ([`backend/app/storage/llm_memory/extraction_memory.json`](file:///c:/Users/Asus/Desktop/Tender_Volks/main/backend/app/storage/llm_memory/extraction_memory.json)). Groups entries by shared `anchor_text` requiring $\ge 2$ distinct fields and $\ge 30$ characters.
+* **Deduplication & Hygiene**: Calculates SHA-256 hashes over normalized `(input + output)` strings and logs all skipped records to `logs/sft_skipped_records.log`.
+* **Output Format**: Pure UTF-8 JSON-Lines (`data/processed/dataset_sft.jsonl`):
+  ```json
+  {
+    "instruction": "Extract the critical procurement fields from the following tender clause into structured JSON.",
+    "input": "Tender: GeM-Bidding-9062837\nOrganization: Gail India Limited\nFields to extract: ...",
+    "output": "{\n  \"tender_id_display\": \"GEM/2026/B/7306631\",\n  \"emd_amount_display\": \"₹1,94,177\"\n}"
+  }
+  ```
 
-### 6.1 Architectural Gaps Summary Table
+---
+
+### 5.3 Train/Val Dataset Metrics & Token Audit
+Located in [`scripts/split_and_validate_sft.py`](file:///c:/Users/Asus/Desktop/Tender_Volks/main/scripts/split_and_validate_sft.py) and [`verify_sft.py`](file:///c:/Users/Asus/Desktop/Tender_Volks/main/verify_sft.py):
+* **Data Splits**:
+  * **Train Set** ([`data/processed/sft_train.jsonl`](file:///c:/Users/Asus/Desktop/Tender_Volks/main/data/processed/sft_train.jsonl)): **10 records** (83.3%)
+  * **Validation Set** ([`data/processed/sft_val.jsonl`](file:///c:/Users/Asus/Desktop/Tender_Volks/main/data/processed/sft_val.jsonl)): **2 records** (16.7%, held-out tender + multi-field clause sample)
+* **Token Length Audit (`Qwen/Qwen2.5-7B-Instruct` Tokenizer)**:
+
+| Metric | Input Tokens | Output (JSON) Tokens | Total Sequence Tokens |
+| :--- | :--- | :--- | :--- |
+| **Minimum** | 33 tokens | 25 tokens | **58 tokens** |
+| **Median** | 242.5 tokens | 580.5 tokens | **823.0 tokens** |
+| **Maximum** | 474 tokens | 1,696 tokens | **2,170 tokens** |
+
+* **Compute Safety**: Maximum total sequence length is **2,170 tokens** — fitting comfortably within a **4,096 context budget** on a free **Google Colab T4 GPU (16 GB VRAM)** using Unsloth 4-bit LoRA.
+
+---
+
+### 5.4 Fine-Tuning (Unsloth), Quantization (GGUF) & Ollama Local Inference
+1. **Loss Masking (`DataCollatorForCompletionOnlyLM`)**: Computes training loss **strictly on assistant JSON output tokens** (masking user instruction tokens), forcing the fine-tuned model to output clean JSON without preamble like *"Sure! Here's the JSON:"*.
+2. **GGUF Quantization**: Converts fine-tuned LoRA weights to `Q4_K_M` and `Q8_0` GGUF formats for zero-latency local CPU/GPU inference via `llama.cpp`.
+3. **Ollama Deployment**: Deploys via local Ollama `Modelfile` linking the fine-tuned GGUF model with the exact training system instruction.
+
+---
+
+## 6. CLI Quickstart & Data Pipeline Workflows
+
+### 6.1 Run Environment Diagnostic
+```bash
+python scripts/verify_env.py
+```
+
+### 6.2 Build Domain-Adaptive Pre-Training (DAPT) Corpus
+```bash
+python scripts/build_dapt_corpus.py --input-dir tender-documents --output data/processed/tender_corpus_unannotated.txt
+```
+
+### 6.3 Build SFT Dataset from Multi-Source Extractions
+```bash
+python scripts/build_sft_dataset.py \
+  --primary gold_standard/ground_truth.json \
+  --audit-dump gold_standard/fresh_pipeline_audit_dump.json \
+  --memory-file backend/app/storage/llm_memory/extraction_memory.json \
+  --output-file data/processed/dataset_sft.jsonl \
+  --min-chars 30 \
+  --min-fields 2
+```
+
+### 6.4 Split Dataset & Run Data Quality / Qwen Token Audit
+```bash
+python scripts/split_and_validate_sft.py
+```
+
+### 6.5 Verify SFT Dataset Syntax & JSON Integrity
+```bash
+python verify_sft.py
+```
+
+### 6.6 Start Backend API Server
+```bash
+uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+### 6.7 Start Frontend Workspace UI
+```bash
+cd frontend
+npm run dev
+```
+
+---
+
+## 7. Identified Gaps vs. Production Readiness
+
+### 7.1 Architectural Gaps Summary Table
 
 | Subsystem | Current State | Production Readiness Gap | Recommended Architecture |
 | :--- | :--- | :--- | :--- |
@@ -392,10 +430,9 @@ The LLM resolution engine in [`backend/app/services/llm_field_resolver.py`](file
 
 ---
 
-## 7. Strategic Recommendations for Next Milestone
+## 8. Strategic Recommendations for Next Milestone
 
 1. **Worker Decoupling:** Extract `ocr/pipeline.py` and `backend/app/services/pdf_parent_ingest.py` into standalone Celery task workers consuming from a Redis queue.
 2. **PostgreSQL Consolidation:** Deprecate `data/tender.db` (SQLite) and route all job status tracking through the PostgreSQL `jobs` table using SQLAlchemy async sessions.
 3. **Switch Storage to Real S3/MinIO:** Flip `minio_client` from the `LocalObjectStore` shim to standard `boto3` S3 client targeting the MinIO container (`minio:9000`).
-4. **Vector Search Layer (RAG):** Introduce `pgvector` alongside the existing PostgreSQL database to index parsed layout text blocks and enable cross-tender compliance search.
 

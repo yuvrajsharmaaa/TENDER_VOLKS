@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
-from backend.app.repositories.job_store import get_job
+from backend.app.repositories.job_repository import get_job
 from backend.app.core.constants import STORAGE_ROOT
 from pathlib import Path
 import json

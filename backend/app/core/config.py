@@ -26,11 +26,37 @@ class Settings(BaseSettings):
     MINIO_SECRET_KEY: str = "minioadmin"
     MINIO_BUCKET: str = "tender-pdfs"
     MINIO_USE_SSL: bool = False
+    MINIO_SECURE: bool = False
     
     # Third party integrations
     gemini_api_key: Union[str, None] = None
     telegram_bot_token: Union[str, None] = None
     telegram_chat_id: Union[str, None] = None
+    
+    # Qdrant Vector Database
+    qdrant_host: str = "localhost"
+    qdrant_port: int = 6333
+    qdrant_grpc_port: int = 6334
+    qdrant_api_key: Union[str, None] = None
+    qdrant_url: Union[str, None] = None
+    qdrant_collection: str = "tender_clauses"
+    QDRANT_HOST: str = "localhost"
+    QDRANT_PORT: int = 6333
+    QDRANT_GRPC_PORT: int = 6334
+    QDRANT_API_KEY: Union[str, None] = None
+    QDRANT_COLLECTION: str = "tender_clauses"
+
+    # Neo4j Graph Database
+    neo4j_uri: str = "neo4j://127.0.0.1:7687"
+    neo4j_user: str = "neo4j"
+    neo4j_password: str = "volksenergie"
+    NEO4J_URI: str = "neo4j://127.0.0.1:7687"
+    NEO4J_HOST: str = "127.0.0.1"
+    NEO4J_PORT: int = 7687
+    NEO4J_HTTP_PORT: int = 7474
+    NEO4J_USER: str = "neo4j"
+    NEO4J_PASSWORD: str = "volksenergie"
+    NEO4J_AUTH: str = "neo4j/volksenergie"
     
     # CORS Origins
     allowed_origins: Union[str, List[str]] = [
