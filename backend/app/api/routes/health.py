@@ -90,8 +90,23 @@ async def health_check() -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"MinIO health check failure: {e}", exc_info=True)
         
+    # 4. Neo4j check
+    neo4j_ok = False
+    try:
+        from backend.app.db.neo4j_session import get_neo4j_driver
+        drv = get_neo4j_driver(
+            uri=settings.NEO4J_URI,
+            user=settings.NEO4J_USER,
+            password=settings.NEO4J_PASSWORD
+        )
+        with drv.session() as neo4j_session:
+            neo4j_session.run("RETURN 1").single()
+        neo4j_ok = True
+    except Exception as e:
+        logger.error(f"Neo4j health check failure: {e}", exc_info=True)
+        
     status = "healthy"
-    if not (postgres_ok and redis_ok and minio_ok):
+    if not (postgres_ok and redis_ok and minio_ok and neo4j_ok):
         status = "degraded"
         
     return {
@@ -100,7 +115,8 @@ async def health_check() -> Dict[str, Any]:
         "services": {
             "postgres": "healthy" if postgres_ok else "unhealthy",
             "redis": "healthy" if redis_ok else "unhealthy",
-            "minio": "healthy" if minio_ok else "unhealthy"
+            "minio": "healthy" if minio_ok else "unhealthy",
+            "neo4j": "healthy" if neo4j_ok else "unhealthy"
         },
         "system": {
             "memory_usage_mb": get_memory_usage_mb(),

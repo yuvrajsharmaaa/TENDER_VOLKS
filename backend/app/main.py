@@ -96,9 +96,28 @@ async def lifespan(app: FastAPI):
         logger.error(f"Failed to trigger startup job recovery: {recovery_err}", exc_info=True)
 
 
+    # 5. Initialize Neo4j graph schema (constraints)
+    try:
+        from backend.app.db.neo4j_session import get_neo4j_driver, init_neo4j_schema
+        neo4j_driver = get_neo4j_driver(
+            uri=settings.NEO4J_URI,
+            user=settings.NEO4J_USER,
+            password=settings.NEO4J_PASSWORD
+        )
+        init_neo4j_schema(driver=neo4j_driver)
+        logger.info("Neo4j graph schema initialized successfully")
+    except Exception as e:
+        logger.warning(f"Neo4j initialization skipped (non-fatal): {e}")
+
     yield
     # Shutdown Events
     logger.info("Shutting down VolksEnergies Tender OCR Backend")
+    try:
+        from backend.app.db.neo4j_session import close_neo4j_driver
+        close_neo4j_driver()
+        logger.info("Neo4j driver closed cleanly")
+    except Exception as e:
+        logger.warning(f"Neo4j driver close failed: {e}")
 
 # Initialize FastAPI App
 app = FastAPI(

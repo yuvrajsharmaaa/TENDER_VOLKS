@@ -141,7 +141,7 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False, atc_pdf
                     language_hint=b.get("language_hint", "en")
                 ) for b in blocks_data
             ]
-        layout_regions = layout.detect(preprocessed_path)
+        layout_regions = layout.detect(preprocessed_path, text_blocks=text_blocks, page_number=i+1)
         
         # Clean up temp preprocessed file
         if preprocessed_path != img_path:
@@ -190,10 +190,18 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False, atc_pdf
         for idx, region in enumerate(layout_regions):
             region.reading_order_index = idx + 1
             if region.region_type.lower() != "table":
-                contained_blocks = [tb for tb in text_blocks if is_contained(tb.bounding_box, region.bounding_box)]
-                sorted_contained = sort_blocks_by_reading_order(contained_blocks)
-                region.contained_block_ids = [b.block_id for b in sorted_contained]
-                region.text_content = "\n".join([b.text for b in sorted_contained])
+                if not region.text_content:
+                    contained_blocks = [tb for tb in text_blocks if is_contained(tb.bounding_box, region.bounding_box)]
+                    sorted_contained = sort_blocks_by_reading_order(contained_blocks)
+                    region.contained_block_ids = [b.block_id for b in sorted_contained]
+                    region.text_content = "\n".join([b.text for b in sorted_contained])
+                    if sorted_contained:
+                        region.bounding_box = {
+                            "x1": min(b.bounding_box["x1"] for b in sorted_contained),
+                            "y1": min(b.bounding_box["y1"] for b in sorted_contained),
+                            "x2": max(b.bounding_box["x2"] for b in sorted_contained),
+                            "y2": max(b.bounding_box["y2"] for b in sorted_contained)
+                        }
             
         # Run LayoutLM stage if enabled
         layoutlm_results = None
@@ -321,7 +329,7 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False, atc_pdf
                             language_hint=b.get("language_hint", "en")
                         ) for b in blocks_data
                     ]
-                    layout_regions = layout.detect(img_path)
+                    layout_regions = layout.detect(img_path, text_blocks=text_blocks, page_number=page_num+1)
                 else:
                     logger.info(f"[ATC_RESOLVER] Page {page_num + 1} of ATC child PDF parsed using Tesseract OCR (lang='eng+hin') fallback pass.")
                     preprocessed_path = preprocess_image_for_ocr(img_path)
@@ -340,7 +348,7 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False, atc_pdf
                                 language_hint=b.get("language_hint", "en")
                             ) for b in blocks_data
                         ]
-                    layout_regions = layout.detect(preprocessed_path)
+                    layout_regions = layout.detect(preprocessed_path, text_blocks=text_blocks, page_number=page_num+1)
                     if preprocessed_path != img_path:
                         try:
                             preprocessed_path.unlink()
@@ -350,12 +358,21 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False, atc_pdf
                 # Spatial containment and reading order mapping for ATC regions
                 for idx, region in enumerate(layout_regions):
                     region.reading_order_index = idx + 1
-                    contained_blocks = [tb for tb in text_blocks if is_contained(tb.bounding_box, region.bounding_box)]
-                    sorted_contained = sort_blocks_by_reading_order(contained_blocks)
-                    region.contained_block_ids = [b.block_id for b in sorted_contained]
-                    region.text_content = "\n".join([b.text for b in sorted_contained])
-                    if region.region_type.lower() == "table":
+                    if not region.text_content:
+                        contained_blocks = [tb for tb in text_blocks if is_contained(tb.bounding_box, region.bounding_box)]
+                        sorted_contained = sort_blocks_by_reading_order(contained_blocks)
+                        region.contained_block_ids = [b.block_id for b in sorted_contained]
+                        region.text_content = "\n".join([b.text for b in sorted_contained])
+                        if sorted_contained:
+                            region.bounding_box = {
+                                "x1": min(b.bounding_box["x1"] for b in sorted_contained),
+                                "y1": min(b.bounding_box["y1"] for b in sorted_contained),
+                                "x2": max(b.bounding_box["x2"] for b in sorted_contained),
+                                "y2": max(b.bounding_box["y2"] for b in sorted_contained)
+                            }
+                    if region.region_type.lower() == "table" and not region.table_structure:
                         from ocr.table_grid_parser import build_table_structure
+                        contained_blocks = [tb for tb in text_blocks if is_contained(tb.bounding_box, region.bounding_box)]
                         region.table_structure = build_table_structure(contained_blocks)
 
                 atc_pr = PageResult(
