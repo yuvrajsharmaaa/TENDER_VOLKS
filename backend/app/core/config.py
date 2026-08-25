@@ -49,14 +49,14 @@ class Settings(BaseSettings):
     # Neo4j Graph Database
     neo4j_uri: str = "neo4j://127.0.0.1:7687"
     neo4j_user: str = "neo4j"
-    neo4j_password: str = "volksenergie"
+    neo4j_password: Union[str, None] = None
     NEO4J_URI: str = "neo4j://127.0.0.1:7687"
     NEO4J_HOST: str = "127.0.0.1"
     NEO4J_PORT: int = 7687
     NEO4J_HTTP_PORT: int = 7474
     NEO4J_USER: str = "neo4j"
-    NEO4J_PASSWORD: str = "volksenergie"
-    NEO4J_AUTH: str = "neo4j/volksenergie"
+    NEO4J_PASSWORD: Union[str, None] = None
+    NEO4J_AUTH: Union[str, None] = None
     
     # CORS Origins
     allowed_origins: Union[str, List[str]] = [

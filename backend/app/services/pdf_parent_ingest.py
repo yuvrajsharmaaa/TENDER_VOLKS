@@ -627,7 +627,11 @@ def ingest_parent_tender_pdf(
     try:
         from ocr.layout.clause_segmenter import segment_text_blocks_into_clauses
         from backend.app.models.models import TextBlock
-        from backend.app.db.neo4j_session import sync_tender_graph
+        from backend.app.db.neo4j_session import (
+            sync_tender_graph,
+            create_override_relationships,
+            resolve_overridden_main_clauses
+        )
 
         # Extract canonical tender identifier (e.g. GEM/2026/B/7357339) or fallback to job_id
         canonical_tender_id = (
@@ -713,6 +717,7 @@ def ingest_parent_tender_pdf(
                 "clauses": atc_clauses
             })
 
+        # 1. Synchronize Tender, MainDocument, ATCDocument, and Clause nodes
         sync_tender_graph(
             tender_id=canonical_tender_id,
             tender_title=tender_title,
@@ -726,8 +731,24 @@ def ingest_parent_tender_pdf(
             main_clauses=main_clauses,
             atc_docs=atc_docs_graph
         )
+
+        # 2. Graph Precedence: Create [:OVERRIDES] relationships and resolve traversal
+        overrides_count = create_override_relationships(tender_id=canonical_tender_id)
+        graph_overrides = resolve_overridden_main_clauses(tender_id=canonical_tender_id)
+        overridden_main_ids = graph_overrides.get("overridden_clause_ids", set())
+
+        # 3. Filter MainDocument clauses using graph precedence output (parallel to ATC_SOURCED_LABELS)
+        effective_main_clauses = [
+            c for c in main_clauses if c["id"] not in overridden_main_ids
+        ]
+        logger.info(
+            f"[NEO4J] Graph precedence resolved for tender '{canonical_tender_id}': "
+            f"{overrides_count} [:OVERRIDES] edges created, {len(overridden_main_ids)} Main clause(s) overridden/dropped. "
+            f"Effective Main clauses: {len(effective_main_clauses)}/{len(main_clauses)}"
+        )
     except Exception as neo_err:
-        logger.warning(f"[NEO4J] Graph sync non-fatal error for job {job_id}: {neo_err}")
+        logger.warning(f"[NEO4J] Graph sync/precedence non-fatal error for job {job_id}: {neo_err}")
+
 
 
 
