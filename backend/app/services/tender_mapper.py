@@ -430,6 +430,9 @@ def resolve_atc_anchor_fields(
         m = _RE_SD_CLAUSE38.search(sd_body)
         if m:
             c38_match = m
+            m_dur = re.search(r"within\s+(\d+)\s+days", sd_body, re.IGNORECASE)
+            if m_dur:
+                res["sd_duration"] = int(m_dur.group(1))
             logger.info("[ATC_ALIAS] Matched 'security_deposit' section body via concept alias: %r", m.group(0)[:60])
             break
 
@@ -1994,7 +1997,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
     client_email_2_display = resolve_field(["Client Email 2", "client_email_2", "buyer_email_2", "client_email_2_display"], default="NA")
     client_phone_2_display = resolve_field(["Client Phone 2", "client_phone_2", "client_phone_2_display"], default="NA")
     nodal_officer_match = re.search(
-        r"(?:Name\s+and\s+contact\s+details\s+of\s+nodal\s+officer\s+are\s+as\s+under|nodal\s+officer\s+are\s+as\s+under)([\s\S]*?)(?=\n\s*(?:SECTION|ANNEXURE|CLAUSE|\d{2,}\b|\Z))",
+        r"(?:Name\s+and\s+contact\s+details\s+of\s+nodal\s+officer\s+are\s+as\s+under|nodal\s+officer\s+are\s+as\s+under|Nodal\s+Officer\s*[:\-])([\s\S]*?)(?=\n\s*(?:SECTION|ANNEXURE|CLAUSE|\d{2,}\b|\Z))",
         full_text, re.IGNORECASE
     )
     if nodal_officer_match:
@@ -2063,7 +2066,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
     if client_name_3_display != "NA":
         client_name_3_display = _clean_cname(client_name_3_display)
     else:
-        c3_m = re.search(r"(?:Site\s+Contact\s+Officer|Consignee\s+Officer)[:\-\s]*(?:Shri?|Mr|Ms|Sh)?\.?\s*([A-Za-z\.\s]{3,35})", full_text, re.IGNORECASE)
+        c3_m = re.search(r"(?:Site\s+Contact\s+Officer|Consignee\s+Officer)[:\-\s]*(?:Shri?|Mr|Ms|Sh)?\.?\s*([A-Za-z\.\t ]{3,35})", full_text, re.IGNORECASE)
         if c3_m:
             cand = _clean_cname(c3_m.group(1))
             if cand not in (client_name_1_display, client_name_2_display):

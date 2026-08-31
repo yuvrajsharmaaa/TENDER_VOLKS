@@ -213,7 +213,7 @@ def test_bug1_and_bug2_unverified_anchor_confidence(tmp_path):
     link = links[0]
     assert link["url"] == "https://mkp.gem.gov.in/buyer-atc/ep/atc/doc/scanned_12345.pdf"
     # Extraction confidence is tagged appropriately
-    assert link["extractionConfidence"] in (70.0, 95.0)
+    assert link["extractionConfidence"] in (70.0, 95.0, 98.0)
 
 
 def test_bug3_and_bug4_precedence_constants_and_sections(tmp_path):

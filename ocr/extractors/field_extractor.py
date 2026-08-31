@@ -1324,6 +1324,10 @@ class FieldExtractor:
                         anchor_candidates.sort(key=lambda sb: sb[1].bounding_box["x1"])
                         anchor_score, anchor_found = anchor_candidates[0]
 
+                        value_blocks = [b for b in row if b.bounding_box["x1"] > anchor_found.bounding_box["x1"]]
+                        cell_text = " ".join(b.text for b in value_blocks).strip()
+                        val = self._match_value_pattern(cell_text, rule["type"]) if cell_text else None
+
                         if val:
                             conf = anchor_score + 0.35 + 0.20 + 0.05
                             conf = min(1.0, conf)

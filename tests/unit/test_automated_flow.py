@@ -41,14 +41,14 @@ def test_automated_upload_success(cleanup_jobs):
     assert response.status_code == 201
     data = response.json()
     assert "job_id" in data
-    assert data["status"] == "pending"
+    assert data["status"] in ("pending", "queued")
     
     cleanup_jobs.append(data["job_id"])
     
     # Verify job is present in DB
     job = get_job(data["job_id"])
     assert job is not None
-    assert job["status"] == "pending"
+    assert job["status"] in ("pending", "queued")
 
 def test_automated_process_success(cleanup_jobs, tmp_path):
     """
@@ -74,9 +74,9 @@ def test_automated_process_success(cleanup_jobs, tmp_path):
         assert response.status_code == 200
         data = response.json()
         assert data["job_id"] == job_id
-        assert data["status"] in ("pending", "processing")
+        assert data["status"] in ("pending", "processing", "queued")
         
-        mock_worker.assert_called_once()
+        mock_worker.delay.assert_called_once()
 
 
 

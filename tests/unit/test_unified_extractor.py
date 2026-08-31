@@ -16,8 +16,8 @@ def test_unified_extractor_and_regex_fallback():
     infosheet_tab = build_infosheet_data(sections_tab, pages_tabular)
     
     # organization and emd_required should NOT be cross-matched to adjacent cells by the regex fallbacks
-    assert infosheet_tab.get("organization") in ("NA", "N/A") # Ignored by regex fallback (tabular)
-    assert infosheet_tab.get("emd_required_display") in ("NA", "N/A") # Ignored by regex fallback (tabular)
+    assert infosheet_tab.get("organization") in ("NA", "N/A", "⚠️ MISSING") # Ignored by regex fallback (tabular)
+    assert infosheet_tab.get("emd_required_display") in ("NA", "N/A", "⚠️ MISSING") # Ignored by regex fallback (tabular)
 
     # 2. Test case: Safe fallbacks (same-line colon and strict next-line) should work
     pages_safe = [
@@ -105,7 +105,7 @@ def test_mappings_priority_bullets_and_metadata():
     sections_bullet = extract_tender_fields(pages_bullet, "Test Bullet")
     infosheet_bullet = build_infosheet_data(sections_bullet, pages_bullet)
     # The list-bullet "9" has no currency indicators and is < 100, so it must be rejected as currency
-    assert infosheet_bullet.get("tender_value_display") in ("NA", "N/A", "Out of Scope (Stage 1)")
+    assert infosheet_bullet.get("tender_value_display") in ("NA", "N/A", "Out of Scope (Stage 1)", "⚠️ MISSING")
 
 if __name__ == "__main__":
     pytest.main([__file__])

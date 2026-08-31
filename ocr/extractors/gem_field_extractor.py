@@ -6,6 +6,7 @@ from typing import List, Dict, Any, Optional, Tuple
 from rapidfuzz import fuzz
 
 from ocr.extractors.field_extractor import FieldExtractor, group_blocks_into_rows
+from ocr.table_grid_parser import clean_cell_text
 from backend.app.models.models import PageResult, TextBlock, LayoutRegion
 from backend.app.schemas.schemas import ExtractedFieldSchema, SourceBlockRef, BoundingBox
 
@@ -419,153 +420,286 @@ class GemFieldExtractor(FieldExtractor):
                 likely_source=likely_source
             ))
 
-        # 2. Extract schedules (consignees and technical specs) using legacy row-based parsing
-        schedules_data = {}
+        # 2. Extract schedules (consignees, quantities, delivery days, and technical specs) via cell-level grid mapping
+        schedules_list = []
+        
+        # A. Collect all item headers across all pages
+        item_headers = []
+        page1_cat = "Not Found"
         for page in pages:
+            if page.page_number == 1:
+                for b in page.text_blocks:
+                    t = b.text.strip()
+                    m_cat = re.search(r"(?:Item Category|वस्तु\s*श्रेणी)\s*[:\n]?\s*([^\n\r]+)", t, re.IGNORECASE)
+                    if m_cat:
+                        page1_cat = m_cat.group(1).strip()
+
             sorted_blocks = sorted(page.text_blocks, key=lambda b: (b.bounding_box["y1"], b.bounding_box["x1"]))
-            all_rows = group_blocks_into_rows(sorted_blocks)
-            
-            current_schedule_num = 1
-            consignee_headers = None
-            
-            for row_idx, row in enumerate(all_rows):
-                row_text = " ".join(b.text for b in row)
-                
-                m_sch = re.search(r"Schedule\s*(\d+)", row_text, re.IGNORECASE)
-                m_item_header = re.search(r"^(.{5,120}?)\(\s*(\d+)\s*(?:pieces|piece|pcs|nos|no|qty)?\s*\)", row_text, re.IGNORECASE)
-                if m_sch:
-                    current_schedule_num = int(m_sch.group(1))
-                elif m_item_header:
-                    if current_schedule_num in schedules_data and (schedules_data[current_schedule_num]["quantity"] != "Not Found" or schedules_data[current_schedule_num]["item_description"] != "Not Found"):
-                        current_schedule_num += 1
-                    schedules_data.setdefault(current_schedule_num, {
-                        "schedule_number": current_schedule_num,
-                        "consignee_name": "Not Found",
-                        "consignee_address": "Not Found",
-                        "quantity": int(m_item_header.group(2).strip()),
-                        "delivery_days": "Not Found",
-                        "item_description": m_item_header.group(0).strip(),
-                        "technical_specs": {}
-                    })
-                    
-                is_tech_spec = False
-                if len(row) >= 2:
-                    c1_text = row[0].text.strip()
-                    c2_text = " ".join(b.text.strip() for b in row[1:])
-                    spec_keywords = [
-                        "battery capacity", "nominal battery voltage", "battery voltage",
-                        "capacity at 10-h", "voltage", "capacity", "specification", "oem"
-                    ]
-                    if any(kw in c1_text.lower() for kw in spec_keywords):
-                        if not any(k in c1_text.lower() for k in ["dated", "schedule", "consignee", "delivery"]):
-                            is_tech_spec = True
-                            
-                if is_tech_spec:
-                    schedules_data.setdefault(current_schedule_num, {
-                        "schedule_number": current_schedule_num,
-                        "consignee_name": "Not Found",
-                        "consignee_address": "Not Found",
-                        "quantity": "Not Found",
-                        "delivery_days": "Not Found",
-                        "item_description": "Not Found",
-                        "technical_specs": {}
-                    })
-                    clean_param = re.sub(r"^[^a-zA-Z0-9\s]+", "", c1_text)
-                    clean_param = re.sub(r"^[/\\_.:\-]+\s*", "", clean_param).strip()
-                    schedules_data[current_schedule_num]["technical_specs"][clean_param] = c2_text.strip()
-                    continue
-                    
-                row_texts_lower = [b.text.lower() for b in row]
-                has_consignee = any("consignee" in txt or "reporting" in txt or "officer" in txt for txt in row_texts_lower)
-                has_qty = any("quantity" in txt or "मात्रा" in txt for txt in row_texts_lower)
-                has_days = any("delivery" in txt or "days" in txt for txt in row_texts_lower)
-                
-                if has_consignee and (has_qty or has_days):
-                    consignee_headers = {}
-                    for col_idx, block in enumerate(row):
-                        txt = block.text.lower()
-                        if "consignee" in txt or "reporting" in txt or "officer" in txt:
-                            consignee_headers["consignee_name"] = col_idx
-                        elif "address" in txt or "पता" in txt:
-                            consignee_headers["consignee_address"] = col_idx
-                        elif "quantity" in txt or "मात्रा" in txt:
-                            consignee_headers["quantity"] = col_idx
-                        elif "delivery" in txt or "days" in txt:
-                            consignee_headers["delivery_days"] = col_idx
-                    continue
-                    
-                if consignee_headers and len(row) >= 2:
-                    if any("total" in b.text.lower() or "योग" in b.text.lower() or "schedule" in b.text.lower() for b in row):
-                        consignee_headers = None
+            for b in sorted_blocks:
+                t = b.text.strip()
+                m_item = re.search(r"^(.{3,150}?)\s*\(\s*(\d+)\s*(?:pieces|piece|pcs|nos|no|qty|meter|set|pair|packet|kg|unit|litre)\s*\)", t, re.IGNORECASE)
+                if m_item:
+                    if not any(k in t.lower() for k in ["margin of purchase", "option clause", "make in india", "past performance", "relaxation", "clause", "evaluation method"]):
+                        item_headers.append({
+                            "page_number": page.page_number,
+                            "y1": b.bounding_box["y1"],
+                            "item_description": m_item.group(0).strip(),
+                            "item_name": m_item.group(1).strip(),
+                            "item_qty": int(m_item.group(2).strip())
+                        })
+
+        # B. Track technical specs associated with item headers or pages
+        tech_specs_by_item = {}
+        for page in pages:
+            for region in page.layout_regions:
+                if region.region_type.lower() == "table" and region.table_structure:
+                    grid = region.table_structure.get("grid", [])
+                    if not grid or len(grid) < 2:
                         continue
-                        
-                    schedules_data.setdefault(current_schedule_num, {
-                        "schedule_number": current_schedule_num,
-                        "consignee_name": "Not Found",
-                        "consignee_address": "Not Found",
-                        "quantity": "Not Found",
-                        "delivery_days": "Not Found",
-                        "item_description": "Not Found",
-                        "technical_specs": {}
-                    })
-                    
-                    entry = schedules_data[current_schedule_num]
-                    for field, col_idx in consignee_headers.items():
-                        if col_idx < len(row):
-                            val = row[col_idx].text.strip()
-                            if field in ("quantity", "delivery_days"):
-                                clean_val = re.sub(r"\D", "", val)
-                                if clean_val:
-                                    try:
-                                        entry[field] = int(clean_val)
-                                    except ValueError:
-                                        pass
-                            else:
-                                entry[field] = val
+                    cleaned_grid = [[clean_cell_text(c) for c in r] for r in grid if any(r)]
+                    if len(cleaned_grid) < 2:
+                        continue
+                    h_text = " ".join(cleaned_grid[0]).lower()
+                    if ("specification" in h_text or "विशिष्ट" in h_text or "parameter" in h_text) and not any(k in h_text for k in ["consignee", "reporting", "officer", "परेषती"]):
+                        t_y = region.bounding_box.get("y1", 0)
+                        preceding = [it for it in item_headers if (it["page_number"] < page.page_number) or (it["page_number"] == page.page_number and it["y1"] <= t_y)]
+                        item_desc = preceding[-1]["item_description"] if preceding else page1_cat
+                        specs = tech_specs_by_item.setdefault(item_desc, {})
+                        for r_idx in range(1, len(cleaned_grid)):
+                            row = cleaned_grid[r_idx]
+                            if len(row) >= 2:
+                                p_name = row[-2].strip() if len(row) >= 3 else row[0].strip()
+                                p_val = row[-1].strip()
+                                if p_name and p_val and not any(k in p_name.lower() for k in ["download", "view document", "buyer"]):
+                                    specs[p_name] = p_val
+
+        # C. Extract consignee tables from table layout regions
+        sch_idx = 1
+        current_item = item_headers[0] if item_headers else {
+            "page_number": 1, "y1": 0, "item_description": page1_cat, "item_qty": "Not Found"
+        }
+
+        for page in pages:
+            tbl_regions = [r for r in page.layout_regions if r.region_type.lower() == "table" and r.table_structure]
+            tbl_regions = sorted(tbl_regions, key=lambda r: (r.bounding_box.get("y1", 0), r.bounding_box.get("x1", 0)))
+            
+            for region in tbl_regions:
+                grid = region.table_structure.get("grid", [])
+                if not grid or len(grid) < 2:
                     continue
 
-            for block in sorted_blocks:
-                m_sch = re.search(r"Schedule\s*(\d+)", block.text, re.IGNORECASE)
-                if m_sch:
-                    current_schedule_num = int(m_sch.group(1))
-                if current_schedule_num in schedules_data:
-                    if "pieces" in block.text or "quantity" in block.text.lower() or "stationary" in block.text.lower():
-                        if not any(k in block.text.lower() for k in ["dated", "consignee", "address", "delivery", "schedule", "total quantity", "कुल मात्रा"]):
-                            if schedules_data[current_schedule_num]["item_description"] in ("Not Found", ""):
-                                schedules_data[current_schedule_num]["item_description"] = block.text.strip()
+                cleaned_grid = [[clean_cell_text(c) for c in r] for r in grid if any(r)]
+                if len(cleaned_grid) < 2:
+                    continue
 
-        # Dedicated pass: parse Evaluation Schedules / Item Wise Evaluation table if present
-        full_tender_text = "\n".join("\n".join(b.text for b in p.text_blocks) for p in pages)
-        eval_sched_m = re.search(r"(?:Evaluation\s+Schedules|मूVयांकन\s+अनुसूिचयां)[\s\S]+?(?=(?:Consignees|\n\s*[A-Z\s]{4,}\s*\(\s*\d+\s*(?:set|pieces|nos|meter|foot)\s*\)|Buyer\s+Added|तकनीक|\Z))", full_tender_text, re.IGNORECASE)
-        if eval_sched_m:
-            sched_block = eval_sched_m.group(0)
-            sched_pattern = r"(?:Schedule\s+(\d+)|Schedule-(\d+))\s*\n\s*([\s\S]+?)\n\s*(\d{1,6})\b"
-            for m_eval in re.finditer(sched_pattern, sched_block, re.IGNORECASE):
-                s_num = int(m_eval.group(1) or m_eval.group(2))
-                raw_desc = re.sub(r"\s+", " ", m_eval.group(3)).strip()
-                raw_desc = re.sub(r"^(?:Item/Category|वस्तु/श्रेणी|Item\s+Description)\s*", "", raw_desc, flags=re.IGNORECASE).strip()
-                try:
-                    s_qty = int(m_eval.group(4))
-                except ValueError:
-                    s_qty = "Not Found"
-                schedules_data[s_num] = {
-                    "schedule_number": s_num,
-                    "consignee_name": "Not Found",
-                    "consignee_address": "Not Found",
-                    "quantity": s_qty,
-                    "delivery_days": "Not Found",
-                    "item_description": raw_desc or "Not Found",
-                    "technical_specs": {}
-                }
+                header_row_idx = None
+                col_map = {}
+                for r_i in range(min(3, len(cleaned_grid))):
+                    r_text = " ".join(cleaned_grid[r_i]).lower()
+                    has_consignee_kw = any(k in r_text for k in ["consignee", "reporting", "officer", "परेषती", "अधिकारी"])
+                    has_qty_kw = any(k in r_text for k in ["quantity", "मात्रा", "qty", "delivery", "दिन", "days"])
 
-        if schedules_data:
-            flat_schedules = list(schedules_data.values())
+                    if has_consignee_kw and has_qty_kw:
+                        header_row_idx = r_i
+                        for c_i, col_text in enumerate(cleaned_grid[r_i]):
+                            c_low = col_text.lower()
+                            if any(k in c_low for k in ["s.n", "क्र.सं", "s.no", "sl.no", "s no"]):
+                                col_map["sno"] = c_i
+                            elif any(k in c_low for k in ["consignee", "reporting", "officer", "परेषती", "अधिकारी"]):
+                                col_map["consignee_name"] = c_i
+                            elif any(k in c_low for k in ["address", "पता"]):
+                                col_map["consignee_address"] = c_i
+                            elif any(k in c_low for k in ["quantity", "मात्रा", "qty"]):
+                                col_map["quantity"] = c_i
+                            elif any(k in c_low for k in ["delivery", "दिन", "days"]):
+                                col_map["delivery_days"] = c_i
+                        break
+
+                if header_row_idx is None:
+                    continue
+
+                t_y = region.bounding_box.get("y1", 0)
+                preceding = [
+                    it for it in item_headers 
+                    if (it["page_number"] < page.page_number) or 
+                       (it["page_number"] == page.page_number and it["y1"] <= t_y)
+                ]
+                if preceding:
+                    current_item = preceding[-1]
+
+                item_desc = current_item.get("item_description", page1_cat)
+                specs_for_item = tech_specs_by_item.get(item_desc, {})
+
+                for r_i in range(header_row_idx + 1, len(cleaned_grid)):
+                    row = cleaned_grid[r_i]
+                    r_str = " ".join(row).lower()
+                    if not r_str or any(k in r_str for k in ["total", "कुल", "योग", "buyer added", "disclaimer", "generic"]):
+                        continue
+
+                    def _get_val(k):
+                        if k in col_map and col_map[k] < len(row):
+                            return row[col_map[k]].strip()
+                        return "Not Found"
+
+                    c_name = _get_val("consignee_name") or "Not Found"
+                    c_addr = _get_val("consignee_address") or "Not Found"
+                    c_qty_raw = _get_val("quantity")
+                    c_days_raw = _get_val("delivery_days")
+
+                    c_qty = "Not Found"
+                    if c_qty_raw != "Not Found":
+                        m_q = re.search(r"\d+", c_qty_raw.replace(",", ""))
+                        if m_q:
+                            c_qty = int(m_q.group(0))
+
+                    c_days = "Not Found"
+                    if c_days_raw != "Not Found":
+                        m_d = re.search(r"\d+", c_days_raw.replace(",", ""))
+                        if m_d:
+                            c_days = int(m_d.group(0))
+
+                    if c_name == "Not Found" and c_addr == "Not Found" and c_qty == "Not Found":
+                        continue
+
+                    if c_qty == "Not Found" and isinstance(current_item.get("item_qty"), int):
+                        c_qty = current_item["item_qty"]
+
+                    schedules_list.append({
+                        "schedule_number": sch_idx,
+                        "consignee_name": c_name,
+                        "consignee_address": c_addr,
+                        "quantity": c_qty,
+                        "delivery_days": c_days,
+                        "item_description": item_desc,
+                        "technical_specs": dict(specs_for_item)
+                    })
+                    sch_idx += 1
+
+        # D. Evaluation Schedules pass if no consignee tables were detected
+        if not schedules_list:
+            full_tender_text = "\n".join("\n".join(b.text for b in p.text_blocks) for p in pages)
+            eval_sched_m = re.search(r"(?:Evaluation\s+Schedules|मूVयांकन\s+अनुसूिचयां)[\s\S]+?(?=(?:Consignees|\n\s*[A-Z\s]{4,}\s*\(\s*\d+\s*(?:set|pieces|nos|meter|foot)\s*\)|Buyer\s+Added|तकनीक|\Z))", full_tender_text, re.IGNORECASE)
+            if eval_sched_m:
+                sched_block = eval_sched_m.group(0)
+                sched_pattern = r"(?:Schedule\s+(\d+)|Schedule-(\d+))\s*\n\s*([\s\S]+?)\n\s*(\d{1,6})\b"
+                for m_eval in re.finditer(sched_pattern, sched_block, re.IGNORECASE):
+                    s_num = int(m_eval.group(1) or m_eval.group(2))
+                    raw_desc = re.sub(r"\s+", " ", m_eval.group(3)).strip()
+                    raw_desc = re.sub(r"^(?:Item/Category|वस्तु/श्रेणी|Item\s+Description)\s*", "", raw_desc, flags=re.IGNORECASE).strip()
+                    try:
+                        s_qty = int(m_eval.group(4))
+                    except ValueError:
+                        s_qty = "Not Found"
+                    schedules_list.append({
+                        "schedule_number": s_num,
+                        "consignee_name": "Not Found",
+                        "consignee_address": "Not Found",
+                        "quantity": s_qty,
+                        "delivery_days": "Not Found",
+                        "item_description": raw_desc or page1_cat,
+                        "technical_specs": {}
+                    })
+
+        # E. Text-block row grouping fallback if no layout region tables were detected
+        if not schedules_list:
+            schedules_data = {}
+            for page in pages:
+                sorted_blocks = sorted(page.text_blocks, key=lambda b: (b.bounding_box["y1"], b.bounding_box["x1"]))
+                all_rows = group_blocks_into_rows(sorted_blocks)
+                current_schedule_num = 1
+                consignee_headers = None
+                for row in all_rows:
+                    row_text = " ".join(b.text for b in row)
+                    m_sch = re.search(r"Schedule\s*(\d+)", row_text, re.IGNORECASE)
+                    if m_sch:
+                        current_schedule_num = int(m_sch.group(1))
+
+                    is_tech_spec = False
+                    if len(row) >= 2:
+                        c1_text = row[0].text.strip()
+                        c2_text = " ".join(b.text.strip() for b in row[1:])
+                        spec_keywords = [
+                            "battery capacity", "nominal battery voltage", "battery voltage",
+                            "capacity at 10-h", "voltage", "capacity", "specification", "oem"
+                        ]
+                        if any(kw in c1_text.lower() for kw in spec_keywords):
+                            if not any(k in c1_text.lower() for k in ["dated", "schedule", "consignee", "delivery"]):
+                                is_tech_spec = True
+
+                    if is_tech_spec:
+                        schedules_data.setdefault(current_schedule_num, {
+                            "schedule_number": current_schedule_num,
+                            "consignee_name": "Not Found",
+                            "consignee_address": "Not Found",
+                            "quantity": "Not Found",
+                            "delivery_days": "Not Found",
+                            "item_description": page1_cat,
+                            "technical_specs": {}
+                        })
+                        clean_param = re.sub(r"^[^a-zA-Z0-9\s]+", "", c1_text)
+                        clean_param = re.sub(r"^[/\\_.:\-]+\s*", "", clean_param).strip()
+                        schedules_data[current_schedule_num]["technical_specs"][clean_param] = c2_text.strip()
+                        continue
+
+                    row_texts_lower = [b.text.lower() for b in row]
+                    has_consignee = any("consignee" in txt or "reporting" in txt or "officer" in txt for txt in row_texts_lower)
+                    has_qty = any("quantity" in txt or "मात्रा" in txt for txt in row_texts_lower)
+                    has_days = any("delivery" in txt or "days" in txt for txt in row_texts_lower)
+
+                    if has_consignee and (has_qty or has_days):
+                        consignee_headers = {}
+                        for col_idx, block in enumerate(row):
+                            txt = block.text.lower()
+                            if "consignee" in txt or "reporting" in txt or "officer" in txt:
+                                consignee_headers["consignee_name"] = col_idx
+                            elif "address" in txt or "पता" in txt:
+                                consignee_headers["consignee_address"] = col_idx
+                            elif "quantity" in txt or "मात्रा" in txt:
+                                consignee_headers["quantity"] = col_idx
+                            elif "delivery" in txt or "days" in txt:
+                                consignee_headers["delivery_days"] = col_idx
+                        continue
+
+                    if consignee_headers and len(row) >= 2:
+                        if any("total" in b.text.lower() or "योग" in b.text.lower() or "schedule" in b.text.lower() for b in row):
+                            consignee_headers = None
+                            continue
+
+                        schedules_data.setdefault(current_schedule_num, {
+                            "schedule_number": current_schedule_num,
+                            "consignee_name": "Not Found",
+                            "consignee_address": "Not Found",
+                            "quantity": "Not Found",
+                            "delivery_days": "Not Found",
+                            "item_description": page1_cat,
+                            "technical_specs": {}
+                        })
+
+                        entry = schedules_data[current_schedule_num]
+                        for field, col_idx in consignee_headers.items():
+                            if col_idx < len(row):
+                                val = row[col_idx].text.strip()
+                                if field in ("quantity", "delivery_days"):
+                                    clean_val = re.sub(r"\D", "", val)
+                                    if clean_val:
+                                        try:
+                                            entry[field] = int(clean_val)
+                                        except ValueError:
+                                            pass
+                                else:
+                                    entry[field] = val
+                        continue
+
+            if schedules_data:
+                schedules_list = list(schedules_data.values())
+
+        if schedules_list:
             extracted.append(ExtractedFieldSchema(
                 field_name="schedules",
-                value=flat_schedules,
-                confidence=0.9,
+                value=schedules_list,
+                confidence=0.95,
                 source_page=1,
-                evidence=f"Extracted {len(flat_schedules)} schedules/consignees.",
+                evidence=f"Extracted {len(schedules_list)} schedules/consignees via cell-level grid parsing.",
                 source_blocks=[],
                 source="gem_parent_pdf"
             ))
