@@ -1,8 +1,0 @@
-company_name: "Volks Energie Private Limited"
-cin: "U40100DL2011PTC228907"
-avg_annual_turnover: 208886000  # ₹20,88,86,000 — FY2021-22 to FY2023-24 avg, Form-B certified
-turnover_years_covered: "FY2021-22 to FY2023-24"
-msme_registered: true
-msme_category: "Small"
-make_in_india_compliant: false   # unverified — treat as false/no-match until confirmed
-oem_authorized_categories: []    # unverified — no known OEM authorizations to claim
