@@ -226,13 +226,42 @@ class FieldExtractor:
                 "type": "period"
             },
             "minimum_average_annual_turnover": {
-                "anchors": ["minimum average annual turnover", "average annual turnover", "turnover of the bidder", "bidder turnover", "annual turnover"],
-                "hindi": ["न्यूनतम औसत वार्षिक टर्नओवर", "वार्षिक टर्नओवर"],
+                "anchors": [
+                    "minimum average annual turnover", 
+                    "average annual turnover", 
+                    "annual average turnover", 
+                    "annual average financial turnover", 
+                    "average annual financial turnover", 
+                    "average financial turnover", 
+                    "annual financial turnover", 
+                    "financial turnover of", 
+                    "turnover of the bidder", 
+                    "bidder turnover", 
+                    "annual turnover", 
+                    "financial turnover",
+                    "turnover criteria",
+                    "turnover requirement"
+                ],
+                "hindi": ["न्यूनतम औसत वार्षिक टर्नओवर", "वार्षिक टर्नओवर", "औसत वार्षिक वित्तीय टर्नओवर"],
                 "type": "currency"
             },
             "years_of_past_experience": {
-                "anchors": ["years of past experience", "past experience", "experience criteria", "bidder experience", "years of experience"],
-                "hindi": ["अनुभाव", "पूर्व अनुभव"],
+                "anchors": [
+                    "years of past experience", 
+                    "past experience", 
+                    "experience criteria", 
+                    "bidder experience", 
+                    "years of experience",
+                    "minimum experience (years)",
+                    "past experience of",
+                    "experience of having successfully",
+                    "experience in similar works",
+                    "similar works experience",
+                    "experience period",
+                    "technical eligibility criteria",
+                    "experience requirement"
+                ],
+                "hindi": ["अनुभाव", "पूर्व अनुभव", "कार्य अनुभव"],
                 "type": "experience"
             },
             "past_experience_required": {
@@ -303,8 +332,21 @@ class FieldExtractor:
                 "type": "text"
             },
             "pbg_percentage": {
-                "anchors": ["ePBG Percentage(%)", "ePBG Percentage"],
-                "hindi": [],
+                "anchors": [
+                    "ePBG Percentage(%)", 
+                    "ePBG Percentage",
+                    "Performance Security",
+                    "Performance Guarantee",
+                    "Performance Bank Guarantee",
+                    "Contract Performance Security",
+                    "Performance Security Deposit",
+                    "Security Deposit Percentage",
+                    "Percentage of Contract Value as Security",
+                    "PBG Percentage",
+                    "Performance Security @",
+                    "PBG @"
+                ],
+                "hindi": ["प्रदर्शन प्रतिभूति", "कार्य निष्पादन बैंक गारंटी"],
                 "type": "percentage"
             },
             "pbg_duration_months": {
@@ -536,7 +578,16 @@ class FieldExtractor:
             return True
         text_norm = self._normalize_for_match(text)
         anchor_norm = self._normalize_for_match(anchor)
-        return text_norm.startswith(anchor_norm)
+        if text_norm.startswith(anchor_norm):
+            return True
+        # Strip common bidding clause lead-ins (e.g. 'Should have...', 'Bidder must have...', 'Shall have minimum...')
+        text_clean_lead = re.sub(
+            r'^(?:(?:the\s+)?(?:bidder|agency|contractor|tenderer|firm|applicant)\s+)?(?:should|must|shall|is\s+required\s+to|have\s+to)\s+(?:have|possess|submit|demonstrate|achieve)\s+(?:a\s+|an\s+|minimum\s+)?',
+            '',
+            text_norm
+        )
+        return text_clean_lead.startswith(anchor_norm)
+
 
     def _strip_noise_words(self, text: str) -> str:
         """Remove leading OCR/Hindi noise tokens from a merged label/value suffix.
@@ -756,7 +807,8 @@ class FieldExtractor:
 
     def extract_fields(self, pages: List[PageResult], doc_source: str = "main_tender") -> List[ExtractedFieldSchema]:
         extracted = []
-        print(f"\n[FIELD_EXTRACTOR_DEBUG] Starting field extraction on {len(pages)} page(s) (doc_source: '{doc_source}').", flush=True)
+        scan_pages = pages[:50] if len(pages) > 50 else pages
+        print(f"\n[FIELD_EXTRACTOR_DEBUG] Starting field extraction on {len(scan_pages)}/{len(pages)} page(s) (doc_source: '{doc_source}').", flush=True)
         
         for field_name, rule in self.rules.items():
             # 1. Custom Multi-Instance Field Processing
@@ -764,8 +816,9 @@ class FieldExtractor:
                 emd_dict = {}
                 source_blocks = []
                 evidence_parts = []
-                for page in pages:
+                for page in scan_pages:
                     for block in page.text_blocks:
+
                         m_sch = re.search(r"Schedule\s*(\d+)\s*EMD\s*Amount", block.text, re.IGNORECASE)
                         if m_sch:
                             sch_num = int(m_sch.group(1))
@@ -796,7 +849,7 @@ class FieldExtractor:
                                         pass
                 
                 # Also search table rows for Schedule N EMD Amount
-                for page in pages:
+                for page in scan_pages:
                     table_regions = [r for r in page.layout_regions if r.region_type.lower() == "table"]
                     for table in table_regions:
                         table_blocks = [b for b in page.text_blocks if is_contained(b.bounding_box, table.bounding_box)]
@@ -853,7 +906,7 @@ class FieldExtractor:
 
             if field_name == "schedules":
                 schedules_data = {}
-                for page in pages:
+                for page in scan_pages:
                     page_num = page.page_number
                     blocks = page.text_blocks
                     regions = page.layout_regions
@@ -975,7 +1028,7 @@ class FieldExtractor:
             if field_name == "eligibility_executed_value":
                 extracted_val = None
                 source_blocks = []
-                for page in pages:
+                for page in scan_pages:
                     page_num = page.page_number
                     blocks = page.text_blocks
                     regions = page.layout_regions
@@ -1027,7 +1080,7 @@ class FieldExtractor:
             if field_name == "financial_avg_turnover":
                 extracted_val = None
                 source_blocks = []
-                for page in pages:
+                for page in scan_pages:
                     page_num = page.page_number
                     blocks = page.text_blocks
                     regions = page.layout_regions
@@ -1079,7 +1132,7 @@ class FieldExtractor:
             if field_name == "financial_net_worth":
                 extracted_val = None
                 source_blocks = []
-                for page in pages:
+                for page in scan_pages:
                     page_num = page.page_number
                     blocks = page.text_blocks
                     for idx, block in enumerate(blocks):
@@ -1126,7 +1179,7 @@ class FieldExtractor:
             if field_name == "financial_working_capital":
                 extracted_val = None
                 source_blocks = []
-                for page in pages:
+                for page in scan_pages:
                     page_num = page.page_number
                     blocks = page.text_blocks
                     regions = page.layout_regions
@@ -1188,7 +1241,7 @@ class FieldExtractor:
             if field_name == "nodal_officer_contact":
                 extracted_val = None
                 source_blocks = []
-                for page in pages:
+                for page in scan_pages:
                     page_num = page.page_number
                     blocks = page.text_blocks
                     for idx, block in enumerate(blocks):
@@ -1241,7 +1294,7 @@ class FieldExtractor:
             candidates: List[Dict[str, Any]] = []
             print(f"[FIELD_EXTRACTOR_DEBUG] Processing rule '{field_name}' (expected type: '{rule['type']}')", flush=True)
             
-            for page in pages:
+            for page in scan_pages:
                 page_num = page.page_number
                 blocks = page.text_blocks
                 regions = page.layout_regions
@@ -1271,12 +1324,6 @@ class FieldExtractor:
                         anchor_candidates.sort(key=lambda sb: sb[1].bounding_box["x1"])
                         anchor_score, anchor_found = anchor_candidates[0]
 
-                        print(f"  [FIELD_EXTRACTOR_DEBUG] Table row anchor matched: {ascii(anchor_found.text)}", flush=True)
-                        value_blocks = [b for b in row if b != anchor_found]
-                        value_blocks.sort(key=lambda b: b.bounding_box["x1"])
-                        cell_text = " ".join(b.text.strip() for b in value_blocks)
-                        val = self._match_value_pattern(cell_text, rule["type"])
-                        print(f"    [FIELD_EXTRACTOR_DEBUG] Table cell value test (concatenated): {ascii(cell_text)} -> matched val: {ascii(val)}", flush=True)
                         if val:
                             conf = anchor_score + 0.35 + 0.20 + 0.05
                             conf = min(1.0, conf)

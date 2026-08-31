@@ -106,7 +106,8 @@ def ingest_parent_tender_pdf(
     """
     logger.info(f"[INGEST_PIPELINE][Job {job_id}] Starting ingestion pipeline for '{original_filename}'")
     job_dir = pdf_path.parent
-    pages_dir = job_dir / "pages"
+    pages_dir = job_dir / "pages" / job_id
+    pages_dir.mkdir(parents=True, exist_ok=True)
 
     logger.info(f"[INGEST_PIPELINE][Job {job_id}] Step 1: Extracting text & page structures from PDF...")
     page_texts = extract_pdf_text_hybrid(str(pdf_path), pages_dir)
@@ -199,7 +200,8 @@ def ingest_parent_tender_pdf(
 
     if not atc_path:
         ext_children_dir = job_dir / "extracted_children"
-        if ext_children_dir.exists():
+        # Only scan if job_dir is an isolated per-job folder, never the shared tender-documents root
+        if ext_children_dir.exists() and job_dir.name != "tender-documents":
             child_pdfs = [p for p in ext_children_dir.glob("*.pdf") if p.is_file() and p.stat().st_size > 0]
             if child_pdfs:
                 # Also sort to prioritize explicit atc/tendoc filenames
@@ -264,10 +266,15 @@ def ingest_parent_tender_pdf(
     if atc_path:
         try:
             logger.info(f"[ATC_RESOLVER] Ingest pipeline parsing downloaded ATC child PDF: '{atc_path}'...")
-            atc_pages_dir = job_dir / "atc_pages"
-            atc_page_texts = extract_pdf_text_hybrid(str(atc_path), atc_pages_dir)
-            all_pages.extend(atc_page_texts)
-            atc_sections = extract_tender_fields(atc_page_texts, f"{title_raw} ATC", document_type="generic_nit")
+            if str(atc_path) == str(pdf_path):
+                import copy
+                atc_page_texts = page_texts
+                atc_sections = copy.deepcopy(sections)
+            else:
+                atc_pages_dir = job_dir / "atc_pages"
+                atc_page_texts = extract_pdf_text_hybrid(str(atc_path), atc_pages_dir)
+                all_pages.extend(atc_page_texts)
+                atc_sections = extract_tender_fields(atc_page_texts, f"{title_raw} ATC", document_type="generic_nit")
             
             # Upsert standalone resolve_atc_anchor_fields output into atc_sections (Task 2)
             atc_full_text = "\n".join([p.get("text", "") for p in atc_page_texts])
@@ -624,56 +631,25 @@ def ingest_parent_tender_pdf(
     issues += len(mentioned_docs)
 
     # 8a. Neo4j Graph Synchronization: Tender, MainDocument, ATCDocument, and Clause nodes
-    try:
-        from ocr.layout.clause_segmenter import segment_text_blocks_into_clauses
-        from backend.app.models.models import TextBlock
-        from backend.app.db.neo4j_session import sync_tender_graph
+    if os.getenv("ENABLE_NEO4J", "false").lower() == "true":
+        try:
+            from ocr.layout.clause_segmenter import segment_text_blocks_into_clauses
+            from backend.app.models.models import TextBlock
+            from backend.app.db.neo4j_session import sync_tender_graph
 
-        # Extract canonical tender identifier (e.g. GEM/2026/B/7357339) or fallback to job_id
-        canonical_tender_id = (
-            infosheet_data.get("tender_id_display")
-            or infosheet_data.get("nit_no_display")
-            or resolved.get("nitNumber")
-            or job_id
-        )
-        # Strip any surrounding whitespace or formatting artifacts
-        if isinstance(canonical_tender_id, str):
-            canonical_tender_id = canonical_tender_id.strip()
+            # Extract canonical tender identifier (e.g. GEM/2026/B/7357339) or fallback to job_id
+            canonical_tender_id = (
+                infosheet_data.get("tender_id_display")
+                or infosheet_data.get("nit_no_display")
+                or resolved.get("nitNumber")
+                or job_id
+            )
+            # Strip any surrounding whitespace or formatting artifacts
+            if isinstance(canonical_tender_id, str):
+                canonical_tender_id = canonical_tender_id.strip()
 
-        main_clauses = []
-        for p in page_texts:
-            page_num = p.get("page", 1)
-            blocks = p.get("blocks", [])
-            tb_objects = []
-            for b in blocks:
-                if isinstance(b, TextBlock):
-                    tb_objects.append(b)
-                elif isinstance(b, dict):
-                    tb_objects.append(TextBlock(
-                        block_id=b.get("block_id", ""),
-                        text=b.get("text", ""),
-                        confidence=b.get("confidence", 1.0),
-                        bounding_box=b.get("bounding_box", {}),
-                        language_hint=b.get("language_hint", "en")
-                    ))
-            if tb_objects:
-                clause_regions = segment_text_blocks_into_clauses(tb_objects, page_number=page_num)
-                for r in clause_regions:
-                    main_clauses.append({
-                        "id": f"clause_{canonical_tender_id}_main_p{page_num:02d}_{r.region_id}",
-                        "region_id": r.region_id,
-                        "page_number": page_num,
-                        "text": r.text_content,
-                        "bounding_box": r.bounding_box,
-                        "confidence": r.confidence,
-                        "reading_order_index": r.reading_order_index,
-                        "clause_type": "paragraph"
-                    })
-
-        atc_docs_graph = []
-        if atc_path and 'atc_page_texts' in locals() and atc_page_texts:
-            atc_clauses = []
-            for p in atc_page_texts:
+            main_clauses = []
+            for p in page_texts:
                 page_num = p.get("page", 1)
                 blocks = p.get("blocks", [])
                 tb_objects = []
@@ -691,8 +667,8 @@ def ingest_parent_tender_pdf(
                 if tb_objects:
                     clause_regions = segment_text_blocks_into_clauses(tb_objects, page_number=page_num)
                     for r in clause_regions:
-                        atc_clauses.append({
-                            "id": f"clause_{canonical_tender_id}_atc_p{page_num:02d}_{r.region_id}",
+                        main_clauses.append({
+                            "id": f"clause_{canonical_tender_id}_main_p{page_num:02d}_{r.region_id}",
                             "region_id": r.region_id,
                             "page_number": page_num,
                             "text": r.text_content,
@@ -701,33 +677,65 @@ def ingest_parent_tender_pdf(
                             "reading_order_index": r.reading_order_index,
                             "clause_type": "paragraph"
                         })
-            atc_docs_graph.append({
-                "doc": {
-                    "id": f"doc_{canonical_tender_id}_atc_{atc_path.stem}",
-                    "name": atc_path.name,
-                    "path": str(atc_path),
-                    "page_count": len(atc_page_texts),
-                    "url": matched_atc_link.get("url", "") if matched_atc_link else "",
-                    "local_path": atc_path
-                },
-                "clauses": atc_clauses
-            })
 
-        sync_tender_graph(
-            tender_id=canonical_tender_id,
-            tender_title=tender_title,
-            main_doc={
-                "id": f"doc_{canonical_tender_id}_main",
-                "name": original_filename,
-                "path": str(pdf_path),
-                "page_count": len(page_texts),
-                "latest_job_id": job_id
-            },
-            main_clauses=main_clauses,
-            atc_docs=atc_docs_graph
-        )
-    except Exception as neo_err:
-        logger.warning(f"[NEO4J] Graph sync non-fatal error for job {job_id}: {neo_err}")
+            atc_docs_graph = []
+            if atc_path and 'atc_page_texts' in locals() and atc_page_texts:
+                atc_clauses = []
+                for p in atc_page_texts:
+                    page_num = p.get("page", 1)
+                    blocks = p.get("blocks", [])
+                    tb_objects = []
+                    for b in blocks:
+                        if isinstance(b, TextBlock):
+                            tb_objects.append(b)
+                        elif isinstance(b, dict):
+                            tb_objects.append(TextBlock(
+                                block_id=b.get("block_id", ""),
+                                text=b.get("text", ""),
+                                confidence=b.get("confidence", 1.0),
+                                language_hint=b.get("language_hint", "en")
+                            ))
+                    if tb_objects:
+                        clause_regions = segment_text_blocks_into_clauses(tb_objects, page_number=page_num)
+                        for r in clause_regions:
+                            atc_clauses.append({
+                                "id": f"clause_{canonical_tender_id}_atc_p{page_num:02d}_{r.region_id}",
+                                "region_id": r.region_id,
+                                "page_number": page_num,
+                                "text": r.text_content,
+                                "bounding_box": r.bounding_box,
+                                "confidence": r.confidence,
+                                "reading_order_index": r.reading_order_index,
+                                "clause_type": "paragraph"
+                            })
+                atc_docs_graph.append({
+                    "doc": {
+                        "id": f"doc_{canonical_tender_id}_atc_{atc_path.stem}",
+                        "name": atc_path.name,
+                        "path": str(atc_path),
+                        "page_count": len(atc_page_texts),
+                        "url": matched_atc_link.get("url", "") if matched_atc_link else "",
+                        "local_path": atc_path
+                    },
+                    "clauses": atc_clauses
+                })
+
+            sync_tender_graph(
+                tender_id=canonical_tender_id,
+                tender_title=tender_title,
+                main_doc={
+                    "id": f"doc_{canonical_tender_id}_main",
+                    "name": original_filename,
+                    "path": str(pdf_path),
+                    "page_count": len(page_texts),
+                    "latest_job_id": job_id
+                },
+                main_clauses=main_clauses,
+                atc_docs=atc_docs_graph
+            )
+        except Exception as neo_err:
+            logger.warning(f"[NEO4J] Graph sync non-fatal error for job {job_id}: {neo_err}")
+
 
 
 

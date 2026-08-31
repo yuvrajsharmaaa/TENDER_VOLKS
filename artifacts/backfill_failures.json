@@ -1,0 +1,90 @@
+[
+  {
+    "tender_no": "2025_HBC_479713_1",
+    "outcome": "Won",
+    "status": "FAILED",
+    "reason": "FILE_NOT_FOUND",
+    "error": "Primary document file not found on disk: 'nan'",
+    "tender_id": null
+  },
+  {
+    "tender_no": "Test_Tender",
+    "outcome": "Won",
+    "status": "FAILED",
+    "reason": "FILE_NOT_FOUND",
+    "error": "Primary document file not found on disk: 'nan'",
+    "tender_id": null
+  },
+  {
+    "tender_no": "2025_AAI_239329_1",
+    "outcome": "Lost",
+    "status": "FAILED",
+    "reason": "FILE_NOT_FOUND",
+    "error": "Primary document file not found on disk: 'nan'",
+    "tender_id": null
+  },
+  {
+    "tender_no": "2025_JMRC_503732_1",
+    "outcome": "Lost",
+    "status": "FAILED",
+    "reason": "EXTRACTION_OR_DB_ERROR",
+    "error": "Cannot open empty file: filename='tender-documents\\\\J2.pdf_1758959564_1640956183.pdf'.",
+    "tender_id": null
+  },
+  {
+    "tender_no": "2025_BPSCL_246426_1",
+    "outcome": "Lost",
+    "status": "FAILED",
+    "reason": "EXTRACTION_OR_DB_ERROR",
+    "error": "cannot access local variable 'os' where it is not associated with a value",
+    "tender_id": null
+  },
+  {
+    "tender_no": "2026_AAI_276332_1",
+    "outcome": "Lost",
+    "status": "FAILED",
+    "reason": "EXTRACTION_OR_DB_ERROR",
+    "error": "Failed to open file 'tender-documents\\\\1778138190089_BOQ_322827.xls' as type xls.",
+    "tender_id": null
+  },
+  {
+    "tender_no": "432",
+    "outcome": "Lost",
+    "status": "FAILED",
+    "reason": "FILE_NOT_FOUND",
+    "error": "Primary document file not found on disk: 'nan'",
+    "tender_id": null
+  },
+  {
+    "tender_no": "BR/ENQ/26-27/FK/PR/SL/3149",
+    "outcome": "Lost",
+    "status": "FAILED",
+    "reason": "EXTRACTION_OR_DB_ERROR",
+    "error": "Failed to open file 'tender-documents\\\\1781178284036_COMMERCIAL_TERMS_AND_CONDITIONS.xls' as type xls.",
+    "tender_id": null
+  },
+  {
+    "tender_no": "GEM/2024/B/5365946",
+    "outcome": "Lost",
+    "status": "FAILED",
+    "reason": "FILE_NOT_FOUND",
+    "error": "Primary document file not found on disk: 'nan'",
+    "tender_id": null
+  },
+  {
+    "tender_no": "GEM/2024/B/5550743",
+    "outcome": "Lost",
+    "status": "FAILED",
+    "reason": "FILE_NOT_FOUND",
+    "error": "Primary document file not found on disk: '1731496813.pdf'",
+    "tender_id": null
+  },
+  {
+    "tender_no": "GEM/2026/B/7383955",
+    "outcome": "Lost",
+    "status": "FAILED",
+    "reason": "FILE_NOT_FOUND",
+    "error": "Primary document file not found on disk: 'nan'",
+    "tender_id": null
+  }
+]

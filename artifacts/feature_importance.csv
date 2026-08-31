@@ -1,0 +1,13 @@
+feature,mean_abs_shap
+delivery_time_supply_days,0.10359755918469754
+max_ld_cap_percent,0.06353628907114547
+emd_ratio,0.06185487439198472
+log_emd_amount,0.057139940887460904
+bid_validity_days,0.0395542747695206
+pbg_duration_months,0.03911517362166074
+turnover_ratio,0.018145578859238173
+incumbent_buyer_status,0.01563476287237139
+maf_required_flag,0.014036985824931599
+reverse_auction_flag,0.007873568972562221
+log_tender_value,0.0018732209184841662
+turnover_req_applicable,0.0

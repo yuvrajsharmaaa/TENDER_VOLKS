@@ -3,6 +3,7 @@ from PIL import Image, ImageEnhance, ImageFilter
 import numpy as np
 from ocr.ocr_engine import OcrEngine
 from typing import List, Dict, Any
+from backend.app.models.models import TextBlock
 
 def preprocess_image_for_ocr(img_path: Path) -> Path:
     """
@@ -130,7 +131,7 @@ def build_text_blocks_from_words(words: list) -> list[dict]:
         })
     return blocks
 
-def extract_pdf_text_hybrid(pdf_path: str, pages_dir: Path) -> List[Dict[str, Any]]:
+def extract_pdf_text_hybrid(pdf_path: str, pages_dir: Path, max_pages: int = 50) -> List[Dict[str, Any]]:
     import fitz
     """
     Hybrid PDF extraction.
@@ -141,7 +142,8 @@ def extract_pdf_text_hybrid(pdf_path: str, pages_dir: Path) -> List[Dict[str, An
     ocr_engine = None
     results = []
     
-    for page_num in range(len(doc)):
+    total_pages = min(len(doc), max_pages)
+    for page_num in range(total_pages):
         page = doc.load_page(page_num)
         native_text = page.get_text()
         
@@ -173,7 +175,34 @@ def extract_pdf_text_hybrid(pdf_path: str, pages_dir: Path) -> List[Dict[str, An
                 "checkboxes": cb_states
             })
         else:
-            # Scanned page detected -> render to image
+            # Check if tesseract is installed on PATH
+            import shutil
+            has_tesseract = shutil.which("tesseract") is not None
+            
+            if not has_tesseract:
+                # Fast fallback directly to native words without image I/O overhead
+                native_words = page.get_text("words")
+                blocks_data = build_text_blocks_from_words(native_words)
+                blocks = [
+                    TextBlock(
+                        block_id=b["block_id"],
+                        text=b["text"],
+                        confidence=b["confidence"],
+                        bounding_box=b["bounding_box"],
+                        language_hint=b.get("language_hint", "en")
+                    ) for b in blocks_data
+                ]
+                results.append({
+                    "page": page_num + 1,
+                    "text": native_text,
+                    "source": "native_fallback",
+                    "confidence": 100.0,
+                    "blocks": blocks,
+                    "checkboxes": []
+                })
+                continue
+
+            # Scanned page detected and tesseract available -> render to image
             if not ocr_engine:
                 ocr_engine = OcrEngine(lang="eng+hin")
                 
@@ -200,7 +229,6 @@ def extract_pdf_text_hybrid(pdf_path: str, pages_dir: Path) -> List[Dict[str, An
                 logging.getLogger("backend.app.services.pdf_text_extractor").warning(
                     f"OCR execution failed on page {page_num + 1}: {ocr_err}. Falling back to native text extraction."
                 )
-                from backend.app.models.models import TextBlock
                 native_words = page.get_text("words")
                 blocks_data = build_text_blocks_from_words(native_words)
                 blocks = [

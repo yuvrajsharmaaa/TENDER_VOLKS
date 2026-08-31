@@ -100,7 +100,8 @@ def is_gem_document(page_results: list[PageResult]) -> bool:
 def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False, atc_pdf_path: Optional[Path] = None) -> list[PageResult]:
     start_pipeline_time = time.time()
     job_dir = pdf_path.parent
-    pages_dir = job_dir / "pages"
+    pages_dir = job_dir / "pages" / job_id
+    pages_dir.mkdir(parents=True, exist_ok=True)
     
     # 1. Convert PDF to images
     image_paths = convert_pdf_to_images(pdf_path, pages_dir)
@@ -113,23 +114,23 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False, atc_pdf
     page_results = []
     
     # 3. Process each page
-    for i, img_path in enumerate(image_paths):
+    doc = fitz.open(pdf_path)
+    total_pages_count = len(doc)
+    doc.close()
+
+    for i in range(min(total_pages_count, 50)):
         start_time = time.time()
         
-        # Apply unified image preprocessing for OCR
-        from backend.app.services.pdf_text_extractor import preprocess_image_for_ocr
-        preprocessed_path = preprocess_image_for_ocr(img_path)
-        
-        try:
-            text_blocks = ocr.run(preprocessed_path)
-        except Exception as ocr_err:
-            logger.warning(f"OCR execution failed on page {i + 1}: {ocr_err}. Falling back to native text extraction.")
-            doc = fitz.open(pdf_path)
-            try:
-                p_page = doc.load_page(i)
-                native_words = p_page.get_text("words")
-            finally:
-                doc.close()
+        # Check native text first (fast path for digital PDFs)
+        doc = fitz.open(pdf_path)
+        p_page = doc.load_page(i)
+        native_words = p_page.get_text("words")
+        p_rect = p_page.rect
+        width, height = int(p_rect.width), int(p_rect.height)
+        doc.close()
+
+        if len(native_words) >= 5:
+            # Digital page: build text blocks directly from native vector text (0.001s)
             from backend.app.services.pdf_text_extractor import build_text_blocks_from_words
             blocks_data = build_text_blocks_from_words(native_words)
             text_blocks = [
@@ -141,7 +142,26 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False, atc_pdf
                     language_hint=b.get("language_hint", "en")
                 ) for b in blocks_data
             ]
-        layout_regions = layout.detect(preprocessed_path, text_blocks=text_blocks, page_number=i+1)
+            layout_regions = layout.detect(None, text_blocks=text_blocks, page_number=i+1)
+        else:
+            # Scanned page: render image and run OCR engine
+            img_path = image_paths[i] if i < len(image_paths) else None
+            if not img_path:
+                continue
+            from backend.app.services.pdf_text_extractor import preprocess_image_for_ocr
+            preprocessed_path = preprocess_image_for_ocr(img_path)
+            try:
+                text_blocks = ocr.run(preprocessed_path)
+            except Exception as ocr_err:
+                logger.warning(f"OCR execution failed on page {i + 1}: {ocr_err}. Falling back to native text extraction.")
+                text_blocks = []
+            layout_regions = layout.detect(preprocessed_path, text_blocks=text_blocks, page_number=i+1)
+            if preprocessed_path != img_path:
+                try:
+                    preprocessed_path.unlink()
+                except Exception:
+                    pass
+
         
         # Clean up temp preprocessed file
         if preprocessed_path != img_path:

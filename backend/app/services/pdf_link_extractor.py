@@ -255,8 +255,9 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
             except Exception as pe:
                 print(f"[DEBUG] pypdf extraction failed: {pe}")
 
-        # Iterate page by page
-        for page_num in range(len(doc)):
+        # Iterate page by page (first 50 pages where commercial & tender links reside)
+        total_link_pages = min(len(doc), 50)
+        for page_num in range(total_link_pages):
             try:
                 page = doc.load_page(page_num)
             except Exception:
@@ -424,27 +425,29 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                                 "is_atc_anchor": is_atc_anchor
                             })
 
-                            # Do not download excluded non-ATC endpoints as candidate ATC files
-                            should_download = is_atc_anchor or (is_tender_doc_url(uri) and not is_excluded_non_atc)
+                            # Check local cached child file first
+                            url_hash = hashlib.sha256(uri.encode()).hexdigest()[:16]
+                            ext = Path(filename).suffix or ".pdf"
+                            unique_filename = f"atc_{url_hash}{ext}"
+                            out_path = output_dir / unique_filename
+                            if out_path.exists() and out_path.stat().st_size > 0:
+                                logger.info(
+                                    "[ATC_RESOLVER] Using cached local child file at: '%s'", out_path
+                                )
+                                saved_paths.append(str(out_path))
+                                external_count += 1
+                                links[-1]["local_path"] = str(out_path)
+                                continue
+
+                            # Do not download excluded non-ATC endpoints or when OFFLINE_EXTRACTION is enabled
+                            is_offline = os.getenv("OFFLINE_EXTRACTION", "false").lower() == "true"
+                            should_download = (not is_offline) and (is_atc_anchor or (is_tender_doc_url(uri) and not is_excluded_non_atc))
                             if should_download:
                                 try:
                                     logger.info(
                                         "[ATC_RESOLVER] Downloading ATC child document from URL: '%s' "
                                         "(verified_anchor=%s)", uri, is_atc_anchor
                                     )
-                                    # Stable cache filename derived from URL hash — survives server restarts.
-                                    url_hash = hashlib.sha256(uri.encode()).hexdigest()[:16]
-                                    ext = Path(filename).suffix or ".pdf"
-                                    unique_filename = f"atc_{url_hash}{ext}"
-                                    out_path = output_dir / unique_filename
-                                    if out_path.exists() and out_path.stat().st_size > 0:
-                                        logger.info(
-                                            "[ATC_RESOLVER] Using cached local child file at: '%s'", out_path
-                                        )
-                                        saved_paths.append(str(out_path))
-                                        external_count += 1
-                                        links[-1]["local_path"] = str(out_path)
-                                        continue
                                     headers = {
                                         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                                         'Accept': 'application/pdf,application/octet-stream,*/*',
