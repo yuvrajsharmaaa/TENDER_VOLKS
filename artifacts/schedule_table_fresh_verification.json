@@ -1,0 +1,1536 @@
+[
+  {
+    "file": "1769497584226_GeM-Bidding-8880367.pdf",
+    "pages": 6,
+    "gt_bid_no": "GEM/2026/B/7146400",
+    "extracted_bid_no": "GEM/2026/B/7146400",
+    "org_name": "/Organisation Name",
+    "total_quantity_gt": 1,
+    "total_quantity_extracted": 1,
+    "qty_match": true,
+    "schedule_count": 1,
+    "schedules": [
+      {
+        "schedule_number": 1,
+        "consignee_name": "***********",
+        "consignee_address": "***********Ratnagiri",
+        "quantity": 1,
+        "delivery_days": 15,
+        "item_description": "LEAD ACID BATTERY 12V ( 1 pieces )",
+        "technical_specs": {}
+      }
+    ],
+    "attribution_check": "PASS",
+    "line_item_capture": "PASS",
+    "verdict": "PASS"
+  },
+  {
+    "file": "1770274351355_GeM-Bidding-8924588.pdf",
+    "pages": 9,
+    "gt_bid_no": "GEM/2026/B/7185035",
+    "extracted_bid_no": "GEM/2026/B/7185035",
+    "org_name": "/Organisation Name",
+    "total_quantity_gt": 600,
+    "total_quantity_extracted": 600,
+    "qty_match": true,
+    "schedule_count": 1,
+    "schedules": [
+      {
+        "schedule_number": 1,
+        "consignee_name": "Vishakha Jain",
+        "consignee_address": "302012,2, Kanakpura Industrial Area, Sirsi Road",
+        "quantity": 600,
+        "delivery_days": 240,
+        "item_description": "In Monobloc Container (V2) Conforming To IS 13369 ( 600 pieces )",
+        "technical_specs": {
+          "Nominal Voltage": "12.0 (Volt)",
+          "Battery Capacity at 10-h Rate [C 10] (in Ah)": "100",
+          "Container Material": "H (Hard Rubber), P(Plastic), F(Fibre Reinforced Plastics)",
+          "Technical Specification": "As per annexure - II of all documents NITATC compliance",
+          "Specification": "Lead Acid Tubular Plate Low maintenance Battery 12 Volt, 100 AH (Capacity @ C/10 at 27°C Temperature) With Negative Pasted Plate In PP Container (Heat Sealed) Duly Charged With compliance to BIS 13369 : 1992",
+          "Warranty": "03 year warranty from date of supply. On Site warranty will be required.",
+          "Make": "Exide / Genus / Sukam/ Luminous / Microteck / Amaron / Okaya / Livguard"
+        }
+      }
+    ],
+    "attribution_check": "PASS",
+    "line_item_capture": "PASS",
+    "verdict": "PASS"
+  },
+  {
+    "file": "1770276402407_GeM-Bidding-8934843__1_.pdf",
+    "pages": 8,
+    "gt_bid_no": "GEM/2026/B/7194177",
+    "extracted_bid_no": "GEM/2026/B/7194177",
+    "org_name": "/Organisation Name",
+    "total_quantity_gt": 2122,
+    "total_quantity_extracted": 2122,
+    "qty_match": true,
+    "schedule_count": 4,
+    "schedules": [
+      {
+        "schedule_number": 1,
+        "consignee_name": "DEVANDLA VENKATA NAGENDRA",
+        "consignee_address": "721606,MATERIALS PURCHASE DEPARTMENT, IOCL HALDIA REFINERY, HALDIA,",
+        "quantity": 1,
+        "delivery_days": 180,
+        "item_description": "RHM25R8061 Site Supervision ( 1 pieces )",
+        "technical_specs": {}
+      },
+      {
+        "schedule_number": 2,
+        "consignee_name": "DEVANDLA VENKATA NAGENDRA",
+        "consignee_address": "721606,MATERIALS PURCHASE DEPARTMENT, IOCL HALDIA REFINERY, HALDIA,",
+        "quantity": 1,
+        "delivery_days": 180,
+        "item_description": "RHM25R8061 Site Supervision ( 1 pieces )",
+        "technical_specs": {}
+      },
+      {
+        "schedule_number": 3,
+        "consignee_name": "DEVANDLA VENKATA NAGENDRA",
+        "consignee_address": "721606,MATERIALS PURCHASE DEPARTMENT, IOCL HALDIA REFINERY, HALDIA,",
+        "quantity": 120,
+        "delivery_days": 180,
+        "item_description": "RHM25R8061 CABLE, AL, 3 1/2Cx95sq. Mm, PVCINS, SHTD, ARM ( 2000 meter )",
+        "technical_specs": {}
+      },
+      {
+        "schedule_number": 4,
+        "consignee_name": "Devendra Kumar",
+        "consignee_address": "721606,MATERIALS PURCHASE DEPARTMENT, IOCL HALDIA REFINERY, HALDIA,",
+        "quantity": 2000,
+        "delivery_days": 180,
+        "item_description": "RHM25R8061 CABLE, AL, 3 1/2Cx95sq. Mm, PVCINS, SHTD, ARM ( 2000 meter )",
+        "technical_specs": {}
+      }
+    ],
+    "attribution_check": "PASS",
+    "line_item_capture": "PASS",
+    "verdict": "PASS"
+  },
+  {
+    "file": "1770387849721_GeM-Bidding-8898670.pdf",
+    "pages": 10,
+    "gt_bid_no": "GEM/2026/B/7162320",
+    "extracted_bid_no": "GEM/2026/B/7162320",
+    "org_name": "/Organisation Name",
+    "total_quantity_gt": 20,
+    "total_quantity_extracted": 20,
+    "qty_match": true,
+    "schedule_count": 1,
+    "schedules": [
+      {
+        "schedule_number": 1,
+        "consignee_name": "***********",
+        "consignee_address": "***********Ludhiana",
+        "quantity": 20,
+        "delivery_days": 15,
+        "item_description": "Split Air Conditioner, Wall Mount Type (V3) ISI Marked To IS 1391 (Part 2) ( 20 pieces )",
+        "technical_specs": {
+          "Size of Air Conditioner": "Medium [suitable for room area between 130-180 sq. ft.]",
+          "Compressor Type as per BEE Star Rating Label": "Inverter - Variable Speed",
+          "Nominal Capacity of Air Conditioner (in Ton)": "1.3 Ton - 1.7 Ton",
+          "BEE Star Rating": "5 Star"
+        }
+      }
+    ],
+    "attribution_check": "PASS",
+    "line_item_capture": "PASS",
+    "verdict": "PASS"
+  },
+  {
+    "file": "1770618324021_GeM-Bidding-8927427.pdf",
+    "pages": 16,
+    "gt_bid_no": "GEM/2026/B/7187569",
+    "extracted_bid_no": "GEM/2026/B/7187569",
+    "org_name": "/Organisation Name",
+    "total_quantity_gt": 70,
+    "total_quantity_extracted": 70,
+    "qty_match": true,
+    "schedule_count": 31,
+    "schedules": [
+      {
+        "schedule_number": 1,
+        "consignee_name": "Sh. Ramendra Karmarkar",
+        "consignee_address": "194101,5th Bn ITBP Choglamsar",
+        "quantity": 5,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 43 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "10",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "10000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "10.0",
+          "Charger technology": "MPPT",
+          "Additional parameter": "Refer buyer added bid specific terms & conditions"
+        }
+      },
+      {
+        "schedule_number": 2,
+        "consignee_name": "Sh. Bhanu Pratap Yadav",
+        "consignee_address": "194101,16th Bn ITBP Choglamsar",
+        "quantity": 3,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 43 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "10",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "10000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "10.0",
+          "Charger technology": "MPPT",
+          "Additional parameter": "Refer buyer added bid specific terms & conditions"
+        }
+      },
+      {
+        "schedule_number": 3,
+        "consignee_name": "Sh. Surya Prakash Meena",
+        "consignee_address": "194101,24th Bn ITBP Choglamsar",
+        "quantity": 10,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 43 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "10",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "10000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "10.0",
+          "Charger technology": "MPPT",
+          "Additional parameter": "Refer buyer added bid specific terms & conditions"
+        }
+      },
+      {
+        "schedule_number": 4,
+        "consignee_name": "Sh. Devendra Singh",
+        "consignee_address": "194104,37th Bn ITBP Thiksey Choglamsar",
+        "quantity": 5,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 43 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "10",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "10000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "10.0",
+          "Charger technology": "MPPT",
+          "Additional parameter": "Refer buyer added bid specific terms & conditions"
+        }
+      },
+      {
+        "schedule_number": 5,
+        "consignee_name": "Soban Singh",
+        "consignee_address": "246443,1st Bn ITBP Joshimath",
+        "quantity": 1,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 43 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "10",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "10000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "10.0",
+          "Charger technology": "MPPT",
+          "Additional parameter": "Refer buyer added bid specific terms & conditions"
+        }
+      },
+      {
+        "schedule_number": 6,
+        "consignee_name": "Abhishek Kumar Singh",
+        "consignee_address": "184141,47th Bn ITBP Rai Ghagwal , Sambha",
+        "quantity": 3,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 43 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "10",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "10000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "10.0",
+          "Charger technology": "MPPT",
+          "Additional parameter": "Refer buyer added bid specific terms & conditions"
+        }
+      },
+      {
+        "schedule_number": 7,
+        "consignee_name": "Rajkumar Singh",
+        "consignee_address": "737120,11th Bn ITBP Dombang C/O 99 APO",
+        "quantity": 5,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 43 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "10",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "10000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "10.0",
+          "Charger technology": "MPPT",
+          "Additional parameter": "Refer buyer added bid specific terms & conditions"
+        }
+      },
+      {
+        "schedule_number": 8,
+        "consignee_name": "Sandeep Yadav",
+        "consignee_address": "790101,Dirang",
+        "quantity": 2,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 43 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "10",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "10000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "10.0",
+          "Charger technology": "MPPT",
+          "Additional parameter": "Refer buyer added bid specific terms & conditions"
+        }
+      },
+      {
+        "schedule_number": 9,
+        "consignee_name": "Nikhil Kumar Singh",
+        "consignee_address": "790104,55th Bn ITBP Tawang",
+        "quantity": 3,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 43 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "10",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "10000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "10.0",
+          "Charger technology": "MPPT",
+          "Additional parameter": "Refer buyer added bid specific terms & conditions"
+        }
+      },
+      {
+        "schedule_number": 10,
+        "consignee_name": "Gurmeet Singh",
+        "consignee_address": "787059,ITB FORCE C/O Post box office No.1 Postmaster Silapather , Dhemaji , Assam",
+        "quantity": 1,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 43 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "10",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "10000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "10.0",
+          "Charger technology": "MPPT",
+          "Additional parameter": "Refer buyer added bid specific terms & conditions"
+        }
+      },
+      {
+        "schedule_number": 11,
+        "consignee_name": "Ranajan Kumar",
+        "consignee_address": "792001,9th Bn ITBP Lohit AR.P",
+        "quantity": 1,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 43 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "10",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "10000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "10.0",
+          "Charger technology": "MPPT",
+          "Additional parameter": "Refer buyer added bid specific terms & conditions"
+        }
+      },
+      {
+        "schedule_number": 12,
+        "consignee_name": "Kuljit Singh",
+        "consignee_address": "791001,57th Bn Aalo",
+        "quantity": 3,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 43 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "10",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "10000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "10.0",
+          "Charger technology": "MPPT",
+          "Additional parameter": "Refer buyer added bid specific terms & conditions"
+        }
+      },
+      {
+        "schedule_number": 13,
+        "consignee_name": "Sandeep Salgotra",
+        "consignee_address": "791001,20th Bn ITBP , West Siang , Aalo",
+        "quantity": 1,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 43 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "10",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "10000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "10.0",
+          "Charger technology": "MPPT",
+          "Additional parameter": "Refer buyer added bid specific terms & conditions"
+        }
+      },
+      {
+        "schedule_number": 14,
+        "consignee_name": "Praveen Kumar",
+        "consignee_address": "248146,23rd Bn ITBP , Seemadwar Dehradun",
+        "quantity": 3,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 18 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "5",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "5000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "5.0",
+          "Output phase": "3 Phase, 440 volt AC, 50 Hz",
+          "Charger technology": "MPPT",
+          "Additional Parameter": "Refer buyer added bid specific terms and conditions"
+        }
+      },
+      {
+        "schedule_number": 15,
+        "consignee_name": "Sandeep Salgotra",
+        "consignee_address": "791001,20th Bn ITBP , West Siang , Aalo",
+        "quantity": 1,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 18 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "5",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "5000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "5.0",
+          "Output phase": "3 Phase, 440 volt AC, 50 Hz",
+          "Charger technology": "MPPT",
+          "Additional Parameter": "Refer buyer added bid specific terms and conditions"
+        }
+      },
+      {
+        "schedule_number": 16,
+        "consignee_name": "The Bahadur",
+        "consignee_address": "791121,Kimin ITBP , Papumpare",
+        "quantity": 1,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 18 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "5",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "5000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "5.0",
+          "Output phase": "3 Phase, 440 volt AC, 50 Hz",
+          "Charger technology": "MPPT",
+          "Additional Parameter": "Refer buyer added bid specific terms and conditions"
+        }
+      },
+      {
+        "schedule_number": 17,
+        "consignee_name": "Ranjeet Singh Negi",
+        "consignee_address": "791125,61st Bn ITBP Post- Likabali , Distt- Lower Siang",
+        "quantity": 1,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 18 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "5",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "5000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "5.0",
+          "Output phase": "3 Phase, 440 volt AC, 50 Hz",
+          "Charger technology": "MPPT",
+          "Additional Parameter": "Refer buyer added bid specific terms and conditions"
+        }
+      },
+      {
+        "schedule_number": 18,
+        "consignee_name": "Sh. Ramendra Karmarkar",
+        "consignee_address": "194101,5th Bn ITBP Choglamsar",
+        "quantity": 3,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 18 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "5",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "5000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "5.0",
+          "Output phase": "3 Phase, 440 volt AC, 50 Hz",
+          "Charger technology": "MPPT",
+          "Additional Parameter": "Refer buyer added bid specific terms and conditions"
+        }
+      },
+      {
+        "schedule_number": 19,
+        "consignee_name": "Sh. Abhilaksh",
+        "consignee_address": "191101,21st Bn Srinagar (J&K)",
+        "quantity": 2,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 18 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "5",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "5000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "5.0",
+          "Output phase": "3 Phase, 440 volt AC, 50 Hz",
+          "Charger technology": "MPPT",
+          "Additional Parameter": "Refer buyer added bid specific terms and conditions"
+        }
+      },
+      {
+        "schedule_number": 20,
+        "consignee_name": "Sh. Surya Prakash Meena",
+        "consignee_address": "194101,24th Bn ITBP Choglamsar",
+        "quantity": 2,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 18 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "5",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "5000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "5.0",
+          "Output phase": "3 Phase, 440 volt AC, 50 Hz",
+          "Charger technology": "MPPT",
+          "Additional Parameter": "Refer buyer added bid specific terms and conditions"
+        }
+      },
+      {
+        "schedule_number": 21,
+        "consignee_name": "Sh. Devendra Singh",
+        "consignee_address": "194104,37th Bn ITBP Thiksey Choglamsar",
+        "quantity": 2,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 18 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "5",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "5000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "5.0",
+          "Output phase": "3 Phase, 440 volt AC, 50 Hz",
+          "Charger technology": "MPPT",
+          "Additional Parameter": "Refer buyer added bid specific terms and conditions"
+        }
+      },
+      {
+        "schedule_number": 22,
+        "consignee_name": "Abhishek Kumar Singh",
+        "consignee_address": "184141,47th Bn ITBP Rai Ghagwal , Sambha",
+        "quantity": 1,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 18 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "5",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "5000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "5.0",
+          "Output phase": "3 Phase, 440 volt AC, 50 Hz",
+          "Charger technology": "MPPT",
+          "Additional Parameter": "Refer buyer added bid specific terms and conditions"
+        }
+      },
+      {
+        "schedule_number": 23,
+        "consignee_name": "Soban Singh",
+        "consignee_address": "246443,1st Bn ITBP Joshimath",
+        "quantity": 1,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 18 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "5",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "5000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "5.0",
+          "Output phase": "3 Phase, 440 volt AC, 50 Hz",
+          "Charger technology": "MPPT",
+          "Additional Parameter": "Refer buyer added bid specific terms and conditions"
+        }
+      },
+      {
+        "schedule_number": 24,
+        "consignee_name": "Rajkumar Singh",
+        "consignee_address": "737120,11th Bn ITBP Dombang C/O 99 APO",
+        "quantity": 1,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 18 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "5",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "5000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "5.0",
+          "Output phase": "3 Phase, 440 volt AC, 50 Hz",
+          "Charger technology": "MPPT",
+          "Additional Parameter": "Refer buyer added bid specific terms and conditions"
+        }
+      },
+      {
+        "schedule_number": 25,
+        "consignee_name": "Kuljit Singh",
+        "consignee_address": "791001,57th Bn Aalo",
+        "quantity": 3,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 18 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "5",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "5000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "5.0",
+          "Output phase": "3 Phase, 440 volt AC, 50 Hz",
+          "Charger technology": "MPPT",
+          "Additional Parameter": "Refer buyer added bid specific terms and conditions"
+        }
+      },
+      {
+        "schedule_number": 26,
+        "consignee_name": "Sandeep Salgotra",
+        "consignee_address": "791001,20th Bn ITBP , West Siang , Aalo",
+        "quantity": 1,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 18 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "5",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "5000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "5.0",
+          "Output phase": "3 Phase, 440 volt AC, 50 Hz",
+          "Charger technology": "MPPT",
+          "Additional Parameter": "Refer buyer added bid specific terms and conditions"
+        }
+      },
+      {
+        "schedule_number": 27,
+        "consignee_name": "Ranjeet Jakhar",
+        "consignee_address": "792110,58TH Bn ITBP Roing , Old DC Office , Lower Dibang Valley",
+        "quantity": 1,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 18 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "5",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "5000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "5.0",
+          "Output phase": "3 Phase, 440 volt AC, 50 Hz",
+          "Charger technology": "MPPT",
+          "Additional Parameter": "Refer buyer added bid specific terms and conditions"
+        }
+      },
+      {
+        "schedule_number": 28,
+        "consignee_name": "Sandeep Yadav",
+        "consignee_address": "790101,Dirang",
+        "quantity": 1,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 18 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "5",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "5000",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "5.0",
+          "Output phase": "3 Phase, 440 volt AC, 50 Hz",
+          "Charger technology": "MPPT",
+          "Additional Parameter": "Refer buyer added bid specific terms and conditions"
+        }
+      },
+      {
+        "schedule_number": 29,
+        "consignee_name": "Ranajan Kumar",
+        "consignee_address": "792001,9th Bn ITBP Lohit AR.P",
+        "quantity": 1,
+        "delivery_days": 270,
+        "item_description": "Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 2 pieces )",
+        "technical_specs": {}
+      },
+      {
+        "schedule_number": 30,
+        "consignee_name": "Abhishek Choudhary",
+        "consignee_address": "792001,25 Bn ITBP , TEZU Camp",
+        "quantity": 1,
+        "delivery_days": 270,
+        "item_description": "Additional Specification Parameters - Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 2 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "3.5",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "3500, 6000",
+          "BIS CRS compliance for the PV module offered": "Yes as per IS 14286, IS/IEC 61730 - 1, IS/IEC 61730 - 2",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "3.5",
+          "Output phase": "1 Phase, 230 volt AC, 50 Hz",
+          "Charger technology": "MPPT",
+          "Minimum backup time when battery is fully charged - Must declare (in hours)": "8",
+          "Battery voltage (in volts)": "12",
+          "Additional Parameter": "Refer buyer added bid specific terms and conditions"
+        }
+      },
+      {
+        "schedule_number": 31,
+        "consignee_name": "Ranajan Kumar",
+        "consignee_address": "792001,9th Bn ITBP Lohit AR.P",
+        "quantity": 1,
+        "delivery_days": 270,
+        "item_description": "Additional Specification Parameters - Off - Grid Solar Photovoltaic (PV) Power Plant (V2) ( 2 pieces )",
+        "technical_specs": {
+          "Capacity of power plant (kVA)": "3.5",
+          "Type of Solar Module": "Crystalline Silicon Terrestrial Photovoltaic (PV) modules conforming to IS 14286 IS/IEC 61730 -1 IS/IEC 61730 -2",
+          "Rated power of PV module (in Wp) - Minimum": "3500, 6000",
+          "BIS CRS compliance for the PV module offered": "Yes as per IS 14286, IS/IEC 61730 - 1, IS/IEC 61730 - 2",
+          "Rated Power (in kVA) (Hint: Inverter Rating)": "3.5",
+          "Output phase": "1 Phase, 230 volt AC, 50 Hz",
+          "Charger technology": "MPPT",
+          "Minimum backup time when battery is fully charged - Must declare (in hours)": "8",
+          "Battery voltage (in volts)": "12",
+          "Additional Parameter": "Refer buyer added bid specific terms and conditions"
+        }
+      }
+    ],
+    "attribution_check": "PASS",
+    "line_item_capture": "PASS",
+    "verdict": "PASS"
+  },
+  {
+    "file": "1770634195083_GeM-Bidding-8923758.pdf",
+    "pages": 8,
+    "gt_bid_no": "GEM/2026/B/7184305",
+    "extracted_bid_no": "GEM/2026/B/7184305",
+    "org_name": "/Organisation Name",
+    "total_quantity_gt": 192,
+    "total_quantity_extracted": 192,
+    "qty_match": true,
+    "schedule_count": 1,
+    "schedules": [
+      {
+        "schedule_number": 1,
+        "consignee_name": "Santosh Kumar",
+        "consignee_address": "829122,Central Hospital Ramgarh CCL, Ramgarh Cantt",
+        "quantity": 192,
+        "delivery_days": 30,
+        "item_description": "Conforming To IS 15549 ( 192 pieces )",
+        "technical_specs": {
+          "Nominal Battery Voltage": "12.0 (Volt)",
+          "Battery Capacity at 10-h Rate [C 10] (in Ah)": "84",
+          "Battery should have as per BIS standard - IS:12292:1998/IS 16270": "Battery should have as per BIS standard - IS:12292:1998/IS 16270",
+          "Sealed maintenance free battery": "Sealed maintenance free battery",
+          "Depth of discharge 50 to 80%": "Depth of discharge 50 to 80%",
+          "Life cycle 400 & above": "Life cycle 400 & above"
+        }
+      }
+    ],
+    "attribution_check": "PASS",
+    "line_item_capture": "PASS",
+    "verdict": "PASS"
+  },
+  {
+    "file": "1770792998138_GeM-Bidding-8883518__2_.pdf",
+    "pages": 7,
+    "gt_bid_no": "GEM/2026/B/7149160",
+    "extracted_bid_no": "GEM/2026/B/7149160",
+    "org_name": "/Organisation Name",
+    "total_quantity_gt": 6,
+    "total_quantity_extracted": 6,
+    "qty_match": true,
+    "schedule_count": 2,
+    "schedules": [
+      {
+        "schedule_number": 1,
+        "consignee_name": "Kiran Munda",
+        "consignee_address": "769011,NSPCL Store CPP II Rourkela Steel Plant Rourkela Odisha",
+        "quantity": 3,
+        "delivery_days": 180,
+        "item_description": "EMA/C08GN399 INSTALLATION CHARGES ( 3 pieces )",
+        "technical_specs": {}
+      },
+      {
+        "schedule_number": 2,
+        "consignee_name": "Kiran Munda",
+        "consignee_address": "769011,NSPCL Store CPP II Rourkela Steel Plant Rourkela Odisha",
+        "quantity": 3,
+        "delivery_days": 180,
+        "item_description": "EMA/C08GN399 INSTALLATION CHARGES ( 3 pieces )",
+        "technical_specs": {}
+      }
+    ],
+    "attribution_check": "PASS",
+    "line_item_capture": "PASS",
+    "verdict": "PASS"
+  },
+  {
+    "file": "1770874456500_GeM-Bidding-8892976__4_.pdf",
+    "pages": 8,
+    "gt_bid_no": "GEM/2026/B/7157202",
+    "extracted_bid_no": "GEM/2026/B/7157202",
+    "org_name": "/Organisation Name",
+    "total_quantity_gt": 1,
+    "total_quantity_extracted": 1,
+    "qty_match": true,
+    "schedule_count": 1,
+    "schedules": [
+      {
+        "schedule_number": 1,
+        "consignee_name": "Bhuwanesh Singh Pangtey",
+        "consignee_address": "176325,NHPC LIMITED, CHAMERA POWER STATION1, PO-KHAIRI, TEHSIL-DALHOUSIE, DISTT. CHAMBA",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "Not Found",
+        "technical_specs": {}
+      }
+    ],
+    "attribution_check": "PASS",
+    "line_item_capture": "PASS",
+    "verdict": "PASS"
+  },
+  {
+    "file": "1770875130991_GeM-Bidding-8877358__2_.pdf",
+    "pages": 16,
+    "gt_bid_no": "GEM/2026/B/7143683",
+    "extracted_bid_no": "GEM/2026/B/7143683",
+    "org_name": "/Organisation Name",
+    "total_quantity_gt": 119,
+    "total_quantity_extracted": 119,
+    "qty_match": true,
+    "schedule_count": 50,
+    "schedules": [
+      {
+        "schedule_number": 1,
+        "consignee_name": "Suthar Riteshkumar Nareshbhai",
+        "consignee_address": "383315,GOVT. INDUSTRIAL TRAINING INSTITUTE, MODASA MALPUR ROAD AT-MODASA DI- ARAVALLI",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 2,
+        "consignee_name": "Amit Varmora",
+        "consignee_address": "390009,GOVT. INDUSTRIAL TRAINING INSTITUTE, TARSALI TARSALI ROAD, OPP. ARMY CANTEEN DI-VADODARA",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 3,
+        "consignee_name": "Vasava Mehulkumar",
+        "consignee_address": "391240,GOVT. INDUSTRIAL TRAINING INSTITUTE, KARJAN NR TALUKA SEVASADAN NH-8 JUNA BAJAR KARJAN DI- VADODARA",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 4,
+        "consignee_name": "Mahammadraja Mohammadilyas Nedariya",
+        "consignee_address": "383350,ITI KASANA MANSUKHLAL DESAI INDUSTRIAL TRAINING INSTITUTE, KASANA AT- VADTHALI, POST-KASANA, TA- MEGHRAJ, DI-ARAVALLI",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 5,
+        "consignee_name": "Ashishkumar Arjunbhai Damor",
+        "consignee_address": "389130,GOVT. INDUSTRIAL TRAINING INSTITUTE, RANDHIKPUR B/H. REFERAL HOSPITAL, DUDHIYA ROAD, TA- SINGVAD, DI-DAHOD",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 6,
+        "consignee_name": "Makawana Vijaybhai Jivrajbhai",
+        "consignee_address": "382775,GOVT. INDUSTRIAL TRAINING INSTITUTE, LAKHTAR RAILWAY STATION ROAD, B/H MAMLATDAR OFFICE, TA- LAKHTAR, DI- SURENDRANAGAR. 382775",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 7,
+        "consignee_name": "Malaviya Kunalbhai Jayantibhai",
+        "consignee_address": "389230,GOVT. INDUSTRIAL TRAINING INSTITUTE, KHANPUR, AT- BAKOR, BRAHMAN FALIYU, TA- KHANPUR DI-MAHISAGAR",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 8,
+        "consignee_name": "Parejiya Bhaveshbhai Naginbhai",
+        "consignee_address": "363310,GOVT. INDUSTRIAL TRAINING INSTITUTE, DHRANGADHRA, HALVAD ROAD, NEAR- BHALA HANUMAN, TA- DHRANGADHRA, DI- SURENDRANAGAR",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 9,
+        "consignee_name": "Maya Ranpura",
+        "consignee_address": "363660,GOVT. INDUSTRIAL TRAINING INSTITUTE, MALIYA (MIYANA), CHANCHAVADRDA - PIPALIYA CHOWKADI, MALIYA HIGHWAY, TA - MALIYA MIYANA DI - MORBI",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 10,
+        "consignee_name": "Maheta Jatinkumar Subhashchandra",
+        "consignee_address": "389210,GOVT. INDUSTRIAL TRAINING INSTITUTE, SHAHERA, KANKRI ROAD, AT/PO. SHAHERA, TA- SHAHERA, DI - PANCH MAHAL",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 11,
+        "consignee_name": "Deval Harishbhai Nayak",
+        "consignee_address": "389115,GOVT. INDUSTRIAL TRAINING INSTITUTE, MORVA (HADAF), NEAR - RELIANCE PETROL PUMP, AT - MORVA (HADAF), TA - MORVA (HADAF), DI - PANCH MAHAL",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 12,
+        "consignee_name": "Ghanghar Laxman Laljibhai",
+        "consignee_address": "363330,GOVT. INDUSTRIAL TRAINING INSTITUTE, HALVAD, B/H. NEW MAMLATDAR KACHERI, OPP. COURT, HALVAD-DHRANGADHRA HIGHWAY, TA - HALVAD DI - SURENDRANAGAR",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 13,
+        "consignee_name": "Sindhav Jalpeshkumar Motibhai",
+        "consignee_address": "363430,GOVT. INDUSTRIAL TRAINING INSTITUTE - SAYLA AT - VAKHATPAR, NEAR- 66 K.V. SUB STATION, AHMEDABAD - RAJKOT NATIONAL HIGHWAY, TA- SAYLA, DI -SURENDRANAGAR",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 14,
+        "consignee_name": "RABAREE SONDABHAI MALASURBHAI",
+        "consignee_address": "363530,GOVT. INDUSTRIAL TRAINING INSTITUTE, THANGADH, VAGADIYA ROAD, AT - THANGADH, TA - THANGADH DI - SURENDRANAGAR",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 15,
+        "consignee_name": "Shilu Prashant Mukeshbhai",
+        "consignee_address": "362020,GOVT. INDUSTRIAL TRAINING INSTITUTE, BHESAN, PARAB ROAD, TA- BHESAN, DI - JUNAGADH",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 16,
+        "consignee_name": "Matariya Krunal Kamaleshbhai",
+        "consignee_address": "364001,GOVT. INDUSTRIAL TRAINING INSTITUTE, BHAVNAGAR (MAHILA), VIDHYANAGAR, B/H. POLYTECHNIC, DI- BHAVNAGAR",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 17,
+        "consignee_name": "Raval Maulik Vinaychandra",
+        "consignee_address": "370601,GOVT. INDUSTRIAL TRAINING INSTITUTE, PANANDHROW, S.K.V. NAGAR, OPP. G.M.D.C., TA- LAKHPAT, DI- KACHCHH",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 18,
+        "consignee_name": "Aparnathi Prafulgiri Ratigiri",
+        "consignee_address": "362650,GOVT. INDUSTRIAL TRAINING INSTITUTE, KUTIYANA, AT - MAL PATIYA, NATIONAL HIGHWAY 27, NEAR - MARUTI HOTEL, TA - KUTIYANA, DI - PORBANDAR",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 19,
+        "consignee_name": "Rohitkumar Ghemarbhai Chaudhary",
+        "consignee_address": "385001,GOVT. INDUSTRIAL TRAINING INSTITUTE, PALANPUR NR SONARIYA BUNGLOWS , BANAS DAIRY ROAD, PALANPUR DI- BANASKATHA",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 20,
+        "consignee_name": "Vijaykumar Girishbhai Parekh",
+        "consignee_address": "363610,GOVT. INDUSTRIAL TRAINING INSTITUTE, RANPUR, PALIYAD ROAD, NEAR. GIRNARI ASHRAM, RANPUR, TA- RANPUR, DI - BOTAD",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 21,
+        "consignee_name": "Hardikkumar Bharatbhai Modi",
+        "consignee_address": "389382,GOVT. INDUSTRIAL TRAINING INSTITUTE, DHANPUR, AT- SINGAVALI (DHANPUR), JESAVADA ROAD, PO- PIPERO, TA- DHANPUR, DI- DAHOD",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 22,
+        "consignee_name": "Yogeshkumar Mahendrabhai Chavda",
+        "consignee_address": "363410,GOVT. INDUSTRIAL TRAINING INSTITUTE, CHUDA, B/H - TALUKA PANCHAYAT KACHERI, Nr. GOVT. SCIENCE SCHOOL, AT - CHUDA TA - CHUDA, DI -SURENDRANAGAR",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 23,
+        "consignee_name": "Mayank Nayak",
+        "consignee_address": "391115,GOVT. INDUSTRIAL TRAINING INSTITUTE, SHINOR, NEAR RAILWAY FATAK, TA: SHINOR , DIST : VADODARA",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 24,
+        "consignee_name": "Prajapati Mayuri",
+        "consignee_address": "382016,GOVT. INDUSTRIAL TRAINING INSTITUTE, GANDHINAGAR, SECTOR - 15, NEAR- LDRP COLLEGE, GANDHINAGAR, DI - GANDHINAGAR",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 25,
+        "consignee_name": "Kiranben Bhuvan Vyas",
+        "consignee_address": "361160,GOVT. INDUSTRIAL TRAINING INSTITUTE, KALAVAD, NEAR SITARAM GAUSHALA, OPP.66KV SUBSTATION, JAMNAGAR ROAD, DIST:- JAMNAGAR",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 26,
+        "consignee_name": "Parmar Raviraj Vinubhai",
+        "consignee_address": "389001,GOVT. INDUSTRIAL TRAINING INSTITUTE, GODHARA MAHILA, PRABHA ROAD, B/H. I.T.I. GODHARA, TA- GODHARA, DI-PANCH MAHAL",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 27,
+        "consignee_name": "Vaghela Manishaba",
+        "consignee_address": "384265,GOVT. INDUSTRIAL TRAINING INSTITUTE, PATAN, AT/PO. RAJPUR, CHANASMA- PATAN HIGHWAY, TA- PATAN, DI - PATAN",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 28,
+        "consignee_name": "Kabariya Nileshbhai Kurjibhai",
+        "consignee_address": "365640,GOVT. INDUSTRIAL TRAINING INSTITUTE, DHARI, TULSI SHYAM ROAD, AT/TA - DHARI, DI - AMRELI",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 29,
+        "consignee_name": "Shah Parag Kiritbhai",
+        "consignee_address": "363001,GOVT. INDUSTRIAL TRAINING INSTITUTE, SURENDRANAGAR, SHREE. M.P. SHAH I.T.I., OPP. BUS STAND, TA - WADHWAN, DI - SURENDRANAGAR",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 30,
+        "consignee_name": "Davda Chirag Bharatbhai",
+        "consignee_address": "370105,GOVT. INDUSTRIAL TRAINING INSTITUTE RATNAL, NEAR PHC CENTER, RATNAL- DHANETI ROAD, RATNAL, TA:- ANJAR DI: KUTCH, 370105",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 31,
+        "consignee_name": "Dodia Sandip Meragbhai",
+        "consignee_address": "362266,GOVT. INDUSTRIAL TRAINING INSTITUTE, VERAVAL BEHIND SAI BABA TEMPLE, DARI ROAD, VERAVAL, DISTRICT - GIR SOMNATH,",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 32,
+        "consignee_name": "Radia Sagar Chimanlal",
+        "consignee_address": "360003,GOVT. INDUSTRIAL TRAINING INSTITUTE,RAJKOT Near Aji dam, Bhavnagar road, RAJKOT District : RAJKOT",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 33,
+        "consignee_name": "Dipti Babubhai Patel",
+        "consignee_address": "382418,GOVT. INDUSTRIAL TRAINING INSTITUTE, MANINAGAR (MAHILA), NEAR - KHARIKAT CANAL, NEAR - R.T.O. OFFICE (EAST), VASTRAL ROAD, TA - AHMEDABAD CITY, DI - AHMEDABAD",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 34,
+        "consignee_name": "Patel Dhavalkumar Harshadbhai",
+        "consignee_address": "382120,GOVT. INDUSTRIAL TRAINING INSTITUTE, DETROJ, B/H. MAMLATDAR OFFICE, NEAR - RAMNATH TEMPLE, TA- DETROJ-RAMPURA, DI- AHMEDABAD",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 35,
+        "consignee_name": "Hamirbhai M Der",
+        "consignee_address": "382150,GOVT. INDUSTRIAL TRAINING INSTITUTE, VIRAMGAM, NEAR - NILKI CROSSING, BECHRAJI ROAD, TA- VIRAMGAM, DI - AHMEDABAD",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 36,
+        "consignee_name": "Nikunjkumar Baldevbhai Prajapati",
+        "consignee_address": "382455,GOVT. INDUSTRIAL TRAINING INSTITUTE, DHOLERA, NEAR MAMLATDAR KACHERI, AHMEDABAD- BHAVNAGAR HIGHWAY,DHOLERA TA- DHOLERA, DI -AHMEDABAD",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 37,
+        "consignee_name": "Vanrajbhai Kalabhai Chaudhari",
+        "consignee_address": "385570,GOVT. INDUSTRIAL TRAINING INSTITUTE, SUIGAM (MAHILA), Opp. Taluka seva sadan- Suigam, Bhabhar Road, Suigam TA - SUIGAM, DI - BANASKANTHA",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 38,
+        "consignee_name": "Bhagvandas Kanjibhai Prajapati",
+        "consignee_address": "383255,GOVT. INDUSTRIAL TRAINING INSTITUTE, KHEDBRAHMA, SURTI COMPOUND ROAD, NEAR - B.S.N.L. OFFICE, TA - KHEDBRAHMA, DI - SABARKANTHA",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 39,
+        "consignee_name": "Dineshbhai Amrutbhai Kugashiya",
+        "consignee_address": "384210,GOVT. INDUSTRIAL TRAINING INSTITUTE, BECHRAJI, VIRAMGAM HIGHWAY ROAD, B/H. RADHIKA GUEST HOUSE, TA - BECHRAJI, DI - MEHSANA",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 40,
+        "consignee_name": "Deloliya Dhaval Rameshchandra",
+        "consignee_address": "384246,GOVT. INDUSTRIAL TRAINING INSTITUTE, SHANKHESHWAR (MAHILA), NEAR, BAXIPANCH HOSTEL, SAMI-SHANKHESHWAR HIGHWAY, SHANKHESHWAR TA- SHANKHESHWAR, DI - PATAN",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 41,
+        "consignee_name": "PATEL PIYUSHKUMAR",
+        "consignee_address": "384285,GOVT. INDUSTRIAL TRAINING INSTITUTE, VAGDOD, OLD PANCHAYAT BUILDING. AT/PO. VAGDOD, 384285 TA- SARASVATI, DI - PATAN",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 42,
+        "consignee_name": "Dineshbhai Amrutbhai Kugashiya",
+        "consignee_address": "384315,GOVT. INDUSTRIAL TRAINING INSTITUTE, VISNAGAR, KHERALU ROAD, TA - VISNAGAR, DI - MEHSANA",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 43,
+        "consignee_name": "Patel Jatinkumar Mahendrabhai",
+        "consignee_address": "384355,GOVT. INDUSTRIAL TRAINING INSTITUTE, VADNAGAR, NEAR - POLYTECHNIC, TA- VADNAGAR, DI - MEHSANA",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 44,
+        "consignee_name": "Patel Dhruv Sureshkumar",
+        "consignee_address": "384170,GOVT. INDUSTRIAL TRAINING INSTITUTE, UNJHA, NEAR- AITHOR G.I.D.C., UNJHA- VISNAGAR ROAD, AITHOR, TA - UNJHA, DI -MEHSANA",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 45,
+        "consignee_name": "Jigna Pandya",
+        "consignee_address": "383001,GOVT. INDUSTRIAL TRAINING INSTITUTE, HIMMATNAGAR, OPP. - 66 KV SUB STATION, AT- HANSALPUR, PO. - VIRPUR, TA- HIMMATNAGAR, DI - SABARKANTHA",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 46,
+        "consignee_name": "Digantkumar Vithaldas Mehta",
+        "consignee_address": "383215,GOVT. INDUSTRIAL TRAINING INSTITUTE, TALOD (MAHILA), HARSOL ROAD, UMED NI MUVADI, OPP. PETROL PUMP, TA- TALOD, DI - SABARKANTHA",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 47,
+        "consignee_name": "Himanshu Lavjibhai Chaudhari",
+        "consignee_address": "383205,GOVT. INDUSTRIAL TRAINING INSTITUTE, PRANTIJ, INDIRA NAGAR, NEAR - MAHADEV TEMPLE, TA- PRANTIJ, DI - SABARKANTHA",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 48,
+        "consignee_name": "Sandeepkumar Prakashbhai Patel",
+        "consignee_address": "387240,GOVT. INDUSTRIAL TRAINING INSTITUTE, SOJITRA, B/H. DUDHIPURA GOVT. CIVIL SUPPLY GODOWN, TA- SOJITRA, DI - ANAND",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 49,
+        "consignee_name": "Rathwa Manojkumar",
+        "consignee_address": "391145,GOVT. INDUSTRIAL TRAINING INSTITUTE, SANKHEDA, RAILWAY STATION ROAD, NEAR - COURT, TA- SANKHEDA, DI -CHHOTA UDEPUR",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      },
+      {
+        "schedule_number": 50,
+        "consignee_name": "Charel Pareshkumar Dalsukhbhai",
+        "consignee_address": "389140,GOVT. INDUSTRIAL TRAINING INSTITUTE, LIMKHEDA, DHANPUR ROAD, DI -DAHOD",
+        "quantity": 1,
+        "delivery_days": 45,
+        "item_description": "(Part 1) ( 119 pieces )",
+        "technical_specs": {
+          "Requirement": "As Attached specification in Buyer uploaded ATC document"
+        }
+      }
+    ],
+    "attribution_check": "PASS",
+    "line_item_capture": "PASS",
+    "verdict": "PASS"
+  },
+  {
+    "file": "1770875745274_GeM-Bidding-8915381__1_.pdf",
+    "pages": 9,
+    "gt_bid_no": "GEM/2026/B/7177131",
+    "extracted_bid_no": "GEM/2026/B/7177131",
+    "org_name": "/Organisation Name",
+    "total_quantity_gt": 2,
+    "total_quantity_extracted": 2,
+    "qty_match": true,
+    "schedule_count": 1,
+    "schedules": [
+      {
+        "schedule_number": 1,
+        "consignee_name": "Bhawna Solanki",
+        "consignee_address": "110044,Powergrid Corporation of India Limited, Tughlakabad GIS Substation, Behind Airforce Regsidential Quarters, Near Karni Singh Shooting Range, Surajkund Road, Tughlakabad, New Delhi-110044",
+        "quantity": 2,
+        "delivery_days": 150,
+        "item_description": "Sets And Buyback Of ( 2 set )",
+        "technical_specs": {}
+      }
+    ],
+    "attribution_check": "PASS",
+    "line_item_capture": "PASS",
+    "verdict": "PASS"
+  },
+  {
+    "file": "1770878698201_GeM-Bidding-8965081.pdf",
+    "pages": 6,
+    "gt_bid_no": "GEM/2026/B/7220692",
+    "extracted_bid_no": "GEM/2026/B/7220692",
+    "org_name": "/Organisation Name",
+    "total_quantity_gt": 1,
+    "total_quantity_extracted": 1,
+    "qty_match": true,
+    "schedule_count": 1,
+    "schedules": [
+      {
+        "schedule_number": 1,
+        "consignee_name": "***********",
+        "consignee_address": "***********Thanjavur",
+        "quantity": 1,
+        "delivery_days": 60,
+        "item_description": "CELL 1.2V/180AH NI-CD. TYPE 24 NOS ( 1 pieces )",
+        "technical_specs": {}
+      }
+    ],
+    "attribution_check": "PASS",
+    "line_item_capture": "PASS",
+    "verdict": "PASS"
+  },
+  {
+    "file": "1770880027812_GeM-Bidding-8828992.pdf",
+    "pages": 11,
+    "gt_bid_no": "GEM/2026/B/7101766",
+    "extracted_bid_no": "GEM/2026/B/7101766",
+    "org_name": "/Organisation Name",
+    "total_quantity_gt": 62,
+    "total_quantity_extracted": 62,
+    "qty_match": true,
+    "schedule_count": 3,
+    "schedules": [
+      {
+        "schedule_number": 1,
+        "consignee_name": "Tejavathu Ramesh",
+        "consignee_address": "534101,GEM CELL, Office of Director, NIT Andhra Pradesh, Tadepalligudem-534101, West Godavari District, A. P.",
+        "quantity": 1,
+        "delivery_days": 30,
+        "item_description": "Supply And Installation Of 1 KVA Online UPS ( 3 set )",
+        "technical_specs": {}
+      },
+      {
+        "schedule_number": 2,
+        "consignee_name": "Tejavathu Ramesh",
+        "consignee_address": "534101,GEM CELL, Office of Director, NIT Andhra Pradesh, Tadepalligudem-534101, West Godavari District, A. P.",
+        "quantity": 3,
+        "delivery_days": 30,
+        "item_description": "Supply And Installation Of 1 KVA Online UPS ( 3 set )",
+        "technical_specs": {}
+      },
+      {
+        "schedule_number": 3,
+        "consignee_name": "Tejavathu Ramesh",
+        "consignee_address": "534101,GEM CELL, Office of Director, NIT Andhra Pradesh, Tadepalligudem-534101, West Godavari District, A. P.",
+        "quantity": 58,
+        "delivery_days": 30,
+        "item_description": "Supply And Installation Of 12 V 75 Ah SMF Battery ( 58 set )",
+        "technical_specs": {}
+      }
+    ],
+    "attribution_check": "PASS",
+    "line_item_capture": "PASS",
+    "verdict": "PASS"
+  },
+  {
+    "file": "1770881699956_GeM-Bidding-8939964.pdf",
+    "pages": 8,
+    "gt_bid_no": "GEM/2026/B/7198719",
+    "extracted_bid_no": "GEM/2026/B/7198719",
+    "org_name": "/Organisation Name",
+    "total_quantity_gt": 2,
+    "total_quantity_extracted": 2,
+    "qty_match": true,
+    "schedule_count": 2,
+    "schedules": [
+      {
+        "schedule_number": 1,
+        "consignee_name": "***********",
+        "consignee_address": "***********Bangalore",
+        "quantity": 1,
+        "delivery_days": 30,
+        "item_description": "ISOLATION TRANSFORMER ( 1 pieces )",
+        "technical_specs": {}
+      },
+      {
+        "schedule_number": 2,
+        "consignee_name": "***********",
+        "consignee_address": "***********Bangalore",
+        "quantity": 1,
+        "delivery_days": 30,
+        "item_description": "ISOLATION TRANSFORMER ( 1 pieces )",
+        "technical_specs": {}
+      }
+    ],
+    "attribution_check": "PASS",
+    "line_item_capture": "PASS",
+    "verdict": "PASS"
+  },
+  {
+    "file": "1770882124537_GeM-Bidding-8930313.pdf",
+    "pages": 8,
+    "gt_bid_no": "GEM/2026/B/7190140",
+    "extracted_bid_no": "GEM/2026/B/7190140",
+    "org_name": "/Organisation Name",
+    "total_quantity_gt": 24,
+    "total_quantity_extracted": 24,
+    "qty_match": true,
+    "schedule_count": 2,
+    "schedules": [
+      {
+        "schedule_number": 1,
+        "consignee_name": "Krishna Murari Lal Srivastava",
+        "consignee_address": "231001,DM OFFICE MIRZAPUR",
+        "quantity": 12,
+        "delivery_days": 15,
+        "item_description": "Online UPS (?10 KVA) With Battery Conforming To IS 16242 (Part 1) ( 12 pieces )",
+        "technical_specs": {
+          "Rating (in KVA)": "1, 2, 3, 5, 6, 7.5, 10",
+          "Input Voltage (AC, 50 Hz)": "Single Phase, 160V - 260V, Three Phase, 300 V - 450V",
+          "Output Voltage (AC, 50 Hz)": "Single Phase, 230V±1%,, Three Phase, 400V±1% (Alternative User-settable to 380V±1%), Three Phase, 415V±1% (Variable range: 380V - 415V)",
+          "Availability of Inbuilt Isolation Transformer": "Yes, No",
+          "Type of Battery": "SMF-VRLA (Sealed Maintenance Free-Valve Regulated Lead Acid) / Stationary Lead Acid Batteries, Lithium Ion Batteries",
+          "Backup Time": "15, 30, 60, 90, 120, 180, 240 (minute)"
+        }
+      },
+      {
+        "schedule_number": 2,
+        "consignee_name": "Himanshu Gautam",
+        "consignee_address": "231001,DM Office Collect orate Mirzapur",
+        "quantity": 12,
+        "delivery_days": 15,
+        "item_description": "Online UPS (?10 KVA) With Battery Conforming To IS 16242 (Part 1) ( 12 pieces )",
+        "technical_specs": {
+          "Rating (in KVA)": "1, 2, 3, 5, 6, 7.5, 10",
+          "Input Voltage (AC, 50 Hz)": "Single Phase, 160V - 260V, Three Phase, 300 V - 450V",
+          "Output Voltage (AC, 50 Hz)": "Single Phase, 230V±1%,, Three Phase, 400V±1% (Alternative User-settable to 380V±1%), Three Phase, 415V±1% (Variable range: 380V - 415V)",
+          "Availability of Inbuilt Isolation Transformer": "Yes, No",
+          "Type of Battery": "SMF-VRLA (Sealed Maintenance Free-Valve Regulated Lead Acid) / Stationary Lead Acid Batteries, Lithium Ion Batteries",
+          "Backup Time": "15, 30, 60, 90, 120, 180, 240 (minute)"
+        }
+      }
+    ],
+    "attribution_check": "PASS",
+    "line_item_capture": "PASS",
+    "verdict": "PASS"
+  },
+  {
+    "file": "1770882324202_GeM-Bidding-8928840.pdf",
+    "pages": 8,
+    "gt_bid_no": "GEM/2026/B/7188822",
+    "extracted_bid_no": "GEM/2026/B/7188822",
+    "org_name": "/Organisation Name",
+    "total_quantity_gt": 4,
+    "total_quantity_extracted": 4,
+    "qty_match": true,
+    "schedule_count": 2,
+    "schedules": [
+      {
+        "schedule_number": 1,
+        "consignee_name": "***********",
+        "consignee_address": "***********NASHIK RURAL",
+        "quantity": 2,
+        "delivery_days": 90,
+        "item_description": "30 KVA UPS SYSTEM (with Battery Bank Of 40 Nos Of 65AH Batteries) ( 2 set )",
+        "technical_specs": {}
+      },
+      {
+        "schedule_number": 2,
+        "consignee_name": "***********",
+        "consignee_address": "***********NASHIK RURAL",
+        "quantity": 2,
+        "delivery_days": 90,
+        "item_description": "30 KVA UPS SYSTEM (with Battery Bank Of 40 Nos Of 65AH Batteries) ( 2 set )",
+        "technical_specs": {}
+      }
+    ],
+    "attribution_check": "PASS",
+    "line_item_capture": "PASS",
+    "verdict": "PASS"
+  }
+]

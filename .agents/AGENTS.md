@@ -88,4 +88,34 @@ Every extracted field object (`ExtractedFieldSchema`) produced during processing
 - Locate Nodal Officer / Contact Details section.
 - Extract contact details in ordered formats representing name, phone, and email details (e.g., matching `"Sh. / Shri / Mr."` name, `"@gail.co.in"` email, and standard phone number formats).
 
+## Week 7: Hard Compliance Filter ($F_{\text{hard}}$) & Risk Routing Standards
+
+### 1. Confidence Gating & `NEEDS_REVIEW` Routing Invariant
+- Any $F_{\text{hard}}$ compliance rule whose input field is `MISSING`, `None`, empty string (`""`), or extracted with compound confidence below the Week 6 threshold (`confidence < 0.85`) **MUST route the tender to `NEEDS_REVIEW` compliance status**, NOT an automatic `DISQUALIFIED`.
+- Low-confidence or unverified scanned extractions must never trigger automated disqualification.
+
+### 2. Sentinel Field States (Section 2.5)
+- **Exemption Handling**: Before any numeric/boolean $F_{\text{hard}}$ rule evaluates a field, it must first check the field's paired `_type_display` companion (e.g. `avg_annual_turnover_type_display`) for `"Not Applicable"`. If exempt, the rule passes automatically — it must never numerically compare an exemption's `"₹0.00"` placeholder against a minimum threshold and disqualify on it.
+- **Ambiguous-Preserved Fields**: Any field whose `source == "ambiguous_preserved"` (a `{"main_tender": val, "atc": val}` dict rather than a scalar) must route to `NEEDS_REVIEW`, identically to missing/low-confidence fields, before it reaches any $F_{\text{hard}}$ boolean comparison. Never evaluate a rule against the raw dict.
+
+### 3. Structured Audit Logging Protocols
+- **Disqualification Audit Log**: Every disqualification decision emitted by $F_{\text{hard}}$ must emit:
+  `[HARD_FILTER_DISQUALIFIED] Tender: {tender_no} | Rule: {rule_name} | Field: {field_name} | Extracted Value: {extracted_val!r} | Extracted Confidence: {confidence:.2f} | Constraint: {constraint_threshold!r} | Reason: {disqualification_reason}`
+- **Unconstrained Pass Audit Log**: When a buyer omits an optional clause from the RFP entirely, emit:
+  `[HARD_FILTER_UNCONSTRAINED] Tender: {tender_no} | Rule: {rule_name} | Field: {field_name} | Reason: No constraint mandated by buyer in tender`
+- **Section-Absence vs Blank Field**: A completely omitted section evaluates to `QUALIFIED` (`[HARD_FILTER_UNCONSTRAINED]`), whereas a detected section with a blank/unextracted value evaluates to `NEEDS_REVIEW`.
+
+### 4. Mandatory Gold-Standard Verification Protocol
+- Before wiring $F_{\text{hard}}$ ahead of the ML/LightGBM classifier in production, verify all boolean compliance functions against the **actual 10 gold-standard tenders** defined in `tests/integration/test_gem_extraction_accuracy.py` (not just synthetic unit-test mocks):
+  1. `GEM/2026/B/7317018`
+  2. `GEM/2025/B/6232822`
+  3. `GEM/2025/B/6246461`
+  4. `GEM/2025/B/6263705`
+  5. `GEM/2025/B/6620282`
+  6. `GEM/2025/B/6630054`
+  7. `GEM/2025/B/6748709`
+  8. `GEM/2025/B/6782142`
+  9. `GEM/2025/B/6902559`
+  10. `GEM/2025/B/6960382`
+
 

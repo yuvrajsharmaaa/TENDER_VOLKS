@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Payment Requisition Note - {{ tender_no }}</title>
+    <style>
+        @page {
+            size: a4 portrait;
+            margin: 1.0cm;
+        }
+
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            color: #1a1a1a;
+            font-size: 8.5pt;
+            line-height: 1.3;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header-table {
+            width: 100%;
+            border-bottom: 2px solid #0f3460;
+            padding-bottom: 4px;
+            margin-bottom: 8px;
+        }
+
+        .company-title {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #0f3460;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .doc-title {
+            font-size: 11pt;
+            font-weight: bold;
+            color: #c62828;
+            text-align: right;
+            text-transform: uppercase;
+        }
+
+        .doc-subtitle {
+            font-size: 7.5pt;
+            color: #555555;
+            text-align: right;
+        }
+
+        .alert-box {
+            background-color: #ffebee;
+            border: 1px solid #ef5350;
+            color: #c62828;
+            padding: 6px 8px;
+            margin-bottom: 8px;
+            border-radius: 3px;
+            font-size: 8pt;
+            font-weight: bold;
+        }
+
+        .section-heading {
+            font-size: 9.5pt;
+            font-weight: bold;
+            color: #0f3460;
+            border-bottom: 1px solid #cccccc;
+            padding-bottom: 2px;
+            margin-top: 8px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        table.data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 6px;
+        }
+
+        table.data-table th, table.data-table td {
+            border: 1px solid #dddddd;
+            padding: 4px 6px;
+            font-size: 8pt;
+            vertical-align: top;
+        }
+
+        table.data-table th {
+            background-color: #f5f7fa;
+            color: #333333;
+            font-weight: bold;
+            width: 30%;
+            text-align: left;
+        }
+
+        .highlight-amount {
+            font-size: 10pt;
+            font-weight: bold;
+            color: #0f3460;
+        }
+
+        .missing-tag {
+            color: #d32f2f;
+            font-weight: bold;
+            background-color: #ffebee;
+            padding: 1px 3px;
+            border-radius: 2px;
+        }
+
+        .signatures-table {
+            width: 100%;
+            margin-top: 25px;
+            border-collapse: collapse;
+        }
+
+        .signatures-table td {
+            border: none;
+            width: 33.33%;
+            text-align: center;
+            vertical-align: top;
+            padding: 5px;
+        }
+
+        .sig-line {
+            border-top: 1px solid #333333;
+            margin-top: 30px;
+            padding-top: 4px;
+            font-size: 8pt;
+            font-weight: bold;
+            color: #333333;
+        }
+
+        .sig-designation {
+            font-size: 7pt;
+            color: #666666;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Block -->
+    <table class="header-table">
+        <tr>
+            <td style="border: none; text-align: left; vertical-align: middle;">
+                <div class="company-title">Volks Energie Pvt. Ltd.</div>
+                <div style="font-size: 7.5pt; color: #666666;">Procurement & Bidding Finance Department</div>
+            </td>
+            <td style="border: none; text-align: right; vertical-align: middle;">
+                <div class="doc-title">Payment Requisition Note</div>
+                <div class="doc-subtitle">Generated: {{ requisition_date }} | Ref: REQ-{{ req_id }}</div>
+            </td>
+        </tr>
+    </table>
+
+    {% if missing_fields %}
+    <div class="alert-box">
+        &#9888; WARNING: INCOMPLETE TENDER DATA DETECTED<br>
+        The following mandatory field(s) could not be verified from extracted tender documents:
+        <strong>{{ missing_fields | join(', ') }}</strong>.<br>
+        Finance approval is conditional upon manual verification of supporting documents.
+    </div>
+    {% endif %}
+
+    <!-- 1. Tender Reference & Buyer Details -->
+    <div class="section-heading">1. Tender & Beneficiary Details</div>
+    <table class="data-table">
+        <tr>
+            <th>Tender / Bid Reference No.</th>
+            <td><strong>{{ tender_no }}</strong></td>
+        </tr>
+        <tr>
+            <th>Procuring Authority / Client</th>
+            <td>{{ organization }}</td>
+        </tr>
+        <tr>
+            <th>Tender Work Title</th>
+            <td>{{ tender_title }}</td>
+        </tr>
+        <tr>
+            <th>Submission / Payment Deadline</th>
+            <td>
+                {% if is_deadline_missing %}
+                    <span class="missing-tag">[MISSING: Submission Deadline]</span>
+                {% else %}
+                    <strong>{{ submission_deadline }}</strong>
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <th>Beneficiary / Payee Name</th>
+            <td>
+                {% if is_beneficiary_missing %}
+                    <span class="missing-tag">[MISSING: Beneficiary Name]</span>
+                {% else %}
+                    {{ beneficiary_name }}
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+
+    <!-- 2. Requisition Breakdown -->
+    <div class="section-heading">2. Financial Requisition Breakdown</div>
+    <table class="data-table">
+        <tr>
+            <th>Payment Purpose</th>
+            <td><strong>{{ payment_purpose }}</strong> (e.g. Earnest Money Deposit / Tender Document Fee)</td>
+        </tr>
+        <tr>
+            <th>Total Amount Requested</th>
+            <td>
+                {% if is_amount_missing %}
+                    <span class="missing-tag">[MISSING: Requisition Amount]</span>
+                {% else %}
+                    <span class="highlight-amount">INR {{ formatted_amount }}</span>
+                    <span style="font-size: 7.5pt; color: #555555;">(Rupees {{ amount_in_words }} Only)</span>
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <th>Mode of Payment Requested</th>
+            <td>{{ payment_mode }} (Bank Guarantee / Demand Draft / RTGS / Online Transfer)</td>
+        </tr>
+        <tr>
+            <th>Advisory / Beneficiary Bank</th>
+            <td>{{ advisory_bank }}</td>
+        </tr>
+        <tr>
+            <th>Estimated Contract Value</th>
+            <td>{{ estimated_value }}</td>
+        </tr>
+    </table>
+
+    <!-- 3. Risk & Pre-requisite Verification -->
+    <div class="section-heading">3. Strategic & Compliance Pre-requisites</div>
+    <table class="data-table">
+        <tr>
+            <th>Bid / No-Bid Recommendation</th>
+            <td><strong>{{ recommendation | upper }}</strong> (Confidence: {{ (confidence * 100) | round(1) }}%)</td>
+        </tr>
+        <tr>
+            <th>ML Win Probability</th>
+            <td>{{ (win_probability * 100) | round(1) }}% (LightGBM Predictive Engine)</td>
+        </tr>
+        <tr>
+            <th>Performance Guarantee (PBG)</th>
+            <td>{{ pbg_requirement }}</td>
+        </tr>
+        <tr>
+            <th>Exemption Applicability</th>
+            <td>{{ exemption_status }}</td>
+        </tr>
+    </table>
+
+    <!-- 4. Signatures & Approvals -->
+    <div class="section-heading">4. Authorization & Sign-Off</div>
+    <table class="signatures-table">
+        <tr>
+            <td>
+                <div class="sig-line">Prepared By (Bidding Analyst)</div>
+                <div class="sig-designation">Tender Execution Desk</div>
+            </td>
+            <td>
+                <div class="sig-line">Verified By (Procurement Lead)</div>
+                <div class="sig-designation">Strategic Bidding Dept.</div>
+            </td>
+            <td>
+                <div class="sig-line">Approved By (Head of Finance)</div>
+                <div class="sig-designation">Volks Energie Finance Division</div>
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>

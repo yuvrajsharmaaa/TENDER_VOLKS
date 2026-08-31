@@ -94,11 +94,19 @@ class OcrEngine:
         if cache_key in OcrEngine._cache:
             data = OcrEngine._cache[cache_key]
         else:
-            img = Image.open(image_path).convert("RGB")
-            data = pytesseract.image_to_data(
-                img, lang=self.lang, output_type=pytesseract.Output.DICT
-            )
-            OcrEngine._cache[cache_key] = data
+            try:
+                img = Image.open(image_path).convert("RGB")
+                data = pytesseract.image_to_data(
+                    img, lang=self.lang, output_type=pytesseract.Output.DICT
+                )
+                OcrEngine._cache[cache_key] = data
+            except Exception as tess_err:
+                import logging
+                logging.getLogger("ocr.ocr_engine").warning(
+                    f"[OCR_ENGINE_UNAVAILABLE] Tesseract OCR failed on {image_path.name}: {tess_err}. "
+                    "Marking page text as unverified scanned content (confidence=0.0)."
+                )
+                return []
 
 
         # Group Tesseract's word-level boxes into line-level blocks (grouped

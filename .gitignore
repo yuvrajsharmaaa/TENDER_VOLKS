@@ -41,6 +41,11 @@ backend/.env.*
 frontend/.env.local
 frontend/.env.*.local
 
+# Company Profile & Proprietary Configuration
+config/company_profile.yaml
+config/*.local.yaml
+!config/company_profile.example.yaml
+
 # PaddleOCR & models
 .paddleocr/
 models/

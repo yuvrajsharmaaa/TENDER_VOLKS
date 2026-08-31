@@ -1,0 +1,24 @@
+# Company Profile - ML Baseline Template (Example)
+# Copy this file to config/company_profile.yaml and fill with verified company metrics.
+
+company_name: "YOUR COMPANY NAME PRIVATE LIMITED"
+cin: "U00000XX0000PTC000000"
+avg_annual_turnover: 200000000  # 3-year annual turnover in INR
+turnover_years_covered: "FY2021-22 to FY2023-24"
+latest_net_worth: 40000000      # Net worth in INR
+msme_registered: true
+udyam_registration_no: "UDYAM-XX-00-0000000"
+iso_certified: true
+electrical_contractor_license: true
+
+# List of buying organizations / PSUs where company holds vendor registrations or prior winning contracts
+incumbent_psu_list: 
+  - "IOCL"
+  - "AAI"
+  - "HPCL"
+  - "GAIL"
+  - "NTPC"
+  - "SAIL"
+  - "ONGC"
+  - "PGETL"
+  - "BPCL"

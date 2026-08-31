@@ -129,6 +129,7 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False, atc_pdf
         width, height = int(p_rect.width), int(p_rect.height)
         doc.close()
 
+        img_path = image_paths[i] if i < len(image_paths) else None
         if len(native_words) >= 5:
             # Digital page: build text blocks directly from native vector text (0.001s)
             from backend.app.services.pdf_text_extractor import build_text_blocks_from_words
@@ -145,7 +146,6 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False, atc_pdf
             layout_regions = layout.detect(None, text_blocks=text_blocks, page_number=i+1)
         else:
             # Scanned page: render image and run OCR engine
-            img_path = image_paths[i] if i < len(image_paths) else None
             if not img_path:
                 continue
             from backend.app.services.pdf_text_extractor import preprocess_image_for_ocr
@@ -162,17 +162,13 @@ def process_pdf(job_id: str, pdf_path: Path, run_layoutlm: bool = False, atc_pdf
                 except Exception:
                     pass
 
-        
-        # Clean up temp preprocessed file
-        if preprocessed_path != img_path:
+        # If img_path is present and dimensions needed, ensure valid size
+        if img_path and img_path.exists():
             try:
-                preprocessed_path.unlink()
+                with Image.open(img_path) as img:
+                    width, height = img.size
             except Exception:
                 pass
-        
-        # Get actual image dimensions
-        with Image.open(img_path) as img:
-            width, height = img.size
 
         # Direct Vector Table Extraction via pdfplumber
         from ocr.table_grid_parser import extract_tables_with_pdfplumber, filter_blocks_outside_tables, build_table_structure
