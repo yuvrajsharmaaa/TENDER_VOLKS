@@ -22,6 +22,9 @@ def test_llm_resolver_unconfigured_api_key():
 
 def test_llm_resolver_successful_parse():
     resolver = LLMFieldResolver()
+    resolver.provider = "gemini"
+    resolver._sdk_type = "genai_v2"
+    resolver._init_gemini_client = MagicMock()
     resolver.api_key = "AIzaSyRealKeyStyleForTesting"
     resolver.enabled = True
     
@@ -36,6 +39,7 @@ def test_llm_resolver_successful_parse():
     }
     """
     resolver._call_gemini_v2 = MagicMock(return_value=mock_json)
+    resolver._call_openai_compatible = MagicMock(return_value=mock_json)
     
     atc_text = "GAIL payment terms: 70% of supply value and 30% installation. RAMAR E nodal officer email ramar@gail.co.in. PRS delay 0.5%. MAF Required."
     
@@ -57,6 +61,9 @@ def test_llm_resolver_successful_parse():
 
 def test_llm_resolver_hallucination_filtering():
     resolver = LLMFieldResolver()
+    resolver.provider = "gemini"
+    resolver._sdk_type = "genai_v2"
+    resolver._init_gemini_client = MagicMock()
     resolver.api_key = "AIzaSyRealKeyStyleForTesting"
     resolver.enabled = True
     
@@ -67,6 +74,7 @@ def test_llm_resolver_hallucination_filtering():
     }
     """
     resolver._call_gemini_v2 = MagicMock(return_value=mock_json)
+    resolver._call_openai_compatible = MagicMock(return_value=mock_json)
     
     atc_text = "Tender officer is RAMAR E."
     

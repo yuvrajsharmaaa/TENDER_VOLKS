@@ -1,0 +1,75 @@
+groups:
+  - name: tender_production_pilot_alerts
+    rules:
+      # ─────────────────────────────────────────────────────────────────────────
+      # MINUTE 0 CRITICAL ALERTS (DLQ & PIPELINE FAILURE)
+      # ─────────────────────────────────────────────────────────────────────────
+      - alert: DeadLetterQueueLandingDetected
+        expr: sum(rate(tender_task_total{status="dlq"}[1m])) > 0 or tender_queue_depth{queue_name="dlq"} > 0
+        for: 0m
+        labels:
+          severity: critical
+          tier: resiliency
+        annotations:
+          summary: "Tender task failed 3 consecutive retry attempts and landed in Dead Letter Queue (DLQ)"
+          description: "Task {{ $labels.task_name }} has entered DLQ storage and requires manual replay or substantive discard."
+
+      - alert: HighPipelineTaskFailureRate
+        expr: sum(rate(tender_task_total{status="failure"}[5m])) / sum(rate(tender_task_total[5m])) > 0.15
+        for: 2m
+        labels:
+          severity: critical
+          tier: pipeline
+          phase: "[PILOT_BOOTSTRAP_ALERT]"
+        annotations:
+          summary: "[PILOT_BOOTSTRAP_ALERT] Pipeline task failure rate exceeds 15%"
+          description: "High error rate detected in tender pipeline processing (currently {{ $value | humanizePercentage }})."
+
+      # ─────────────────────────────────────────────────────────────────────────
+      # DAY 1 CONSERVATIVE BOOTSTRAP PLACEHOLDER ALERTS ([PILOT_BOOTSTRAP_ALERT])
+      # ─────────────────────────────────────────────────────────────────────────
+      - alert: StageDurationHighLatencyBootstrap
+        expr: histogram_quantile(0.95, sum(rate(tender_task_duration_seconds_bucket[5m])) by (le, stage)) > 60.0
+        for: 5m
+        labels:
+          severity: warning
+          tier: performance
+          phase: "[PILOT_BOOTSTRAP_ALERT]"
+        annotations:
+          summary: "[PILOT_BOOTSTRAP_ALERT] Pipeline stage p95 duration exceeds 60s baseline"
+          description: "Stage {{ $labels.stage }} latency is {{ $value }}s. Scheduled for auto-cutover to mu + 3sigma on Day 14."
+
+      - alert: QueueBacklogAccumulationBootstrap
+        expr: tender_queue_depth > 50
+        for: 5m
+        labels:
+          severity: warning
+          tier: throughput
+          phase: "[PILOT_BOOTSTRAP_ALERT]"
+        annotations:
+          summary: "[PILOT_BOOTSTRAP_ALERT] Queue backlog exceeds 50 tasks"
+          description: "Queue {{ $labels.queue_name }} has {{ $value }} pending tasks. Scheduled for auto-cutover on Day 14."
+
+      - alert: ExcessiveAdvisoryFabricationDiscards
+        expr: sum(rate(advisory_fabrication_discard_total[10m])) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          tier: grounding
+          phase: "[PILOT_BOOTSTRAP_ALERT]"
+        annotations:
+          summary: "[PILOT_BOOTSTRAP_ALERT] High generative advisory fabrication discard rate"
+          description: "Advisory validation guardrail discarded {{ $value }} drafts/sec due to ungrounded or hallucinated clauses."
+
+      # ─────────────────────────────────────────────────────────────────────────
+      # DAY-14 CUTOVER JOB MONITORING ALERT
+      # ─────────────────────────────────────────────────────────────────────────
+      - alert: AlertThresholdCutoverJobStalled
+        expr: (time() - alert_cutover_job_last_run_timestamp) > 1296000
+        for: 1h
+        labels:
+          severity: critical
+          tier: telemetry_maintenance
+        annotations:
+          summary: "14-day steady-state alert cutover job failed to run or update Prometheus rules"
+          description: "The scheduled Day-14 cutover job has not executed within 15 days (last run: {{ $value }}s ago). Verify alert_threshold_cutover.py schedule."

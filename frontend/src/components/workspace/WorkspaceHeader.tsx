@@ -27,6 +27,8 @@ interface WorkspaceHeaderProps {
   onUploadClick: () => void;
   isBackendConnected: boolean;
   onRefreshClick: () => void;
+  activeNavTab?: "tenders" | "recommendations";
+  onNavTabChange?: (tab: "tenders" | "recommendations") => void;
 }
 
 export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
@@ -38,6 +40,8 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
   onUploadClick,
   isBackendConnected,
   onRefreshClick,
+  activeNavTab = "tenders",
+  onNavTabChange,
 }) => {
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"keywords" | "pinned">("keywords");
@@ -69,10 +73,30 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
           </div>
           <div className="h-4 w-px bg-divider hidden sm:block" />
 
-          <nav className="hidden lg:flex items-center gap-4 text-xs font-medium text-text-secondary" aria-label="Workspace navigation">
-            <span className="text-blue-600 font-semibold cursor-pointer">Live Tenders</span>
-            <span className="hover:text-text-primary cursor-pointer transition-colors">Workspace Logs</span>
-            <span className="hover:text-text-primary cursor-pointer transition-colors">Rule Auditing</span>
+          <nav className="hidden sm:flex items-center gap-4 text-xs font-medium text-text-secondary" aria-label="Workspace navigation">
+            <button
+              type="button"
+              onClick={() => onNavTabChange?.("tenders")}
+              className={`transition-colors cursor-pointer ${
+                activeNavTab === "tenders"
+                  ? "text-blue-600 font-bold border-b-2 border-blue-600 pb-0.5"
+                  : "hover:text-text-primary"
+              }`}
+            >
+              Live Tenders
+            </button>
+            <button
+              type="button"
+              onClick={() => onNavTabChange?.("recommendations")}
+              className={`transition-colors cursor-pointer flex items-center gap-1.5 ${
+                activeNavTab === "recommendations"
+                  ? "text-blue-600 font-bold border-b-2 border-blue-600 pb-0.5"
+                  : "hover:text-text-primary"
+              }`}
+            >
+              <span className="h-2 w-2 rounded-full bg-blue-600" />
+              PQC Recommendations
+            </button>
           </nav>
         </div>
 

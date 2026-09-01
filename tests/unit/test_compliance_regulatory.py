@@ -27,7 +27,8 @@ def default_vendor():
         is_mse_registered=True,
         mii_class="Class 1",
         max_pbg_tolerance_pct=10.0,
-        min_bid_validity_days=30
+        max_bid_validity_tolerance_days=180,
+        min_bid_validity_days=180
     )
 
 
@@ -229,6 +230,7 @@ def test_pbg_low_confidence_needs_review(service, default_vendor):
 # =============================================================================
 
 def test_bid_validity_normal_pass(service, default_vendor):
+    # Short validity (e.g. 15 or 120 days <= 180 days) is favorable and QUALIFIED
     fields = {
         "bid_validity_days": ExtractedFieldSchema(
             field_name="bid_validity_days",
@@ -244,14 +246,32 @@ def test_bid_validity_normal_pass(service, default_vendor):
     assert res.passed is True
 
 
-def test_bid_validity_normal_disqualify(service, default_vendor, caplog):
+def test_bid_validity_short_favorable_pass(service, default_vendor):
+    # Demanding short validity (e.g. 3, 16, 20 days) is favorable to vendor -> QUALIFIED
     fields = {
         "bid_validity_days": ExtractedFieldSchema(
             field_name="bid_validity_days",
-            value=15,  # Vendor min buffer is 30 days
+            value=15,
             confidence=0.95,
             source_page=1,
             evidence="Bid Validity: 15 Days",
+            source_blocks=[]
+        )
+    }
+    res = service.check_min_bid_validity_days("GEM/TEST/BV1_SHORT", fields, default_vendor)
+    assert res.status == RuleStatus.QUALIFIED
+    assert res.passed is True
+
+
+def test_bid_validity_normal_disqualify(service, default_vendor, caplog):
+    # Exceeding vendor tolerance ceiling (e.g. 240 days > 180 days) -> DISQUALIFIED
+    fields = {
+        "bid_validity_days": ExtractedFieldSchema(
+            field_name="bid_validity_days",
+            value=240,  # Vendor max tolerance ceiling is 180 days
+            confidence=0.95,
+            source_page=1,
+            evidence="Bid Validity: 240 Days",
             source_blocks=[]
         )
     }
@@ -261,6 +281,24 @@ def test_bid_validity_normal_disqualify(service, default_vendor, caplog):
     assert res.passed is False
     assert "[HARD_FILTER_DISQUALIFIED]" in caplog.text
     assert "MIN_BID_VALIDITY" in caplog.text
+
+
+def test_bid_validity_ocr_boundary_needs_review(service, default_vendor):
+    # Concatenated OCR table noise (> 365 days) -> NEEDS_REVIEW
+    fields = {
+        "bid_validity_days": ExtractedFieldSchema(
+            field_name="bid_validity_days",
+            value="151152116",  # OCR noise exceeding 365
+            confidence=0.95,
+            source_page=1,
+            evidence="Bid Validity: 151152116",
+            source_blocks=[]
+        )
+    }
+    res = service.check_min_bid_validity_days("GEM/TEST/BV_OCR_ERR", fields, default_vendor)
+    assert res.status == RuleStatus.NEEDS_REVIEW
+    assert res.passed is True
+    assert "exceeds physical 365-day year boundary" in res.reason
 
 
 def test_bid_validity_ambiguous_preserved_needs_review(service, default_vendor):
@@ -524,3 +562,61 @@ def test_blank_field_in_found_section_routes_to_needs_review(service, default_ve
     resp = service.evaluate_compliance("GEM/2026/B/BLANK_SECTION", found_section_with_blank_field, default_vendor)
     assert resp.overall_status == ComplianceStatus.NEEDS_REVIEW
     assert any("blank or unextracted" in r for r in resp.review_reasons)
+
+
+def test_five_corrected_bid_validity_tenders(service):
+    """
+    Verifies that the 5 previously affected tenders now resolve correctly
+    under the corrected MIN_BID_VALIDITY tolerance ceiling:
+    - 7591613 (3 days): QUALIFIED
+    - 6442619 (20 days): QUALIFIED
+    - 7021103 (16 days): QUALIFIED
+    - 6887044 (358 days): QUALIFIED under 365d tolerance
+    - 7041307 (151152116 days): NEEDS_REVIEW (unbounded OCR noise)
+    """
+    profile = VendorProfile.from_yaml()  # Loads max_bid_validity_tolerance_days=365
+    
+    # 1. 7591613 (3 days)
+    resp_1 = service.evaluate_compliance("GEM/2026/B/7591613", {"bid_validity_days": "3"}, profile)
+    assert resp_1.overall_status == ComplianceStatus.QUALIFIED
+    
+    # 2. 6442619 (20 days)
+    resp_2 = service.evaluate_compliance("GEM/2025/B/6442619", {"bid_validity_days": "20"}, profile)
+    assert resp_2.overall_status == ComplianceStatus.QUALIFIED
+    
+    # 3. 7021103 (16 days)
+    resp_3 = service.evaluate_compliance("GEM/2025/B/7021103", {"bid_validity_days": "16"}, profile)
+    assert resp_3.overall_status == ComplianceStatus.QUALIFIED
+    
+    # 4. 6887044 (358 days <= 365)
+    resp_4 = service.evaluate_compliance("GEM/2025/B/6887044", {"bid_validity_days": "358"}, profile)
+    assert resp_4.overall_status == ComplianceStatus.QUALIFIED
+    
+    # 5. 7041307 (151152116 days > 365)
+    resp_5 = service.evaluate_compliance("GEM/2025/B/7041307", {"bid_validity_days": "151152116"}, profile)
+    assert resp_5.overall_status == ComplianceStatus.NEEDS_REVIEW
+    assert any("exceeds physical 365-day year boundary" in r for r in resp_5.review_reasons)
+
+
+def test_mse_turnover_experience_exemption_pass(service, default_vendor):
+    """
+    Verifies that an MSME registered vendor passes turnover & experience rules
+    when the buyer grants MSE turnover/experience relaxation in the tender.
+    """
+    # Vendor turnover is 20.88 Cr, buyer demands 50 Cr turnover + 10 yrs experience,
+    # but tender has MSE relaxation = Yes
+    field_map = {
+        "avg_annual_turnover_value_display": "500000000.0",  # ₹50 Cr (> 20.88 Cr)
+        "experience_criteria_years": "10",                  # 10 yrs (> 5 yrs)
+        "mse_relaxation_experience_turnover": "Yes"
+    }
+    
+    turnover_res = service.check_min_annual_turnover("GEM/2025/B/MSE_EXEMPT", field_map, default_vendor)
+    assert turnover_res.passed is True
+    assert turnover_res.status == RuleStatus.QUALIFIED
+    assert "MSE turnover exemption" in turnover_res.reason
+
+    exp_res = service.check_min_experience_years("GEM/2025/B/MSE_EXEMPT", field_map, default_vendor)
+    assert exp_res.passed is True
+    assert exp_res.status == RuleStatus.QUALIFIED
+    assert "MSE experience exemption" in exp_res.reason

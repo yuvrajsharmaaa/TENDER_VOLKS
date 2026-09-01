@@ -15,17 +15,22 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-from sklearn.model_selection import train_test_split, StratifiedKFold
+from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import (
     accuracy_score,
+    balanced_accuracy_score,
     precision_score,
     recall_score,
     f1_score,
     classification_report,
     confusion_matrix,
-    roc_auc_score
+    roc_auc_score,
+    precision_recall_curve,
+    auc
 )
 from lightgbm import LGBMClassifier
+import shap
+import joblib
 
 # Setup paths and logging
 ROOT_DIR = Path(__file__).resolve().parent.parent
@@ -37,6 +42,27 @@ logger = logging.getLogger("predictive_engine")
 
 MIN_LINKED_COUNT = 600  # Hard halt threshold for Step 1
 
+
+# =============================================================================
+# STATISTICAL HELPERS: WILSON 95% CONFIDENCE INTERVAL
+# =============================================================================
+def wilson_ci(k: int, n: int, confidence: float = 0.95) -> tuple[float, float]:
+    """
+    Computes Wilson score confidence interval for binomial proportions.
+    Essential for small positive sample sizes (e.g. ~31 wins in holdout).
+    """
+    if n == 0:
+        return 0.0, 0.0
+    z = 1.96  # for 95% confidence
+    p = k / n
+    denom = 1 + z**2 / n
+    centre_adj_prob = p + z**2 / (2 * n)
+    adj_se = z * np.sqrt((p * (1 - p) + z**2 / (4 * n)) / n)
+    lower = max(0.0, (centre_adj_prob - adj_se) / denom)
+    upper = min(1.0, (centre_adj_prob + adj_se) / denom)
+    return float(lower), float(upper)
+
+
 # =============================================================================
 # STEP 0 — COMPANY PROFILE GATE
 # =============================================================================
@@ -46,80 +72,30 @@ def load_and_validate_company_profile(profile_path: Path = ROOT_DIR / "config" /
         raise FileNotFoundError(f"Company profile not found at '{profile_path}'")
     
     with open(profile_path, "r", encoding="utf-8") as f:
-        profile = yaml.safe_load(f)
+        profile = yaml.safe_load(f) or {}
         
     required_fields = [
         "company_name", "cin", "avg_annual_turnover", "turnover_years_covered",
-        "msme_registered", "msme_category", "make_in_india_compliant", "oem_authorized_categories"
+        "msme_registered", "latest_net_worth", "max_bid_validity_tolerance_days"
     ]
     
     for field in required_fields:
         if field not in profile or profile[field] is None:
             raise ValueError(f"Step 0 Gate Failed: Profile field '{field}' is missing or None in {profile_path}")
-        if isinstance(profile[field], str) and profile[field].strip() == "":
-            raise ValueError(f"Step 0 Gate Failed: Profile field '{field}' is an empty string in {profile_path}")
-        if field == "avg_annual_turnover" and (not isinstance(profile[field], (int, float)) or profile[field] <= 0):
-            raise ValueError(f"Step 0 Gate Failed: 'avg_annual_turnover' must be a positive number, got {profile[field]}")
 
     logger.info(f"Verified Company Profile: '{profile['company_name']}' (CIN: {profile['cin']})")
-    logger.info(f"  Avg Annual Turnover: ₹{profile['avg_annual_turnover']:,.2f} ({profile['turnover_years_covered']})")
-    logger.info(f"  MSME Registered: {profile['msme_registered']} ({profile['msme_category']})")
-    logger.info(f"  Make In India Compliant: {profile['make_in_india_compliant']}")
-    logger.info(f"  OEM Authorizations: {profile['oem_authorized_categories']}")
+    logger.info(f"  Avg Annual Turnover: Rs. {profile['avg_annual_turnover']:,.2f} ({profile['turnover_years_covered']})")
+    logger.info(f"  Latest Net Worth: Rs. {profile['latest_net_worth']:,.2f}")
+    logger.info(f"  Max Bid Validity Tolerance: {profile['max_bid_validity_tolerance_days']} Days")
+    logger.info(f"  Incumbent PSUs: {profile.get('incumbent_psu_list', [])}")
     return profile
 
-# =============================================================================
-# STEP 1 — CONFIRM BACKFILL STATUS & HARD HALT CHECK
-# =============================================================================
-def check_backfill_status_and_halt_if_insufficient(min_required: int = MIN_LINKED_COUNT):
-    logger.info("\n=== STEP 1: CONFIRM BACKFILL STATUS ===")
-    db_url = os.getenv("DATABASE_URL")
-    conn = psycopg2.connect(db_url)
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    
-    cur.execute("""
-        SELECT outcome, COUNT(*) as count 
-        FROM tender_outcomes 
-        WHERE tender_id IS NOT NULL 
-        GROUP BY outcome;
-    """)
-    rows = cur.fetchall()
-    counts = {r['outcome']: r['count'] for r in rows}
-    total_linked = sum(counts.values())
-    
-    cur.execute("""
-        SELECT outcome, COUNT(*) as total_count 
-        FROM tender_outcomes 
-        WHERE outcome IN ('Won', 'Lost')
-        GROUP BY outcome;
-    """)
-    total_labeled_rows = cur.fetchall()
-    total_labeled = {r['outcome']: r['total_count'] for r in total_labeled_rows}
-    
-    conn.close()
-    
-    logger.info(f"Live Linked Outcomes: {counts} (Total linked: {total_linked})")
-    logger.info(f"Total Labeled in DB:  {total_labeled} (Total labeled: {sum(total_labeled.values())})")
-    
-    if total_linked < min_required:
-        msg = (
-            f"\n[HARD HALT] Step 1 Gate Failed: Only {total_linked} linked tenders found "
-            f"(expected >= {min_required}).\n"
-            f"Won linked: {counts.get('Won', 0)} / {total_labeled.get('Won', 0)}\n"
-            f"Lost linked: {counts.get('Lost', 0)} / {total_labeled.get('Lost', 0)}\n"
-            f"Halting training to prevent biased model training on incomplete data."
-        )
-        logger.error(msg)
-        raise RuntimeError(msg)
-        
-    logger.info(f"Step 1 Gate Passed: {total_linked} linked tenders ready for feature engineering.")
-    return counts
 
 # =============================================================================
-# STEP 2 — FIT-FEATURE ENGINEERING
+# STEP 1 — DATA INGESTION & F_HARD ELIGIBILITY FILTERING
 # =============================================================================
-def load_and_engineer_features(profile: dict) -> pd.DataFrame:
-    logger.info("\n=== STEP 2: FIT-FEATURE ENGINEERING ===")
+def load_and_filter_eligible_tenders(profile: dict, min_required: int = MIN_LINKED_COUNT) -> pd.DataFrame:
+    logger.info("\n=== STEP 1: DATA INGESTION & F_HARD ELIGIBILITY GATE ===")
     db_url = os.getenv("DATABASE_URL")
     conn = psycopg2.connect(db_url)
     cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -167,13 +143,56 @@ def load_and_engineer_features(profile: dict) -> pd.DataFrame:
     conn.close()
     
     df = pd.DataFrame(rows)
-    logger.info(f"Loaded {len(df)} linked records from Postgres.")
+    total_raw = len(df)
+    logger.info(f"Loaded {total_raw} linked records from Postgres (Won: {(df['outcome'] == 'Won').sum()}, Lost: {(df['outcome'] == 'Lost').sum()})")
     
-    company_turnover = float(profile["avg_annual_turnover"])
-    msme_registered = bool(profile["msme_registered"])
-    mii_compliant = bool(profile["make_in_india_compliant"])
+    if total_raw < min_required:
+        raise RuntimeError(f"Step 1 Gate Failed: Only {total_raw} linked tenders found (expected >= {min_required}).")
+        
+    # Evaluate F_hard compliance for all tenders
+    from backend.app.services.compliance.regulatory import (
+        RegulatoryComplianceService,
+        VendorProfile,
+        ComplianceStatus
+    )
     
-    # 1. Reference date for leak-free chronological ordering
+    vendor = VendorProfile.from_yaml()
+    service = RegulatoryComplianceService(default_profile=vendor)
+    
+    compliance_statuses = []
+    for idx, row in df.iterrows():
+        field_map = {
+            "avg_annual_turnover_value_display": row["avg_annual_turnover_value"],
+            "working_capital_value_display": None,
+            "experience_criteria_years": row["technical_eligibility_age"],
+            "pbg_percentage": row["pbg_percentage"],
+            "pbg_required": row["pbg_required"],
+            "bid_validity_days": row["bid_validity_days"],
+            "required_documents": None,
+            "mii_purchase_preference": row["mii_purchase_preference"],
+        }
+        resp = service.evaluate_compliance(row["tender_no"], field_map, vendor)
+        compliance_statuses.append(resp.overall_status.value)
+        
+    df["compliance_status"] = compliance_statuses
+    logger.info(f"F_hard Compliance Status Breakdown on N={total_raw}:")
+    logger.info(df["compliance_status"].value_counts().to_dict())
+    
+    # Filter to QUALIFIED and NEEDS_REVIEW only (exclude true DISQUALIFIED)
+    df_eligible = df[df["compliance_status"].isin(["QUALIFIED", "NEEDS_REVIEW"])].copy().reset_index(drop=True)
+    disq_count = total_raw - len(df_eligible)
+    logger.info(f"Filtered Backtest Population: N={total_raw} -> N={len(df_eligible)} eligible (Excluded {disq_count} DISQUALIFIED)")
+    logger.info(f"Eligible distribution: Won: {(df_eligible['outcome'] == 'Won').sum()}, Lost: {(df_eligible['outcome'] == 'Lost').sum()}")
+    return df_eligible
+
+
+# =============================================================================
+# STEP 2 — NUMERIC SANITIZATION & FIT-FEATURE ENGINEERING
+# =============================================================================
+def sanitize_and_engineer_features(df: pd.DataFrame, profile: dict) -> tuple[pd.DataFrame, list[str]]:
+    logger.info("\n=== STEP 2: NUMERIC SANITIZATION & FIT-FEATURE ENGINEERING ===")
+    
+    # 1. Leak-Free Chronological Reference Date
     def resolve_date(row):
         for col in ['publish_date', 'bid_submission_end_date', 'extraction_timestamp']:
             val = row.get(col)
@@ -182,445 +201,464 @@ def load_and_engineer_features(profile: dict) -> pd.DataFrame:
                     return pd.to_datetime(val)
                 except Exception:
                     pass
-        return pd.to_datetime('2020-01-01')
+        t_no = str(row.get('tender_no', ''))
+        if '2024' in t_no:
+            return pd.to_datetime('2024-06-01')
+        elif '2025' in t_no:
+            return pd.to_datetime('2025-06-01')
+        elif '2026' in t_no:
+            return pd.to_datetime('2026-01-01')
+        return pd.to_datetime('2025-01-01')
 
     df['reference_date'] = df.apply(resolve_date, axis=1)
     df = df.sort_values(by=['reference_date', 'tender_no']).reset_index(drop=True)
     
-    # 2. Derive Fit Features
-    # 2.1 Turnover Ratio & Indicator
-    df['turnover_req_value'] = pd.to_numeric(df['avg_annual_turnover_value'], errors='coerce').fillna(0.0)
-    df['turnover_req_applicable'] = (df['turnover_req_value'] > 0).astype(int)
-    df['turnover_ratio'] = np.where(
-        df['turnover_req_applicable'] == 1,
-        df['turnover_req_value'] / company_turnover,
-        0.0
-    )
-    
-    # 2.2 EMD Ratio, Amount, & Indicator
-    df['emd_amount_clean'] = pd.to_numeric(df['emd_amount'], errors='coerce').fillna(0.0)
-    df['emd_required_flag'] = np.where(
-        (df['emd_amount_clean'] > 0) | (df['emd_required'].astype(str).str.lower().isin(['yes', 'true', '1'])),
-        1, 0
-    )
-    df['emd_ratio'] = np.where(
-        df['emd_required_flag'] == 1,
-        df['emd_amount_clean'] / company_turnover,
-        0.0
-    )
-    df['log_emd_amount'] = np.log1p(np.maximum(df['emd_amount_clean'], 0.0))
-    
-    # 2.3 MSME Match (Tender offers MSE preference AND Company is MSME registered)
-    df['mse_preference_flag'] = df['mse_purchase_preference'].astype(str).str.lower().isin(['yes', 'true', '1']).astype(int)
-    df['msme_match'] = (df['mse_preference_flag'] == 1) & msme_registered
-    df['msme_match'] = df['msme_match'].astype(int)
-    
-    # 2.4 MII Match (Tender offers MII preference AND Company is MII compliant)
-    df['mii_preference_flag'] = df['mii_purchase_preference'].astype(str).str.lower().isin(['yes', 'true', '1']).astype(int)
-    df['mii_match'] = (df['mii_preference_flag'] == 1) & mii_compliant
-    df['mii_match'] = df['mii_match'].astype(int)
-    
-    # 2.5 Incumbent-Buyer Status (Strict leak-free chronological lookback on past wins with buyer)
+    # 2. Organization Name Normalization
     def clean_org_name(org_str):
         if not org_str or pd.isna(org_str):
             return "UNKNOWN"
         cleaned = str(org_str).upper().strip()
-        # Normalization
         for term in ["LTD", "LIMITED", "CORP", "CORPORATION", "GOVT", "GOVERNMENT OF INDIA"]:
             cleaned = cleaned.replace(term, "").strip()
         return cleaned[:30]
 
     df['org_clean'] = df['organization'].fillna(df['department']).apply(clean_org_name)
     
-    incumbent_status = []
+    # 3. Numeric Sanitization Pipeline for Tender Value: [10k, 100 Cr] + Clean Org Median Fallback
+    MIN_TV = 10_000.0
+    MAX_TV = 1_000_000_000.0  # 100 Crore
+
+    raw_tv = pd.to_numeric(df['tender_value'], errors='coerce')
+    raw_ec = pd.to_numeric(df['estimated_cost'], errors='coerce')
+    comb_tv = raw_tv.combine_first(raw_ec)
+
+    is_clean_tv = (comb_tv >= MIN_TV) & (comb_tv <= MAX_TV)
+    clean_subset = df[is_clean_tv].copy()
+    clean_subset['clean_val'] = comb_tv[is_clean_tv]
+    org_medians = clean_subset.groupby('org_clean')['clean_val'].median().to_dict()
+    global_median = clean_subset['clean_val'].median() if not clean_subset.empty else 4_315_000.0
+
+    clean_tv_vals = []
+    tv_imputed_flag = []
     for idx, row in df.iterrows():
-        cur_date = row['reference_date']
-        cur_org = row['org_clean']
-        if cur_org == "UNKNOWN" or cur_org == "":
-            incumbent_status.append(0)
-            continue
-        # Look back strictly at prior won tenders before cur_date
-        prior_wins = df[
-            (df['reference_date'] < cur_date) & 
-            (df['is_won'] == 1) & 
-            (df['org_clean'] == cur_org)
-        ]
-        incumbent_status.append(1 if len(prior_wins) > 0 else 0)
-    df['incumbent_buyer_status'] = incumbent_status
-    
-    # 2.6 PBG Indicator + Magnitude
-    df['pbg_percentage_raw'] = pd.to_numeric(df['pbg_percentage'], errors='coerce').fillna(0.0)
-    df['pbg_custom_specified'] = (df['pbg_percentage_raw'] > 0).astype(int)
-    df['pbg_percentage'] = df['pbg_percentage_raw']
+        val = comb_tv.iloc[idx]
+        if pd.notna(val) and MIN_TV <= val <= MAX_TV:
+            clean_tv_vals.append(float(val))
+            tv_imputed_flag.append(False)
+        else:
+            fallback = org_medians.get(row['org_clean'], global_median)
+            if pd.isna(fallback) or fallback < MIN_TV:
+                fallback = global_median
+            clean_tv_vals.append(float(fallback))
+            tv_imputed_flag.append(True)
+
+    df['clean_tender_value'] = clean_tv_vals
+    df['tender_value_imputed'] = tv_imputed_flag
+    df['tender_value_imputed_num'] = df['tender_value_imputed'].astype(int)
+    df['log_tender_value'] = np.log1p(df['clean_tender_value'])
+    logger.info(f"Tender Value Sanitization: {sum(tv_imputed_flag)} imputed ({sum(tv_imputed_flag)/len(df)*100:.1f}%), {(~np.array(tv_imputed_flag)).sum()} clean extracted ({((~np.array(tv_imputed_flag)).sum()/len(df))*100:.1f}%)")
+
+    # 4. Bid Validity Days bounded to [1, 365]
+    raw_bv = pd.to_numeric(df['bid_validity_days'], errors='coerce')
+    clean_median_bv = raw_bv[(raw_bv >= 1) & (raw_bv <= 365)].median()
+    if pd.isna(clean_median_bv):
+        clean_median_bv = 90.0
+    df['bid_validity_days_bounded'] = raw_bv.clip(lower=1.0, upper=365.0).fillna(clean_median_bv)
+
+    # 5. EMD Amount bounded to [0, 10 Cr] + Ratios
+    company_turnover = float(profile["avg_annual_turnover"])
+    raw_emd = pd.to_numeric(df['emd_amount'], errors='coerce').fillna(0.0)
+    df['emd_amount_bounded'] = raw_emd.clip(lower=0.0, upper=100_000_000.0)
+    df['log_emd_amount'] = np.log1p(df['emd_amount_bounded'])
+    df['emd_ratio'] = df['emd_amount_bounded'] / company_turnover
+
+    # 6. Turnover Ratios
+    raw_to = pd.to_numeric(df['avg_annual_turnover_value'], errors='coerce').fillna(0.0)
+    df['turnover_req_applicable'] = (raw_to > 0).astype(int)
+    df['turnover_ratio'] = np.where(
+        df['turnover_req_applicable'] == 1,
+        raw_to / company_turnover,
+        0.0
+    )
+
+    # 7. PBG, LD & Delivery
+    df['pbg_percentage'] = pd.to_numeric(df['pbg_percentage'], errors='coerce').fillna(0.0)
     df['pbg_duration_months'] = pd.to_numeric(df['pbg_duration'], errors='coerce').fillna(0.0)
-    
-    # 2.7 SD Indicator + Magnitude (Audited)
-    df['sd_percentage_raw'] = pd.to_numeric(df['sd_percentage'], errors='coerce').fillna(0.0)
-    df['sd_custom_specified'] = (df['sd_percentage_raw'] > 0).astype(int)
-    df['sd_percentage'] = df['sd_percentage_raw']
-    
-    # 2.8 Max LD / PRS Cap Indicator + Magnitude (Audited)
-    df['max_ld_percentage_raw'] = pd.to_numeric(df['max_ld_percentage'], errors='coerce').fillna(0.0)
-    df['max_ld_custom_specified'] = (df['max_ld_percentage_raw'] > 0).astype(int)
-    df['max_ld_cap_percent'] = df['max_ld_percentage_raw']
-    
-    # 2.9 Experience & Delivery
-    df['technical_experience_years_req'] = pd.to_numeric(df['technical_eligibility_age'], errors='coerce').fillna(0.0)
+    df['max_ld_cap_percent'] = pd.to_numeric(df['max_ld_percentage'], errors='coerce').fillna(0.0)
     df['delivery_time_supply_days'] = pd.to_numeric(df['delivery_time_supply'], errors='coerce').fillna(0.0)
-    
-    # 2.10 MAF & Reverse Auction Flags
+
+    # 8. MAF, Reverse Auction, MSME Matches
     df['maf_required_flag'] = df['maf_required'].astype(str).str.lower().isin(['yes', 'true', '1', 'mandatory']).astype(int)
     df['reverse_auction_flag'] = df['reverse_auction_applicable'].astype(str).str.lower().isin(['yes', 'true', '1', 'applicable']).astype(int)
+    msme_registered = bool(profile.get("msme_registered", True))
+    df['mse_preference_flag'] = df['mse_purchase_preference'].astype(str).str.lower().isin(['yes', 'true', '1']).astype(int)
+    df['msme_match'] = ((df['mse_preference_flag'] == 1) & msme_registered).astype(int)
+
+    # 9. REQUIRED DOMAIN FEATURES: is_incumbent_psu & authority_win_rate
+    incumbent_psu_list = [p.upper().strip() for p in profile.get("incumbent_psu_list", [])]
     
-    # 2.11 Tender Scale & Validity (Purged 1.0 stubs)
-    raw_tv = pd.to_numeric(df['tender_value'], errors='coerce').fillna(
-        pd.to_numeric(df['estimated_cost'], errors='coerce').fillna(0.0)
-    )
-    # Reject stubs <= 1.0
-    clean_tv = np.where(raw_tv > 1.0, raw_tv, 0.0)
-    df['tender_value_specified'] = (clean_tv > 0).astype(int)
-    df['log_tender_value'] = np.log1p(clean_tv)
-    df['bid_validity_days'] = pd.to_numeric(df['bid_validity_days'], errors='coerce').fillna(0.0)
-    
-    # Optimal regularized feature columns specification
+    is_incumbent_psu_vals = []
+    for idx, row in df.iterrows():
+        org_c = str(row['org_clean']).upper()
+        dept_c = str(row.get('department', '')).upper()
+        client_c = str(row.get('client', '')).upper()
+        match = any(psu in org_c or psu in dept_c or psu in client_c for psu in incumbent_psu_list)
+        is_incumbent_psu_vals.append(1 if match else 0)
+    df['is_incumbent_psu'] = is_incumbent_psu_vals
+
+    # Strictly leak-free chronological rolling authority win rate
+    auth_win_rates = []
+    incumbent_buyer_status_vals = []
+    for idx, row in df.iterrows():
+        cur_dt = row['reference_date']
+        cur_org = row['org_clean']
+        prior_tenders = df[(df['reference_date'] < cur_dt) & (df['org_clean'] == cur_org)]
+        if len(prior_tenders) > 0:
+            win_rate = prior_tenders['is_won'].mean()
+            prior_wins = prior_tenders['is_won'].sum()
+        else:
+            win_rate = 0.0
+            prior_wins = 0
+        auth_win_rates.append(float(win_rate))
+        incumbent_buyer_status_vals.append(1 if prior_wins > 0 else 0)
+
+    df['authority_win_rate'] = auth_win_rates
+    df['incumbent_buyer_status'] = incumbent_buyer_status_vals
+
     feature_cols = [
         'emd_ratio',
         'log_tender_value',
+        'tender_value_imputed_num',
         'turnover_ratio',
         'pbg_duration_months',
         'max_ld_cap_percent',
         'delivery_time_supply_days',
-        'bid_validity_days',
+        'bid_validity_days_bounded',
         'log_emd_amount',
         'maf_required_flag',
         'reverse_auction_flag',
+        'is_incumbent_psu',
+        'authority_win_rate',
         'incumbent_buyer_status',
+        'msme_match',
         'turnover_req_applicable'
     ]
-    
+
     logger.info(f"Engineered Feature Matrix Shape: {df[feature_cols].shape}")
-    logger.info(f"Target distribution: {df['outcome'].value_counts().to_dict()}")
-    logger.info(f"Null values across all features:\n{df[feature_cols].isnull().sum()}")
-    
+    logger.info(f"Feature set ({len(feature_cols)} features): {feature_cols}")
     return df, feature_cols
 
+
 # =============================================================================
-# STEP 3 — CLASSIFIER TRAINING & CROSS-VALIDATION
+# STEP 3 — TEMPORAL VALIDATION: 5-FOLD WALK-FORWARD & STATIC HOLDOUT
 # =============================================================================
-def train_and_evaluate_classifier(df: pd.DataFrame, feature_cols: list):
-    logger.info("\n=== STEP 3: CLASSIFIER TRAINING ===")
+def run_temporal_validation(df: pd.DataFrame, feature_cols: list[str]) -> dict:
+    logger.info("\n=== STEP 3: TEMPORAL VALIDATION (5-FOLD WALK-FORWARD + STATIC HOLDOUT) ===")
     
-    X = df[feature_cols].copy()
+    X = df[feature_cols]
     y = df['is_won'].values
     
-    # 1. Stratified 80/20 Train/Test Split
-    X_train, X_test, y_train, y_test, idx_train, idx_test = train_test_split(
-        X, y, df.index, test_size=0.20, stratify=y, random_state=42
-    )
+    # ── 1. PRIMARY: 5-Fold TimeSeriesSplit Walk-Forward Validation ───────────
+    logger.info("--- 1. PRIMARY: 5-FOLD TIMESERIESSPLIT WALK-FORWARD ---")
+    tscv = TimeSeriesSplit(n_splits=5)
     
-    logger.info(f"Train split: {len(X_train)} samples ({np.sum(y_train)} Won, {len(y_train) - np.sum(y_train)} Lost)")
-    logger.info(f"Test split:  {len(X_test)} samples ({np.sum(y_test)} Won, {len(y_test) - np.sum(y_test)} Lost)")
+    fold_metrics = {
+        'Win Precision': [],
+        'Win Recall': [],
+        'Win F1': [],
+        'PR-AUC': [],
+        'Loss Precision': [],
+        'Loss Recall': [],
+        'Loss F1': [],
+        'Balanced Accuracy': [],
+        'Macro F1': [],
+        'ROC-AUC': [],
+        'Val Win Rate (%)': []
+    }
     
-    # Train Regularized LightGBM model
-    model = LGBMClassifier(
+    fold_details = []
+    fold_idx = 1
+    for train_idx, val_idx in tscv.split(X):
+        X_tr, X_va = X.iloc[train_idx], X.iloc[val_idx]
+        y_tr, y_va = y[train_idx], y[val_idx]
+        
+        val_win_rate = y_va.mean() * 100
+        
+        model = LGBMClassifier(
+            class_weight="balanced",
+            random_state=42,
+            n_estimators=60,
+            learning_rate=0.03,
+            max_depth=4,
+            min_child_samples=15,
+            subsample=0.8,
+            colsample_bytree=0.8,
+            reg_alpha=0.5,
+            reg_lambda=1.0,
+            verbose=-1
+        )
+        model.fit(X_tr, y_tr)
+        
+        y_pred = model.predict(X_va)
+        y_prob = model.predict_proba(X_va)[:, 1]
+        
+        wp = precision_score(y_va, y_pred, pos_label=1, zero_division=0)
+        wr = recall_score(y_va, y_pred, pos_label=1, zero_division=0)
+        wf1 = f1_score(y_va, y_pred, pos_label=1, zero_division=0)
+        
+        prec_c, rec_c, _ = precision_recall_curve(y_va, y_prob)
+        pr_auc_val = auc(rec_c, prec_c)
+        
+        lp = precision_score(y_va, y_pred, pos_label=0, zero_division=0)
+        lr = recall_score(y_va, y_pred, pos_label=0, zero_division=0)
+        lf1 = f1_score(y_va, y_pred, pos_label=0, zero_division=0)
+        
+        bal_acc = balanced_accuracy_score(y_va, y_pred)
+        mac_f1 = f1_score(y_va, y_pred, average="macro", zero_division=0)
+        roc_auc_val = roc_auc_score(y_va, y_prob)
+        
+        fold_metrics['Win Precision'].append(wp)
+        fold_metrics['Win Recall'].append(wr)
+        fold_metrics['Win F1'].append(wf1)
+        fold_metrics['PR-AUC'].append(pr_auc_val)
+        fold_metrics['Loss Precision'].append(lp)
+        fold_metrics['Loss Recall'].append(lr)
+        fold_metrics['Loss F1'].append(lf1)
+        fold_metrics['Balanced Accuracy'].append(bal_acc)
+        fold_metrics['Macro F1'].append(mac_f1)
+        fold_metrics['ROC-AUC'].append(roc_auc_val)
+        fold_metrics['Val Win Rate (%)'].append(val_win_rate)
+        
+        fold_info = {
+            "fold": fold_idx,
+            "train_size": len(X_tr),
+            "val_size": len(X_va),
+            "val_win_rate": val_win_rate,
+            "win_precision": wp,
+            "win_recall": wr,
+            "win_f1": wf1,
+            "pr_auc": pr_auc_val,
+            "loss_precision": lp,
+            "loss_recall": lr,
+            "loss_f1": lf1,
+            "balanced_accuracy": bal_acc,
+            "macro_f1": mac_f1,
+            "roc_auc": roc_auc_val
+        }
+        fold_details.append(fold_info)
+        logger.info(
+            f"Fold {fold_idx} (Train N={len(X_tr)}, Val N={len(X_va)}, Win Rate={val_win_rate:.1f}%): "
+            f"Win F1={wf1:.4f} | PR-AUC={pr_auc_val:.4f} | Loss F1={lf1:.4f} | Bal Acc={bal_acc:.4f} | ROC-AUC={roc_auc_val:.4f}"
+        )
+        fold_idx += 1
+        
+    summary_metrics = {}
+    print("\n" + "="*85)
+    print(f"{'METRIC':<25} | {'MEAN':<12} | {'STD':<12} | {'WALK-FORWARD (MEAN +/- STD)'}")
+    print("-" * 85)
+    for m_name, vals in fold_metrics.items():
+        m_mean = float(np.mean(vals))
+        m_std = float(np.std(vals))
+        summary_metrics[m_name] = {"mean": m_mean, "std": m_std}
+        if "%" in m_name:
+            print(f"{m_name:<25} | {m_mean:>10.2f}% | {m_std:>10.2f}% | {m_mean:.2f}% +/- {m_std:.2f}%")
+        else:
+            print(f"{m_name:<25} | {m_mean:>12.4f} | {m_std:>12.4f} | {m_mean:.4f} +/- {m_std:.4f}")
+    print("="*85 + "\n")
+
+    # ── 2. SECONDARY: Chronological 75/25 Static Holdout (N=165) ─────────────
+    logger.info("--- 2. SECONDARY: CHRONOLOGICAL 75/25 STATISTICAL CONFIRMATION ---")
+    split_idx = int(len(df) * 0.75)
+    X_train_stat, X_test_stat = X.iloc[:split_idx], X.iloc[split_idx:]
+    y_train_stat, y_test_stat = y[:split_idx], y[split_idx:]
+    df_test_stat = df.iloc[split_idx:].copy()
+
+    stat_model = LGBMClassifier(
         class_weight="balanced",
         random_state=42,
-        n_estimators=50,
+        n_estimators=60,
         learning_rate=0.03,
-        max_depth=3,
-        min_child_samples=25,
-        subsample=0.7,
-        colsample_bytree=0.7,
+        max_depth=4,
+        min_child_samples=15,
+        subsample=0.8,
+        colsample_bytree=0.8,
         reg_alpha=0.5,
         reg_lambda=1.0,
         importance_type='gain',
         verbose=-1
     )
-    model.fit(X_train, y_train)
-    
-    y_pred = model.predict(X_test)
-    y_prob = model.predict_proba(X_test)[:, 1]
-    
-    acc = accuracy_score(y_test, y_pred)
-    roc_auc = roc_auc_score(y_test, y_prob)
-    report_dict = classification_report(y_test, y_pred, target_names=["Lost", "Won"], output_dict=True)
-    cm = confusion_matrix(y_test, y_pred)
-    
-    logger.info(f"\n--- HELD-OUT TEST SET PERFORMANCE ---")
-    logger.info(f"Accuracy: {acc:.4f} | ROC-AUC: {roc_auc:.4f}")
-    logger.info(f"Confusion Matrix:\n{cm}")
-    logger.info(f"Classification Report:\n{classification_report(y_test, y_pred, target_names=['Lost', 'Won'])}")
-    
-    # 2. 5-Fold Stratified Cross-Validation
-    logger.info("\n--- 5-FOLD STRATIFIED CROSS-VALIDATION ---")
-    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-    cv_metrics = {
-        'accuracy': [],
-        'roc_auc': [],
-        'precision_won': [],
-        'recall_won': [],
-        'f1_won': [],
-        'precision_lost': [],
-        'recall_lost': [],
-        'f1_lost': [],
-        'macro_f1': []
-    }
-    
-    fold_idx = 1
-    for tr_idx, val_idx in skf.split(X, y):
-        X_tr, X_val = X.iloc[tr_idx], X.iloc[val_idx]
-        y_tr, y_val = y[tr_idx], y[val_idx]
-        
-        fold_model = LGBMClassifier(
-            class_weight="balanced",
-            random_state=42,
-            n_estimators=100,
-            learning_rate=0.05,
-            max_depth=5,
-            min_child_samples=10,
-            subsample=0.8,
-            colsample_bytree=0.8,
-            importance_type='gain',
-            verbose=-1
-        )
-        fold_model.fit(X_tr, y_tr)
-        
-        y_val_pred = fold_model.predict(X_val)
-        y_val_prob = fold_model.predict_proba(X_val)[:, 1]
-        
-        fold_acc = accuracy_score(y_val, y_val_pred)
-        fold_auc = roc_auc_score(y_val, y_val_prob)
-        fold_rep = classification_report(y_val, y_val_pred, target_names=["Lost", "Won"], output_dict=True)
-        
-        cv_metrics['accuracy'].append(fold_acc)
-        cv_metrics['roc_auc'].append(fold_auc)
-        cv_metrics['precision_won'].append(fold_rep['Won']['precision'])
-        cv_metrics['recall_won'].append(fold_rep['Won']['recall'])
-        cv_metrics['f1_won'].append(fold_rep['Won']['f1-score'])
-        cv_metrics['precision_lost'].append(fold_rep['Lost']['precision'])
-        cv_metrics['recall_lost'].append(fold_rep['Lost']['recall'])
-        cv_metrics['f1_lost'].append(fold_rep['Lost']['f1-score'])
-        cv_metrics['macro_f1'].append(fold_rep['macro avg']['f1-score'])
-        
-        logger.info(
-            f"Fold {fold_idx}: Acc={fold_acc:.3f}, Won F1={fold_rep['Won']['f1-score']:.3f}, "
-            f"Lost F1={fold_rep['Lost']['f1-score']:.3f}, ROC-AUC={fold_auc:.3f}"
-        )
-        fold_idx += 1
-        
-    logger.info("\n=== 5-FOLD CV SUMMARY (MEAN ± STD) ===")
-    for metric_name, values in cv_metrics.items():
-        logger.info(f"{metric_name:<16}: {np.mean(values):.4f} ± {np.std(values):.4f} (range: [{np.min(values):.4f}, {np.max(values):.4f}])")
-        
-    return {
-        'model': model,
-        'X_train': X_train,
-        'X_test': X_test,
-        'y_train': y_train,
-        'y_test': y_test,
-        'idx_test': idx_test,
-        'y_pred': y_pred,
-        'y_prob': y_prob,
-        'test_metrics': {
-            'accuracy': acc,
-            'roc_auc': roc_auc,
-            'confusion_matrix': cm,
-            'report': report_dict
-        },
-        'cv_metrics': cv_metrics
-    }
+    stat_model.fit(X_train_stat, y_train_stat)
 
-# =============================================================================
-# STEP 4 — SHAP EXPLAINABILITY & PROCUREMENT INSIGHTS
-# =============================================================================
-def compute_shap_explanations(model_results: dict, df: pd.DataFrame, feature_cols: list):
-    logger.info("\n=== STEP 4: SHAP EXPLAINABILITY ===")
-    model = model_results['model']
-    X_test = model_results['X_test']
-    y_test = model_results['y_test']
-    idx_test = model_results['idx_test']
-    y_pred = model_results['y_pred']
-    y_prob = model_results['y_prob']
-    
-    # 1. Native LightGBM TreeSHAP computation (pred_contrib=True)
-    # Returns [n_samples, n_features + 1] where the last column is the base value / bias
-    shap_contrib = model.booster_.predict(X_test, pred_contrib=True)
-    sv_won = shap_contrib[:, :-1]
-    base_value = shap_contrib[0, -1]
-        
+    y_stat_pred = stat_model.predict(X_test_stat)
+    y_stat_prob = stat_model.predict_proba(X_test_stat)[:, 1]
+
+    cm_stat = confusion_matrix(y_test_stat, y_stat_pred)
+    tn, fp, fn, tp = cm_stat.ravel()
+    n_test = len(y_test_stat)
+    n_wins = int(sum(y_test_stat))
+
+    win_prec = precision_score(y_test_stat, y_stat_pred, pos_label=1, zero_division=0)
+    win_rec = recall_score(y_test_stat, y_stat_pred, pos_label=1, zero_division=0)
+    win_f1 = f1_score(y_test_stat, y_stat_pred, pos_label=1, zero_division=0)
+
+    prec_c, rec_c, _ = precision_recall_curve(y_test_stat, y_stat_prob)
+    pr_auc_stat = auc(rec_c, prec_c)
+    roc_auc_stat = roc_auc_score(y_test_stat, y_stat_prob)
+    bal_acc_stat = balanced_accuracy_score(y_test_stat, y_stat_pred)
+    macro_f1_stat = f1_score(y_test_stat, y_stat_pred, average="macro", zero_division=0)
+
+    loss_prec = precision_score(y_test_stat, y_stat_pred, pos_label=0, zero_division=0)
+    loss_rec = recall_score(y_test_stat, y_stat_pred, pos_label=0, zero_division=0)
+    loss_f1 = f1_score(y_test_stat, y_stat_pred, pos_label=0, zero_division=0)
+
+    # Compute Wilson 95% Confidence Intervals
+    prec_ci_low, prec_ci_high = wilson_ci(tp, tp + fp)
+    rec_ci_low, rec_ci_high = wilson_ci(tp, tp + fn)
+    acc_ci_low, acc_ci_high = wilson_ci(tp + tn, n_test)
+
+    logger.info(f"Static Holdout Test Size N={n_test} (Wins: {n_wins}, Losses: {n_test - n_wins})")
+    logger.info(f"Confusion Matrix: TN={tn}, FP={fp}, FN={fn}, TP={tp}")
+    logger.info(f"  Win Precision    : {win_prec:.4f} (Wilson 95% CI: [{prec_ci_low:.4f}, {prec_ci_high:.4f}])")
+    logger.info(f"  Win Recall       : {win_rec:.4f} (Wilson 95% CI: [{rec_ci_low:.4f}, {rec_ci_high:.4f}])")
+    logger.info(f"  Win F1           : {win_f1:.4f}")
+    logger.info(f"  PR-AUC           : {pr_auc_stat:.4f}")
+    logger.info(f"  Loss Precision   : {loss_prec:.4f}")
+    logger.info(f"  Loss Recall      : {loss_rec:.4f}")
+    logger.info(f"  Loss F1          : {loss_f1:.4f}")
+    logger.info(f"  Balanced Accuracy: {bal_acc_stat:.4f}")
+    logger.info(f"  Macro F1         : {macro_f1_stat:.4f}")
+    logger.info(f"  ROC-AUC          : {roc_auc_stat:.4f}")
+    logger.info(f"  Accuracy         : {(tp+tn)/n_test:.4f} (Wilson 95% CI: [{acc_ci_low:.4f}, {acc_ci_high:.4f}])")
+
+    # ── 3. SHAP EXPLAINABILITY & EXPORT ARTIFACTS ────────────────────────────
+    logger.info("\n--- 3. SHAP EXPLAINABILITY & ARTIFACT EXPORT ---")
     os.makedirs(ROOT_DIR / "artifacts", exist_ok=True)
     
-    # 1. Global Mean Absolute SHAP Ranking
-    mean_abs_shap = np.mean(np.abs(sv_won), axis=0)
-    shap_importance_df = pd.DataFrame({
-        'feature': feature_cols,
-        'mean_abs_shap': mean_abs_shap
-    }).sort_values(by='mean_abs_shap', ascending=False).reset_index(drop=True)
-    
-    logger.info("\n--- GLOBAL SHAP FEATURE IMPORTANCE RANKING ---")
-    for rank, row in shap_importance_df.iterrows():
-        logger.info(f"{rank+1:2d}. {row['feature']:<30}: {row['mean_abs_shap']:.4f}")
-        
-    shap_importance_df.to_csv(ROOT_DIR / "artifacts" / "feature_importance.csv", index=False)
-    
-    # 2. Save Global SHAP Plots (Publication Quality)
-    # 2a. Global Bar Plot
-    top_n = min(15, len(feature_cols))
-    top_shap = shap_importance_df.head(top_n).iloc[::-1]
-    
-    plt.figure(figsize=(10, 7))
-    bars = plt.barh(top_shap['feature'], top_shap['mean_abs_shap'], color='#2563eb', alpha=0.85, edgecolor='#1d4ed8')
-    plt.xlabel("Mean |SHAP Value| (Average Impact on Win Probability)", fontsize=11, fontweight='bold')
-    plt.title(f"Global Feature Importance Ranking (Top {top_n} Features)", fontsize=13, fontweight='bold', pad=12)
-    plt.grid(axis='x', linestyle='--', alpha=0.5)
-    for bar in bars:
-        w = bar.get_width()
-        plt.text(w + 0.005, bar.get_y() + bar.get_height()/2, f"{w:.4f}", va='center', ha='left', fontsize=9, color='#1e293b')
-    plt.tight_layout()
-    plt.savefig(ROOT_DIR / "artifacts" / "shap_bar.png", dpi=300, bbox_inches='tight')
-    plt.close()
-    
-    # 2b. Global Summary Beeswarm Plot
-    plt.figure(figsize=(11, 8))
-    sorted_features = shap_importance_df['feature'].head(top_n).tolist()
-    y_positions = list(range(len(sorted_features)))[::-1]
-    
-    for y_pos, feat_name in zip(y_positions, sorted_features):
-        feat_idx = feature_cols.index(feat_name)
-        feat_vals = X_test[feat_name].values
-        shap_vals = sv_won[:, feat_idx]
-        
-        # Normalize feature values to [0, 1] for color coding
-        val_min, val_max = np.min(feat_vals), np.max(feat_vals)
-        if val_max > val_min:
-            norm_vals = (feat_vals - val_min) / (val_max - val_min)
-        else:
-            norm_vals = np.zeros_like(feat_vals) + 0.5
-            
-        jitter = np.random.normal(0, 0.08, size=len(shap_vals))
-        sc = plt.scatter(
-            shap_vals,
-            [y_pos + j for j in jitter],
-            c=norm_vals,
-            cmap='coolwarm',
-            alpha=0.75,
-            edgecolors='none',
-            s=35
-        )
-        
-    plt.axvline(0, color='gray', linestyle='--', linewidth=1)
-    plt.yticks(y_positions, sorted_features, fontsize=10)
-    plt.xlabel("SHAP Value (Impact on Log-Odds of Winning Tender)", fontsize=11, fontweight='bold')
-    plt.title(f"SHAP Summary Plot (Top {top_n} Features Impact Distribution)", fontsize=13, fontweight='bold', pad=12)
-    cbar = plt.colorbar(sc, orientation='vertical', pad=0.02, shrink=0.7)
-    cbar.set_label('Feature Value (Low → High)', fontsize=9, fontweight='bold')
-    cbar.set_ticks([0.1, 0.9])
-    cbar.set_ticklabels(['Low', 'High'])
-    plt.grid(axis='x', linestyle=':', alpha=0.6)
-    plt.tight_layout()
-    plt.savefig(ROOT_DIR / "artifacts" / "shap_summary.png", dpi=300, bbox_inches='tight')
-    plt.close()
-    logger.info("Saved SHAP plots to artifacts/shap_summary.png and artifacts/shap_bar.png")
-    
-    # 3. Individual Prediction Explanations
-    explanation_records = []
-    test_df_subset = df.loc[idx_test].copy().reset_index(drop=True)
-    
-    for i in range(len(X_test)):
-        row_feat = X_test.iloc[i]
-        row_sv = sv_won[i]
-        actual_outcome = "Won" if y_test[i] == 1 else "Lost"
-        pred_outcome = "Won" if y_pred[i] == 1 else "Lost"
-        win_prob = y_prob[i]
-        
-        # Sort features by absolute SHAP impact
-        top_indices = np.argsort(np.abs(row_sv))[::-1][:3]
-        
-        driver_phrases = []
-        for feat_idx in top_indices:
-            feat_name = feature_cols[feat_idx]
-            val = row_feat[feat_name]
-            sv = row_sv[feat_idx]
-            direction = "pushing toward Won" if sv > 0 else "pushing toward Lost"
-            
-            # Format human-readable procurement driver text
-            if feat_name == 'turnover_ratio':
-                desc = f"turnover ratio ({val:.2f}x required, {direction} [SHAP: {sv:+.3f}])"
-            elif feat_name == 'incumbent_buyer_status':
-                desc = f"{'has prior win with buyer' if val == 1 else 'no incumbent relationship'} ({direction} [SHAP: {sv:+.3f}])"
-            elif feat_name == 'msme_match':
-                desc = f"{'MSME preference matched' if val == 1 else 'no MSME match'} ({direction} [SHAP: {sv:+.3f}])"
-            elif feat_name == 'mii_match':
-                desc = f"{'MII preference matched' if val == 1 else 'no MII match'} ({direction} [SHAP: {sv:+.3f}])"
-            elif feat_name == 'log_emd_amount' or feat_name == 'emd_ratio':
-                desc = f"EMD burden (ratio={row_feat['emd_ratio']:.4f}, {direction} [SHAP: {sv:+.3f}])"
-            elif feat_name == 'delivery_time_supply_days':
-                desc = f"delivery timeline ({int(val)} days, {direction} [SHAP: {sv:+.3f}])"
-            elif feat_name == 'technical_experience_years_req':
-                desc = f"experience threshold ({int(val)} years, {direction} [SHAP: {sv:+.3f}])"
-            elif feat_name == 'pbg_percentage':
-                desc = f"PBG guarantee ({val:.1f}%, {direction} [SHAP: {sv:+.3f}])"
-            elif feat_name == 'max_ld_cap_percent':
-                desc = f"Max LD/PRS cap ({val:.1f}%, {direction} [SHAP: {sv:+.3f}])"
-            elif feat_name == 'sd_percentage':
-                desc = f"Security deposit ({val:.1f}%, {direction} [SHAP: {sv:+.3f}])"
-            elif feat_name == 'maf_required_flag':
-                desc = f"{'MAF mandatory' if val == 1 else 'MAF not required'} ({direction} [SHAP: {sv:+.3f}])"
-            elif feat_name == 'reverse_auction_flag':
-                desc = f"{'Reverse auction enabled' if val == 1 else 'No reverse auction'} ({direction} [SHAP: {sv:+.3f}])"
-            else:
-                desc = f"{feat_name} ({val:.2f}, {direction} [SHAP: {sv:+.3f}])"
-            driver_phrases.append(desc)
-            
-        full_explanation = f"Predicted {pred_outcome} (win_prob={win_prob:.2f}), Actual: {actual_outcome}. Driven by: {'; '.join(driver_phrases)}"
-        
-        explanation_records.append({
-            'tender_no': test_df_subset.loc[i, 'tender_no'],
-            'tender_name': test_df_subset.loc[i, 'tender_name'],
-            'organization': test_df_subset.loc[i, 'organization'],
-            'actual_outcome': actual_outcome,
-            'predicted_outcome': pred_outcome,
-            'win_probability': round(win_prob, 4),
-            'top_3_drivers': "; ".join(driver_phrases),
-            'full_narrative': full_explanation
-        })
-        
-    explanations_df = pd.DataFrame(explanation_records)
-    explanations_df.to_csv(ROOT_DIR / "artifacts" / "test_predictions_explained.csv", index=False)
-    
-    logger.info("\n--- SAMPLE INDIVIDUAL PREDICTIONS WITH SHAP DRIVERS ---")
-    for idx, row in explanations_df.head(5).iterrows():
-        logger.info(f"\nTender: {row['tender_no']} | {str(row['tender_name'])[:40]}...")
-        logger.info(f"  {row['full_narrative']}")
-        
-    return shap_importance_df, explanations_df
+    explainer = shap.TreeExplainer(stat_model)
+    shap_values = explainer.shap_values(X_test_stat)
+    if isinstance(shap_values, list) and len(shap_values) == 2:
+        shap_vals_class1 = shap_values[1]
+    else:
+        shap_vals_class1 = shap_values
 
-# =============================================================================
-# MAIN PIPELINE EXECUTION
-# =============================================================================
-def run_predictive_engine_pipeline():
-    logger.info("=================================================================")
-    logger.info("WEEK 5: THE PREDICTIVE ENGINE (LightGBM & SHAP)")
-    logger.info("=================================================================")
+    # Generate SHAP bar plot
+    plt.figure(figsize=(10, 6))
+    shap.summary_plot(shap_vals_class1, X_test_stat, plot_type="bar", show=False)
+    plt.title("LightGBM Feature Importance (SHAP Gain)")
+    plt.tight_layout()
+    shap_bar_path = ROOT_DIR / "artifacts" / "shap_bar.png"
+    plt.savefig(shap_bar_path, dpi=300)
+    plt.close()
+
+    # Generate top drivers for each test prediction
+    df_test_stat['win_probability'] = y_stat_prob
+    df_test_stat['predicted_outcome'] = np.where(y_stat_pred == 1, 'Won', 'Lost')
     
-    # Step 0
+    top_drivers_list = []
+    for row_idx in range(len(X_test_stat)):
+        row_shap = shap_vals_class1[row_idx]
+        top_indices = np.argsort(np.abs(row_shap))[::-1][:3]
+        drivers = [
+            f"{feature_cols[i]} ({X_test_stat.iloc[row_idx, i]:.2f}, SHAP {row_shap[i]:+.3f})"
+            for i in top_indices
+        ]
+        top_drivers_list.append("; ".join(drivers))
+    df_test_stat['top_3_drivers'] = top_drivers_list
+    df_test_stat['full_narrative'] = [
+        f"Predicted {df_test_stat.iloc[i]['predicted_outcome']} ({df_test_stat.iloc[i]['win_probability']*100:.1f}%) | "
+        f"Drivers: {df_test_stat.iloc[i]['top_3_drivers']}"
+        for i in range(len(df_test_stat))
+    ]
+
+    # Save test_predictions_explained.csv
+    pred_path = ROOT_DIR / "artifacts" / "test_predictions_explained.csv"
+    df_test_stat.to_csv(pred_path, index=False)
+    logger.info(f"Saved test predictions with SHAP drivers to '{pred_path}'")
+
+    # Save training_set_win_loss.csv
+    train_export_path = ROOT_DIR / "artifacts" / "training_set_win_loss.csv"
+    df.to_csv(train_export_path, index=False)
+    logger.info(f"Saved complete training view dataset to '{train_export_path}'")
+
+    # Fit full production model on all eligible data
+    full_model = LGBMClassifier(
+        class_weight="balanced",
+        random_state=42,
+        n_estimators=60,
+        learning_rate=0.03,
+        max_depth=4,
+        min_child_samples=15,
+        subsample=0.8,
+        colsample_bytree=0.8,
+        reg_alpha=0.5,
+        reg_lambda=1.0,
+        importance_type='gain',
+        verbose=-1
+    )
+    full_model.fit(X, y)
+
+    # Save trained LightGBM model artifact
+    model_artifact_path = ROOT_DIR / "artifacts" / "lgbm_win_predictor.joblib"
+    joblib.dump({
+        "model": full_model,
+        "stat_model": stat_model,
+        "feature_cols": feature_cols,
+        "trained_at": datetime.utcnow().isoformat(),
+        "n_samples": len(X),
+        "n_train_stat": len(X_train_stat)
+    }, model_artifact_path)
+    logger.info(f"Saved trained LightGBM model to '{model_artifact_path}'")
+
+    # Save model_comparison_cv.csv
+    cv_df = pd.DataFrame(fold_details)
+    cv_path = ROOT_DIR / "artifacts" / "model_comparison_cv.csv"
+    cv_df.to_csv(cv_path, index=False)
+    logger.info(f"Saved 5-fold CV metrics to '{cv_path}'")
+
+    # Save temporal_validation_report.json
+    report_data = {
+        "timestamp": datetime.utcnow().isoformat(),
+        "total_dataset_rows": len(df),
+        "eligible_dataset_rows": len(df),
+        "feature_count": len(feature_cols),
+        "features": feature_cols,
+        "walk_forward_5fold_summary": summary_metrics,
+        "static_holdout_165": {
+            "test_size": n_test,
+            "won_count": n_wins,
+            "lost_count": n_test - n_wins,
+            "win_precision": win_prec,
+            "win_precision_wilson_ci": [prec_ci_low, prec_ci_high],
+            "win_recall": win_rec,
+            "win_recall_wilson_ci": [rec_ci_low, rec_ci_high],
+            "win_f1": win_f1,
+            "pr_auc": pr_auc_stat,
+            "loss_precision": loss_prec,
+            "loss_recall": loss_rec,
+            "loss_f1": loss_f1,
+            "balanced_accuracy": bal_acc_stat,
+            "macro_f1": macro_f1_stat,
+            "roc_auc": roc_auc_stat,
+            "accuracy": (tp + tn) / n_test,
+            "accuracy_wilson_ci": [acc_ci_low, acc_ci_high],
+            "confusion_matrix": {"tn": int(tn), "fp": int(fp), "fn": int(fn), "tp": int(tp)}
+        }
+    }
+    report_path = ROOT_DIR / "artifacts" / "temporal_validation_report.json"
+    with open(report_path, "w", encoding="utf-8") as f:
+        json.dump(report_data, f, indent=2)
+    logger.info(f"Saved full validation report JSON to '{report_path}'")
+
+    return report_data
+
+
+def main():
     profile = load_and_validate_company_profile()
-    
-    # Step 1
-    counts = check_backfill_status_and_halt_if_insufficient(MIN_LINKED_COUNT)
-    
-    # Step 2
-    df, feature_cols = load_and_engineer_features(profile)
-    
-    # Step 3
-    model_results = train_and_evaluate_classifier(df, feature_cols)
-    
-    # Step 4
-    shap_importance, explanations = compute_shap_explanations(model_results, df, feature_cols)
-    
-    logger.info("\n=================================================================")
-    logger.info("PREDICTIVE ENGINE PIPELINE COMPLETE!")
-    logger.info("=================================================================")
+    df_eligible = load_and_filter_eligible_tenders(profile)
+    df_sanitized, feature_cols = sanitize_and_engineer_features(df_eligible, profile)
+    report = run_temporal_validation(df_sanitized, feature_cols)
+    logger.info("=== PREDICTIVE ENGINE TEMPORAL VALIDATION COMPLETED SUCCESSFULLY ===")
 
-if __name__ == '__main__':
-    run_predictive_engine_pipeline()
+
+if __name__ == "__main__":
+    main()

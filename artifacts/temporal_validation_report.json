@@ -1,0 +1,104 @@
+{
+  "timestamp": "2026-08-31T12:41:37.915609",
+  "total_dataset_rows": 657,
+  "eligible_dataset_rows": 657,
+  "feature_count": 16,
+  "features": [
+    "emd_ratio",
+    "log_tender_value",
+    "tender_value_imputed_num",
+    "turnover_ratio",
+    "pbg_duration_months",
+    "max_ld_cap_percent",
+    "delivery_time_supply_days",
+    "bid_validity_days_bounded",
+    "log_emd_amount",
+    "maf_required_flag",
+    "reverse_auction_flag",
+    "is_incumbent_psu",
+    "authority_win_rate",
+    "incumbent_buyer_status",
+    "msme_match",
+    "turnover_req_applicable"
+  ],
+  "walk_forward_5fold_summary": {
+    "Win Precision": {
+      "mean": 0.2830421623579654,
+      "std": 0.22773982395380976
+    },
+    "Win Recall": {
+      "mean": 0.5417418546365915,
+      "std": 0.18593062698630308
+    },
+    "Win F1": {
+      "mean": 0.30900349693366597,
+      "std": 0.1839927442496923
+    },
+    "PR-AUC": {
+      "mean": 0.27703467103494284,
+      "std": 0.19544688987760822
+    },
+    "Loss Precision": {
+      "mean": 0.8474767564071468,
+      "std": 0.056735225189764836
+    },
+    "Loss Recall": {
+      "mean": 0.5793173167680915,
+      "std": 0.26465808603601615
+    },
+    "Loss F1": {
+      "mean": 0.6418080729798856,
+      "std": 0.2034293366378497
+    },
+    "Balanced Accuracy": {
+      "mean": 0.5605295857023415,
+      "std": 0.0848924862966236
+    },
+    "Macro F1": {
+      "mean": 0.4754057849567757,
+      "std": 0.17658700110559203
+    },
+    "ROC-AUC": {
+      "mean": 0.5862373673493508,
+      "std": 0.1204335095663301
+    },
+    "Val Win Rate (%)": {
+      "mean": 18.899082568807337,
+      "std": 9.959094858797732
+    }
+  },
+  "static_holdout_165": {
+    "test_size": 165,
+    "won_count": 32,
+    "lost_count": 133,
+    "win_precision": 0.23943661971830985,
+    "win_precision_wilson_ci": [
+      0.1552081332501636,
+      0.3504144082240967
+    ],
+    "win_recall": 0.53125,
+    "win_recall_wilson_ci": [
+      0.3644923793257382,
+      0.6913087009831766
+    ],
+    "win_f1": 0.3300970873786408,
+    "pr_auc": 0.22672927463448475,
+    "loss_precision": 0.8404255319148937,
+    "loss_recall": 0.5939849624060151,
+    "loss_f1": 0.6960352422907489,
+    "balanced_accuracy": 0.5626174812030076,
+    "macro_f1": 0.5130661648346948,
+    "roc_auc": 0.5758928571428571,
+    "accuracy": 0.5818181818181818,
+    "accuracy_wilson_ci": [
+      0.5055299515621887,
+      0.6543832451855321
+    ],
+    "confusion_matrix": {
+      "tn": 79,
+      "fp": 54,
+      "fn": 15,
+      "tp": 17
+    }
+  }
+}

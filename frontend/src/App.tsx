@@ -6,6 +6,7 @@ import type { FiltersState } from "./components/workspace/WorkspaceHeader";
 import { TenderCard } from "./components/workspace/TenderCard";
 import { TenderCardSkeleton } from "./components/workspace/TenderCardSkeleton";
 import { TenderDetailPane } from "./components/workspace/TenderDetailPane";
+import { PQCRecommendationPanel } from "./components/workspace/PQCRecommendationPanel";
 import { UploadModal } from "./components/workspace/UploadModal";
 import { NotifyChatBox } from "./components/NotifyChatBox";
 import { LayoutGrid, Loader2, Sparkles, Calendar, Activity, ArrowUpDown, SearchX } from "lucide-react";
@@ -35,6 +36,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [sortBy, setSortBy] = useState<"deadline" | "value" | "ai_match" | "updated">("updated");
+  const [activeNavTab, setActiveNavTab] = useState<"tenders" | "recommendations">("tenders");
   const isBackendConnected = true;
 
   // Poll for background processing updates
@@ -304,10 +306,22 @@ function App() {
         onUploadClick={() => setIsUploadModalOpen(true)}
         isBackendConnected={isBackendConnected}
         onRefreshClick={fetchTenders}
+        activeNavTab={activeNavTab}
+        onNavTabChange={setActiveNavTab}
       />
 
       <main className="flex-1 flex overflow-hidden p-6 gap-6 min-h-0">
-        {activeTender ? (
+        {activeNavTab === "recommendations" ? (
+          <PQCRecommendationPanel
+            onSelectTender={(tenderNo) => {
+              const matched = tenders.find((t) => t.id === tenderNo || t.title.includes(tenderNo));
+              if (matched) {
+                setActiveNavTab("tenders");
+                setSelectedTenderId(matched.id);
+              }
+            }}
+          />
+        ) : activeTender ? (
           <TenderDetailPane
             tender={activeTender}
             onBack={() => setSelectedTenderId(null)}

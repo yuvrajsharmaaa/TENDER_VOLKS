@@ -115,3 +115,59 @@ export interface TenderDetail {
   updated_at: string;
 }
 export type PreviewDocument = SourceDocumentItem | GeneratedOutputItem | ExtractedLinkedPdfItem | MentionedAttachmentItem;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PQC Multi-Signal Recommendation System Types
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface ScoreDecomposition {
+  compliance_score: number;
+  compliance_status: "QUALIFIED" | "NEEDS_REVIEW" | "DISQUALIFIED" | string;
+  ml_win_prob: number;
+  similarity_score: number;
+  groq_fit_score: number;
+  composite_score: number;
+}
+
+export interface SimilarTenderItem {
+  tender_no: string;
+  tender_name?: string;
+  similarity: number;
+  outcome: string;
+  organization?: string;
+  key_overlap?: string;
+}
+
+export interface ScoredTender {
+  rank: number;
+  tender_no: string;
+  tender_name: string;
+  organization: string;
+  tender_value: number;
+  composite_score: number;
+  score_decomposition: ScoreDecomposition;
+  similar_tenders?: SimilarTenderItem[];
+  key_drivers?: string[];
+  strategic_rationale?: string;
+  disqualification_reasons?: string[];
+  review_reasons?: string[];
+}
+
+export interface PQCRecommendationRequest {
+  top_k?: number;
+  include_groq?: boolean;
+  source?: "db" | "dataset";
+}
+
+export interface PQCRecommendationResponse {
+  recommendations: ScoredTender[];
+  total_scored: number;
+  weights_used: {
+    compliance: number;
+    similarity: number;
+    ml_win_prob: number;
+    groq: number;
+    [key: string]: number;
+  };
+  timestamp: string;
+}

@@ -23,12 +23,15 @@ class ComplianceStatus(str, Enum):
     NEEDS_REVIEW = "NEEDS_REVIEW"
 
 
+from pathlib import Path
+import yaml
+
 @dataclass
 class VendorProfile:
     """Authoritative vendor profile capabilities (not subject to confidence/ambiguity routing)."""
-    annual_turnover: float = 50_000_000.0  # 5 Crore INR default
-    working_capital: float = 10_000_000.0  # 1 Crore INR default
-    years_of_experience: int = 5
+    annual_turnover: float = 208_886_000.0  # 20.88 Crore INR default from Volks company profile
+    working_capital: float = 43_642_000.0   # 4.36 Crore INR default from Volks company profile
+    years_of_experience: int = 10
     held_certifications: List[str] = dc_field(default_factory=lambda: ["ISO 9001", "BIS", "ISO 14001", "CE"])
     is_insolvent: bool = False
     is_bankrupt: bool = False
@@ -36,7 +39,43 @@ class VendorProfile:
     is_mse_registered: bool = True
     mii_class: str = "Class 1"  # "Class 1", "Class 2", "Non-Local"
     max_pbg_tolerance_pct: float = 10.0  # Max acceptable PBG percentage
-    min_bid_validity_days: int = 30  # Min operational bid validity
+    max_bid_validity_tolerance_days: int = 365  # Max acceptable bid validity tolerance ceiling (Days)
+    min_bid_validity_days: int = 365  # Backward compatibility alias
+
+    @property
+    def msme_registered(self) -> bool:
+        return self.is_mse_registered
+
+    @classmethod
+    def from_yaml(cls, path: Optional[Union[str, Path]] = None) -> "VendorProfile":
+        if path is None:
+            # Locate config/company_profile.yaml in project root
+            root_dir = Path(__file__).resolve().parent.parent.parent.parent.parent
+            path = root_dir / "config" / "company_profile.yaml"
+        p = Path(path)
+        if not p.exists():
+            return cls()
+        try:
+            with open(p, "r", encoding="utf-8") as f:
+                data = yaml.safe_load(f) or {}
+            max_bv = int(data.get("max_bid_validity_tolerance_days", 365))
+            return cls(
+                annual_turnover=float(data.get("avg_annual_turnover", 208_886_000.0)),
+                working_capital=float(data.get("latest_net_worth", 43_642_000.0)),
+                years_of_experience=10,
+                held_certifications=["ISO 9001", "BIS", "ISO 14001", "CE"],
+                is_insolvent=False,
+                is_bankrupt=False,
+                is_blacklisted=False,
+                is_mse_registered=bool(data.get("msme_registered", True)),
+                mii_class="Class 1",
+                max_pbg_tolerance_pct=float(data.get("max_pbg_tolerance_pct", 10.0)),
+                max_bid_validity_tolerance_days=max_bv,
+                min_bid_validity_days=max_bv
+            )
+        except Exception as e:
+            logger.warning(f"Could not load vendor profile from {p}: {e}. Using defaults.")
+            return cls()
 
 
 class RuleResult(BaseModel):
@@ -74,7 +113,7 @@ class RegulatoryComplianceService:
     )
 
     def __init__(self, default_profile: Optional[VendorProfile] = None):
-        self.default_profile = default_profile or VendorProfile()
+        self.default_profile = default_profile or VendorProfile.from_yaml()
 
     # ─────────────────────────────────────────────────────────────────────────
     # Helper Utilities
@@ -349,6 +388,24 @@ class RegulatoryComplianceService:
                 reason="No positive turnover constraint imposed"
             )
 
+        # Check MSE / Startup turnover exemption grant
+        mse_exemption_obj = self._lookup_field(field_map, [
+            "mse_relaxation_experience_turnover", "mse_exemption_turnover", "mse_relaxation",
+            "mse_exemption_for_years_of_experience_and_turnover"
+        ])
+        if mse_exemption_obj and vendor.msme_registered:
+            val_mse = str(mse_exemption_obj.value if isinstance(mse_exemption_obj, ExtractedFieldSchema) else (mse_exemption_obj.get("value") if isinstance(mse_exemption_obj, dict) else mse_exemption_obj)).strip().lower()
+            if val_mse in ("yes", "true", "1", "applicable", "exempt"):
+                logger.info(
+                    f"[HARD_FILTER_UNCONSTRAINED] Tender: {tender_no} | Rule: {rule_name} | "
+                    f"Field: mse_relaxation_experience_turnover | Reason: Vendor is MSME registered and tender grants MSE turnover exemption"
+                )
+                return RuleResult(
+                    rule_name=rule_name, field_name=field_name, status=RuleStatus.QUALIFIED,
+                    passed=True, extracted_value=val_raw, extracted_confidence=conf,
+                    reason="MSE turnover exemption applicable for registered MSME vendor"
+                )
+
         if vendor.annual_turnover < req_turnover:
             return self._emit_disqualification(
                 tender_no=tender_no, rule_name=rule_name, field_name=field_name,
@@ -438,6 +495,24 @@ class RegulatoryComplianceService:
                 reason=f"Could not parse numeric years from '{val_raw}'"
             )
 
+        # Check MSE / Startup experience exemption grant
+        mse_exemption_obj = self._lookup_field(field_map, [
+            "mse_relaxation_experience_turnover", "mse_exemption_turnover", "mse_relaxation",
+            "mse_exemption_for_years_of_experience_and_turnover"
+        ])
+        if mse_exemption_obj and vendor.msme_registered:
+            val_mse = str(mse_exemption_obj.value if isinstance(mse_exemption_obj, ExtractedFieldSchema) else (mse_exemption_obj.get("value") if isinstance(mse_exemption_obj, dict) else mse_exemption_obj)).strip().lower()
+            if val_mse in ("yes", "true", "1", "applicable", "exempt"):
+                logger.info(
+                    f"[HARD_FILTER_UNCONSTRAINED] Tender: {tender_no} | Rule: {rule_name} | "
+                    f"Field: mse_relaxation_experience_turnover | Reason: Vendor is MSME registered and tender grants MSE experience exemption"
+                )
+                return RuleResult(
+                    rule_name=rule_name, field_name=field_name, status=RuleStatus.QUALIFIED,
+                    passed=True, extracted_value=val_raw, extracted_confidence=conf,
+                    reason="MSE experience exemption applicable for registered MSME vendor"
+                )
+
         if vendor.years_of_experience < req_years:
             return self._emit_disqualification(
                 tender_no=tender_no, rule_name=rule_name, field_name=field_name,
@@ -503,7 +578,12 @@ class RegulatoryComplianceService:
     def check_min_bid_validity_days(
         self, tender_no: str, field_map: Dict[str, Any], vendor: VendorProfile
     ) -> RuleResult:
-        """Rule: Tender bid validity period must be >= vendor minimum operational buffer."""
+        """
+        Rule: Buyer-demanded bid validity period must not exceed vendor maximum tolerance ceiling.
+        Demanding a shorter validity (e.g. 3, 16, 20 days) is favorable and passes as QUALIFIED.
+        Demanding validity > 365 days (e.g. unbounded OCR noise like 151152116) routes to NEEDS_REVIEW.
+        Demanding validity > vendor.max_bid_validity_tolerance_days (loaded from config) emits DISQUALIFIED.
+        """
         rule_name = "MIN_BID_VALIDITY"
         field_name = "bid_validity_days"
         field_obj = self._lookup_field(field_map, [
@@ -526,20 +606,32 @@ class RegulatoryComplianceService:
                 reason=f"Could not parse numeric bid validity days from '{val_raw}'"
             )
 
-        if validity_days < vendor.min_bid_validity_days:
+        # Guardrail against OCR table/concatenation corruption (> 365 days)
+        if validity_days > 365:
+            return RuleResult(
+                rule_name=rule_name, field_name=field_name, status=RuleStatus.NEEDS_REVIEW,
+                passed=True, extracted_value=val_raw, extracted_confidence=conf,
+                reason=f"Extracted bid validity of {int(validity_days)} days exceeds physical 365-day year boundary (unbounded OCR extraction)"
+            )
+
+        max_tolerance = getattr(vendor, 'max_bid_validity_tolerance_days', getattr(vendor, 'min_bid_validity_days', 365))
+        if validity_days > max_tolerance:
             return self._emit_disqualification(
                 tender_no=tender_no, rule_name=rule_name, field_name=field_name,
                 extracted_val=val_raw, confidence=conf,
-                constraint_threshold=f"Bid Validity >= {vendor.min_bid_validity_days} days",
-                reason=f"Bid validity of {int(validity_days)} days is below minimum operational buffer of {vendor.min_bid_validity_days} days"
+                constraint_threshold=f"Bid Validity <= {max_tolerance} days",
+                reason=f"Demanded bid validity of {int(validity_days)} days exceeds vendor maximum tolerance ceiling of {max_tolerance} days"
             )
 
         return RuleResult(
             rule_name=rule_name, field_name=field_name, status=RuleStatus.QUALIFIED,
             passed=True, extracted_value=val_raw, extracted_confidence=conf,
-            constraint_threshold=f"Bid Validity >= {vendor.min_bid_validity_days} days",
-            reason="Bid validity period satisfied"
+            constraint_threshold=f"Bid Validity <= {max_tolerance} days",
+            reason="Bid validity period is within vendor tolerance ceiling"
         )
+
+    # Alias for semantic clarity
+    check_max_bid_validity_days = check_min_bid_validity_days
 
     def check_required_certifications(
         self, tender_no: str, field_map: Dict[str, Any], vendor: VendorProfile

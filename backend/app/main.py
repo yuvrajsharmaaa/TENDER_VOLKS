@@ -126,20 +126,17 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+from fastapi.responses import FileResponse, Response
+from backend.app.core.metrics import generate_metrics_text, CONTENT_TYPE_LATEST
+from backend.app.api.routes.dlq import router as dlq_router
+
 # Attach Request ID Tracing Middleware (must be first/early in chain)
 app.add_middleware(RequestIDMiddleware)
 
-# CORS Configuration — Explicitly permit frontend dev ports (5174, 5173) and wildcards
+# CORS Configuration — Strictly restricted to production URIs from settings (no wildcard fallback)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5174",
-        "http://localhost:5173",
-        "http://127.0.0.1:5174",
-        "http://127.0.0.1:5173",
-        "http://localhost:3000",
-        "*"
-    ],
+    allow_origins=settings.allowed_origins if isinstance(settings.allowed_origins, list) else [settings.allowed_origins],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -151,7 +148,11 @@ STORAGE_ROOT.mkdir(parents=True, exist_ok=True)
 # Mount local storage directory for static file access
 app.mount("/storage", StaticFiles(directory=str(STORAGE_ROOT)), name="storage")
 
-
+# Prometheus Metrics Endpoint
+@app.get("/metrics", tags=["Observability"])
+def prometheus_metrics():
+    """Exposes application and pipeline telemetry in standard Prometheus text format."""
+    return Response(content=generate_metrics_text(), media_type=CONTENT_TYPE_LATEST)
 
 # Include API Routers
 app.include_router(health_router)
@@ -160,6 +161,7 @@ app.include_router(jobs.router)
 app.include_router(visualizer.router)
 app.include_router(tenders_router)
 app.include_router(notify_router)
+app.include_router(dlq_router)
 
 # Mount Built React Frontend & SPA Fallback Route for Production LAN Access
 frontend_dist = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"

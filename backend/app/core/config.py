@@ -58,12 +58,14 @@ class Settings(BaseSettings):
     NEO4J_PASSWORD: str = "volksenergie"
     NEO4J_AUTH: str = "neo4j/volksenergie"
     
-    # CORS Origins
+    # CORS Origins (Strict production URIs - no wildcard fallback)
     allowed_origins: Union[str, List[str]] = [
         "http://localhost:3000",
         "http://localhost:5173",
+        "http://localhost:5174",
         "http://127.0.0.1:3000",
-        "http://127.0.0.1:5173"
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174"
     ]
 
     @field_validator("allowed_origins", mode="before")

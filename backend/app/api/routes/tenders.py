@@ -1438,3 +1438,93 @@ async def review_workspace_tender(job_id: str, payload: ReviewCompleteRequest):
     return data
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# PQC Recommendation & Multi-Signal Composite Ranking Endpoint
+# ─────────────────────────────────────────────────────────────────────────────
+from backend.app.schemas.pqc_recommendation import (
+    PQCRecommendationRequest,
+    PQCRecommendationResponse
+)
+from backend.app.services.pqc_recommendation_service import PQCRecommendationService
+import pandas as pd
+
+
+@router.post("/pqc/recommend", response_model=PQCRecommendationResponse)
+async def recommend_pqc_tenders(
+    payload: Optional[PQCRecommendationRequest] = None,
+    db: Session = Depends(get_db)
+):
+    """
+    Synchronous PQC Tender Recommendation and Ranking Endpoint.
+    Combines:
+      - Signal 1 (0.35): Deterministic Statutory Compliance (F_hard)
+      - Signal 2 (0.15): LightGBM 16-feature win probability
+      - Signal 3 (0.35): Qdrant Top-5 historical neighbor track record
+      - Signal 4 (0.15): Groq LLM (llama-3.1-8b-instant) strategic fit
+    """
+    req = payload or PQCRecommendationRequest()
+    service = PQCRecommendationService()
+    
+    tenders_data = []
+
+    # 1. Fetch from active DB if requested
+    if req.source == "db":
+        try:
+            db_tenders = db.query(TenderInformation).all()
+            for t in db_tenders:
+                t_val = float(t.tender_value) if t.tender_value is not None else 0.0
+                t_emd = float(t.emd_amount) if t.emd_amount is not None else 0.0
+                t_pbg = float(t.pbg_percentage) if t.pbg_percentage is not None else 0.0
+                t_dur = float(t.pbg_duration) if t.pbg_duration is not None else 0.0
+                t_ld = float(t.max_ld_percentage) if t.max_ld_percentage is not None else 0.0
+                t_del = float(t.delivery_time_supply) if t.delivery_time_supply is not None else 0.0
+                t_bv = float(t.bid_validity_days) if t.bid_validity_days is not None else 90.0
+                t_to = float(t.avg_annual_turnover_value) if t.avg_annual_turnover_value is not None else 0.0
+                t_age = int(t.technical_eligibility_age) if t.technical_eligibility_age is not None else 0
+
+                tenders_data.append({
+                    "tender_no": t.nit_number or f"TENDER_{t.id}",
+                    "tender_name": t.tender_name or t.nit_number or f"Tender {t.id}",
+                    "organization": t.organization or t.client or t.department or "Unknown Authority",
+                    "department": t.department,
+                    "client": t.client,
+                    "tender_value": t_val,
+                    "emd_amount": t_emd,
+                    "pbg_percentage": t_pbg,
+                    "pbg_duration": t_dur,
+                    "max_ld_percentage": t_ld,
+                    "delivery_time_supply": t_del,
+                    "bid_validity_days": t_bv,
+                    "avg_annual_turnover_value": t_to,
+                    "technical_eligibility_age": t_age,
+                    "mse_purchase_preference": t.mse_purchase_preference,
+                    "mii_purchase_preference": t.mii_purchase_preference,
+                    "maf_required": t.maf_required,
+                    "reverse_auction_applicable": t.reverse_auction_applicable,
+                })
+        except Exception as e:
+            logger.warning(f"Could not load tenders from Postgres: {e}")
+
+    # 2. Fallback to dataset if DB had no rows or req.source == "dataset"
+    if not tenders_data:
+        csv_path = STORAGE_ROOT.parent / "artifacts" / "training_set_win_loss.csv"
+        if not csv_path.exists():
+            csv_path = Path("artifacts/training_set_win_loss.csv")
+        if csv_path.exists():
+            df_csv = pd.read_csv(csv_path)
+            tenders_data = df_csv.to_dict(orient="records")
+
+    if not tenders_data:
+        raise HTTPException(status_code=404, detail="No tender records available for recommendation scoring.")
+
+    # 3. Score and Rank
+    result = service.rank_tenders(
+        tenders=tenders_data,
+        top_k=req.top_k,
+        include_groq=req.include_groq
+    )
+
+    return result
+
+
+

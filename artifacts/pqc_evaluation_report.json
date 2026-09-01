@@ -1,0 +1,122 @@
+{
+  "dataset_rows": 657,
+  "dataset_wins": 128,
+  "baseline_win_rate": 0.1948249619482496,
+  "weights": {
+    "compliance": 0.35,
+    "similarity": 0.35,
+    "ml_win_prob": 0.15,
+    "groq": 0.15
+  },
+  "composite_metrics": {
+    "total_tenders": 657,
+    "total_wins": 128,
+    "baseline_win_rate": 0.1948249619482496,
+    "precision_at_k": {
+      "P@5": 1.0,
+      "P@10": 1.0,
+      "P@20": 0.95,
+      "P@50": 0.7,
+      "P@100": 0.69
+    },
+    "recall_at_k": {
+      "R@5": 0.0390625,
+      "R@10": 0.078125,
+      "R@20": 0.1484375,
+      "R@50": 0.2734375,
+      "R@100": 0.5390625
+    },
+    "wins_at_k": {
+      "Wins@5": 5,
+      "Wins@10": 10,
+      "Wins@20": 19,
+      "Wins@50": 35,
+      "Wins@100": 69
+    }
+  },
+  "ablation_metrics": {
+    "compliance_only": {
+      "total_tenders": 657,
+      "total_wins": 128,
+      "baseline_win_rate": 0.1948249619482496,
+      "precision_at_k": {
+        "P@5": 0.0,
+        "P@10": 0.3,
+        "P@20": 0.25,
+        "P@50": 0.24,
+        "P@100": 0.23
+      },
+      "recall_at_k": {
+        "R@5": 0.0,
+        "R@10": 0.0234375,
+        "R@20": 0.0390625,
+        "R@50": 0.09375,
+        "R@100": 0.1796875
+      },
+      "wins_at_k": {
+        "Wins@5": 0,
+        "Wins@10": 3,
+        "Wins@20": 5,
+        "Wins@50": 12,
+        "Wins@100": 23
+      }
+    },
+    "ml_only": {
+      "total_tenders": 657,
+      "total_wins": 128,
+      "baseline_win_rate": 0.1948249619482496,
+      "precision_at_k": {
+        "P@5": 0.8,
+        "P@10": 0.8,
+        "P@20": 0.8,
+        "P@50": 0.6,
+        "P@100": 0.5
+      },
+      "recall_at_k": {
+        "R@5": 0.03125,
+        "R@10": 0.0625,
+        "R@20": 0.125,
+        "R@50": 0.234375,
+        "R@100": 0.390625
+      },
+      "wins_at_k": {
+        "Wins@5": 4,
+        "Wins@10": 8,
+        "Wins@20": 16,
+        "Wins@50": 30,
+        "Wins@100": 50
+      }
+    },
+    "similarity_only": {
+      "total_tenders": 657,
+      "total_wins": 128,
+      "baseline_win_rate": 0.1948249619482496,
+      "precision_at_k": {
+        "P@5": 1.0,
+        "P@10": 0.8,
+        "P@20": 0.7,
+        "P@50": 0.68,
+        "P@100": 0.59
+      },
+      "recall_at_k": {
+        "R@5": 0.0390625,
+        "R@10": 0.0625,
+        "R@20": 0.109375,
+        "R@50": 0.265625,
+        "R@100": 0.4609375
+      },
+      "wins_at_k": {
+        "Wins@5": 5,
+        "Wins@10": 8,
+        "Wins@20": 14,
+        "Wins@50": 34,
+        "Wins@100": 59
+      }
+    }
+  },
+  "day1_gate_passed": true,
+  "p10_actual": 1.0,
+  "p10_threshold": 0.3,
+  "p20_actual": 0.95,
+  "p20_threshold": 0.25
+}
