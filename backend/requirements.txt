@@ -21,3 +21,15 @@ minio>=7.2.0
 qdrant-client>=1.10.0
 sentence-transformers>=3.0.0,<3.4.0
 neo4j>=5.26.0
+pandas
+joblib
+scikit-learn
+lightgbm
+prometheus-client
+pypdf
+jinja2
+xhtml2pdf
+pyyaml
+pdfplumber
+
+

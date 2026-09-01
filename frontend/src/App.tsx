@@ -44,9 +44,15 @@ function App() {
     fetchTenders();
 
     const interval = setInterval(async () => {
-      const data = await apiService.getTenders();
-      setTenders(data);
-    }, 3000);
+      if (!document.hidden) {
+        try {
+          const data = await apiService.getTenders();
+          setTenders(data);
+        } catch {
+          // ignore background polling error
+        }
+      }
+    }, 5000);
 
     return () => clearInterval(interval);
   }, []);

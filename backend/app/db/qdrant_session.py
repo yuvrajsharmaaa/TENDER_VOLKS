@@ -7,7 +7,10 @@ from threading import Lock
 from qdrant_client import QdrantClient
 from qdrant_client.http import models as qmodels
 from qdrant_client.http.models import Distance, VectorParams, PointStruct, Filter, FieldCondition, MatchValue
-from sentence_transformers import SentenceTransformer
+try:
+    from sentence_transformers import SentenceTransformer
+except ImportError:
+    SentenceTransformer = Any  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -23,14 +26,14 @@ EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
 EMBEDDING_VECTOR_SIZE = 384  # Verified output dimension of all-MiniLM-L6-v2
 
 # Singleton cache for SentenceTransformer model and QdrantClient
-_model_instance: Optional[SentenceTransformer] = None
+_model_instance: Optional[Any] = None
 _model_lock = Lock()
 
 _client_instance: Optional[QdrantClient] = None
 _client_lock = Lock()
 
 
-def get_embedding_model(model_name: str = EMBEDDING_MODEL_NAME) -> SentenceTransformer:
+def get_embedding_model(model_name: str = EMBEDDING_MODEL_NAME):
     """
     Returns a thread-safe singleton instance of the SentenceTransformer embedding model.
     Note: On initial load, this requires internet access to download weights from HuggingFace
@@ -40,6 +43,11 @@ def get_embedding_model(model_name: str = EMBEDDING_MODEL_NAME) -> SentenceTrans
     if _model_instance is None:
         with _model_lock:
             if _model_instance is None:
+                try:
+                    from sentence_transformers import SentenceTransformer
+                except ImportError as err:
+                    logger.error(f"[QdrantSession] sentence_transformers is not installed: {err}")
+                    raise RuntimeError("sentence-transformers is required for semantic embeddings.") from err
                 logger.info(f"[QdrantSession] Loading sentence-transformer model: {model_name}")
                 _model_instance = SentenceTransformer(model_name)
     return _model_instance

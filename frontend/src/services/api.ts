@@ -297,14 +297,22 @@ const initialTenders: TenderDetail[] = [
 // Backend connectivity & adapter layer
 // ============================================================================
 
+let backendReachableCache: { value: boolean; expiresAt: number } | null = null;
+
 /**
- * Checks if the real backend API is reachable.
+ * Checks if the real backend API is reachable (cached with 10s TTL).
  */
 async function isBackendReachable(): Promise<boolean> {
+  const now = Date.now();
+  if (backendReachableCache && now < backendReachableCache.expiresAt) {
+    return backendReachableCache.value;
+  }
   try {
     const res = await fetch(`${BACKEND_URL}/health`, { method: "GET", signal: AbortSignal.timeout(3000) });
+    backendReachableCache = { value: res.ok, expiresAt: now + 10000 };
     return res.ok;
   } catch {
+    backendReachableCache = { value: false, expiresAt: now + 5000 };
     return false;
   }
 }
@@ -405,16 +413,14 @@ export const apiService = {
    */
   getTenders: async (): Promise<TenderDetail[]> => {
     try {
-      if (await isBackendReachable()) {
-        const res = await fetch(`${BACKEND_URL}/tenders/workspace/list`);
-        if (res.ok) {
-          const data = await res.json();
-          const adapted = (data as Record<string, unknown>[]).map(adaptBackendPayload);
-          // Merge: backend tenders first, then mock tenders that aren't duplicated
-          const backendIds = new Set(adapted.map(t => t.id));
-          const mockTenders = getStoredTenders().filter(t => !backendIds.has(t.id));
-          return [...adapted, ...mockTenders];
-        }
+      const res = await fetch(`${BACKEND_URL}/tenders/workspace/list`);
+      if (res.ok) {
+        const data = await res.json();
+        const adapted = (data as Record<string, unknown>[]).map(adaptBackendPayload);
+        // Merge: backend tenders first, then mock tenders that aren't duplicated
+        const backendIds = new Set(adapted.map(t => t.id));
+        const mockTenders = getStoredTenders().filter(t => !backendIds.has(t.id));
+        return [...adapted, ...mockTenders];
       }
     } catch {
       // Backend unreachable — fall through to mock
