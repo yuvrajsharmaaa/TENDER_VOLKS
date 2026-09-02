@@ -157,3 +157,66 @@ def test_pydantic_schema_validation(mock_vendor_profile, sample_tender):
     assert len(response_obj.recommendations) == 1
     assert response_obj.recommendations[0].rank == 1
     assert response_obj.weights_used["compliance"] == 0.35
+
+
+def test_nan_title_serialization_fallback_to_tender_no(mock_vendor_profile):
+    """
+    Regression Test: Ensures a DataFrame row with a NaN title resolves to tender_no,
+    and never leaks the literal string 'nan' into the serialized response.
+    """
+    import numpy as np
+    import pandas as pd
+    from backend.app.schemas.pqc_recommendation import resolve_tender_title
+
+    service = PQCRecommendationService(vendor_profile=mock_vendor_profile)
+    df_row = pd.DataFrame([{
+        "tender_no": "GEM/2026/B/7317018",
+        "tender_name": np.nan,
+        "organization": "GAIL (India) Limited",
+        "tender_value": 5000000.0
+    }]).iloc[0].to_dict()
+
+    scored = service.score_single_tender(df_row, include_groq=False)
+    assert scored["tender_name"] == "GEM/2026/B/7317018"
+    assert scored["tender_name"] != "nan"
+
+    result = service.rank_tenders([df_row], top_k=1, include_groq=False)
+    response_obj = PQCRecommendationResponse(**result)
+    raw_json = response_obj.model_dump_json(indent=2)
+    
+    assert response_obj.recommendations[0].tender_name == "GEM/2026/B/7317018"
+    assert '"nan"' not in raw_json
+    assert 'NaN' not in raw_json
+
+
+def test_nan_title_serialization_fallback_to_untitled(mock_vendor_profile):
+    """
+    Regression Test: Ensures that if both tender_name and tender_no are NaN/missing,
+    the title falls back strictly to 'Untitled Tender', not 'nan' or 'Not specified'.
+    """
+    import numpy as np
+    import pandas as pd
+
+    service = PQCRecommendationService(vendor_profile=mock_vendor_profile)
+    df_row = pd.DataFrame([{
+        "tender_no": np.nan,
+        "tender_name": np.nan,
+        "organization": np.nan,
+        "tender_value": np.nan
+    }]).iloc[0].to_dict()
+
+    scored = service.score_single_tender(df_row, include_groq=False)
+    assert scored["tender_name"] == "Untitled Tender"
+    assert scored["tender_name"] != "nan"
+    assert scored["tender_name"] != "Not specified"
+
+    result = service.rank_tenders([df_row], top_k=1, include_groq=False)
+    response_obj = PQCRecommendationResponse(**result)
+    raw_json = response_obj.model_dump_json(indent=2)
+    
+    assert response_obj.recommendations[0].tender_name == "Untitled Tender"
+    assert response_obj.recommendations[0].organization == "Unknown Authority"
+    assert response_obj.recommendations[0].tender_value == 0.0
+    assert '"nan"' not in raw_json
+    assert 'NaN' not in raw_json
+

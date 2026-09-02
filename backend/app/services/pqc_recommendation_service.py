@@ -18,6 +18,7 @@ from backend.app.services.compliance.regulatory import (
     ComplianceStatus
 )
 from backend.app.services.tender_indexer import find_similar_tenders, build_tender_composite_text
+from backend.app.schemas.pqc_recommendation import resolve_tender_title
 
 logger = logging.getLogger("pqc_recommendation_service")
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent.parent
@@ -59,6 +60,8 @@ class PQCRecommendationService:
         self._load_ml_model()
 
         # Groq configuration
+        # Note: Model ID can be overridden via GROQ_MODEL env var to handle upstream Groq deprecations.
+        # Fallback default: 'qwen/qwen3.6-27b' (active Groq model with json_mode support).
         self.groq_model = groq_model or os.getenv("GROQ_MODEL", "qwen/qwen3.6-27b")
         self.groq_api_key = groq_api_key or os.getenv("GROQ_API_KEY", os.getenv("LLM_API_KEY", ""))
         self.groq_url = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1/chat/completions")
@@ -287,7 +290,7 @@ class PQCRecommendationService:
             summaries = [
                 {
                     "tender_no": t["tender_no"],
-                    "tender_name": t.get("tender_name", t["tender_no"]),
+                    "tender_name": resolve_tender_title(t.get("tender_name"), t["tender_no"]),
                     "similarity": t["similarity"],
                     "outcome": t.get("outcome", "Unknown"),
                     "organization": t.get("organization", "Unknown"),
@@ -400,13 +403,26 @@ Top Historical Similar Tenders:
         """
         Computes all 4 signals and composite score for a single tender.
         """
-        tender_no = str(tender_dict.get("tender_no", "UNKNOWN"))
-        tender_name = str(tender_dict.get("tender_name") or tender_no)
-        organization = str(tender_dict.get("organization") or tender_dict.get("client") or tender_dict.get("department") or "Unknown Authority")
+        raw_no = tender_dict.get("tender_no")
+        tender_no = (
+            str(raw_no).strip()
+            if raw_no is not None and not (isinstance(raw_no, float) and np.isnan(raw_no)) and str(raw_no).strip().lower() not in ("nan", "none", "")
+            else "UNKNOWN"
+        )
+        tender_name = resolve_tender_title(tender_dict.get("tender_name"), tender_no if tender_no != "UNKNOWN" else None)
+        
+        raw_org = tender_dict.get("organization") or tender_dict.get("client") or tender_dict.get("department")
+        organization = (
+            str(raw_org).strip()
+            if raw_org is not None and not (isinstance(raw_org, float) and np.isnan(raw_org)) and str(raw_org).strip().lower() not in ("nan", "none", "")
+            else "Unknown Authority"
+        )
         
         raw_val = tender_dict.get("tender_value") or tender_dict.get("estimated_cost") or 0.0
         try:
-            tender_value = float(raw_val) if raw_val is not None else 0.0
+            tender_value = float(raw_val) if raw_val is not None and not (isinstance(raw_val, float) and np.isnan(raw_val)) else 0.0
+            if np.isnan(tender_value):
+                tender_value = 0.0
         except (ValueError, TypeError):
             tender_value = 0.0
 

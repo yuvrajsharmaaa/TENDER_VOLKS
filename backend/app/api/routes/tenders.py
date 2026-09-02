@@ -25,6 +25,7 @@ from backend.app.schemas.tender_project import (
     DocumentResponse
 )
 from backend.app.core.minio import minio_client
+from backend.app.schemas.pqc_recommendation import resolve_tender_title
 
 logger = get_logger(__name__)
 
@@ -1015,13 +1016,15 @@ async def workspace_list_tenders():
                     payload["location_state"] = parts[1] if len(parts) > 1 else ""
 
                 _refresh_infosheet_output_links(payload, job_id)
+                payload["title"] = resolve_tender_title(payload.get("title"), payload.get("id"))
                 results.append(payload)
             except Exception as e:
                 logger.error(f"Failed to read tender_detail.json for job {job_id}: {e}")
         else:
             # Return skeleton for pending/processing/failed jobs
             filename = job.get("original_filename", "Unknown")
-            title = filename.replace(".pdf", "").replace("_", " ").replace("-", " ")
+            raw_title = filename.replace(".pdf", "").replace("_", " ").replace("-", " ")
+            title = resolve_tender_title(raw_title, job_id)
             results.append({
                 "id": job_id,
                 "title": title,
@@ -1091,13 +1094,15 @@ async def workspace_get_tender(job_id: str):
             payload.setdefault("updated_at", job.get("completed_at", ""))
             payload.setdefault("department", "")
             _refresh_infosheet_output_links(payload, job_id)
+            payload["title"] = resolve_tender_title(payload.get("title"), payload.get("id"))
             return payload
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to read result: {e}")
 
     # Return skeleton for non-completed jobs
     filename = job.get("original_filename", "Unknown")
-    title = filename.replace(".pdf", "").replace("_", " ").replace("-", " ")
+    raw_title = filename.replace(".pdf", "").replace("_", " ").replace("-", " ")
+    title = resolve_tender_title(raw_title, job_id)
     return {
         "id": job_id,
         "title": title,
@@ -1443,7 +1448,8 @@ async def review_workspace_tender(job_id: str, payload: ReviewCompleteRequest):
 # ─────────────────────────────────────────────────────────────────────────────
 from backend.app.schemas.pqc_recommendation import (
     PQCRecommendationRequest,
-    PQCRecommendationResponse
+    PQCRecommendationResponse,
+    resolve_tender_title
 )
 from backend.app.services.pqc_recommendation_service import PQCRecommendationService
 import pandas as pd
@@ -1482,10 +1488,16 @@ async def recommend_pqc_tenders(
                 t_to = float(t.avg_annual_turnover_value) if t.avg_annual_turnover_value is not None else 0.0
                 t_age = int(t.technical_eligibility_age) if t.technical_eligibility_age is not None else 0
 
+                t_no = str(t.nit_number).strip() if t.nit_number and str(t.nit_number).strip().lower() not in ("nan", "none", "") else f"TENDER_{t.id}"
+                t_name = resolve_tender_title(t.tender_name, t_no)
+                t_org = str(t.organization or t.client or t.department or "Unknown Authority").strip()
+                if t_org.lower() in ("nan", "none", ""):
+                    t_org = "Unknown Authority"
+
                 tenders_data.append({
-                    "tender_no": t.nit_number or f"TENDER_{t.id}",
-                    "tender_name": t.tender_name or t.nit_number or f"Tender {t.id}",
-                    "organization": t.organization or t.client or t.department or "Unknown Authority",
+                    "tender_no": t_no,
+                    "tender_name": t_name,
+                    "organization": t_org,
                     "department": t.department,
                     "client": t.client,
                     "tender_value": t_val,
@@ -1512,6 +1524,8 @@ async def recommend_pqc_tenders(
             csv_path = Path("artifacts/training_set_win_loss.csv")
         if csv_path.exists():
             df_csv = pd.read_csv(csv_path)
+            # Replace NaN floats with None before dictionary serialization to prevent NaN leakage
+            df_csv = df_csv.where(pd.notna(df_csv), None)
             tenders_data = df_csv.to_dict(orient="records")
 
     if not tenders_data:

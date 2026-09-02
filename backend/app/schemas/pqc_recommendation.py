@@ -1,5 +1,34 @@
+import math
 from typing import List, Dict, Any, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+
+
+def resolve_tender_title(tender_name: Any, tender_no: Any = None) -> str:
+    """
+    Sanitizes and resolves tender title with strict fallback priority:
+    1. Valid tender_name (non-empty, non-null, and not 'nan' / 'NaN' / 'None')
+    2. Tender Number (if available, non-null, and not 'nan' / 'NaN' / 'UNKNOWN')
+    3. 'Untitled Tender' (if no valid tender number either)
+    """
+    def _is_valid_str(val: Any) -> bool:
+        if val is None:
+            return False
+        if isinstance(val, float) and math.isnan(val):
+            return False
+        s = str(val).strip()
+        if not s or s.lower() in ("nan", "none", "null", "undefined"):
+            return False
+        return True
+
+    if _is_valid_str(tender_name):
+        return str(tender_name).strip()
+
+    if _is_valid_str(tender_no):
+        s_no = str(tender_no).strip()
+        if s_no.lower() not in ("unknown", "untitled"):
+            return s_no
+
+    return "Untitled Tender"
 
 
 class ScoreDecomposition(BaseModel):
@@ -19,6 +48,27 @@ class SimilarTenderItem(BaseModel):
     organization: Optional[str] = Field(default="Unknown", description="Procuring organization")
     key_overlap: Optional[str] = Field(default="", description="Key commercial or technical commonalities")
 
+    @model_validator(mode="before")
+    @classmethod
+    def sanitize_similar_item(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            t_no_raw = data.get("tender_no")
+            t_name_raw = data.get("tender_name")
+            data["tender_name"] = resolve_tender_title(t_name_raw, t_no_raw)
+
+            if t_no_raw is None or (isinstance(t_no_raw, float) and math.isnan(t_no_raw)) or str(t_no_raw).strip().lower() in ("nan", "none", "null", ""):
+                data["tender_no"] = "UNKNOWN"
+            else:
+                data["tender_no"] = str(t_no_raw).strip()
+
+            org_raw = data.get("organization")
+            if org_raw is None or (isinstance(org_raw, float) and math.isnan(org_raw)) or str(org_raw).strip().lower() in ("nan", "none", "null", ""):
+                data["organization"] = "Unknown Authority"
+            else:
+                data["organization"] = str(org_raw).strip()
+
+        return data
+
 
 class ScoredTender(BaseModel):
     rank: int = Field(description="Recommendation rank (#1 is highest composite fit)")
@@ -33,6 +83,31 @@ class ScoredTender(BaseModel):
     strategic_rationale: Optional[str] = Field(default=None, description="Executive strategic summary and bid rationale")
     disqualification_reasons: List[str] = Field(default_factory=list, description="Mandatory failure reasons if disqualified")
     review_reasons: List[str] = Field(default_factory=list, description="Reasons requiring manual estimator review")
+
+    @model_validator(mode="before")
+    @classmethod
+    def sanitize_serialization_boundary(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            t_no_raw = data.get("tender_no")
+            t_name_raw = data.get("tender_name")
+            data["tender_name"] = resolve_tender_title(t_name_raw, t_no_raw)
+
+            if t_no_raw is None or (isinstance(t_no_raw, float) and math.isnan(t_no_raw)) or str(t_no_raw).strip().lower() in ("nan", "none", "null", ""):
+                data["tender_no"] = "UNKNOWN"
+            else:
+                data["tender_no"] = str(t_no_raw).strip()
+
+            org_raw = data.get("organization")
+            if org_raw is None or (isinstance(org_raw, float) and math.isnan(org_raw)) or str(org_raw).strip().lower() in ("nan", "none", "null", ""):
+                data["organization"] = "Unknown Authority"
+            else:
+                data["organization"] = str(org_raw).strip()
+
+            val_raw = data.get("tender_value")
+            if val_raw is None or (isinstance(val_raw, float) and math.isnan(val_raw)):
+                data["tender_value"] = 0.0
+
+        return data
 
 
 class PQCRecommendationRequest(BaseModel):

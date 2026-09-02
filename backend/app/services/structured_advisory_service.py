@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field, ValidationError
 from dotenv import load_dotenv
 
 from backend.app.services.tender_indexer import find_similar_tenders
+from backend.app.schemas.pqc_recommendation import resolve_tender_title
 
 logger = logging.getLogger(__name__)
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent.parent
@@ -87,9 +88,10 @@ class StructuredAdvisoryService:
                 row = match.iloc[0]
                 drivers_str = str(row.get("top_3_drivers", ""))
                 drivers_list = [d.strip() for d in drivers_str.split(";") if d.strip()]
+                t_no = str(row["tender_no"])
                 return {
-                    "tender_no": str(row["tender_no"]),
-                    "tender_name": str(row.get("tender_name", tender_no)),
+                    "tender_no": t_no,
+                    "tender_name": resolve_tender_title(row.get("tender_name"), t_no),
                     "organization": str(row.get("organization", "Unknown")),
                     "win_probability": float(row.get("win_probability", 0.5)),
                     "predicted_outcome": str(row.get("predicted_outcome", "Review")),
@@ -112,9 +114,10 @@ class StructuredAdvisoryService:
                     f"EMD amount: ₹{float(row_t.get('emd_amount') or 0):,.2f}",
                     f"Delivery schedule: {row_t.get('delivery_time_supply_days', 'N/A')} days"
                 ]
+                t_no_t = str(row_t["tender_no"])
                 return {
-                    "tender_no": str(row_t["tender_no"]),
-                    "tender_name": str(row_t.get("tender_name", tender_no)),
+                    "tender_no": t_no_t,
+                    "tender_name": resolve_tender_title(row_t.get("tender_name"), t_no_t),
                     "organization": str(row_t.get("organization", "Unknown")),
                     "win_probability": win_prob,
                     "predicted_outcome": "Won" if is_won == 1 else "Lost",
