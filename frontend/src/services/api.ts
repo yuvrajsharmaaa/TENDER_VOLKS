@@ -1,5 +1,10 @@
 import { safeStorage } from "./storage";
-import type { TenderDetail, SourceDocumentItem, PQCRecommendationResponse } from "../types/tender";
+import type { 
+  TenderDetail, 
+  SourceDocumentItem, 
+  PQCRecommendationResponse,
+  PQCCredentialRecommendationResponse 
+} from "../types/tender";
 
 // ============================================================================
 // Configuration
@@ -960,6 +965,18 @@ export const apiService = {
         timestamp: new Date().toISOString()
       };
     }
+  },
+
+  /**
+   * PQC Past-Performance Credential Recommendation (Read-Only)
+   */
+  async getPQCCredentials(tenderId: string): Promise<PQCCredentialRecommendationResponse> {
+    const cleanId = tenderId.trim();
+    const response = await fetch(`${BACKEND_URL}/tenders/${encodeURIComponent(cleanId)}/pqc-credentials`);
+    if (!response.ok) {
+      throw new Error(`Failed to load PQC credentials: HTTP ${response.status}`);
+    }
+    return await response.json();
   }
 };
 

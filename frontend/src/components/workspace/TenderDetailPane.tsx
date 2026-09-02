@@ -13,6 +13,7 @@ import { PDFPreviewPane } from "./PDFPreviewPane";
 import { InfoSheetPanel } from "./InfoSheetPanel";
 import { DocumentsPanel } from "./DocumentsPanel";
 import { OCRPreviewPanel } from "./OCRPreviewPanel";
+import { PQCCredentialsCard } from "./PQCCredentialsCard";
 import { ArrowLeft, Download, AlertTriangle, CheckCircle2, RefreshCw, Eye, Table, Trash2 } from "lucide-react";
 import { handleSecureDownload } from "../../services/api";
 
@@ -250,6 +251,14 @@ export const TenderDetailPane: React.FC<TenderDetailPaneProps> = ({
                 {tender.location || `${tender.location_city}, ${tender.location_state}`}
               </p>
             </div>
+          </div>
+
+          {/* Read-Only PQC Credentials Recommendation Card */}
+          <div className="p-3 bg-app-bg/60 border-b border-divider shrink-0">
+            <PQCCredentialsCard 
+              tenderId={tender.id} 
+              referenceNumber={tender.reference_number} 
+            />
           </div>
 
           {/* Tabs menu bar */}

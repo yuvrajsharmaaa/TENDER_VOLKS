@@ -239,7 +239,7 @@ def normalize_scope(text: str) -> str:
         return "VRLA_BATTERY"
 
     # 4. Other Battery Chemistries (Lithium, OPzS, Tubular)
-    if any(k in t for k in ["OPZS", "LI ION", "LITHIUM", "LMLA", "TUBULAR BATTERY", "PLANTE"]):
+    if any(k in t for k in ["OPZS", "LI ION", "LIION", "LITHIUM", "LMLA", "TUBULAR BATTERY", "PLANTE"]):
         return "OTHER_BATTERY"
 
     # 5. Chargers & UPS / Power Conditioning
@@ -254,14 +254,21 @@ def normalize_scope(text: str) -> str:
     if any(k in t for k in ["CEILING FAN", "EXHAUST FAN", "VENTILATION"]) or re.search(r"\bFANS?\b", t):
         return "CEILING_FAN"
 
-    # 8. General AC Units & HVAC Systems
-    ac_keywords = [
-        "SPLIT AC", "DUCTABLE AC", "PACKAGE AC", "WINDOW AC", "CASSETTE AC",
-        "PRECISION AC", "TOWER AC", "CHILLER", "COOLING TOWER", "AHU",
-        "HVAC", "SAC", "WAC", "AIR CONDITION", "AC UNIT", "SPACEMAKER",
-        "AIRCOOLED", "CONDENSING UNIT"
+    # 8. General AC Units & HVAC Systems (handles both spaced & concatenated forms like CASSETTE, PRECISION, DUCTABLE, SPLIT)
+    ac_subwords = [
+        "SPLIT", "DUCTABLE", "PACKAGE", "WINDOW", "CASSETTE", "PRECISION",
+        "TOWERAC", "CHILLER", "COOLINGTOWER", "COOLING TOWER", "AHU", "HVAC",
+        "AIRCOOLED", "AIR CONDITION", "AIRCONDITIONER", "SPACEMAKER", "CONDENSING"
     ]
-    if any(k in t for k in ac_keywords) or re.search(r"\bAC\b|\bACS\b|\bAIRCONDITIONER\b", t):
+    if (
+        any(k in t for k in ac_subwords)
+        or re.search(r"\bAC\b|\bACS\b|\bAIRCONDITIONER\b", t)
+        or t.endswith("AC")
+        or "ACAND" in t
+        or "INDUSTRIALTYPEAC" in t
+        or "WAC" in t
+        or "SAC" in t
+    ):
         return "AC_UNIT"
 
     # 9. Solar Power Systems

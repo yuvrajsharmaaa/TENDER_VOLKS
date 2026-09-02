@@ -98,6 +98,12 @@ services:
       - ../gem_parent_tender_extraction_map.yaml:/app/gem_parent_tender_extraction_map.yaml
       - ../artifacts:/app/artifacts
       - ../config:/app/config
+      - ../pqr_matched_files:/app/pqr_matched_files
+      - ../pqr-po:/app/pqr-po
+      - ../pqr-completion:/app/pqr-completion
+      - ../pqr-sap-gem-po:/app/pqr-sap-gem-po
+      - ../pqr-performance-certificate:/app/pqr-performance-certificate
+      - ../classified-tenders.xlsx:/app/classified-tenders.xlsx
     env_file:
       - ../.env.dev
     environment:
@@ -128,6 +134,12 @@ services:
       - ../gem_parent_tender_extraction_map.yaml:/app/gem_parent_tender_extraction_map.yaml
       - ../artifacts:/app/artifacts
       - ../config:/app/config
+      - ../pqr_matched_files:/app/pqr_matched_files
+      - ../pqr-po:/app/pqr-po
+      - ../pqr-completion:/app/pqr-completion
+      - ../pqr-sap-gem-po:/app/pqr-sap-gem-po
+      - ../pqr-performance-certificate:/app/pqr-performance-certificate
+      - ../classified-tenders.xlsx:/app/classified-tenders.xlsx
     env_file:
       - ../.env.dev
     environment:
