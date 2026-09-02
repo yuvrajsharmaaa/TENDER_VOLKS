@@ -45,7 +45,7 @@ class PQCRecommendationService:
         weights: Optional[Dict[str, float]] = None,
         model_path: Optional[Union[str, Path]] = None,
         vendor_profile: Optional[VendorProfile] = None,
-        groq_model: str = "llama-3.1-8b-instant",
+        groq_model: Optional[str] = None,
         groq_api_key: Optional[str] = None
     ):
         self.weights = weights or DEFAULT_WEIGHTS.copy()
@@ -59,7 +59,7 @@ class PQCRecommendationService:
         self._load_ml_model()
 
         # Groq configuration
-        self.groq_model = groq_model
+        self.groq_model = groq_model or os.getenv("GROQ_MODEL", "qwen/qwen3.6-27b")
         self.groq_api_key = groq_api_key or os.getenv("GROQ_API_KEY", os.getenv("LLM_API_KEY", ""))
         self.groq_url = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1/chat/completions")
 
@@ -363,20 +363,27 @@ Top Historical Similar Tenders:
                 resp = client.post(self.groq_url, headers=headers, json=payload)
                 if resp.status_code == 200:
                     data = resp.json()
-                    content = json.loads(data["choices"][0]["message"]["content"])
+                    raw_content = data["choices"][0]["message"]["content"]
+                    try:
+                        content = json.loads(raw_content)
+                    except Exception as json_err:
+                        logger.error(
+                            f"[PQCService] Groq JSON parsing failed for tender {tender_no}: {json_err} | Raw content: {raw_content!r}\n"
+                            f"Traceback:\n{traceback.format_exc()}"
+                        )
+                        return 0.50, f"Groq response parsing error ({json_err})."
+
                     fit = float(content.get("strategic_fit", 0.50))
                     fit = min(max(fit, 0.0), 1.0)
                     rationale = str(content.get("strategic_rationale", "Strategic fit evaluated by Groq AI."))
                     return round(fit, 4), rationale
                 else:
-                    err_details = f"[PQCService] Groq API returned status {resp.status_code}: {resp.text}"
-                    print(f"!!! GROQ HTTP ERROR: {err_details}")
+                    err_details = f"[PQCService] Groq API returned HTTP {resp.status_code} for tender {tender_no}: {resp.text}"
                     logger.error(err_details)
                     return 0.50, f"Groq enrichment unavailable (HTTP {resp.status_code})."
         except Exception as e:
             tb = traceback.format_exc()
             err_details = f"[PQCService] Groq call failed for {tender_no}: {type(e).__name__}: {e}\nTraceback:\n{tb}"
-            print(f"!!! GROQ CALL EXCEPTION:\n{err_details}")
             logger.error(err_details)
             return 0.50, f"Groq evaluation defaulted ({e})."
 
