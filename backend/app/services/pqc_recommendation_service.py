@@ -66,6 +66,20 @@ class PQCRecommendationService:
         self.groq_api_key = groq_api_key or os.getenv("GROQ_API_KEY", os.getenv("LLM_API_KEY", ""))
         self.groq_url = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1/chat/completions")
 
+        # Similarity signal availability (checked once to eliminate 600+ repetitive import warnings)
+        self._similarity_available = self._check_similarity_support()
+
+    def _check_similarity_support(self) -> bool:
+        try:
+            import sentence_transformers  # noqa: F401
+            return True
+        except ImportError:
+            logger.info(
+                "[PQCService] sentence-transformers not installed; Qdrant vector similarity signal "
+                "will use default historical baseline (0.19) without per-tender warnings."
+            )
+            return False
+
     def _load_ml_model(self):
         """Loads persisted LightGBM model and feature list."""
         if self.model_path.exists():
@@ -272,6 +286,9 @@ class PQCRecommendationService:
         similarity_win_rate = won_neighbors / total_neighbors
         avg_similarity = mean(similarity scores)
         """
+        if not self._similarity_available:
+            return 0.19, 0.0, []
+
         tender_no = str(tender_dict.get("tender_no", ""))
         try:
             similar = find_similar_tenders(
@@ -380,6 +397,9 @@ Top Historical Similar Tenders:
                     fit = min(max(fit, 0.0), 1.0)
                     rationale = str(content.get("strategic_rationale", "Strategic fit evaluated by Groq AI."))
                     return round(fit, 4), rationale
+                elif resp.status_code == 429:
+                    logger.warning(f"[PQCService] Groq API rate limit (429) hit for tender {tender_no}: {resp.text}")
+                    return 0.50, "RATE_LIMIT_429"
                 else:
                     err_details = f"[PQCService] Groq API returned HTTP {resp.status_code} for tender {tender_no}: {resp.text}"
                     logger.error(err_details)
@@ -488,15 +508,16 @@ Top Historical Similar Tenders:
         tenders: List[Dict[str, Any]],
         top_k: int = 20,
         include_groq: bool = True,
-        groq_top_n: int = 50
+        groq_top_n: int = 3
     ) -> Dict[str, Any]:
         """
         Scores and ranks a collection of tenders.
-        Groq enrichment is applied only to the top candidates to preserve latency and rate limits.
+        Groq enrichment is applied only to top candidates (default 3) to strictly respect
+        the 8,000 TPM limit on Groq and eliminate latency stalls.
         """
         logger.info(f"[PQCService] Scoring and ranking N={len(tenders)} tenders (top_k={top_k}, include_groq={include_groq})...")
 
-        # Step 1: Initial scoring with Groq=0.50 (fast, <2 seconds for 600 tenders)
+        # Step 1: Initial scoring with Groq=0.50 (fast, deterministic across all tenders)
         preliminary_scored = []
         for t in tenders:
             scored = self.score_single_tender(t, include_groq=False)
@@ -505,11 +526,14 @@ Top Historical Similar Tenders:
         # Sort descending by composite score
         preliminary_scored.sort(key=lambda x: x["composite_score"], reverse=True)
 
-        # Step 2: Groq enrichment on top_n if requested
+        # Step 2: Groq enrichment on top candidates if requested
         if include_groq and self.groq_api_key:
-            target_n = min(len(preliminary_scored), groq_top_n)
+            target_n = min(len(preliminary_scored), top_k, groq_top_n)
             logger.info(f"[PQCService] Running Groq LLM enrichment for top {target_n} tenders...")
+            rate_limited = False
             for idx in range(target_n):
+                if rate_limited:
+                    break
                 item = preliminary_scored[idx]
                 groq_fit, rationale = self.evaluate_groq_strategic_fit(
                     tender_no=item["tender_no"],
@@ -520,6 +544,17 @@ Top Historical Similar Tenders:
                     ml_win_prob=item["score_decomposition"]["ml_win_prob"],
                     similar_tenders=item["similar_tenders"]
                 )
+
+                if rationale == "RATE_LIMIT_429":
+                    logger.warning(
+                        f"[PQCService] Groq TPM rate limit hit on candidate #{idx + 1}. "
+                        "Safely falling back remaining candidates to neutral 0.50 baseline without delay."
+                    )
+                    item["score_decomposition"]["groq_fit_score"] = 0.50
+                    item["strategic_rationale"] = "Groq TPM rate limit reached; using neutral strategic baseline."
+                    rate_limited = True
+                    break
+
                 item["score_decomposition"]["groq_fit_score"] = groq_fit
                 item["strategic_rationale"] = rationale
                 
@@ -535,9 +570,9 @@ Top Historical Similar Tenders:
                 item["composite_score"] = round(float(new_composite), 4)
                 item["score_decomposition"]["composite_score"] = item["composite_score"]
                 
-                # Respect rate limits
+                # Respect rate limits between calls
                 if idx < target_n - 1:
-                    time.sleep(0.05)
+                    time.sleep(0.3)
 
             # Re-sort after Groq enrichment
             preliminary_scored.sort(key=lambda x: x["composite_score"], reverse=True)

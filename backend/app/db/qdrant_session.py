@@ -46,7 +46,7 @@ def get_embedding_model(model_name: str = EMBEDDING_MODEL_NAME):
                 try:
                     from sentence_transformers import SentenceTransformer
                 except ImportError as err:
-                    logger.error(f"[QdrantSession] sentence_transformers is not installed: {err}")
+                    logger.debug(f"[QdrantSession] sentence_transformers is not installed: {err}")
                     raise RuntimeError("sentence-transformers is required for semantic embeddings.") from err
                 logger.info(f"[QdrantSession] Loading sentence-transformer model: {model_name}")
                 _model_instance = SentenceTransformer(model_name)

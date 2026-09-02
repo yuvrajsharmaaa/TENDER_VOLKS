@@ -1456,7 +1456,7 @@ import pandas as pd
 
 
 @router.post("/pqc/recommend", response_model=PQCRecommendationResponse)
-async def recommend_pqc_tenders(
+def recommend_pqc_tenders(
     payload: Optional[PQCRecommendationRequest] = None,
     db: Session = Depends(get_db)
 ):
