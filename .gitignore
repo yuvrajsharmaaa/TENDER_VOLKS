@@ -86,8 +86,14 @@ Thumbs.db
 # Fine-Tuning & Data Pipeline (Raw Corpus & Derived Datasets)
 tender-documents/
 pqr_matched_files/
+pqr-completion/
+pqr-performance-certificate/
+pqr-po/
+pqr-sap-gem-po/
+pqr-*/
 *.jsonl
 data/processed/
 data/corpus/
 output/
+
 
