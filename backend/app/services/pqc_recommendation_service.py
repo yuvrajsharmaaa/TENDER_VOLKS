@@ -2,6 +2,7 @@ import os
 import json
 import time
 import logging
+import traceback
 from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Union, Tuple
@@ -318,6 +319,8 @@ class PQCRecommendationService:
         Safely defaults to 0.50 on any failure or missing key.
         """
         if not self.groq_api_key or self.groq_api_key == "disabled":
+            logger.error("[PQCService] Groq API key is empty or disabled! Returning 0.50 neutral fallback.")
+            print("[PQCService] Groq API key is empty or disabled! Returning 0.50 neutral fallback.")
             return 0.50, "Groq LLM enrichment offline; using neutral baseline."
 
         headers = {
@@ -366,10 +369,15 @@ Top Historical Similar Tenders:
                     rationale = str(content.get("strategic_rationale", "Strategic fit evaluated by Groq AI."))
                     return round(fit, 4), rationale
                 else:
-                    logger.warning(f"[PQCService] Groq API returned status {resp.status_code}")
+                    err_details = f"[PQCService] Groq API returned status {resp.status_code}: {resp.text}"
+                    print(f"!!! GROQ HTTP ERROR: {err_details}")
+                    logger.error(err_details)
                     return 0.50, f"Groq enrichment unavailable (HTTP {resp.status_code})."
         except Exception as e:
-            logger.warning(f"[PQCService] Groq call failed for {tender_no}: {e}")
+            tb = traceback.format_exc()
+            err_details = f"[PQCService] Groq call failed for {tender_no}: {type(e).__name__}: {e}\nTraceback:\n{tb}"
+            print(f"!!! GROQ CALL EXCEPTION:\n{err_details}")
+            logger.error(err_details)
             return 0.50, f"Groq evaluation defaulted ({e})."
 
     # =========================================================================

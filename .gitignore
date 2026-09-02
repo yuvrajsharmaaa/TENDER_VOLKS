@@ -85,7 +85,9 @@ Thumbs.db
 
 # Fine-Tuning & Data Pipeline (Raw Corpus & Derived Datasets)
 tender-documents/
+pqr_matched_files/
 *.jsonl
 data/processed/
 data/corpus/
 output/
+
