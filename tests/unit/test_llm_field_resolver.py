@@ -137,3 +137,32 @@ def test_record_correction_updates_memory(tmp_path, monkeypatch):
     assert mem2["payment_terms_supply_display"][0]["confidence"] == 0.99
 
 
+def test_llm_resolver_anthropic():
+    resolver = LLMFieldResolver()
+    resolver.provider = "anthropic"
+    resolver.api_key = "sk-ant-FakeAnthropicKeyForTesting"
+    resolver.model_name = "claude-3-5-sonnet-20241022"
+    resolver.enabled = True
+
+    resolver._call_anthropic = MagicMock(return_value="""
+    {
+        "payment_terms_supply_pct": 75,
+        "payment_terms_installation_pct": 25,
+        "ld_percentage_per_week": 0.5
+    }
+    """)
+
+    atc_text = "GAIL payment terms: 75% on supply and 25% on installation. Delay PRS 0.5%."
+
+    res = resolver.resolve(atc_text, [
+        "payment_terms_supply_display",
+        "payment_terms_installation_display",
+        "ld_percentage_display"
+    ])
+
+    assert res["payment_terms_supply_display"]["value"] == "75%"
+    assert res["payment_terms_installation_display"]["value"] == "25%"
+    assert res["ld_percentage_display"]["value"] == "0.5%"
+    resolver._call_anthropic.assert_called_once()
+
+

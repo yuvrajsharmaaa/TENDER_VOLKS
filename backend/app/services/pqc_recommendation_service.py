@@ -2,6 +2,7 @@ import os
 import json
 import time
 import logging
+import re
 import traceback
 from pathlib import Path
 from datetime import datetime
@@ -47,7 +48,9 @@ class PQCRecommendationService:
         model_path: Optional[Union[str, Path]] = None,
         vendor_profile: Optional[VendorProfile] = None,
         groq_model: Optional[str] = None,
-        groq_api_key: Optional[str] = None
+        groq_api_key: Optional[str] = None,
+        anthropic_api_key: Optional[str] = None,
+        anthropic_model: Optional[str] = None
     ):
         self.weights = weights or DEFAULT_WEIGHTS.copy()
         self.vendor_profile = vendor_profile or VendorProfile.from_yaml()
@@ -59,10 +62,17 @@ class PQCRecommendationService:
         self.feature_cols = []
         self._load_ml_model()
 
-        # Groq configuration
-        # Note: Model ID can be overridden via GROQ_MODEL env var to handle upstream Groq deprecations.
-        # Fallback default: 'qwen/qwen3.6-27b' (active Groq model with json_mode support).
-        self.groq_model = groq_model or os.getenv("GROQ_MODEL", "qwen/qwen3.6-27b")
+        # Claude / Anthropic configuration (Signal 4 primary)
+        # Note: If groq_api_key is explicitly provided (e.g. In unit test mocks) and anthropic_api_key is not,
+        # we don't activate ambient ANTHROPIC_API_KEY to preserve Groq test isolation.
+        if groq_api_key is not None and anthropic_api_key is None:
+            self.anthropic_api_key = ""
+        else:
+            self.anthropic_api_key = anthropic_api_key or os.getenv("ANTHROPIC_API_KEY", "")
+        self.anthropic_model = anthropic_model or os.getenv("ANTHROPIC_FAST_MODEL", os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5-20251001"))
+
+        # Groq configuration (Signal 4 fallback)
+        self.groq_model = groq_model or os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
         self.groq_api_key = groq_api_key or os.getenv("GROQ_API_KEY", os.getenv("LLM_API_KEY", ""))
         self.groq_url = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1/chat/completions")
 
@@ -334,20 +344,6 @@ class PQCRecommendationService:
         similar_tenders: List[Dict[str, Any]],
         timeout: float = 12.0
     ) -> Tuple[float, str]:
-        """
-        Calls Groq API (llama-3.1-8b-instant) to assess qualitative strategic fit (0.0 to 1.0).
-        Safely defaults to 0.50 on any failure or missing key.
-        """
-        if not self.groq_api_key or self.groq_api_key == "disabled":
-            logger.error("[PQCService] Groq API key is empty or disabled! Returning 0.50 neutral fallback.")
-            print("[PQCService] Groq API key is empty or disabled! Returning 0.50 neutral fallback.")
-            return 0.50, "Groq LLM enrichment offline; using neutral baseline."
-
-        headers = {
-            "Authorization": f"Bearer {self.groq_api_key}",
-            "Content-Type": "application/json"
-        }
-
         system_prompt = (
             "You are a strategic bidding analyst for Volks Energie (an Indian electrical power systems vendor). "
             "Evaluate the commercial and strategic fit of the following tender on a scale of 0.0 to 1.0.\n"
@@ -367,6 +363,62 @@ ML Win Probability: {ml_win_prob:.1%}
 Top Historical Similar Tenders:
 {json.dumps(similar_tenders[:3], indent=2)}
 """
+
+        # ── Priority 1: Claude AI (Anthropic) ─────────────────────────────
+        if self.anthropic_api_key and self.anthropic_api_key != "disabled":
+            try:
+                raw_text = None
+                try:
+                    import anthropic
+                    client = anthropic.Anthropic(api_key=self.anthropic_api_key, timeout=timeout)
+                    resp = client.messages.create(
+                        model=self.anthropic_model,
+                        max_tokens=1024,
+                        system=system_prompt,
+                        messages=[{"role": "user", "content": user_content}]
+                    )
+                    raw_text = resp.content[0].text.strip()
+                except ImportError:
+                    headers = {
+                        "x-api-key": self.anthropic_api_key,
+                        "anthropic-version": "2023-06-01",
+                        "content-type": "application/json"
+                    }
+                    payload = {
+                        "model": self.anthropic_model,
+                        "max_tokens": 1024,
+                        "temperature": 0.1,
+                        "system": system_prompt,
+                        "messages": [{"role": "user", "content": user_content}]
+                    }
+                    with httpx.Client(timeout=timeout) as client:
+                        r = client.post("https://api.anthropic.com/v1/messages", headers=headers, json=payload)
+                        if r.status_code == 200:
+                            raw_text = r.json()["content"][0]["text"].strip()
+                        else:
+                            logger.warning(f"[PQCService] Claude API returned HTTP {r.status_code}: {r.text}")
+
+                if raw_text:
+                    clean = re.sub(r"^```(?:json)?\s*", "", raw_text)
+                    clean = re.sub(r"\s*```$", "", clean)
+                    content = json.loads(clean)
+                    fit = float(content.get("strategic_fit", 0.50))
+                    fit = min(max(fit, 0.0), 1.0)
+                    rationale = str(content.get("strategic_rationale", "Strategic fit evaluated by Claude AI."))
+                    logger.info(f"[PQCService] Claude strategic fit evaluated for {tender_no}: {fit:.2f}")
+                    return round(fit, 4), rationale
+            except Exception as e:
+                logger.warning(f"[PQCService] Claude strategic fit call failed for {tender_no} ({e}). Falling back to Groq...")
+
+        # ── Priority 2: Groq Fallback ────────────────────────────────────
+        if not self.groq_api_key or self.groq_api_key == "disabled":
+            logger.error("[PQCService] Neither Claude nor Groq API key configured. Returning 0.50 neutral fallback.")
+            return 0.50, "LLM strategic enrichment offline; using neutral baseline."
+
+        headers = {
+            "Authorization": f"Bearer {self.groq_api_key}",
+            "Content-Type": "application/json"
+        }
 
         payload = {
             "model": self.groq_model,
@@ -409,6 +461,9 @@ Top Historical Similar Tenders:
             err_details = f"[PQCService] Groq call failed for {tender_no}: {type(e).__name__}: {e}\nTraceback:\n{tb}"
             logger.error(err_details)
             return 0.50, f"Groq evaluation defaulted ({e})."
+
+    # Alias for modern naming
+    evaluate_strategic_fit = evaluate_groq_strategic_fit
 
     # =========================================================================
     # COMPOSITE SCORING & MULTI-TENDER RANKING

@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     
     # Third party integrations
     gemini_api_key: Union[str, None] = None
+    anthropic_api_key: Union[str, None] = None
+    anthropic_model: str = "claude-sonnet-4-5-20250929"
+    anthropic_fast_model: str = "claude-haiku-4-5-20251001"
     telegram_bot_token: Union[str, None] = None
     telegram_chat_id: Union[str, None] = None
     

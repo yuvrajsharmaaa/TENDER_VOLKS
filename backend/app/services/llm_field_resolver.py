@@ -477,11 +477,13 @@ class LLMFieldResolver:
         model: Optional[str] = None,
         api_key: Optional[str] = None,
     ):
-        self.api_key = api_key or os.getenv("LLM_API_KEY", os.getenv("GROQ_API_KEY", os.getenv("GEMINI_API_KEY", "")))
+        self.api_key = api_key or os.getenv("ANTHROPIC_API_KEY", os.getenv("LLM_API_KEY", os.getenv("GROQ_API_KEY", os.getenv("GEMINI_API_KEY", ""))))
         
         detected_provider = (provider or os.getenv("LLM_PROVIDER", "")).lower()
         if not detected_provider:
-            if self.api_key.startswith("gsk_"):
+            if self.api_key.startswith("sk-ant-") or os.getenv("ANTHROPIC_API_KEY"):
+                detected_provider = "anthropic"
+            elif self.api_key.startswith("gsk_"):
                 detected_provider = "groq"
             else:
                 detected_provider = "gemini"
@@ -491,10 +493,15 @@ class LLMFieldResolver:
         default_base_url = os.getenv("LLM_BASE_URL", os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1/chat/completions"))
         self.base_url = base_url or default_base_url
 
-        self.model_name = model or os.getenv("LLM_MODEL", os.getenv("GEMINI_MODEL", "gemini-flash-latest"))
-        if self.provider == "groq":
-            if self.model_name in ("gemini-flash-latest", "gemini-1.5-flash"):
+        if self.provider == "anthropic":
+            self.model_name = model or os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-5-20250929")
+        elif self.provider == "groq":
+            if not model or model in ("gemini-flash-latest", "gemini-1.5-flash"):
                 self.model_name = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+            else:
+                self.model_name = model
+        else:
+            self.model_name = model or os.getenv("LLM_MODEL", os.getenv("GEMINI_MODEL", "gemini-flash-latest"))
         
         self.schema_model = os.getenv("LLM_SCHEMA_MODEL", "gemini-flash-lite-latest")
         self.enabled = os.getenv("LLM_FALLBACK_ENABLED", "true").lower() == "true"
@@ -629,6 +636,48 @@ class LLMFieldResolver:
         )
         return response.text.strip()
 
+    def _call_anthropic(self, system_instruction: str, user_prompt: str, timeout: int = 45) -> str:
+        """Call Anthropic Claude API via official anthropic SDK with urllib fallback."""
+        try:
+            import anthropic
+            client = anthropic.Anthropic(api_key=self.api_key, timeout=float(timeout))
+            response = client.messages.create(
+                model=self.model_name,
+                max_tokens=4096,
+                system=system_instruction,
+                messages=[{"role": "user", "content": user_prompt}],
+            )
+            raw = response.content[0].text.strip()
+            raw = re.sub(r"^```(?:json)?\s*", "", raw)
+            raw = re.sub(r"\s*```$", "", raw)
+            return raw
+        except ImportError:
+            # Fallback to direct HTTP using urllib if SDK not installed
+            headers = {
+                "x-api-key": self.api_key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            }
+            payload = {
+                "model": self.model_name,
+                "max_tokens": 4096,
+                "temperature": 0.1,
+                "system": system_instruction,
+                "messages": [{"role": "user", "content": user_prompt}],
+            }
+            req = urllib.request.Request(
+                "https://api.anthropic.com/v1/messages",
+                data=json.dumps(payload).encode("utf-8"),
+                headers=headers,
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                raw = data["content"][0]["text"].strip()
+                raw = re.sub(r"^```(?:json)?\s*", "", raw)
+                raw = re.sub(r"\s*```$", "", raw)
+                return raw
+
     def _call_openai_compatible(self, system_prompt: str, user_prompt: str, timeout: int = 30) -> str:
         """Call any OpenAI-compatible API endpoint via standard Python urllib (no external SDK required)."""
         import urllib.request
@@ -686,6 +735,7 @@ class LLMFieldResolver:
         """Build (system_instruction, user_prompt) for the API call."""
         # Truncate text to fit within model context without dropping mid-document clauses
         # Groq HTTP gateway enforces ~30 KB payload limit (approx 20,000 chars text payload)
+        # Anthropic Claude (200k tokens) and Gemini can process up to 800,000 chars without truncation
         max_chars = 20_000 if getattr(self, "provider", "") in ("groq", "openai") or "groq.com" in getattr(self, "base_url", "") else 800_000
         if len(full_text) > max_chars:
             third = max_chars // 3
@@ -829,8 +879,13 @@ class LLMFieldResolver:
             len(known_missing), self.provider, known_missing,
         )
 
-        # Initialize Gemini client if needed with automatic Groq fallback
-        if self.provider == "gemini":
+        # Provider validation and initializations
+        if self.provider == "anthropic":
+            if not self.api_key:
+                logger.warning("[LLM_FALLBACK] ANTHROPIC_API_KEY/LLM_API_KEY not configured — skipping LLM resolution")
+                return {}
+            logger.info("[LLM_FALLBACK] Using Anthropic Claude API with model %s", self.model_name)
+        elif self.provider == "gemini":
             try:
                 self._init_gemini_client()
             except Exception as e:
@@ -839,7 +894,7 @@ class LLMFieldResolver:
                     logger.info("[LLM_FALLBACK] Gemini init failed (%s). Switching to Groq API LLM fallback...", e)
                     self.provider = "groq"
                     self.api_key = groq_key
-                    self.model_name = os.getenv("GROQ_MODEL", "llama-3.1-70b-versatile")
+                    self.model_name = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
                     self.base_url = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1/chat/completions")
                 else:
                     logger.warning("[LLM_FALLBACK] %s — skipping LLM resolution", e)
@@ -870,7 +925,22 @@ class LLMFieldResolver:
             attempt += 1
             t0 = time.time()
             try:
-                if self.provider == "gemini":
+                if self.provider == "anthropic":
+                    try:
+                        raw_text = self._call_anthropic(system_instruction, user_prompt, timeout=45)
+                    except Exception as anthropic_err:
+                        groq_key = os.getenv("GROQ_API_KEY") or os.getenv("LLM_API_KEY")
+                        if groq_key and "placeholder" not in groq_key.lower():
+                            logger.warning("[LLM_FALLBACK][Layer 2] Anthropic call failed (%s). Falling back to Groq API LLM...", anthropic_err)
+                            self.provider = "groq"
+                            self.api_key = groq_key
+                            self.model_name = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+                            self.base_url = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1/chat/completions")
+                            system_instruction, user_prompt = self._build_prompts(atc_full_text, known_missing, few_shot_section)
+                            raw_text = self._call_openai_compatible(system_instruction, user_prompt, timeout=30)
+                        else:
+                            raise anthropic_err
+                elif self.provider == "gemini":
                     try:
                         if self._sdk_type == "genai_v2":
                             raw_text = self._call_gemini_v2(system_instruction, user_prompt, known_missing)

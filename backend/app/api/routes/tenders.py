@@ -1912,10 +1912,43 @@ def get_pqc_credential_recommendation(
     submission_deadline = str(override_deadline).strip() if override_deadline is not None else tender_info["submission_deadline"]
     msme_relaxation_applicable = bool(msme_relaxation) if msme_relaxation is not None else bool(tender_info["msme_relaxation_applicable"])
 
-    # 3. Load all candidate records from pqr_credentials table
+    # 3. Guard against missing or non-positive estimated tender value
+    import math
+    if estimated_value is None or estimated_value <= 0 or (isinstance(estimated_value, float) and math.isnan(estimated_value)):
+        zero_thresholds = compute_thresholds(0.0)
+        from backend.app.services.pqr_credential_matcher import normalize_scope
+        return PQCCredentialRecommendationResponse(
+            tender_id=str(tender_id),
+            tender_name=tender_info.get("tender_name"),
+            estimated_value=0.0,
+            value_is_estimated=False,
+            scope_of_work=scope_of_work,
+            submission_deadline=str(submission_deadline) if submission_deadline else None,
+            msme_relaxation_applicable=msme_relaxation_applicable,
+            is_msme_vendor=is_msme,
+            qualification_status="CANNOT_EVALUATE",
+            qualifies=False,
+            strategy_used="VALUE_UNKNOWN",
+            matched_credentials=[],
+            closest_candidates=[],
+            computed_thresholds=zero_thresholds,
+            thresholds_required=zero_thresholds,
+            rationale=(
+                "Tender estimated value could not be determined from published tender documents or EMD heuristics "
+                "(estimated value is ₹0.00 or unstated). Statutory past-performance thresholds (1x80%, 2x50%, 3x40%) "
+                "cannot be calculated, so PQC qualification cannot be evaluated."
+            ),
+            target_scope=normalize_scope(scope_of_work),
+            eligible_count=0,
+            total_candidates_evaluated=0,
+            data_source=tender_info.get("data_source", "unknown"),
+            read_only=True
+        )
+
+    # 4. Load all candidate records from pqr_credentials table
     candidates = db.query(PQRCredential).all()
 
-    # 4. Run pure in-memory credential matcher from Phase 2
+    # 5. Run pure in-memory credential matcher from Phase 2
     match_result: PqcMatchResult = match_credentials(
         tender_value=estimated_value,
         tender_scope_text=scope_of_work,
@@ -1925,7 +1958,7 @@ def get_pqc_credential_recommendation(
         msme_relaxation_applicable=msme_relaxation_applicable,
     )
 
-    # 5. Map matched and closest credentials to response schema
+    # 6. Map matched and closest credentials to response schema
     matched_schemas: List[MatchedCredentialSchema] = [
         MatchedCredentialSchema(
             id=c.id,
@@ -1952,7 +1985,13 @@ def get_pqc_credential_recommendation(
         for c in match_result.closest_candidates
     ]
 
-    # 6. Construct and return full structured JSON response
+    # Determine qualification status string
+    if match_result.strategy == "VALUE_UNKNOWN":
+        qual_status = "CANNOT_EVALUATE"
+    else:
+        qual_status = "QUALIFIED" if match_result.qualifies else "DISQUALIFIED"
+
+    # 7. Construct and return full structured JSON response
     return PQCCredentialRecommendationResponse(
         tender_id=str(tender_id),
         tender_name=tender_info.get("tender_name"),
@@ -1962,7 +2001,7 @@ def get_pqc_credential_recommendation(
         submission_deadline=str(submission_deadline) if submission_deadline else None,
         msme_relaxation_applicable=msme_relaxation_applicable,
         is_msme_vendor=is_msme,
-        qualification_status="QUALIFIED" if match_result.qualifies else "DISQUALIFIED",
+        qualification_status=qual_status,
         qualifies=match_result.qualifies,
         strategy_used=match_result.strategy,
         matched_credentials=matched_schemas,
@@ -1976,6 +2015,7 @@ def get_pqc_credential_recommendation(
         data_source=tender_info.get("data_source", "unknown"),
         read_only=True
     )
+
 
 
 # =========================================================================

@@ -93,6 +93,24 @@ def test_pqc_credentials_endpoint_query_overrides():
     assert data["msme_relaxation_applicable"] is True
 
 
+def test_pqc_credentials_endpoint_zero_value_cannot_evaluate():
+    """
+    Tests that a tender with estimated_value = 0 or unstated returns CANNOT_EVALUATE,
+    qualifies = False, and strategy_used = VALUE_UNKNOWN, preventing false positive qualifications.
+    """
+    # Force zero value via query override on a valid tender
+    tender_id = "43474eaf-b191-4dab-aacb-4465917bf45d"
+    resp = client.get(f"/tenders/{tender_id}/pqc-credentials?override_value=0")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["qualification_status"] == "CANNOT_EVALUATE"
+    assert data["qualifies"] is False
+    assert data["strategy_used"] == "VALUE_UNKNOWN"
+    assert data["matched_credentials"] == []
+    assert "cannot be calculated" in data["rationale"].lower() or "could not be determined" in data["rationale"].lower()
+
+
+
 def test_pqc_documents_view_endpoint_success():
     """
     Tests GET /tenders/pqc-documents/view successfully serves an existing PQC PDF document.

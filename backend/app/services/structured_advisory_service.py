@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import logging
 from pathlib import Path
@@ -68,6 +69,8 @@ class StructuredAdvisoryService:
         timeout: float = 30.0
     ):
         load_dotenv(ROOT_DIR / ".env.dev")
+        self.anthropic_api_key = os.getenv("ANTHROPIC_API_KEY", "")
+        self.anthropic_model = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-5-20250929")
         self.api_key = api_key or os.getenv("GROQ_API_KEY", os.getenv("LLM_API_KEY", ""))
         self.model_name = model_name or os.getenv("GROQ_ADVISORY_MODEL", "openai/gpt-oss-120b")
         self.timeout = timeout
@@ -133,8 +136,49 @@ class StructuredAdvisoryService:
 
     def _call_groq_json(self, system_prompt: str, user_prompt: str, model: Optional[str] = None) -> Dict[str, Any]:
         """
-        Sends request to Groq OpenAI-compatible endpoint enforcing json_object response format.
+        Sends request to Claude (preferred) or Groq OpenAI-compatible endpoint enforcing json format.
         """
+        # ── Priority 1: Claude AI (Anthropic) ─────────────────────────────
+        if self.anthropic_api_key and self.anthropic_api_key != "disabled":
+            try:
+                raw_text = None
+                try:
+                    import anthropic
+                    client = anthropic.Anthropic(api_key=self.anthropic_api_key, timeout=self.timeout)
+                    resp = client.messages.create(
+                        model=self.anthropic_model,
+                        max_tokens=4096,
+                        system=system_prompt,
+                        messages=[{"role": "user", "content": user_prompt}]
+                    )
+                    raw_text = resp.content[0].text.strip()
+                except ImportError:
+                    headers = {
+                        "x-api-key": self.anthropic_api_key,
+                        "anthropic-version": "2023-06-01",
+                        "content-type": "application/json"
+                    }
+                    payload = {
+                        "model": self.anthropic_model,
+                        "max_tokens": 4096,
+                        "temperature": 0.1,
+                        "system": system_prompt,
+                        "messages": [{"role": "user", "content": user_prompt}]
+                    }
+                    r = httpx.post("https://api.anthropic.com/v1/messages", headers=headers, json=payload, timeout=self.timeout)
+                    if r.status_code == 200:
+                        raw_text = r.json()["content"][0]["text"].strip()
+                    else:
+                        logger.warning("[StructuredAdvisory] Claude API error %d: %s", r.status_code, r.text)
+
+                if raw_text:
+                    clean = re.sub(r"^```(?:json)?\s*", "", raw_text)
+                    clean = re.sub(r"\s*```$", "", clean)
+                    return json.loads(clean)
+            except Exception as e:
+                logger.warning("[StructuredAdvisory] Claude advisory call failed (%s). Falling back to Groq...", e)
+
+        # ── Priority 2: Groq Fallback ─────────────────────────────────────
         target_model = model or self.model_name
         headers = {
             "Authorization": f"Bearer {self.api_key}",

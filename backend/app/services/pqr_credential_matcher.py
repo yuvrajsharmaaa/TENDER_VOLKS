@@ -335,9 +335,28 @@ def match_credentials(
       - PqcMatchResult containing qualification status, strategy, matched records,
         computed thresholds, and human-readable audit rationale.
     """
-    thresholds = compute_thresholds(tender_value, msme_floor_pct=msme_floor_pct)
     target_category = normalize_scope(tender_scope_text)
     parsed_deadline = _parse_date_safe(tender_deadline) or date.today()
+
+    # Guard against zero, None, negative, or NaN tender values
+    import math
+    if tender_value is None or tender_value <= 0 or (isinstance(tender_value, float) and math.isnan(tender_value)):
+        thresholds = compute_thresholds(0.0)
+        return PqcMatchResult(
+            qualifies=False,
+            strategy="VALUE_UNKNOWN",
+            matched_credentials=[],
+            thresholds_required=thresholds,
+            rationale=(
+                "Tender estimated value could not be determined from published or extracted documents "
+                "(estimated value is ₹0.00 or unstated). Past-performance qualification thresholds cannot "
+                "be computed without a valid tender value."
+            ),
+            target_scope=target_category,
+            eligible_count=0
+        )
+
+    thresholds = compute_thresholds(tender_value, msme_floor_pct=msme_floor_pct)
 
     # Normalize all input candidate records into CandidateCredential dataclasses
     normalized_candidates: List[CandidateCredential] = [
