@@ -41,9 +41,9 @@ export const NotifyChatBox: React.FC = () => {
     setBannerStatus(null);
 
     try {
-      // Determine API endpoint URL
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
-      const endpoint = `${backendUrl}/api/notify`;
+      // Determine API endpoint URL: default to relative /api/notify (routed via Vite proxy or same-origin)
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || "";
+      const endpoint = backendUrl ? `${backendUrl}/api/notify` : "/api/notify";
 
       const response = await fetch(endpoint, {
         method: "POST",

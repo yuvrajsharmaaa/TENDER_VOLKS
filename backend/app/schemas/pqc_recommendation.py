@@ -36,7 +36,7 @@ class ScoreDecomposition(BaseModel):
     compliance_status: str = Field(description="QUALIFIED, NEEDS_REVIEW, or DISQUALIFIED")
     ml_win_prob: float = Field(description="LightGBM predicted win probability (0.0 to 1.0)")
     similarity_score: float = Field(description="Qdrant top-5 nearest-neighbor historical win rate (0.0 to 1.0)")
-    groq_fit_score: float = Field(description="Groq LLM strategic fit score (0.0 to 1.0)")
+    claude_fit_score: float = Field(description="Claude AI strategic fit score (0.0 to 1.0)")
     composite_score: float = Field(description="Weighted multi-signal composite score (0.0 to 1.0)")
 
 
@@ -112,8 +112,9 @@ class ScoredTender(BaseModel):
 
 class PQCRecommendationRequest(BaseModel):
     top_k: int = Field(default=20, ge=1, le=100, description="Number of top ranked tenders to return")
-    include_groq: bool = Field(default=True, description="Whether to run Groq LLM qualitative enrichment on top candidates")
+    include_claude: bool = Field(default=True, description="Whether to run Claude AI qualitative enrichment on top candidates")
     source: Optional[str] = Field(default="db", description="Data source: 'db' for active workspace or 'dataset' for backtest pool")
+    is_override: bool = Field(default=False, description="When True, bypasses cache read and write for what-if evaluation")
 
 
 class PQCRecommendationResponse(BaseModel):

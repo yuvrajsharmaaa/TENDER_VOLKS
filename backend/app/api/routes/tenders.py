@@ -1466,7 +1466,7 @@ def recommend_pqc_tenders(
       - Signal 1 (0.35): Deterministic Statutory Compliance (F_hard)
       - Signal 2 (0.15): LightGBM 16-feature win probability
       - Signal 3 (0.35): Qdrant Top-5 historical neighbor track record
-      - Signal 4 (0.15): Groq LLM (llama-3.1-8b-instant) strategic fit
+      - Signal 4 (0.15): Claude LLM (claude-haiku-4-5-20251001) strategic fit
     """
     req = payload or PQCRecommendationRequest()
     service = PQCRecommendationService()
@@ -1535,7 +1535,8 @@ def recommend_pqc_tenders(
     result = service.rank_tenders(
         tenders=tenders_data,
         top_k=req.top_k,
-        include_groq=req.include_groq
+        include_claude=req.include_claude,
+        is_override=req.is_override
     )
 
     return result
@@ -1752,75 +1753,87 @@ def _fetch_tender_pqc_input(tender_id: str, db: Session) -> dict:
         if matches:
             target_job_dir = matches[0]
 
-    if target_job_dir.exists() and (target_job_dir / "tender_detail.json").exists():
-        try:
-            with open(target_job_dir / "tender_detail.json", "r", encoding="utf-8") as f:
-                payload = _json.load(f)
+    if target_job_dir.exists():
+        if (target_job_dir / "tender_detail.json").exists():
+            try:
+                with open(target_job_dir / "tender_detail.json", "r", encoding="utf-8") as f:
+                    payload = _json.load(f)
 
-            fields = {}
-            for sec in payload.get("infoSheetSections", []):
-                for fld in sec.get("fields", []):
-                    lbl = fld.get("label") or fld.get("id") or ""
-                    key = fld.get("key") or ""
-                    val = fld.get("value")
-                    if lbl:
-                        fields[str(lbl)] = val
-                    if key:
-                        fields[str(key)] = val
+                fields = {}
+                for sec in payload.get("infoSheetSections", []):
+                    for fld in sec.get("fields", []):
+                        lbl = fld.get("label") or fld.get("id") or ""
+                        key = fld.get("key") or ""
+                        val = fld.get("value")
+                        if lbl:
+                            fields[str(lbl)] = val
+                        if key:
+                            fields[str(key)] = val
 
-            # Direct extraction from published tender value fields
-            raw_val = (
-                payload.get("tenderValue")
-                or fields.get("tender_value_gst_inclusive")
-                or fields.get("estimated_cost")
-                or fields.get("tender_value")
-            )
-            val = parse_money(raw_val) or 0.0
-            value_is_estimated = False
+                # Direct extraction from published tender value fields
+                raw_val = (
+                    payload.get("tenderValue")
+                    or fields.get("tender_value_gst_inclusive")
+                    or fields.get("estimated_cost")
+                    or fields.get("tender_value")
+                )
+                val = parse_money(raw_val) or 0.0
+                value_is_estimated = False
 
-            # Non-circular secondary derivation:
-            # If buyer omitted total estimated value (common on GeM portals), derive via standard 2% EMD heuristic
-            # Note: Circular 'order_value_1 / 0.8' is strictly removed to prevent re-deriving input criteria.
-            if val == 0.0 and payload.get("emdAmount"):
-                emd_f = parse_money(payload.get("emdAmount"))
-                if emd_f and emd_f > 0:
-                    val = round(emd_f * 50.0, 2)  # Standard 2% EMD multiplier in GeM
-                    value_is_estimated = True
+                # Non-circular secondary derivation:
+                # If buyer omitted total estimated value (common on GeM portals), derive via standard 2% EMD heuristic
+                if val == 0.0 and payload.get("emdAmount"):
+                    emd_f = parse_money(payload.get("emdAmount"))
+                    if emd_f and emd_f > 0:
+                        val = round(emd_f * 50.0, 2)  # Standard 2% EMD multiplier in GeM
+                        value_is_estimated = True
 
-            # Derive scope of work
-            scope = (
-                fields.get("item_category")
-                or fields.get("technical_specifications_summary")
-                or payload.get("title")
-                or fields.get("item")
-                or payload.get("sector")
-                or "General Procurement"
-            )
+                # Derive scope of work
+                scope = (
+                    fields.get("item_category")
+                    or fields.get("technical_specifications_summary")
+                    or payload.get("title")
+                    or fields.get("item")
+                    or payload.get("sector")
+                    or "General Procurement"
+                )
 
-            deadline = payload.get("deadline") or fields.get("bid_submission_end_date")
+                deadline = payload.get("deadline") or fields.get("bid_submission_end_date")
 
-            # Derive MSME relaxation flag
-            mse_rel = fields.get("mse_relaxation_experience_turnover")
-            mse_pref = fields.get("mse_purchase_preference")
-            msme_applicable = (
-                mse_rel is True
-                or str(mse_rel).strip().lower() in ("yes", "true", "applicable", "1", "yes | complete")
-                or mse_pref is True
-                or str(mse_pref).strip().lower() in ("yes", "true", "applicable", "1")
-            )
+                # Derive MSME relaxation flag
+                mse_rel = fields.get("mse_relaxation_experience_turnover")
+                mse_pref = fields.get("mse_purchase_preference")
+                msme_applicable = (
+                    mse_rel is True
+                    or str(mse_rel).strip().lower() in ("yes", "true", "applicable", "1", "yes | complete")
+                    or mse_pref is True
+                    or str(mse_pref).strip().lower() in ("yes", "true", "applicable", "1")
+                )
 
+                return {
+                    "tender_id": clean_id,
+                    "tender_name": payload.get("title") or target_job_dir.name,
+                    "estimated_value": float(val),
+                    "value_is_estimated": value_is_estimated,
+                    "scope_of_work": str(scope).strip(),
+                    "submission_deadline": str(deadline) if deadline else None,
+                    "msme_relaxation_applicable": bool(msme_applicable),
+                    "data_source": "workspace_job"
+                }
+            except Exception as e:
+                logger.warning(f"Error reading tender_detail.json for job {clean_id}: {e}")
+        else:
+            # Job directory exists but Celery background worker is still processing the PDF
             return {
                 "tender_id": clean_id,
-                "tender_name": payload.get("title") or target_job_dir.name,
-                "estimated_value": float(val),
-                "value_is_estimated": value_is_estimated,
-                "scope_of_work": str(scope).strip(),
-                "submission_deadline": str(deadline) if deadline else None,
-                "msme_relaxation_applicable": bool(msme_applicable),
-                "data_source": "workspace_job"
+                "tender_name": target_job_dir.name,
+                "estimated_value": 0.0,
+                "value_is_estimated": False,
+                "scope_of_work": "Extraction in progress",
+                "submission_deadline": None,
+                "msme_relaxation_applicable": False,
+                "data_source": "workspace_job_processing"
             }
-        except Exception as e:
-            logger.warning(f"Error reading tender_detail.json for job {clean_id}: {e}")
 
     # 4. Check historical training set / backtest dataset
     csv_path = STORAGE_ROOT.parent / "artifacts" / "training_set_win_loss.csv"
@@ -1912,6 +1925,7 @@ def get_pqc_credential_recommendation(
     submission_deadline = str(override_deadline).strip() if override_deadline is not None else tender_info["submission_deadline"]
     msme_relaxation_applicable = bool(msme_relaxation) if msme_relaxation is not None else bool(tender_info["msme_relaxation_applicable"])
 
+
     # 3. Guard against missing or non-positive estimated tender value
     import math
     if estimated_value is None or estimated_value <= 0 or (isinstance(estimated_value, float) and math.isnan(estimated_value)):
@@ -1934,6 +1948,9 @@ def get_pqc_credential_recommendation(
             computed_thresholds=zero_thresholds,
             thresholds_required=zero_thresholds,
             rationale=(
+                "Tender document extraction is currently in progress. Statutory past-performance "
+                "thresholds and PQC qualification will be calculated automatically once parsing completes."
+                if tender_info.get("data_source") == "workspace_job_processing" else
                 "Tender estimated value could not be determined from published tender documents or EMD heuristics "
                 "(estimated value is ₹0.00 or unstated). Statutory past-performance thresholds (1x80%, 2x50%, 3x40%) "
                 "cannot be calculated, so PQC qualification cannot be evaluated."

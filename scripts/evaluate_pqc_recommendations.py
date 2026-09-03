@@ -70,7 +70,7 @@ def main():
     service = PQCRecommendationService()
     logger.info(f"Active Weights: {service.weights}")
 
-    # 3. Score all tenders across Signals 1, 2, 3 (Groq defaults to 0.50 offline)
+    # 3. Score all tenders across Signals 1, 2, 3 (Claude defaults to 0.50 offline)
     logger.info(f"Scoring all {total_rows} tenders offline...")
     scored_records = []
     
@@ -82,7 +82,7 @@ def main():
         
         scored = service.score_single_tender(
             tender_dict,
-            include_groq=False,
+            include_claude=False,
             org_win_rate=org_win_rate,
             incumbent_buyer=incumbent_buyer
         )
@@ -100,7 +100,7 @@ def main():
             "compliance_status": s["score_decomposition"]["compliance_status"],
             "ml_win_prob": s["score_decomposition"]["ml_win_prob"],
             "similarity_score": s["score_decomposition"]["similarity_score"],
-            "groq_fit_score": s["score_decomposition"]["groq_fit_score"],
+            "claude_fit_score": s["score_decomposition"]["claude_fit_score"],
             "composite_score": s["composite_score"],
         }
         for s in scored_records

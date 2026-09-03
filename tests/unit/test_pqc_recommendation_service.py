@@ -55,7 +55,7 @@ def test_pqc_service_weights_initialization(mock_vendor_profile):
     assert service.weights["compliance"] == 0.35
     assert service.weights["similarity"] == 0.35
     assert service.weights["ml_win_prob"] == 0.15
-    assert service.weights["groq"] == 0.15
+    assert service.weights["claude"] == 0.15
     assert sum(service.weights.values()) == 1.0
 
 
@@ -88,13 +88,13 @@ def test_predict_ml_win_probability(mock_vendor_profile, sample_tender):
     assert len(drivers) > 0
 
 
-def test_groq_fallback_safety(mock_vendor_profile, sample_tender):
-    # Test that Groq gracefully defaults to 0.50 on failure or offline
+def test_claude_fallback_safety(mock_vendor_profile, sample_tender):
+    # Test that Claude gracefully defaults to 0.50 on failure or offline
     service = PQCRecommendationService(
         vendor_profile=mock_vendor_profile,
-        groq_api_key="invalid_test_key"
+        anthropic_api_key="invalid_test_key"
     )
-    fit, rationale = service.evaluate_groq_strategic_fit(
+    fit, rationale = service.evaluate_claude_strategic_fit(
         tender_no=sample_tender["tender_no"],
         tender_name=sample_tender["tender_name"],
         organization=sample_tender["organization"],
@@ -107,9 +107,38 @@ def test_groq_fallback_safety(mock_vendor_profile, sample_tender):
     assert len(rationale) > 0
 
 
+def test_claude_mocked_success(mock_vendor_profile, sample_tender):
+    from unittest.mock import MagicMock, patch
+    service = PQCRecommendationService(
+        vendor_profile=mock_vendor_profile,
+        anthropic_api_key="sk-ant-mock-key"
+    )
+    mock_content_block = MagicMock()
+    mock_content_block.text = '{"strategic_fit": 0.88, "strategic_rationale": "Strong strategic fit for HT panel manufacturing."}'
+    mock_msg = MagicMock()
+    mock_msg.content = [mock_content_block]
+
+    with patch("anthropic.Anthropic") as MockAnthropic:
+        mock_client = MagicMock()
+        mock_client.messages.create.return_value = mock_msg
+        MockAnthropic.return_value = mock_client
+
+        fit, rationale = service.evaluate_claude_strategic_fit(
+            tender_no=sample_tender["tender_no"],
+            tender_name=sample_tender["tender_name"],
+            organization=sample_tender["organization"],
+            tender_value=sample_tender["tender_value"],
+            compliance_status="QUALIFIED",
+            ml_win_prob=0.65,
+            similar_tenders=[]
+        )
+        assert fit == 0.88
+        assert "Strong strategic fit" in rationale
+
+
 def test_score_single_tender(mock_vendor_profile, sample_tender):
     service = PQCRecommendationService(vendor_profile=mock_vendor_profile)
-    scored = service.score_single_tender(sample_tender, include_groq=False)
+    scored = service.score_single_tender(sample_tender, include_claude=False)
     
     assert "tender_no" in scored
     assert "composite_score" in scored
@@ -120,7 +149,7 @@ def test_score_single_tender(mock_vendor_profile, sample_tender):
         0.35 * decomp["compliance_score"] +
         0.35 * decomp["similarity_score"] +
         0.15 * decomp["ml_win_prob"] +
-        0.15 * decomp["groq_fit_score"],
+        0.15 * decomp["claude_fit_score"],
         4
     )
     assert abs(scored["composite_score"] - expected_composite) < 1e-3
@@ -140,7 +169,7 @@ def test_rank_multiple_tenders(mock_vendor_profile, sample_tender):
             "outcome": "Lost"
         }
     ]
-    result = service.rank_tenders(tenders, top_k=2, include_groq=False)
+    result = service.rank_tenders(tenders, top_k=2, include_claude=False)
     assert "recommendations" in result
     assert len(result["recommendations"]) == 2
     assert result["recommendations"][0]["rank"] == 1
@@ -151,12 +180,13 @@ def test_rank_multiple_tenders(mock_vendor_profile, sample_tender):
 
 def test_pydantic_schema_validation(mock_vendor_profile, sample_tender):
     service = PQCRecommendationService(vendor_profile=mock_vendor_profile)
-    result = service.rank_tenders([sample_tender], top_k=1, include_groq=False)
+    result = service.rank_tenders([sample_tender], top_k=1, include_claude=False)
     response_obj = PQCRecommendationResponse(**result)
     assert response_obj.total_scored == 1
     assert len(response_obj.recommendations) == 1
     assert response_obj.recommendations[0].rank == 1
     assert response_obj.weights_used["compliance"] == 0.35
+    assert response_obj.weights_used["claude"] == 0.15
 
 
 def test_nan_title_serialization_fallback_to_tender_no(mock_vendor_profile):
@@ -176,11 +206,11 @@ def test_nan_title_serialization_fallback_to_tender_no(mock_vendor_profile):
         "tender_value": 5000000.0
     }]).iloc[0].to_dict()
 
-    scored = service.score_single_tender(df_row, include_groq=False)
+    scored = service.score_single_tender(df_row, include_claude=False)
     assert scored["tender_name"] == "GEM/2026/B/7317018"
     assert scored["tender_name"] != "nan"
 
-    result = service.rank_tenders([df_row], top_k=1, include_groq=False)
+    result = service.rank_tenders([df_row], top_k=1, include_claude=False)
     response_obj = PQCRecommendationResponse(**result)
     raw_json = response_obj.model_dump_json(indent=2)
     
@@ -205,12 +235,12 @@ def test_nan_title_serialization_fallback_to_untitled(mock_vendor_profile):
         "tender_value": np.nan
     }]).iloc[0].to_dict()
 
-    scored = service.score_single_tender(df_row, include_groq=False)
+    scored = service.score_single_tender(df_row, include_claude=False)
     assert scored["tender_name"] == "Untitled Tender"
     assert scored["tender_name"] != "nan"
     assert scored["tender_name"] != "Not specified"
 
-    result = service.rank_tenders([df_row], top_k=1, include_groq=False)
+    result = service.rank_tenders([df_row], top_k=1, include_claude=False)
     response_obj = PQCRecommendationResponse(**result)
     raw_json = response_obj.model_dump_json(indent=2)
     
@@ -219,4 +249,208 @@ def test_nan_title_serialization_fallback_to_untitled(mock_vendor_profile):
     assert response_obj.recommendations[0].tender_value == 0.0
     assert '"nan"' not in raw_json
     assert 'NaN' not in raw_json
+
+
+def test_claude_cache_hit_and_staleness(mock_vendor_profile, sample_tender, tmp_path):
+    from unittest.mock import MagicMock, patch
+    cache_file = tmp_path / "test_fit_cache.sqlite3"
+    service = PQCRecommendationService(
+        vendor_profile=mock_vendor_profile,
+        anthropic_api_key="sk-ant-mock-key",
+        cache_db_path=cache_file
+    )
+
+    mock_content = MagicMock()
+    mock_content.text = '{"strategic_fit": 0.85, "strategic_rationale": "First run score."}'
+    mock_msg = MagicMock()
+    mock_msg.content = [mock_content]
+
+    with patch("anthropic.Anthropic") as MockAnthropic:
+        mock_client = MagicMock()
+        mock_client.messages.create.return_value = mock_msg
+        MockAnthropic.return_value = mock_client
+
+        # Call 1: Cache miss -> calls API
+        fit1, rat1 = service.evaluate_claude_strategic_fit(
+            tender_no=sample_tender["tender_no"],
+            tender_name=sample_tender["tender_name"],
+            organization=sample_tender["organization"],
+            tender_value=sample_tender["tender_value"],
+            compliance_status="QUALIFIED",
+            ml_win_prob=0.65,
+            similar_tenders=[]
+        )
+        assert fit1 == 0.85
+        assert mock_client.messages.create.call_count == 1
+
+        # Call 2: Identical payload -> Cache hit (0 API calls!)
+        fit2, rat2 = service.evaluate_claude_strategic_fit(
+            tender_no=sample_tender["tender_no"],
+            tender_name=sample_tender["tender_name"],
+            organization=sample_tender["organization"],
+            tender_value=sample_tender["tender_value"],
+            compliance_status="QUALIFIED",
+            ml_win_prob=0.65,
+            similar_tenders=[]
+        )
+        assert fit2 == 0.85
+        assert rat2 == rat1
+        # Call count remains 1!
+        assert mock_client.messages.create.call_count == 1
+
+        # Call 3: Modified value -> Staleness detected (hash mismatch) -> Calls API
+        mock_content.text = '{"strategic_fit": 0.72, "strategic_rationale": "Updated value score."}'
+        fit3, rat3 = service.evaluate_claude_strategic_fit(
+            tender_no=sample_tender["tender_no"],
+            tender_name=sample_tender["tender_name"],
+            organization=sample_tender["organization"],
+            tender_value=sample_tender["tender_value"] + 5000000.0,
+            compliance_status="QUALIFIED",
+            ml_win_prob=0.65,
+            similar_tenders=[]
+        )
+        assert fit3 == 0.72
+        assert mock_client.messages.create.call_count == 2
+
+
+def test_claude_is_override_bypasses_cache_read_and_write(mock_vendor_profile, sample_tender, tmp_path):
+    from unittest.mock import MagicMock, patch
+    from backend.app.services.claude_fit_cache import ClaudeFitCache
+    cache_file = tmp_path / "test_override_cache.sqlite3"
+    service = PQCRecommendationService(
+        vendor_profile=mock_vendor_profile,
+        anthropic_api_key="sk-ant-mock-key",
+        cache_db_path=cache_file
+    )
+
+    # Pre-seed persistent cache with baseline 0.60
+    base_hash = ClaudeFitCache.compute_payload_hash(
+        tender_no=sample_tender["tender_no"],
+        tender_name=sample_tender["tender_name"],
+        organization=sample_tender["organization"],
+        tender_value=sample_tender["tender_value"],
+        compliance_status="QUALIFIED",
+        ml_win_prob=0.65,
+        similar_tenders=[]
+    )
+    service.cache.set(
+        tender_no=sample_tender["tender_no"],
+        data_hash=base_hash,
+        strategic_fit=0.60,
+        strategic_rationale="Persisted ground truth baseline."
+    )
+
+    # Run with is_override=True and mock returning 0.95
+    mock_content = MagicMock()
+    mock_content.text = '{"strategic_fit": 0.95, "strategic_rationale": "What-if simulation fit."}'
+    mock_msg = MagicMock()
+    mock_msg.content = [mock_content]
+
+    with patch("anthropic.Anthropic") as MockAnthropic:
+        mock_client = MagicMock()
+        mock_client.messages.create.return_value = mock_msg
+        MockAnthropic.return_value = mock_client
+
+        fit, rat = service.evaluate_claude_strategic_fit(
+            tender_no=sample_tender["tender_no"],
+            tender_name=sample_tender["tender_name"],
+            organization=sample_tender["organization"],
+            tender_value=sample_tender["tender_value"],
+            compliance_status="QUALIFIED",
+            ml_win_prob=0.65,
+            similar_tenders=[],
+            is_override=True
+        )
+
+        # 1. Bypassed cache read: returned live 0.95 instead of cached 0.60
+        assert fit == 0.95
+        assert "What-if" in rat
+        assert mock_client.messages.create.call_count == 1
+
+        # 2. Bypassed cache write: persistent cache MUST still store original 0.60
+        cached_entry = service.cache.get(sample_tender["tender_no"], base_hash)
+        assert cached_entry is not None
+        assert cached_entry[0] == 0.60
+        assert cached_entry[1] == "Persisted ground truth baseline."
+
+
+def test_claude_short_circuit_disqualified(mock_vendor_profile):
+    from unittest.mock import patch
+    service = PQCRecommendationService(vendor_profile=mock_vendor_profile)
+
+    disqualified_tender = {
+        "tender_no": "GEM/2026/B/8888888",
+        "tender_name": "Disqualified High Turnover Tender",
+        "organization": "GAIL",
+        "tender_value": 100_000_000.0,
+        "avg_annual_turnover_value": 500_000_000.0,  # Exceeds vendor turnover -> Disqualified
+        "pbg_percentage": 25.0,  # Exceeds cap
+    }
+
+    with patch.object(service, "evaluate_claude_strategic_fit") as mock_eval:
+        scored = service.score_single_tender(disqualified_tender, include_claude=True)
+        assert scored["score_decomposition"]["compliance_status"] == "DISQUALIFIED"
+        assert scored["score_decomposition"]["claude_fit_score"] == 0.0
+        assert "Skipped Claude enrichment: Disqualified" in scored["strategic_rationale"]
+        # Claude API was completely short-circuited!
+        assert mock_eval.call_count == 0
+
+
+def test_claude_short_circuit_zero_value(mock_vendor_profile):
+    from unittest.mock import patch
+    service = PQCRecommendationService(vendor_profile=mock_vendor_profile)
+
+    zero_val_tender = {
+        "tender_no": "GEM/2026/B/7777777",
+        "tender_name": "Zero Value Incomplete Tender",
+        "organization": "GAIL",
+        "tender_value": 0.0,
+    }
+
+    with patch.object(service, "evaluate_claude_strategic_fit") as mock_eval:
+        scored = service.score_single_tender(zero_val_tender, include_claude=True)
+        assert scored["score_decomposition"]["claude_fit_score"] == 0.50
+        assert "CANNOT_EVALUATE" in scored["strategic_rationale"]
+        # Claude API was completely short-circuited!
+        assert mock_eval.call_count == 0
+
+
+def test_claude_retry_backoff_on_transient_failure(mock_vendor_profile, sample_tender, tmp_path):
+    from unittest.mock import MagicMock, patch
+    service = PQCRecommendationService(
+        vendor_profile=mock_vendor_profile,
+        anthropic_api_key="sk-ant-mock-key",
+        cache_db_path=tmp_path / "test_retry.sqlite3"
+    )
+
+    mock_content = MagicMock()
+    mock_content.text = '{"strategic_fit": 0.81, "strategic_rationale": "Recovered after retry."}'
+    mock_success_msg = MagicMock()
+    mock_success_msg.content = [mock_content]
+
+    with patch("anthropic.Anthropic") as MockAnthropic:
+        mock_client = MagicMock()
+        # Attempt 0 fails with transient error, Attempt 1 succeeds
+        mock_client.messages.create.side_effect = [
+            RuntimeError("Transient 503 Service Unavailable"),
+            mock_success_msg
+        ]
+        MockAnthropic.return_value = mock_client
+
+        with patch("time.sleep") as mock_sleep:
+            fit, rat = service.evaluate_claude_strategic_fit(
+                tender_no=sample_tender["tender_no"],
+                tender_name=sample_tender["tender_name"],
+                organization=sample_tender["organization"],
+                tender_value=sample_tender["tender_value"],
+                compliance_status="QUALIFIED",
+                ml_win_prob=0.65,
+                similar_tenders=[]
+            )
+
+            assert fit == 0.81
+            assert "Recovered" in rat
+            assert mock_client.messages.create.call_count == 2
+            # Verify exponential backoff delay of 1.0s was called
+            mock_sleep.assert_called_with(1.0)
 

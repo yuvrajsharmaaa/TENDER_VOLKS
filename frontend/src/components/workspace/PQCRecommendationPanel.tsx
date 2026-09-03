@@ -34,13 +34,13 @@ export const PQCRecommendationPanel: React.FC<PQCRecommendationPanelProps> = ({
   const [expandedTenderNo, setExpandedTenderNo] = useState<string | null>(null);
   const [topK, setTopK] = useState<number>(20);
   const [source, setSource] = useState<"db" | "dataset">("dataset");
-  const [includeGroq, setIncludeGroq] = useState<boolean>(true);
+  const [includeClaude, setIncludeClaude] = useState<boolean>(true);
 
   const fetchRecommendations = async () => {
     setLoading(true);
     setError(null);
     try {
-      const resp = await apiService.recommendPQC(topK, includeGroq, source);
+      const resp = await apiService.recommendPQC(topK, includeClaude, source);
       setData(resp);
       if (resp.recommendations.length > 0 && !expandedTenderNo) {
         setExpandedTenderNo(resp.recommendations[0].tender_no);
@@ -55,7 +55,7 @@ export const PQCRecommendationPanel: React.FC<PQCRecommendationPanelProps> = ({
 
   useEffect(() => {
     fetchRecommendations();
-  }, [topK, source, includeGroq]);
+  }, [topK, source, includeClaude]);
 
   const formatCurrency = (val: number) => {
     if (!val || val <= 0) return "Not Specified";
@@ -117,7 +117,7 @@ export const PQCRecommendationPanel: React.FC<PQCRecommendationPanelProps> = ({
             <p className="text-xs text-gray-500 max-w-2xl">
               Deterministic Hard Compliance (<span className="font-semibold text-gray-700">35%</span>) + Qdrant
               Historical Similarity (<span className="font-semibold text-gray-700">35%</span>) + LightGBM Predictive Win
-              Probability (<span className="font-semibold text-gray-700">15%</span>) + Groq LLM Qualitative Fit (
+              Probability (<span className="font-semibold text-gray-700">15%</span>) + Claude AI Qualitative Fit (
               <span className="font-semibold text-gray-700">15%</span>).
             </p>
           </div>
@@ -160,18 +160,18 @@ export const PQCRecommendationPanel: React.FC<PQCRecommendationPanelProps> = ({
               <option value={50}>Top 50</option>
             </select>
 
-            {/* Groq AI Enrichment Toggle */}
+            {/* Claude AI Enrichment Toggle */}
             <button
               type="button"
-              onClick={() => setIncludeGroq(!includeGroq)}
+              onClick={() => setIncludeClaude(!includeClaude)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all shadow-xs ${
-                includeGroq
+                includeClaude
                   ? "bg-purple-50 text-purple-700 border-purple-200"
                   : "bg-gray-100 text-gray-500 border-gray-200"
               }`}
             >
               <Bot className="h-3.5 w-3.5" />
-              Groq AI {includeGroq ? "On" : "Off"}
+              Claude AI {includeClaude ? "On" : "Off"}
             </button>
 
             {/* Refresh Button */}
@@ -215,10 +215,10 @@ export const PQCRecommendationPanel: React.FC<PQCRecommendationPanelProps> = ({
 
           <div className="bg-gray-50/80 rounded-xl p-3 border border-gray-100">
             <span className="text-[11px] font-medium text-gray-500 flex items-center gap-1">
-              <Bot className="h-3.5 w-3.5 text-amber-600" /> Groq AI Fit
+              <Bot className="h-3.5 w-3.5 text-amber-600" /> Claude AI Fit
             </span>
             <p className="text-base font-bold text-gray-900 mt-1 font-mono">15% Weight</p>
-            <p className="text-[10px] text-gray-400">llama-3.1-8b Strategic Synthesis</p>
+            <p className="text-[10px] text-gray-400">claude-haiku-4-5 Strategic Synthesis</p>
           </div>
         </div>
       </div>
@@ -327,7 +327,7 @@ export const PQCRecommendationPanel: React.FC<PQCRecommendationPanelProps> = ({
                       <div>
                         <span className="text-[10px] uppercase font-semibold text-gray-400">AI Fit</span>
                         <p className="text-xs font-bold text-amber-700 font-mono">
-                          {(decomp.groq_fit_score * 100).toFixed(0)}%
+                          {(decomp.claude_fit_score * 100).toFixed(0)}%
                         </p>
                       </div>
                     </div>

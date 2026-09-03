@@ -125,7 +125,7 @@ export interface ScoreDecomposition {
   compliance_status: "QUALIFIED" | "NEEDS_REVIEW" | "DISQUALIFIED" | string;
   ml_win_prob: number;
   similarity_score: number;
-  groq_fit_score: number;
+  claude_fit_score: number;
   composite_score: number;
 }
 
@@ -155,8 +155,9 @@ export interface ScoredTender {
 
 export interface PQCRecommendationRequest {
   top_k?: number;
-  include_groq?: boolean;
+  include_claude?: boolean;
   source?: "db" | "dataset";
+  is_override?: boolean;
 }
 
 export interface PQCRecommendationResponse {
@@ -166,7 +167,7 @@ export interface PQCRecommendationResponse {
     compliance: number;
     similarity: number;
     ml_win_prob: number;
-    groq: number;
+    claude: number;
     [key: string]: number;
   };
   timestamp: string;
