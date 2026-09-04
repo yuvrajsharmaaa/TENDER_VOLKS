@@ -413,8 +413,11 @@ def ingest_parent_tender_pdf(
             logger.warning(f"[ATC_RESOLVER] ATC_PARSE_FAILED: Error processing ATC PDF '{atc_path}': {atc_err}. Continuing with main tender parsing only.")
 
     # 3b. Normalize Financial Exemption status if Financial Criteria is NOT APPLICABLE
-    all_text_combined = " ".join([p.get("text", "") for p in page_texts]).lower()
-    if "financial criteria" in all_text_combined and "not applicable" in all_text_combined:
+    from backend.app.services.tender_mapper import is_unconditional_financial_exemption
+    all_text_combined = " ".join([p.get("text", "") for p in page_texts])
+    if atc_full_text:
+        all_text_combined += f" {atc_full_text}"
+    if is_unconditional_financial_exemption(all_text_combined):
         fin_keywords = {"turnover", "solvency", "net worth", "working capital", "financial"}
         for sec in sections:
             is_fin_sec = any(kw in sec.get("title", "").lower() for kw in fin_keywords)
@@ -424,7 +427,7 @@ def ingest_parent_tender_pdf(
                     f["value"] = "Exempt / Not Applicable"
                     f["status"] = "exempt"
                     f["confidence"] = 99.0
-                    f["sourceSnippet"] = "Financial Criteria explicitly declared NOT APPLICABLE in Tender BEC (Section-II)"
+                    f["sourceSnippet"] = "Financial Criteria explicitly declared unconditionally NOT APPLICABLE in Tender BEC (Section-II)"
 
     # 4. Generate XLSX Spreadsheet Info Sheet
     csv_filename = f"{original_filename.replace('.pdf', '')}_InfoSheet.xlsx"
@@ -469,7 +472,22 @@ def ingest_parent_tender_pdf(
                     "order_value_2_display": "Order Value 2",
                     "order_value_3_display": "Order Value 3",
                     "avg_annual_turnover_value_display": "Average Annual Turnover Value",
+                    "working_capital_value_display": "Working Capital Value",
+                    "solvency_certificate_value_display": "Solvency Certificate Value",
+                    "net_worth_value_display": "Net Worth Value",
+                    "eligibility_criterion_years_display": "Eligibility Criterion Years",
                 }
+                COMPLEX_BEC_KEYS = [
+                    "custom_eligibility_criteria_display",
+                    "order_value_1_display",
+                    "order_value_2_display",
+                    "order_value_3_display",
+                    "avg_annual_turnover_value_display",
+                    "working_capital_value_display",
+                    "solvency_certificate_value_display",
+                    "net_worth_value_display",
+                    "eligibility_criterion_years_display",
+                ]
                 _stub_vals = ("NA", "N/A", None, "", "Not Found", "NOT_APPLICABLE", "Not Applicable", "0", "0.0", "0.00", "₹0.00", 0, 0.0, "⚠️ MISSING")
                 # Dynamically collect ALL infosheet fields that are still NA / missing after Layer 1 regex pass
                 missing_keys = [
@@ -479,10 +497,31 @@ def ingest_parent_tender_pdf(
                 # Combine parent and ATC child texts to ensure LLM has full context
                 parent_text = "\n".join([p.get("text", "") for p in all_pages])
                 target_text = f"{parent_text}\n\n{atc_full_text}".strip() if atc_full_text else parent_text.strip()
-                if missing_keys and target_text:
-                    logger.info("[LLM_FALLBACK][Layer 2] %d fields still NA after regex pass — invoking LLM", len(missing_keys))
+                
+                # Check for BEC / Section-II content in target text
+                has_bec_content = bool(
+                    re.search(r"SECTION-II|BID EVALUATION CRITERIA|\bBEC\b|TECHNICAL CRITERIA|ELIGIBILITY CRITERIA", target_text, re.IGNORECASE)
+                )
+
+                keys_to_resolve = list(missing_keys)
+                if has_bec_content:
+                    for bec_key in COMPLEX_BEC_KEYS:
+                        if bec_key not in keys_to_resolve and bec_key in FIELD_PROMPT_MAP:
+                            curr_val = str(infosheet_data.get(bec_key, "")).strip()
+                            is_suspicious = (
+                                curr_val in _stub_vals
+                                or any(kw in curr_val.lower() for kw in ["make in india", "local content", "purchase preference", "etc."])
+                                or (bec_key in ("order_value_1_display", "order_value_2_display", "avg_annual_turnover_value_display")
+                                    and ("₹" in curr_val or "rs" in curr_val.lower())
+                                    and not any(u in curr_val.lower() for u in ["lakh", "lac", "cr", "crore", ",00", "000"]))
+                            )
+                            if is_suspicious or bec_key == "custom_eligibility_criteria_display":
+                                keys_to_resolve.append(bec_key)
+
+                if keys_to_resolve and target_text:
+                    logger.info("[LLM_FALLBACK][Layer 2] %d fields queued for LLM resolution (has_bec=%s): %s", len(keys_to_resolve), has_bec_content, keys_to_resolve)
                     resolver = LLMFieldResolver()
-                    llm_resolved = resolver.resolve(target_text, missing_keys)
+                    llm_resolved = resolver.resolve(target_text, keys_to_resolve)
                     
                     field_statuses = cast(Dict[str, str], infosheet_data.get("_info_sheet_statuses", {}))
                     missing_fields = cast(List[str], infosheet_data.get("missing_fields", []))
@@ -492,9 +531,35 @@ def ingest_parent_tender_pdf(
                         if key.startswith("_") or not isinstance(item, dict):
                             continue
                         val = item.get("value")
-                        if val and infosheet_data.get(key) in _stub_vals:
+                        if not val or val in _stub_vals:
+                            continue
+
+                        current_val = infosheet_data.get(key)
+                        is_stub = current_val in _stub_vals or (isinstance(current_val, str) and not current_val.strip())
+
+                        is_bec_override = False
+                        if key in COMPLEX_BEC_KEYS:
+                            # Rule: If eligibility_criterion_years_display is already a clean integer from main_tender, preserve it (MAIN_SOURCED_LABELS)
+                            if key == "eligibility_criterion_years_display":
+                                if is_stub or not str(current_val).strip().isdigit():
+                                    is_bec_override = True
+                            elif is_stub:
+                                is_bec_override = True
+                            elif any(kw in str(current_val).lower() for kw in ["make in india", "local content", "purchase preference", "etc."]):
+                                is_bec_override = True
+                            elif key == "custom_eligibility_criteria_display":
+                                # LLM technical BEC overrides regex which often picks up MII or boilerplate
+                                is_bec_override = True
+                            elif key in ("order_value_1_display", "order_value_2_display", "avg_annual_turnover_value_display"):
+                                # If existing value lacked units (e.g. bare "₹32.00") and LLM has unit multiplier, override
+                                curr_has_unit = any(u in str(current_val).lower() for u in ["lakh", "lac", "cr", "crore", ",00", "000"])
+                                val_has_unit = any(u in str(val).lower() for u in ["lakh", "lac", "cr", "crore", ",00", "000"])
+                                if not curr_has_unit and val_has_unit:
+                                    is_bec_override = True
+
+                        if is_stub or is_bec_override:
                             infosheet_data[key] = val
-                            logger.info("[LLM_FALLBACK][Layer 2] Merged '%s' = %r into infosheet_data", key, val)
+                            logger.info("[LLM_FALLBACK][Layer 2] Merged '%s' = %r into infosheet_data (override=%s, prev=%r)", key, val, is_bec_override, current_val)
                             
                             # 1. Update status tracking dicts
                             field_statuses[key] = FIELD_STATUS_OK_FALLBACK

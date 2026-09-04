@@ -32,5 +32,6 @@ xhtml2pdf
 pyyaml
 pdfplumber
 anthropic>=0.34.0
-
+paddlepaddle>=2.6.0
+paddleocr>=2.8.0
 

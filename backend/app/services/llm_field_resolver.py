@@ -52,8 +52,18 @@ GAIL_GEM_SYSTEM_INSTRUCTION = """You are an expert at extracting structured data
   - Tag (E): BID SECURITY / EMD AMOUNT — extract exact ₹ amount here, NOT from Clause 16
   - Tag (G): CONTACT DETAILS OF TENDER DEALING OFFICER — primary contact block (name, phone, email)
   - Tag (H): DEALING GAIL'S OFFICE ADDRESS — courier/physical submission address
-- **SECTION-II**: BID EVALUATION CRITERIA (BEC) — eligibility, MAF, technical criteria
-  - "Financial criteria: Not Applicable" → all 4 financial sub-fields are Not Applicable
+- **SECTION-II**: BID EVALUATION CRITERIA (BEC) — eligibility, MAF, technical & financial criteria
+  - **Technical Criteria (custom_eligibility_criteria)**:
+    - Extract the core technical experience requirement (e.g., "Bidder should have supplied / executed SITC of...").
+    - DO NOT extract Make-in-India (MII) or Public Procurement / MSE Purchase Preference clauses here. MII is NOT technical BEC.
+  - **Single / Multiple Work Order Values (order_value_1, order_value_2, order_value_3)**:
+    - Extract the required executed order values from BEC technical criteria.
+    - PRESERVE THE UNIT: If the table column is "(Rs. in Lakhs)" and the row says "32.00", output "Rs. 32.00 Lakh" or "₹32,00,000". Never output bare "32.00" without units.
+  - **Eligibility Experience Period (eligibility_criterion_years)**:
+    - Extract ONLY the integer number of years required (e.g. "7" or "3"). Do not output "etc.", sentences, or vague text.
+  - **Financial Criteria (Turnover, Working Capital, Net Worth, Solvency)**:
+    - Only mark as "Not Applicable" if UNCONDITIONALLY NOT APPLICABLE for ALL bidders.
+    - If financial criteria is exempt ONLY for MSE / Startups, extract the standard threshold values applicable to general bidders (e.g., "Rs. 61.00 Lakh").
   - MAF/OEM: "Manufacturer Authorization", "Authorized Dealer/Partner" → maf_required=true
 - **SECTION-III (BDS)**: BIDDING DATA SHEET — second occurrence (ignore TOC listing near front)
   - Find the SECOND occurrence of "BIDDING DATA SHEET (BDS)" and slice to next SECTION-
@@ -103,6 +113,9 @@ GAIL_GEM_SYSTEM_INSTRUCTION = """You are an expert at extracting structured data
 5. For LD/PRS: return DECIMAL rate (e.g. 0.5, not "0.5%").
 6. For SD/PBG mode: list all accepted instruments as a human-readable string.
 7. The response must be a JSON object matching exactly the requested schema fields.
+8. For custom_eligibility_criteria: Extract technical scope of past experience only; never extract Make in India / Local Content preference text.
+9. For order values and turnover: Always preserve currency and multiplier units (e.g. 'Rs. 32.00 Lakh' or '₹32,00,000').
+10. For eligibility_criterion_years: Output a clean single integer (e.g. 7, 5, 3).
 
 {few_shot_section}"""
 
@@ -146,6 +159,22 @@ def _fmt_bool(v) -> Optional[str]:
 
 def _fmt_str(v) -> Optional[str]:
     s = str(v).strip()
+    return s if s else None
+
+def _fmt_years(v) -> Optional[str]:
+    if v is None:
+        return None
+    s = str(v).strip()
+    m = re.search(r"\b(\d{1,2})\b", s)
+    if m:
+        return m.group(1)
+    word_to_num = {
+        "one": "1", "two": "2", "three": "3", "four": "4", "five": "5",
+        "six": "6", "seven": "7", "eight": "8", "nine": "9", "ten": "10"
+    }
+    for w, n in word_to_num.items():
+        if w in s.lower():
+            return n
     return s if s else None
 
 
@@ -243,7 +272,7 @@ FIELD_PROMPT_MAP: Dict[str, Tuple[str, str, str, Any]] = {
     ),
     "custom_eligibility_criteria_display": (
         "custom_eligibility_criteria", "string",
-        "Detailed Technical Eligibility criteria / single order value requirement from Section-II BEC (verbatim or summarized)",
+        "Detailed Technical Eligibility criteria / technical scope and single order value requirement from Section-II BEC (verbatim or summarized). EXCLUDE Make-in-India / Local Content clauses.",
         _fmt_str,
     ),
     "courier_address_display": (
@@ -308,8 +337,8 @@ FIELD_PROMPT_MAP: Dict[str, Tuple[str, str, str, Any]] = {
     ),
     "eligibility_criterion_years_display": (
         "eligibility_criterion_years", "string",
-        "Number of years of prior experience required in BEC technical criteria (e.g. '7' or '3'). Return number string.",
-        _fmt_str,
+        "Number of years of prior experience required in BEC technical criteria (e.g. '7' or '3'). Return clean integer number string only.",
+        _fmt_years,
     ),
 }
 
@@ -752,7 +781,7 @@ class LLMFieldResolver:
             third = max_chars // 3
             # Extract middle slice around key ATC terms if present
             mid_start = len(full_text) // 2 - (third // 2)
-            mid_match = re.search(r"(?:PAYMENT|PRICE REDUCTION|SECURITY DEPOSIT|BEC|SPECIAL CONDITIONS)", full_text, re.IGNORECASE)
+            mid_match = re.search(r"(?:SECTION-II|BID EVALUATION CRITERIA|TECHNICAL CRITERIA|ELIGIBILITY CRITERIA|\bBEC\b|PAYMENT|PRICE REDUCTION|SECURITY DEPOSIT|SPECIAL CONDITIONS)", full_text, re.IGNORECASE)
             if mid_match and third < mid_match.start() < (len(full_text) - third):
                 mid_start = max(0, mid_match.start() - (third // 2))
             
@@ -778,6 +807,106 @@ class LLMFieldResolver:
         )
         return system_instruction, user_prompt
 
+    def _anchor_monetary_with_multipliers(self, val_str: str, full_text: str, normalized_text: str) -> Optional[str]:
+        """
+        Anchors monetary and numeric threshold values by taking into account Indian
+        numbering multipliers (Lakh / Lac / Lacs / Lakhs, Crore / Cr / Crores) and tabular
+        header multipliers (e.g. 32.00 under '(Rs. in Lakhs)' matches 3200000 or Rs. 32.00 Lac).
+        """
+        if not val_str:
+            return None
+
+        # 1. Check for standard sentinel / exemption phrases
+        val_lower = val_str.lower().strip()
+        if any(p in val_lower for p in ["not applicable", "n/a", "exempt", "nil", "must be positive", "positive"]):
+            m = re.search(re.escape(val_str), normalized_text, re.IGNORECASE)
+            if m:
+                pos = m.start()
+                return normalized_text[max(0, pos - 100): min(len(normalized_text), m.end() + 150)]
+            for phrase in ["not applicable", "n/a", "exempt", "must be positive", "positive net worth", "positive"]:
+                if phrase in val_lower:
+                    m_p = re.search(re.escape(phrase), normalized_text, re.IGNORECASE)
+                    if m_p:
+                        pos = m_p.start()
+                        return normalized_text[max(0, pos - 100): min(len(normalized_text), m_p.end() + 150)]
+
+        # 2. Extract numeric values from LLM string
+        clean_s = re.sub(r"[₹,]|(?:rs\.?|inr)\s*", "", val_str, flags=re.IGNORECASE).strip()
+        nums = re.findall(r"\d+(?:\.\d+)?", clean_s)
+        if not nums:
+            return None
+
+        candidates: List[Tuple[str, bool]] = []  # (token, is_bare_small_number)
+        for n_str in nums:
+            try:
+                n_float = float(n_str)
+            except ValueError:
+                continue
+
+            # A. Exact representation
+            is_small = n_float < 10000
+            candidates.append((n_str, is_small))
+            if n_float.is_integer():
+                candidates.append((str(int(n_float)), is_small))
+                candidates.append((f"{int(n_float)}.00", is_small))
+                candidates.append((f"{int(n_float)}.0", is_small))
+            else:
+                candidates.append((f"{n_float:.2f}", is_small))
+
+            # B. If large number (e.g. 3,200,000), check Lakh (32) and Crore (0.32) representations
+            if n_float >= 10000:
+                lakh_val = n_float / 100000.0
+                if lakh_val.is_integer():
+                    candidates.append((str(int(lakh_val)), True))
+                    candidates.append((f"{int(lakh_val)}.00", True))
+                    candidates.append((f"{int(lakh_val)}.0", True))
+                else:
+                    candidates.append((f"{lakh_val:.2f}", True))
+                    candidates.append((f"{lakh_val:.1f}", True))
+
+                crore_val = n_float / 10000000.0
+                if crore_val.is_integer():
+                    candidates.append((str(int(crore_val)), True))
+                    candidates.append((f"{int(crore_val)}.00", True))
+                else:
+                    candidates.append((f"{crore_val:.2f}", True))
+                    candidates.append((f"{crore_val:.1f}", True))
+
+            # C. If small number (e.g. 32 or 32.00), check if text has full rupee expansions: 32,00,000 or 3200000
+            elif 0 < n_float < 10000:
+                full_lakh = int(round(n_float * 100000))
+                candidates.append((str(full_lakh), False))
+                s_fl = str(full_lakh)
+                if len(s_fl) > 3:
+                    last3 = s_fl[-3:]
+                    rest = s_fl[:-3]
+                    fmt = ""
+                    while len(rest) > 2:
+                        fmt = "," + rest[-2:] + fmt
+                        rest = rest[:-2]
+                    fmt = rest + fmt + "," + last3
+                    candidates.append((fmt, False))
+
+        # Check each candidate token against text
+        for token, is_bare_small in candidates:
+            pat = r"(?<![\d\.])" + re.escape(token) + r"(?![\d\.])"
+            for m in re.finditer(pat, normalized_text):
+                pos = m.start()
+                if not is_bare_small:
+                    return normalized_text[max(0, pos - 100): min(len(normalized_text), m.end() + 150)]
+
+                # For small numbers, verify nearby context or table header
+                window = normalized_text[max(0, pos - 150): min(len(normalized_text), pos + 150)].lower()
+                unit_keywords = ["lakh", "lac", "lacs", "lakhs", "cr", "crore", "crores", "rs", "₹", "inr", "value", "turnover", "order", "capital", "solvency"]
+                if any(kw in window for kw in unit_keywords):
+                    return normalized_text[max(0, pos - 100): min(len(normalized_text), m.end() + 150)]
+
+                preceding_block = normalized_text[max(0, pos - 800): pos].lower()
+                if any(h in preceding_block for h in ["in lakh", "in lac", "in lacs", "in lakhs", "rs. in", "₹ in"]):
+                    return normalized_text[max(0, pos - 100): min(len(normalized_text), m.end() + 150)]
+
+        return None
+
     def _validate_and_anchor(self, field_key: str, value: Any, full_text: str) -> Optional[str]:
         """
         Non-hallucination check: verify that the extracted value appears verbatim
@@ -797,10 +926,9 @@ class LLMFieldResolver:
         normalized_text = re.sub(r"\s+", " ", full_text)
 
         if field_key == "custom_eligibility_criteria_display":
-            # Extract distinct numeric tokens (figures, percentages, ₹ amounts)
+            # 1. First attempt: numeric tokens matching
             numeric_tokens = set(re.findall(r"\d+(?:[\.,]\d+)?", str_val))
             if numeric_tokens:
-                # Numeric path: 60% of distinct digit-tokens must appear in source text
                 matched_count = 0
                 for token in numeric_tokens:
                     clean_tok = token.strip(",. ")
@@ -808,7 +936,9 @@ class LLMFieldResolver:
                         continue
                     if clean_tok in full_text or clean_tok in normalized_text:
                         matched_count += 1
-                if (matched_count / len(numeric_tokens)) >= 0.6:
+                    elif self._anchor_monetary_with_multipliers(clean_tok, full_text, normalized_text):
+                        matched_count += 1
+                if (matched_count / len(numeric_tokens)) >= 0.5:
                     for token in numeric_tokens:
                         clean_tok = token.strip(",. ")
                         m = re.search(re.escape(clean_tok), full_text)
@@ -816,8 +946,37 @@ class LLMFieldResolver:
                             pos = m.start()
                             return full_text[max(0, pos - 100): min(len(full_text), m.end() + 150)]
                     return "numeric_tokens_matched"
-                return None
-            # No numeric tokens: fall through to the general string-matching logic below
+
+            # 2. Second attempt: semantic keyword anchoring from BEC
+            stopwords = {"should", "shall", "which", "their", "there", "these", "those", "have", "with", "from", "that", "this", "been", "will", "would", "could", "order", "value", "clause", "table", "tender", "bidder", "bidders", "criteria"}
+            words = [w.lower() for w in re.findall(r"[A-Za-z]{4,}", str_val) if w.lower() not in stopwords]
+            if len(words) >= 3:
+                matched_words = [w for w in words if re.search(r"\b" + re.escape(w) + r"\b", normalized_text, re.IGNORECASE)]
+                if len(matched_words) >= 3 and (len(matched_words) / len(words)) >= 0.4:
+                    m = re.search(r"\b" + re.escape(matched_words[0]) + r"\b", normalized_text, re.IGNORECASE)
+                    if m:
+                        pos = m.start()
+                        return normalized_text[max(0, pos - 100): min(len(normalized_text), m.end() + 150)]
+                    return "semantic_keywords_matched"
+
+        # Check for eligibility_criterion_years_display
+        if field_key == "eligibility_criterion_years_display":
+            clean_yr = re.search(r"\b(\d{1,2})\b", str_val)
+            if clean_yr:
+                yr_val = clean_yr.group(1)
+                m_yr = (
+                    re.search(rf"\b{yr_val}\s*(?:years?|yrs?|financial\s+years?)\b", normalized_text, re.IGNORECASE)
+                    or re.search(rf"(?:preceding|past|previous|experience\s+of)\s+[^.\n]{{0,30}}\b{yr_val}\b", normalized_text, re.IGNORECASE)
+                )
+                if m_yr:
+                    pos = m_yr.start()
+                    return normalized_text[max(0, pos - 100): min(len(normalized_text), m_yr.end() + 150)]
+
+        # Monetary and threshold fields with multiplier recognition
+        if any(k in field_key for k in ["order_value", "turnover", "working_capital", "solvency", "net_worth"]):
+            mon_anchor = self._anchor_monetary_with_multipliers(str_val, full_text, normalized_text)
+            if mon_anchor:
+                return mon_anchor
 
         # 1. Numeric value matching (integers and decimals)
         num_str = str_val.replace("%", "").replace("₹", "").replace(",", "").strip()
@@ -827,6 +986,9 @@ class LLMFieldResolver:
             if m:
                 pos = m.start()
                 return full_text[max(0, pos - 100): min(len(full_text), m.end() + 150)]
+            mon_anchor = self._anchor_monetary_with_multipliers(str_val, full_text, normalized_text)
+            if mon_anchor:
+                return mon_anchor
 
         # 2. String values: direct case-insensitive search
         if isinstance(value, str) and len(value) > 2:

@@ -652,6 +652,51 @@ def evaluate_bounded_fallback(
         
     return extracted_val, {"source": "regex", "needs_review": False}
 
+def is_unconditional_financial_exemption(text: str) -> bool:
+    """
+    Check if financial criteria is unconditionally declared Not Applicable in the tender text.
+    Avoids false-positive overrides where exemption is conditional (e.g. for MSE / Startups only)
+    or where 'relaxation in financial criteria: not applicable' means NO relaxation is granted.
+    """
+    if not text:
+        return False
+
+    pattern = (
+        r"\bfinancial\s+(?:criteria|bec|eligibility)(?:\s+evaluation)?\s*[:\-\–]?\s*"
+        r"(?:is\s+|shall\s+be\s+)?(?:not\s+applicable|n/?a|nil)\b"
+    )
+    for m in re.finditer(pattern, text, re.IGNORECASE):
+        start = max(0, m.start() - 60)
+        end = min(len(text), m.end() + 160)
+        window = text[start:end].lower()
+
+        # Reject if preceded by relaxation/exemption denial
+        if any(deny in window for deny in [
+            "relaxation in financial", "relaxation of financial",
+            "exemption from financial", "exemption in financial",
+            "relaxation: not applicable", "relaxation : not applicable"
+        ]):
+            continue
+
+        # Reject if qualified by MSE/startup-only exemption
+        if any(kw in window for kw in ["mse", "msme", "startup", "start-up", "prior turnover"]):
+            if any(kw in window for kw in [
+                "other bidder", "non-mse", "non mse", "turnover shall be",
+                "annual turnover", "working capital", "must meet", "general bidder"
+            ]):
+                continue
+            if re.search(r"not\s+applicable\s+(?:for|to|in\s+case\s+of|towards)\s+(?:mse|msme|startup)", window):
+                continue
+            if any(kw in window for kw in [
+                "for mse", "for msme", "for startup", "to mse", "to msme",
+                "in case of mse", "in case of msme", "in case of startup"
+            ]):
+                continue
+
+        return True
+
+    return False
+
 def resolve_field_staged(
     canonical_key: str,
     synonyms: List[str],
@@ -684,7 +729,7 @@ def resolve_field_staged(
 
     # Pass 3: Business & Exemption Rules Check
     if any(k in canonical_key.lower() for k in ["financial", "turnover", "solvency", "net_worth", "working_capital"]):
-        if "financial criteria" in full_text.lower() and "not applicable" in full_text.lower():
+        if is_unconditional_financial_exemption(full_text):
             return "Not Applicable", "domain_rule_exemption", 90.0
 
     # Pass 4: Fallback Assignment
