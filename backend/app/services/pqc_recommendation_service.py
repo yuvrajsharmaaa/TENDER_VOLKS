@@ -112,13 +112,16 @@ class PQCRecommendationService:
         """
         field_map = {
             "avg_annual_turnover_value_display": row_dict.get("avg_annual_turnover_value") or row_dict.get("annual_turnover"),
-            "working_capital_value_display": row_dict.get("working_capital_value"),
-            "experience_criteria_years": row_dict.get("technical_eligibility_age") or row_dict.get("technical_experience_years_req"),
+            "avg_annual_turnover_type_display": row_dict.get("avg_annual_turnover_type_display") or row_dict.get("avg_annual_turnover_type"),
+            "working_capital_value_display": row_dict.get("working_capital_value_display") or row_dict.get("working_capital_value"),
+            "working_capital_type_display": row_dict.get("working_capital_type_display") or row_dict.get("working_capital_type"),
+            "experience_criteria_years": row_dict.get("technical_eligibility_age") or row_dict.get("technical_experience_years_req") or row_dict.get("experience_criteria_years"),
             "pbg_percentage": row_dict.get("pbg_percentage"),
             "pbg_required": row_dict.get("pbg_required"),
             "bid_validity_days": row_dict.get("bid_validity_days"),
             "required_documents": row_dict.get("required_documents"),
             "mii_purchase_preference": row_dict.get("mii_purchase_preference"),
+            "mse_relaxation_experience_turnover": row_dict.get("mse_relaxation_experience_turnover") or row_dict.get("mse_relaxation_display"),
         }
 
         try:
@@ -165,12 +168,18 @@ class PQCRecommendationService:
             "incumbent_psu_list": ["IOCL", "AAI", "HPCL", "GAIL", "NTPC", "SAIL", "ONGC", "PGETL", "BPCL"]
         }
 
+        def _safe_float(val: Any, default: float = 0.0) -> float:
+            if val is None:
+                return default
+            try:
+                f = float(val)
+                return default if (isinstance(f, float) and np.isnan(f)) else f
+            except (ValueError, TypeError):
+                return default
+
         # Tender Value & EMD
         raw_tv = row_dict.get("tender_value") or row_dict.get("estimated_cost") or 0.0
-        try:
-            val_f = float(raw_tv) if raw_tv is not None else 0.0
-        except (ValueError, TypeError):
-            val_f = 0.0
+        val_f = _safe_float(raw_tv, default=0.0)
         
         tv_imputed = 0
         if val_f < 10_000.0 or val_f > 1_000_000_000.0:
@@ -180,34 +189,25 @@ class PQCRecommendationService:
         log_tv = float(np.log1p(val_f))
 
         raw_emd = row_dict.get("emd_amount") or 0.0
-        try:
-            emd_f = float(raw_emd) if raw_emd is not None else 0.0
-        except (ValueError, TypeError):
-            emd_f = 0.0
+        emd_f = _safe_float(raw_emd, default=0.0)
         emd_bounded = min(max(emd_f, 0.0), 100_000_000.0)
         log_emd = float(np.log1p(emd_bounded))
         emd_ratio = float(emd_bounded / profile["avg_annual_turnover"])
 
         # Turnover Ratio
         raw_to = row_dict.get("avg_annual_turnover_value") or 0.0
-        try:
-            to_f = float(raw_to) if raw_to is not None else 0.0
-        except (ValueError, TypeError):
-            to_f = 0.0
+        to_f = _safe_float(raw_to, default=0.0)
         turnover_req_app = 1 if to_f > 0 else 0
         turnover_ratio = float(to_f / profile["avg_annual_turnover"]) if turnover_req_app else 0.0
 
         # PBG, LD, Delivery, Bid Validity
-        pbg_pct = float(row_dict.get("pbg_percentage") or 0.0)
-        pbg_dur = float(row_dict.get("pbg_duration") or 0.0)
-        max_ld = float(row_dict.get("max_ld_percentage") or 0.0)
-        del_days = float(row_dict.get("delivery_time_supply") or row_dict.get("delivery_time_supply_days") or 0.0)
+        pbg_pct = _safe_float(row_dict.get("pbg_percentage"), default=0.0)
+        pbg_dur = _safe_float(row_dict.get("pbg_duration"), default=0.0)
+        max_ld = _safe_float(row_dict.get("max_ld_percentage"), default=0.0)
+        del_days = _safe_float(row_dict.get("delivery_time_supply") or row_dict.get("delivery_time_supply_days"), default=0.0)
         
         raw_bv = row_dict.get("bid_validity_days")
-        try:
-            bv_f = float(raw_bv) if raw_bv is not None else 90.0
-        except (ValueError, TypeError):
-            bv_f = 90.0
+        bv_f = _safe_float(raw_bv, default=90.0)
         bv_bounded = min(max(bv_f, 1.0), 365.0)
 
         # Flags
@@ -659,8 +659,20 @@ class PQCRecommendationService:
                         f"[PQCService] Claude API rate limit (429) hit on candidate #{loop_idx + 1}. "
                         "Safely falling back remaining candidates to neutral 0.50 baseline without delay."
                     )
-                    item["score_decomposition"]["claude_fit_score"] = 0.50
-                    item["strategic_rationale"] = "Claude rate limit reached; using neutral strategic baseline."
+                    w = self.weights
+                    for rem_idx in target_indices[loop_idx:]:
+                        rem_item = preliminary_scored[rem_idx]
+                        rem_item["score_decomposition"]["claude_fit_score"] = 0.50
+                        rem_item["strategic_rationale"] = "Claude rate limit reached; using neutral strategic baseline."
+                        decomp = rem_item["score_decomposition"]
+                        new_composite = (
+                            w["compliance"] * decomp["compliance_score"] +
+                            w["similarity"] * decomp["similarity_score"] +
+                            w["ml_win_prob"] * decomp["ml_win_prob"] +
+                            w["claude"] * decomp["claude_fit_score"]
+                        )
+                        rem_item["composite_score"] = round(float(new_composite), 4)
+                        rem_item["score_decomposition"]["composite_score"] = rem_item["composite_score"]
                     rate_limited = True
                     break
 

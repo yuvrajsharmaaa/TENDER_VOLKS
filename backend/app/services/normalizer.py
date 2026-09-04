@@ -22,9 +22,9 @@ def parse_money(val: Any) -> Optional[float]:
     val_str = str(val).lower().strip()
     
     multiplier = 1.0
-    if "lakh" in val_str or "lacs" in val_str:
+    if re.search(r'\b(?:lakh|lakhs|lac|lacs)\b', val_str):
         multiplier = 100000.0
-    elif "crore" in val_str or "cr" in val_str:
+    elif re.search(r'\b(?:crore|crores|cr)\b', val_str):
         multiplier = 10000000.0
         
     # Remove standard prefix abbreviations and common OCR misreads (e.g. ks., re., *, F, E, rs., inr)
@@ -202,8 +202,8 @@ def detect_tender_type(criteria: Optional[str], guess: Optional[str]) -> str:
 
 def derive_presence_flag(val: Any) -> str:
     """
-    Returns 'Yes' if a value exists and is not null/empty/not found, else 'No'.
+    Returns 'Yes' if a value exists and is not null/empty/not found/zero, else 'No'.
     """
-    if val is None or val == "" or val == "Not Found":
+    if val is None or val == "" or val == "Not Found" or val in (0, 0.0, "0", "0.0", "0.00", "₹0.00", "Nil", "NIL", "nil", "NA", "N/A", "None", "false", "False", False):
         return "No"
     return "Yes"

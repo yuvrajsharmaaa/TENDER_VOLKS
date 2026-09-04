@@ -1,3 +1,4 @@
+import ast
 import logging
 from datetime import datetime
 from typing import Dict, Any, Optional, List, Tuple
@@ -191,6 +192,12 @@ def map_extraction_to_internal_schema(extracted: dict) -> dict:
     )
     
     # EMD Details
+    normalized["emd_required"] = parse_bool(extracted.get("emd_required"))
+    normalized["pbg_required"] = parse_bool(extracted.get("pbg_required"))
+    normalized["sd_required"] = parse_bool(extracted.get("sd_required"))
+    normalized["tender_fee_required"] = parse_bool(extracted.get("tender_fee_required"))
+    normalized["processing_fee_required"] = parse_bool(extracted.get("processing_fee_required"))
+    normalized["ld_required"] = parse_bool(extracted.get("ld_required"))
     normalized["emd_amount"] = parse_money(extracted.get("emd_amount"))
     normalized["emd_mode_raw"] = extracted.get("emd_mode_text") or extracted.get("emd_mode")
     
@@ -254,13 +261,47 @@ def map_internal_to_db_payload(data: dict, tender_id: int) -> dict:
     """
     Step 7B: Maps internal schema fields dict into a database-ready payload.
     """
-    emd_req = "Yes" if data.get("emd_amount") and data.get("emd_amount") > 0 else derive_presence_flag(data.get("emd_amount"))
-    fee_req = "Yes" if data.get("fee_amount") and data.get("fee_amount") > 0 else derive_presence_flag(data.get("fee_amount"))
-    proc_req = "Yes" if data.get("processing_fee_amount") and data.get("processing_fee_amount") > 0 else derive_presence_flag(data.get("processing_fee_amount"))
-    
-    pbg_req = "Yes" if data.get("pbg_pct") and data.get("pbg_pct") > 0 else derive_presence_flag(data.get("pbg_pct"))
-    sd_req = "Yes" if data.get("sd_pct") and data.get("sd_pct") > 0 else derive_presence_flag(data.get("sd_pct"))
-    ld_req = "Yes" if data.get("max_ld_pct") and data.get("max_ld_pct") > 0 else derive_presence_flag(data.get("max_ld_pct"))
+    if data.get("emd_required") is not None:
+        emd_req = "Yes" if data.get("emd_required") else "No"
+    elif data.get("emd_amount") is not None:
+        emd_req = "Yes" if data.get("emd_amount") > 0 else "No"
+    else:
+        emd_req = derive_presence_flag(data.get("emd_amount"))
+
+    if data.get("tender_fee_required") is not None:
+        fee_req = "Yes" if data.get("tender_fee_required") else "No"
+    elif data.get("fee_amount") is not None:
+        fee_req = "Yes" if data.get("fee_amount") > 0 else "No"
+    else:
+        fee_req = derive_presence_flag(data.get("fee_amount"))
+
+    if data.get("processing_fee_required") is not None:
+        proc_req = "Yes" if data.get("processing_fee_required") else "No"
+    elif data.get("processing_fee_amount") is not None:
+        proc_req = "Yes" if data.get("processing_fee_amount") > 0 else "No"
+    else:
+        proc_req = derive_presence_flag(data.get("processing_fee_amount"))
+
+    if data.get("pbg_required") is not None:
+        pbg_req = "Yes" if data.get("pbg_required") else "No"
+    elif data.get("pbg_pct") is not None:
+        pbg_req = "Yes" if data.get("pbg_pct") > 0 else "No"
+    else:
+        pbg_req = derive_presence_flag(data.get("pbg_pct"))
+
+    if data.get("sd_required") is not None:
+        sd_req = "Yes" if data.get("sd_required") else "No"
+    elif data.get("sd_pct") is not None:
+        sd_req = "Yes" if data.get("sd_pct") > 0 else "No"
+    else:
+        sd_req = derive_presence_flag(data.get("sd_pct"))
+
+    if data.get("ld_required") is not None:
+        ld_req = "Yes" if data.get("ld_required") else "No"
+    elif data.get("max_ld_pct") is not None:
+        ld_req = "Yes" if data.get("max_ld_pct") > 0 else "No"
+    else:
+        ld_req = derive_presence_flag(data.get("max_ld_pct"))
     
     maf_req = parse_yes_no(data.get("custom_rules"), ["OEM authorization", "maf", "manufacturer authorization"]) if data.get("custom_rules") else "No"
     if data.get("maf_req_raw"):
@@ -476,7 +517,6 @@ def map_internal_to_summary_csv_row(data: dict) -> dict:
     for col in CSV_COLUMNS:
         val = data.get(col)
         if isinstance(val, str) and val.startswith('[') and val.endswith(']'):
-            import ast
             try:
                 val = ast.literal_eval(val)
             except BaseException:
@@ -577,7 +617,7 @@ def evaluate_bounded_fallback(
             source_quote = m.group(0)
     elif field_name == "delivery_time_supply":
         m = re.search(r"(?:Delivery\s+Period|Completion\s+Period|Delivery\s+Schedule|Contractual\s+Delivery)[:\-\s]*([^\n]*?\b(\d{1,4})\s*(?:days|months|weeks|day|month|week)\b)", section_text, re.IGNORECASE)
-        if m and not any(kw in m.group(0).lower() for kw in ["clarification", "validity", "extension", "offer"]):
+        if m and not any(kw in m.group(0).lower() for kw in ["clarification", "validity", "extension", "offer", "query"]):
             raw_num = int(m.group(2))
             unit = m.group(1).lower()
             if "month" in unit:
@@ -586,8 +626,11 @@ def evaluate_bounded_fallback(
                 days_val = raw_num * 7
             else:
                 days_val = raw_num
-            fallback_val = f"{days_val} Days"
-            source_quote = m.group(0)
+            after_ctx = section_text[m.end():m.end() + 100].lower()
+            if not any(kw in after_ctx for kw in ["clarification", "validity", "extension", "offer", "query"]):
+                if 7 <= days_val <= 730:
+                    fallback_val = f"{days_val} Days"
+                    source_quote = m.group(0)
     elif field_name in ("client_name_2", "nodal_officer"):
         m = re.search(r"(?:Shri?|Mr|Ms|Sh)\.?\s*[A-Z][a-zA-Z\.\s]{2,30}", section_text)
         if m:
@@ -676,7 +719,6 @@ def collect_repeated_documents(sections: List[Dict[str, Any]]) -> List[Dict[str,
                 label_lower_norm in ("required documents", "documents required", "document required")
             )
             if is_seller_doc_label:
-                import ast
                 parsed_items = []
                 if isinstance(val, list):
                     parsed_items = val
@@ -1089,7 +1131,6 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
         e_text = tag_e_match.group(1)
         amt_match = re.search(r"Amount[:\-\s]+Rs\.?\s*([\d,]+(?:\.\d+)?)", e_text, re.IGNORECASE)
         if amt_match:
-            from backend.app.services.normalizer import parse_money
             emd_parsed = parse_money(amt_match.group(1))
             if emd_parsed is not None and emd_parsed > 0:
                 emd_total = emd_parsed
@@ -1101,7 +1142,6 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
     if emd_amount_display == "NA":
         gem_emd_matches = re.findall(r"EMD\s+Amount[^\n]*\n\s*([\d,]+(?:\.\d+)?)", full_text, re.IGNORECASE)
         if gem_emd_matches:
-            from backend.app.services.normalizer import parse_money
             total_gem_emd = sum(parse_money(m) for m in gem_emd_matches if parse_money(m) is not None)
             if total_gem_emd > 0:
                 emd_total = total_gem_emd
@@ -1116,7 +1156,6 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
             emd_amount_raw = extract_regex(r"\bEMD(?!\s+Required)[:\-\s]+([^\n]+)", None)
             
         if not _is_missing(emd_amount_raw):
-            from backend.app.services.normalizer import parse_money
             emd_total = parse_money(emd_amount_raw) or 0.0
             
         if emd_total > 0:
@@ -1130,7 +1169,6 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
     # 14. Tender Value
     tender_value_display = resolve_field(["Estimated Tender Value", "Tender Value (GST Inclusive)", "tender_value"], r"Tender Value \(GST Inclusive\)[:\-\s]+([^\n]+)", "NA")
     if not _is_missing(tender_value_display) and tender_value_display not in ("Not Found", "NA"):
-        from backend.app.services.normalizer import parse_money
         tv = parse_money(tender_value_display)
         if tv is not None and tv >= 100:
             tender_value_display = format_currency(tv)
@@ -1330,7 +1368,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
 
         delivery_time_supply_display = f"Part A: {days_a} Days | Part B: {days_b} Days"
         logger.info(f"[ATC_ANCHOR] Resolved field 'delivery_time_supply' via Part A/B SCC ({delivery_time_supply_display})")
-    elif _is_missing(delivery_time_supply_display) or delivery_time_supply_display in ("NA", "Not Found", "549 Days", "50 Days", "15 Days"):
+    elif _is_missing(delivery_time_supply_display) or delivery_time_supply_display in ("NA", "Not Found") or not any(c.isdigit() for c in str(delivery_time_supply_display)):
         if part_a_m:
             raw_a = part_a_m.group(1).lower()
             num_a = word_map.get(raw_a, int(re.sub(r"\D", "", raw_a) or 6))
@@ -1370,7 +1408,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
         elif re.search(r"\b(\d{1,4})\b", val_str):
             m_num = re.search(r"\b(\d{1,4})\b", val_str)
             d_val = int(m_num.group(1))
-            if d_val > 730:  # Sanity bound: reject > 24 months mis-anchors
+            if d_val > 730 or d_val < 7:  # Sanity bound: reject > 24 months mis-anchors or < 1 week
                 delivery_time_supply_display = "NA"
             else:
                 delivery_time_supply_display = f"{d_val} Days"
@@ -1403,7 +1441,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
         delivery_time_installation_display = "365 Days"
         installation_inclusive_display = "No"
         logger.info("[ATC_ANCHOR] Resolved field 'delivery_time_installation' for multi-scope (365 Days)")
-    elif _is_missing(delivery_time_installation_display) or delivery_time_installation_display in ("NA", "Not Found", "549 Days", "50 Days", "15 Days"):
+    elif _is_missing(delivery_time_installation_display) or delivery_time_installation_display in ("NA", "Not Found"):
         if _install_tot_m and _install_tot_m.group(1):
             raw_s = _install_tot_m.group(1).lower()
             num_val = {"twelve": 12, "12": 12, "six": 6, "06": 6}.get(raw_s, int(re.sub(r"\D", "", raw_s) or 12))
@@ -1529,6 +1567,13 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
 
     if _is_missing(payment_terms_supply_display):
         payment_terms_supply_display = "NA"
+
+    payment_terms_supply_display, pay_fb_meta = evaluate_bounded_fallback(
+        "payment_terms_supply",
+        payment_terms_supply_display,
+        full_text[:20000],
+        lambda v: not _is_missing(v) and v not in ("NA", "Not Found") and "%" in str(v)
+    )
 
     if _is_missing(payment_terms_installation_display):
         payment_terms_installation_display = "NA"
@@ -1731,7 +1776,6 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
         if _is_missing(raw_val) or raw_val in ("NA", "Not Found", "—"):
             return "NA"
         val_str = str(raw_val).strip()
-        from backend.app.services.normalizer import parse_money
         parsed = parse_money(val_str)
         if parsed is None or parsed == 0.0:
             return val_str
@@ -2057,6 +2101,13 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
                 cand = _clean_cname(n_name.group(0))
                 if cand != client_name_1_display:
                     client_name_2_display = cand
+
+    client_name_2_display, c2_fb_meta = evaluate_bounded_fallback(
+        "client_name_2",
+        client_name_2_display,
+        full_text[:20000],
+        lambda v: not _is_missing(v) and v not in ("NA", "Not Found") and len(str(v).strip()) >= 3
+    )
 
     # 4. Officer 3 (Site Contact / Consignee / Additional Contact)
     client_name_3_display = resolve_field(["Client Contacts 3", "Client Contacts III", "client_contacts_3", "client_name_3"], default="NA")
@@ -2430,7 +2481,6 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
     sch_raw = field_lookup.get("schedules")
     schedules_list = []
     if sch_raw:
-        import ast
         try:
             if isinstance(sch_raw, str) and sch_raw.startswith("["):
                 schedules_list = ast.literal_eval(sch_raw)

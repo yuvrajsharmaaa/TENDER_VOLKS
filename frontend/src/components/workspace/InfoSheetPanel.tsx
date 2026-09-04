@@ -35,7 +35,7 @@ export const InfoSheetPanel: React.FC<InfoSheetPanelProps> = ({
   };
 
   return (
-    <div className="space-y-6 max-h-[calc(100vh-220px)] overflow-y-auto pr-2 select-none">
+    <div className="space-y-6 select-none pr-1">
       {sections.length === 0 ? (
         <div className="p-8 text-center text-text-muted bg-card-bg border border-divider rounded-lg font-sans">
           No structured metadata fields extracted yet. Trigger parser extraction.

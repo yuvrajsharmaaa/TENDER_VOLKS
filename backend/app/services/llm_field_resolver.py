@@ -27,6 +27,10 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple, Set
+from dotenv import load_dotenv
+
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent.parent
+load_dotenv(ROOT_DIR / ".env.dev")
 
 logger = logging.getLogger(__name__)
 
@@ -477,32 +481,39 @@ class LLMFieldResolver:
         model: Optional[str] = None,
         api_key: Optional[str] = None,
     ):
-        self.api_key = api_key or os.getenv("ANTHROPIC_API_KEY", os.getenv("LLM_API_KEY", os.getenv("GROQ_API_KEY", os.getenv("GEMINI_API_KEY", ""))))
-        
-        detected_provider = (provider or os.getenv("LLM_PROVIDER", "")).lower()
+        anthropic_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
+        gemini_key = os.getenv("GEMINI_API_KEY", "").strip()
+        groq_key = os.getenv("GROQ_API_KEY", "").strip()
+        generic_llm_key = os.getenv("LLM_API_KEY", "").strip()
+
+        # Prioritize explicit provider, then LLM_PROVIDER env, then auto-detect
+        detected_provider = (provider or os.getenv("LLM_PROVIDER", "")).lower().strip()
         if not detected_provider:
-            if self.api_key.startswith("sk-ant-") or os.getenv("ANTHROPIC_API_KEY"):
+            if anthropic_key or (generic_llm_key and generic_llm_key.startswith("sk-ant-")):
                 detected_provider = "anthropic"
-            elif self.api_key.startswith("gsk_"):
+            elif gemini_key or (generic_llm_key and generic_llm_key.startswith("AIza")):
+                detected_provider = "gemini"
+            elif groq_key or (generic_llm_key and generic_llm_key.startswith("gsk_")):
                 detected_provider = "groq"
             else:
-                detected_provider = "gemini"
+                detected_provider = "anthropic" if anthropic_key else "gemini"
+
         self.provider = detected_provider
 
-        # Always initialize self.base_url to ensure the attribute exists on every instance
+        # Base URL for OpenAI-compatible providers
         default_base_url = os.getenv("LLM_BASE_URL", os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1/chat/completions"))
         self.base_url = base_url or default_base_url
 
         if self.provider == "anthropic":
+            self.api_key = api_key or anthropic_key or generic_llm_key
             self.model_name = model or os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-5-20250929")
         elif self.provider == "groq":
-            if not model or model in ("gemini-flash-latest", "gemini-1.5-flash"):
-                self.model_name = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
-            else:
-                self.model_name = model
+            self.api_key = api_key or groq_key or generic_llm_key
+            self.model_name = model or os.getenv("GROQ_MODEL", "llama-3.1-70b-versatile")
         else:
+            self.api_key = api_key or gemini_key or generic_llm_key
             self.model_name = model or os.getenv("LLM_MODEL", os.getenv("GEMINI_MODEL", "gemini-flash-latest"))
-        
+
         self.schema_model = os.getenv("LLM_SCHEMA_MODEL", "gemini-flash-lite-latest")
         self.enabled = os.getenv("LLM_FALLBACK_ENABLED", "true").lower() == "true"
         self._genai_client: Any = None  # google.genai.Client (v2 SDK) or legacy GenerativeModel
@@ -929,12 +940,12 @@ class LLMFieldResolver:
                     try:
                         raw_text = self._call_anthropic(system_instruction, user_prompt, timeout=45)
                     except Exception as anthropic_err:
-                        groq_key = os.getenv("GROQ_API_KEY") or os.getenv("LLM_API_KEY")
-                        if groq_key and "placeholder" not in groq_key.lower():
+                        groq_key = os.getenv("GROQ_API_KEY", "").strip()
+                        if groq_key and groq_key.startswith("gsk_") and "placeholder" not in groq_key.lower():
                             logger.warning("[LLM_FALLBACK][Layer 2] Anthropic call failed (%s). Falling back to Groq API LLM...", anthropic_err)
                             self.provider = "groq"
                             self.api_key = groq_key
-                            self.model_name = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+                            self.model_name = os.getenv("GROQ_MODEL", "llama-3.1-70b-versatile")
                             self.base_url = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1/chat/completions")
                             system_instruction, user_prompt = self._build_prompts(atc_full_text, known_missing, few_shot_section)
                             raw_text = self._call_openai_compatible(system_instruction, user_prompt, timeout=30)
@@ -949,12 +960,12 @@ class LLMFieldResolver:
                             raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)
                             raw_text = re.sub(r"\s*```$", "", raw_text)
                     except Exception as gemini_err:
-                        groq_key = os.getenv("GROQ_API_KEY") or os.getenv("LLM_API_KEY")
-                        if groq_key and "placeholder" not in groq_key.lower():
+                        groq_key = os.getenv("GROQ_API_KEY", "").strip()
+                        if groq_key and groq_key.startswith("gsk_") and "placeholder" not in groq_key.lower():
                             logger.warning("[LLM_FALLBACK][Layer 2] Gemini API call failed (%s). Falling back to Groq API LLM...", gemini_err)
                             self.provider = "groq"
                             self.api_key = groq_key
-                            self.model_name = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+                            self.model_name = os.getenv("GROQ_MODEL", "llama-3.1-70b-versatile")
                             self.base_url = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1/chat/completions")
                             system_instruction, user_prompt = self._build_prompts(atc_full_text, known_missing, few_shot_section)
                             raw_text = self._call_openai_compatible(system_instruction, user_prompt, timeout=30)

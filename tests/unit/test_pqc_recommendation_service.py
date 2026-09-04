@@ -88,11 +88,12 @@ def test_predict_ml_win_probability(mock_vendor_profile, sample_tender):
     assert len(drivers) > 0
 
 
-def test_claude_fallback_safety(mock_vendor_profile, sample_tender):
+def test_claude_fallback_safety(mock_vendor_profile, sample_tender, tmp_path):
     # Test that Claude gracefully defaults to 0.50 on failure or offline
     service = PQCRecommendationService(
         vendor_profile=mock_vendor_profile,
-        anthropic_api_key="invalid_test_key"
+        anthropic_api_key="invalid_test_key",
+        cache_db_path=tmp_path / "test_fallback.sqlite3"
     )
     fit, rationale = service.evaluate_claude_strategic_fit(
         tender_no=sample_tender["tender_no"],
@@ -107,11 +108,12 @@ def test_claude_fallback_safety(mock_vendor_profile, sample_tender):
     assert len(rationale) > 0
 
 
-def test_claude_mocked_success(mock_vendor_profile, sample_tender):
+def test_claude_mocked_success(mock_vendor_profile, sample_tender, tmp_path):
     from unittest.mock import MagicMock, patch
     service = PQCRecommendationService(
         vendor_profile=mock_vendor_profile,
-        anthropic_api_key="sk-ant-mock-key"
+        anthropic_api_key="sk-ant-mock-key",
+        cache_db_path=tmp_path / "test_mocked.sqlite3"
     )
     mock_content_block = MagicMock()
     mock_content_block.text = '{"strategic_fit": 0.88, "strategic_rationale": "Strong strategic fit for HT panel manufacturing."}'

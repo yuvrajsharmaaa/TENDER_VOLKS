@@ -28,6 +28,41 @@ interface TenderDetailPaneProps {
   onDelete: () => void;
 }
 
+const formatDisplayDate = (dateStr?: string | null): string => {
+  if (!dateStr || dateStr === "Not Found") return "Not Found";
+  // Try native Date parsing
+  const parsed = new Date(dateStr);
+  if (!isNaN(parsed.getTime())) {
+    return parsed.toLocaleDateString("en-US", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric"
+    });
+  }
+  // Handle DD-MM-YYYY or DD/MM/YYYY formats common in Indian tender dates
+  const cleanStr = dateStr.trim().split(/[\sT]+/)[0];
+  const parts = cleanStr.split(/[-/]/);
+  if (parts.length === 3) {
+    if (parts[0].length <= 2 && parts[2].length === 4) {
+      const d = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleDateString("en-US", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric"
+        });
+      }
+    }
+  }
+  return dateStr;
+};
+
+const formatLocation = (t: TenderDetail): string => {
+  if (t.location && t.location.trim() && t.location.trim() !== ",") return t.location.trim();
+  const parts = [t.location_city, t.location_state].filter(Boolean).map(s => String(s).trim()).filter(s => s && s !== ",");
+  return parts.length > 0 ? parts.join(", ") : "Not Specified";
+};
+
 export const TenderDetailPane: React.FC<TenderDetailPaneProps> = ({
   tender,
   onBack,
@@ -210,51 +245,45 @@ export const TenderDetailPane: React.FC<TenderDetailPaneProps> = ({
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 min-h-0 overflow-y-auto lg:overflow-hidden">
         
         {/* Left Side: Summary Cards + Structured Data Tabs */}
-        <div className="flex flex-col bg-panel-bg border border-divider rounded-xl overflow-hidden min-h-[500px] lg:min-h-0 lg:h-full">
+        <div className="flex flex-col bg-panel-bg border border-divider rounded-xl overflow-hidden min-h-0 h-full">
           
           {/* Top highlight summary grid matching ContraVault */}
-          <div className="bg-card-bg px-5 py-4 border-b border-divider grid grid-cols-2 md:grid-cols-4 gap-3.5 shrink-0 select-none">
+          <div className="bg-card-bg px-5 py-3 border-b border-divider grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0 select-none">
             {/* Bid Deadline */}
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Bid Deadline</span>
-              <p className="text-xs font-mono text-text-primary">
-                {tender.deadline
-                  ? new Date(tender.deadline).toLocaleDateString("en-US", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric"
-                    })
-                  : "Not Found"}
+              <p className="text-xs font-mono text-text-primary truncate" title={formatDisplayDate(tender.deadline)}>
+                {formatDisplayDate(tender.deadline)}
               </p>
             </div>
 
             {/* Tender Value */}
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Tender Value</span>
-              <p className="text-xs font-mono font-semibold text-gold-text">
-                {tender.tenderValue}
+              <p className="text-xs font-mono font-semibold text-gold-text truncate" title={tender.tenderValue || "Not Found"}>
+                {tender.tenderValue || "Not Found"}
               </p>
             </div>
 
             {/* EMD Deposit */}
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider">EMD Deposit</span>
-              <p className="text-xs font-mono text-text-primary">
+              <p className="text-xs font-mono text-text-primary truncate" title={tender.emdAmount || "Exempted"}>
                 {tender.emdAmount || "Exempted"}
               </p>
             </div>
 
             {/* Location */}
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Location</span>
-              <p className="text-xs font-mono text-text-primary truncate" title={tender.location || `${tender.location_city}, ${tender.location_state}`}>
-                {tender.location || `${tender.location_city}, ${tender.location_state}`}
+              <p className="text-xs font-mono text-text-primary truncate" title={formatLocation(tender)}>
+                {formatLocation(tender)}
               </p>
             </div>
           </div>
 
-          {/* Read-Only PQC Credentials Recommendation Card */}
-          <div className="p-3 bg-app-bg/60 border-b border-divider shrink-0">
+          {/* Read-Only PQC Credentials Recommendation Card (Collapsible) */}
+          <div className="p-2 bg-app-bg/40 border-b border-divider shrink-0">
             <PQCCredentialsCard 
               tenderId={tender.id} 
               referenceNumber={tender.reference_number} 
@@ -316,14 +345,14 @@ export const TenderDetailPane: React.FC<TenderDetailPaneProps> = ({
           </div>
 
           {/* Active Tab Viewport */}
-          <div className="flex-1 p-5 overflow-hidden min-h-0 flex flex-col">
+          <div className="flex-1 p-4 lg:p-5 overflow-hidden min-h-0 flex flex-col">
             {isProcessing ? (
               <div className="flex-1 flex flex-col items-center justify-center text-text-muted space-y-4">
                 <LoaderSkeleton />
                 <span className="text-xs font-mono">Parsing document elements & reading text...</span>
               </div>
             ) : (
-              <div className="flex-1 overflow-auto min-h-0">
+              <div className="flex-1 overflow-y-auto min-h-0 pr-1">
                 {/* Synopsis Panel */}
                 {activeTab === "summary" && (
                   <div className="space-y-5">
