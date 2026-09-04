@@ -36,7 +36,7 @@ class ScoreDecomposition(BaseModel):
     compliance_status: str = Field(description="QUALIFIED, NEEDS_REVIEW, or DISQUALIFIED")
     ml_win_prob: float = Field(description="LightGBM predicted win probability (0.0 to 1.0)")
     similarity_score: float = Field(description="Qdrant top-5 nearest-neighbor historical win rate (0.0 to 1.0)")
-    groq_fit_score: float = Field(description="Groq LLM strategic fit score (0.0 to 1.0)")
+    claude_fit_score: float = Field(description="Claude AI strategic fit score (0.0 to 1.0)")
     composite_score: float = Field(description="Weighted multi-signal composite score (0.0 to 1.0)")
 
 
@@ -112,8 +112,9 @@ class ScoredTender(BaseModel):
 
 class PQCRecommendationRequest(BaseModel):
     top_k: int = Field(default=20, ge=1, le=100, description="Number of top ranked tenders to return")
-    include_groq: bool = Field(default=True, description="Whether to run Groq LLM qualitative enrichment on top candidates")
+    include_claude: bool = Field(default=True, description="Whether to run Claude AI qualitative enrichment on top candidates")
     source: Optional[str] = Field(default="db", description="Data source: 'db' for active workspace or 'dataset' for backtest pool")
+    is_override: bool = Field(default=False, description="When True, bypasses cache read and write for what-if evaluation")
 
 
 class PQCRecommendationResponse(BaseModel):
@@ -121,3 +122,47 @@ class PQCRecommendationResponse(BaseModel):
     total_scored: int = Field(description="Total population of tenders evaluated")
     weights_used: Dict[str, float] = Field(description="Signal weights applied in composite ranking")
     timestamp: str = Field(description="ISO UTC execution timestamp")
+
+
+class MatchedCredentialSchema(BaseModel):
+    id: int = Field(description="PQR credential unique ID")
+    project_name: str = Field(description="Historical project or client name")
+    value: float = Field(description="Executed contract/PO value in INR")
+    item: Optional[str] = Field(default="", description="Specific item or service description")
+    item_category: Optional[str] = Field(default="", description="Normalized item category cluster")
+    completion_date: Optional[str] = Field(default=None, description="Completion date in ISO format")
+    document_paths: Dict[str, Optional[str]] = Field(
+        default_factory=dict,
+        description="Local document paths for PO, SAP/GeM PO, completion, and performance certificate"
+    )
+
+
+class PQCCredentialRecommendationResponse(BaseModel):
+    tender_id: str = Field(description="Requested tender identifier")
+    tender_name: Optional[str] = Field(default=None, description="Tender name or resolved title")
+    estimated_value: float = Field(description="Estimated tender value in INR used for qualification evaluation")
+    value_is_estimated: bool = Field(default=False, description="True if estimated_value was estimated/derived (e.g. from EMD heuristic) rather than directly extracted from tender document")
+    scope_of_work: str = Field(description="Tender scope of work or item category cluster description")
+    submission_deadline: Optional[str] = Field(default=None, description="Tender submission deadline date")
+    msme_relaxation_applicable: bool = Field(description="Whether MSME relaxation is applicable for this tender")
+    is_msme_vendor: bool = Field(default=True, description="Whether vendor is evaluated under MSME status")
+    qualification_status: str = Field(description="'QUALIFIED' if candidate meets criteria, else 'DISQUALIFIED'")
+    qualifies: bool = Field(description="Boolean qualification result")
+    strategy_used: str = Field(description="Matching strategy: '1x80%', '2x50%', '3x40%', 'MSME_RELAXED', or 'NO_MATCH'")
+    matched_credentials: List[MatchedCredentialSchema] = Field(
+        default_factory=list,
+        description="List of qualifying historical credentials meeting thresholds and scope criteria"
+    )
+    closest_candidates: List[MatchedCredentialSchema] = Field(
+        default_factory=list,
+        description="Closest historical credentials returned when tender does not qualify"
+    )
+    computed_thresholds: Dict[str, float] = Field(description="Computed 80%, 50%, 40%, and MSME floor thresholds in INR")
+    thresholds_required: Dict[str, float] = Field(description="Standard qualification thresholds in INR")
+    rationale: str = Field(description="Detailed human-readable justification explaining the matching recommendation")
+    target_scope: str = Field(description="Normalized scope category cluster identified from tender")
+    eligible_count: int = Field(description="Count of candidate credentials that passed recency, document, and scope filters")
+    total_candidates_evaluated: int = Field(description="Total candidate records loaded from pqr_credentials table")
+    data_source: str = Field(description="Source where tender input fields were retrieved (e.g. workspace_job, postgres, dataset)")
+    read_only: bool = Field(default=True, description="Strict read-only safety indicator confirming no data modification occurred")
+

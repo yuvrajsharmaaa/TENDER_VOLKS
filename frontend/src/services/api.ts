@@ -1,5 +1,10 @@
 import { safeStorage } from "./storage";
-import type { TenderDetail, SourceDocumentItem, PQCRecommendationResponse } from "../types/tender";
+import type { 
+  TenderDetail, 
+  SourceDocumentItem, 
+  PQCRecommendationResponse,
+  PQCCredentialRecommendationResponse 
+} from "../types/tender";
 
 // ============================================================================
 // Configuration
@@ -878,15 +883,26 @@ export const apiService = {
    * Deletes a tender.
    */
   deleteTender: async (tenderId: string): Promise<void> => {
-    try {
-      if (await isBackendReachable()) {
-        await fetch(`${BACKEND_URL}/tenders/workspace/${tenderId}`, {
-          method: "DELETE",
-        });
+    if (await isBackendReachable()) {
+      const res = await fetch(`${BACKEND_URL}/tenders/workspace/${tenderId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        let errorMsg = `Failed to delete tender (HTTP ${res.status})`;
+        try {
+          const errData = await res.json();
+          if (errData.detail) {
+            errorMsg = typeof errData.detail === "string" ? errData.detail : JSON.stringify(errData.detail);
+          }
+        } catch {
+          // ignore parsing error
+        }
+        throw new Error(errorMsg);
       }
-    } catch {
-      // fall through
+    } else if (!import.meta.env.DEV) {
+      throw new Error("Backend is unreachable. Cannot delete tender.");
     }
+
     const tenders = getStoredTenders();
     const updated = tenders.filter((t) => t.id !== tenderId);
     saveStoredTenders(updated);
@@ -897,8 +913,9 @@ export const apiService = {
    */
   async recommendPQC(
     topK: number = 20,
-    includeGroq: boolean = true,
-    source: "db" | "dataset" = "db"
+    includeClaude: boolean = true,
+    source: "db" | "dataset" = "db",
+    isOverride: boolean = false
   ): Promise<PQCRecommendationResponse> {
     try {
       const response = await fetch(`${BACKEND_URL}/tenders/pqc/recommend`, {
@@ -906,8 +923,9 @@ export const apiService = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           top_k: topK,
-          include_groq: includeGroq,
-          source: source
+          include_claude: includeClaude,
+          source: source,
+          is_override: isOverride
         })
       });
       if (response.ok) {
@@ -930,7 +948,7 @@ export const apiService = {
               compliance_status: "QUALIFIED",
               ml_win_prob: 0.78,
               similarity_score: 0.40,
-              groq_fit_score: 0.85,
+              claude_fit_score: 0.85,
               composite_score: 0.6825
             },
             key_drivers: [
@@ -955,11 +973,23 @@ export const apiService = {
           compliance: 0.35,
           similarity: 0.35,
           ml_win_prob: 0.15,
-          groq: 0.15
+          claude: 0.15
         },
         timestamp: new Date().toISOString()
       };
     }
+  },
+
+  /**
+   * PQC Past-Performance Credential Recommendation (Read-Only)
+   */
+  async getPQCCredentials(tenderId: string): Promise<PQCCredentialRecommendationResponse> {
+    const cleanId = tenderId.trim();
+    const response = await fetch(`${BACKEND_URL}/tenders/${encodeURIComponent(cleanId)}/pqc-credentials`);
+    if (!response.ok) {
+      throw new Error(`Failed to load PQC credentials: HTTP ${response.status}`);
+    }
+    return await response.json();
   }
 };
 

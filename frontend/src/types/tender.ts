@@ -125,7 +125,7 @@ export interface ScoreDecomposition {
   compliance_status: "QUALIFIED" | "NEEDS_REVIEW" | "DISQUALIFIED" | string;
   ml_win_prob: number;
   similarity_score: number;
-  groq_fit_score: number;
+  claude_fit_score: number;
   composite_score: number;
 }
 
@@ -155,8 +155,9 @@ export interface ScoredTender {
 
 export interface PQCRecommendationRequest {
   top_k?: number;
-  include_groq?: boolean;
+  include_claude?: boolean;
   source?: "db" | "dataset";
+  is_override?: boolean;
 }
 
 export interface PQCRecommendationResponse {
@@ -166,8 +167,58 @@ export interface PQCRecommendationResponse {
     compliance: number;
     similarity: number;
     ml_win_prob: number;
-    groq: number;
+    claude: number;
     [key: string]: number;
   };
   timestamp: string;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PQC Past-Performance Credential Matcher Types (Read-Only)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface MatchedCredential {
+  id: number;
+  project_name: string;
+  value: number;
+  item?: string;
+  item_category?: string;
+  completion_date?: string | null;
+  document_paths?: {
+    po?: string | null;
+    sap_gem_po?: string | null;
+    completion?: string | null;
+    performance?: string | null;
+    [key: string]: string | null | undefined;
+  };
+}
+
+export interface PQCCredentialRecommendationResponse {
+  tender_id: string;
+  tender_name?: string | null;
+  estimated_value: number;
+  value_is_estimated: boolean;
+  scope_of_work: string;
+  submission_deadline?: string | null;
+  msme_relaxation_applicable: boolean;
+  is_msme_vendor: boolean;
+  qualification_status: "QUALIFIED" | "DISQUALIFIED" | string;
+  qualifies: boolean;
+  strategy_used: "1x80%" | "2x50%" | "3x40%" | "MSME_RELAXED" | "NO_MATCH" | string;
+  matched_credentials: MatchedCredential[];
+  closest_candidates: MatchedCredential[];
+  computed_thresholds: {
+    eighty_pct?: number;
+    fifty_pct?: number;
+    forty_pct?: number;
+    msme_floor?: number;
+    [key: string]: number | undefined;
+  };
+  rationale: string;
+  target_scope?: string;
+  eligible_count?: number;
+  total_candidates_evaluated?: number;
+  data_source?: string;
+  read_only: boolean;
+}
+

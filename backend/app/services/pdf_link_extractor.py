@@ -167,6 +167,10 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
             return False
 
         url_lower = url_str.lower()
+        # Exclude generic PSU corporate policy PDFs that are not tender documents
+        if any(pol in url_lower for pol in ["policy_for_debarment", "fraud_prevention_policy", "policy_for_", "integrity_pact"]):
+            return False
+
         doc_exts = [".pdf", ".xlsx", ".xls", ".doc", ".docx", ".zip"]
         if any(ext in url_lower for ext in doc_exts):
             return True
@@ -177,13 +181,13 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
         path = parsed.path
 
         tender_domains = ["gem.gov.in", "mkp.gem.gov.in", "assets-bg.gem.gov.in", "bidplus.gem.gov.in", "eprocure.gov.in", "etenders.gov.in", "cppp.gov.in"]
-        tender_path_keywords = ["/buyer-atc/", "/atc/", "/doc/", "/download/", "/tenders/", "/files/", "/documents/", "/upload/", "/resources/"]
+        tender_path_keywords = ["/buyer-atc/", "/atc/", "/doc/", "/download/", "/tenders/", "/files/", "/documents/", "/upload/", "/resources/", "/specificationdocument/"]
 
         if any(td in domain for td in tender_domains):
             if any(kw in path for kw in tender_path_keywords):
                 return True
 
-        return any(kw in url_lower for kw in ["/buyer-atc/", "/atc/doc/", "download_atc", "get_document", "/upload/shared/"])
+        return any(kw in url_lower for kw in ["/buyer-atc/", "/atc/doc/", "download_atc", "get_document", "/upload/shared/", "/specificationdocument/"])
 
     # Simple regex pattern to scan for referenced assets in prose
     mention_pattern = re.compile(
@@ -323,13 +327,16 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                             combined_text = f"{anchor_lower} {context_lower}"
                             uri_lower = uri.lower()
 
-                            # Exclude known false-positive non-ATC link types (specifications, BOQ sheets, Excel price bids, GTC)
+                            # Exclude known false-positive non-ATC link types (BOQ sheets, Excel price bids, GTC, corporate policies)
                             NON_ATC_EXCLUSIONS = [
-                                "specificationdocument", "boqdocument", "boqlineitemsdocument",
+                                "boqdocument", "boqlineitemsdocument",
                                 "excel/bid-", ".xlsx", ".xls", ".csv", "downloadomppdfile",
-                                "list-of-categories", "/gtc/", "pdfbydate", "specification_"
+                                "list-of-categories", "/gtc/", "pdfbydate",
+                                "policy_for_debarment", "fraud_prevention_policy", "policy_for_"
                             ]
                             is_excluded_non_atc = any(ex in uri_lower for ex in NON_ATC_EXCLUSIONS)
+
+                            is_policy = any(pol in uri_lower for pol in ["policy_for_debarment", "fraud_prevention_policy", "policy_for_", "integrity_pact"])
 
                             is_gtc = (
                                 "/gtc/" in uri_lower
@@ -337,7 +344,7 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                                 or "general terms" in anchor_lower
                                 or "gtc" in anchor_lower
                             )
-                            if is_generic_homepage(uri) or is_gtc or is_excluded_non_atc:
+                            if is_generic_homepage(uri) or is_gtc or is_excluded_non_atc or is_policy:
                                 is_atc_anchor = False
                             else:
                                 # Primary high-priority ATC domain and path pattern
@@ -355,7 +362,7 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                                     or ("click here to view the file" in combined_text and ("atc" in page_text_lower or is_real_atc_domain_path))
                                     or any(phrase in anchor_lower for phrase in atc_anchor_phrases if phrase != "atc")
                                 )
-                                is_atc_anchor = (is_explicit_atc_text or is_real_atc_domain_path) and not is_excluded_non_atc
+                                is_atc_anchor = (is_explicit_atc_text or is_real_atc_domain_path) and not is_excluded_non_atc and not is_policy
 
                             anchor_detection_method = "native text" if is_atc_anchor else None
 
@@ -441,12 +448,17 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
 
                             # Do not download excluded non-ATC endpoints or when OFFLINE_EXTRACTION is enabled
                             is_offline = os.getenv("OFFLINE_EXTRACTION", "false").lower() == "true"
-                            should_download = (not is_offline) and (is_atc_anchor or (is_tender_doc_url(uri) and not is_excluded_non_atc))
+                            is_schedule_doc = (
+                                ("specificationdocument" in uri_lower or any(k in uri_lower or k in filename.lower() for k in ["sch1", "sch2", "sch3", "sch4", "sch5", "sch6", "sch7", "schedule"]))
+                                and filename.lower().endswith(".pdf")
+                                and not is_policy
+                            )
+                            should_download = (not is_offline) and (is_atc_anchor or is_schedule_doc or (is_tender_doc_url(uri) and not is_excluded_non_atc and not is_policy))
                             if should_download:
                                 try:
                                     logger.info(
-                                        "[ATC_RESOLVER] Downloading ATC child document from URL: '%s' "
-                                        "(verified_anchor=%s)", uri, is_atc_anchor
+                                        "[ATC_RESOLVER] Downloading ATC/Schedule child document from URL: '%s' "
+                                        "(verified_anchor=%s, is_schedule=%s)", uri, is_atc_anchor, is_schedule_doc
                                     )
                                     headers = {
                                         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -580,13 +592,16 @@ def extract_links_and_mentions(pdf_path: str) -> Tuple[List[Dict[str, Any]], Lis
                         unique_filename = f"atc_txt_{url_hash}_{filename}"
                         out_path = output_dir / unique_filename
 
+                        raw_url_lower = raw_url.lower()
+                        is_policy_raw = any(pol in raw_url_lower for pol in ["policy_for_debarment", "fraud_prevention_policy", "policy_for_", "integrity_pact"])
+                        is_plain_atc = (not is_policy_raw) and any(k in raw_url_lower for k in ["/buyer-atc/", "/atc/", "download_atc", "fulfilment.gem.gov.in"])
                         links.append({
                             "name": filename,
                             "url": raw_url,
                             "sourcePage": page_num + 1,
                             "anchorText": f"Plain-Text Printed Hyperlink on Page {page_num + 1}",
-                            "extractionConfidence": 85.0,
-                            "is_atc_anchor": True
+                            "extractionConfidence": 85.0 if is_plain_atc else 70.0,
+                            "is_atc_anchor": is_plain_atc
                         })
 
                         try:

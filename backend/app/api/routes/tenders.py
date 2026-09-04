@@ -1,7 +1,7 @@
 import uuid
 import logging
 from pathlib import Path
-from typing import List, Optional, Any, cast
+from typing import List, Optional, Any, Dict, cast
 from pydantic import BaseModel
 from fastapi import APIRouter, File, UploadFile, HTTPException, Depends, Form, BackgroundTasks
 from fastapi.responses import FileResponse
@@ -1466,7 +1466,7 @@ def recommend_pqc_tenders(
       - Signal 1 (0.35): Deterministic Statutory Compliance (F_hard)
       - Signal 2 (0.15): LightGBM 16-feature win probability
       - Signal 3 (0.35): Qdrant Top-5 historical neighbor track record
-      - Signal 4 (0.15): Groq LLM (llama-3.1-8b-instant) strategic fit
+      - Signal 4 (0.15): Claude LLM (claude-haiku-4-5-20251001) strategic fit
     """
     req = payload or PQCRecommendationRequest()
     service = PQCRecommendationService()
@@ -1535,10 +1535,571 @@ def recommend_pqc_tenders(
     result = service.rank_tenders(
         tenders=tenders_data,
         top_k=req.top_k,
-        include_groq=req.include_groq
+        include_claude=req.include_claude,
+        is_override=req.is_override
     )
 
     return result
+
+
+# =========================================================================
+# PQC PAST-PERFORMANCE CREDENTIAL MATCHER ENDPOINT (READ-ONLY)
+# =========================================================================
+from datetime import date, datetime
+from backend.app.models.pqr_credential import PQRCredential
+from backend.app.services.pqr_credential_matcher import (
+    match_credentials,
+    PqcMatchResult,
+    CandidateCredential,
+    compute_thresholds
+)
+from backend.app.services.normalizer import parse_money
+from backend.app.schemas.pqc_recommendation import (
+    MatchedCredentialSchema,
+    PQCCredentialRecommendationResponse,
+)
+
+
+_CLASSIFIED_TENDERS_MAP: Optional[Dict[str, str]] = None
+_TENDER_ID_TO_NO_MAP: Optional[Dict[str, str]] = None
+
+
+def _resolve_real_tender_title(tender_id: str, nit_number: Optional[str] = None) -> Optional[str]:
+    """
+    Resolves human-descriptive tender titles (e.g. 'NHPC NiCd Leh (1)', 'IOCL Precision Chandigarh')
+    from classified-tenders.xlsx and training_set_win_loss.csv when database records omit them.
+    Cached in memory for sub-millisecond lookup.
+    """
+    global _CLASSIFIED_TENDERS_MAP, _TENDER_ID_TO_NO_MAP
+    if _CLASSIFIED_TENDERS_MAP is None:
+        try:
+            excel_path = Path("classified-tenders.xlsx")
+            if not excel_path.exists():
+                excel_path = STORAGE_ROOT.parent / "classified-tenders.xlsx"
+            if excel_path.exists():
+                df_ex = pd.read_excel(excel_path, usecols=["tender_no", "tender_name"])
+                _CLASSIFIED_TENDERS_MAP = dict(zip(
+                    df_ex["tender_no"].astype(str).str.strip(),
+                    df_ex["tender_name"].astype(str).str.strip()
+                ))
+            else:
+                _CLASSIFIED_TENDERS_MAP = {}
+        except Exception:
+            _CLASSIFIED_TENDERS_MAP = {}
+
+    if _TENDER_ID_TO_NO_MAP is None:
+        try:
+            csv_path = Path("artifacts/training_set_win_loss.csv")
+            if not csv_path.exists():
+                csv_path = STORAGE_ROOT.parent / "artifacts" / "training_set_win_loss.csv"
+            if csv_path.exists():
+                df_csv = pd.read_csv(csv_path, usecols=["tender_id", "tender_no"])
+                _TENDER_ID_TO_NO_MAP = dict(zip(
+                    df_csv["tender_id"].astype(str).str.strip(),
+                    df_csv["tender_no"].astype(str).str.strip()
+                ))
+            else:
+                _TENDER_ID_TO_NO_MAP = {}
+        except Exception:
+            _TENDER_ID_TO_NO_MAP = {}
+
+    clean_id = str(tender_id).strip()
+    if clean_id in _CLASSIFIED_TENDERS_MAP:
+        return _CLASSIFIED_TENDERS_MAP[clean_id]
+    if nit_number and str(nit_number).strip() in _CLASSIFIED_TENDERS_MAP:
+        return _CLASSIFIED_TENDERS_MAP[str(nit_number).strip()]
+
+    t_no = _TENDER_ID_TO_NO_MAP.get(clean_id)
+    if t_no and t_no in _CLASSIFIED_TENDERS_MAP:
+        return _CLASSIFIED_TENDERS_MAP[t_no]
+
+    return None
+
+
+def _fetch_tender_pqc_input(tender_id: str, db: Session) -> dict:
+    """
+    Fetches tender's estimated value, scope of work, submission deadline,
+    and MSME relaxation flag from existing tender data sources with multi-source fallback:
+      1. PostgreSQL public.tender_information table (by numeric tender_id, id, or nit_number)
+      2. PostgreSQL tender_projects table
+      3. Local Workspace storage (STORAGE_ROOT / jobs / {job_id} / tender_detail.json)
+      4. Historical training dataset (artifacts/training_set_win_loss.csv)
+
+    Tracks value_is_estimated: True when value had to be inferred via secondary heuristics (e.g. 2% EMD),
+    False when directly extracted from the tender's published value fields.
+    """
+    clean_id = str(tender_id).strip()
+
+    # 1. Check PostgreSQL TenderInformation
+    try:
+        if clean_id.isdigit():
+            int_id = int(clean_id)
+            ti = db.query(TenderInformation).filter(
+                (TenderInformation.tender_id == int_id) | (TenderInformation.id == int_id)
+            ).first()
+            if ti:
+                t_val = parse_money(ti.tender_value) or parse_money(ti.estimated_cost) or 0.0
+                value_is_estimated = False
+                if t_val <= 1.0 and ti.emd_amount and float(ti.emd_amount) > 0:
+                    t_val = round(float(ti.emd_amount) * 50.0, 2)
+                    value_is_estimated = True
+
+                real_title = _resolve_real_tender_title(clean_id, ti.nit_number)
+                t_name = real_title or ti.tender_name or f"Tender #{ti.tender_id}"
+                t_scope = (
+                    real_title
+                    or ti.technical_specifications_summary
+                    or ti.technical_experience
+                    or ti.tender_name
+                    or ti.organization
+                    or ti.client
+                    or "General Procurement"
+                )
+                t_msme = str(ti.mse_purchase_preference or "").strip().lower() in ("yes", "true", "applicable", "1")
+                return {
+                    "tender_id": clean_id,
+                    "tender_name": t_name,
+                    "estimated_value": float(t_val),
+                    "value_is_estimated": value_is_estimated,
+                    "scope_of_work": str(t_scope).strip(),
+                    "submission_deadline": str(ti.bid_submission_end_date) if ti.bid_submission_end_date else None,
+                    "msme_relaxation_applicable": t_msme,
+                    "data_source": "postgres_tender_information"
+                }
+
+        # Query TenderInformation by nit_number string if not a UUID format
+        if not ("-" in clean_id and len(clean_id) > 30):
+            ti = db.query(TenderInformation).filter(TenderInformation.nit_number == clean_id).first()
+            if ti:
+                t_val = parse_money(ti.tender_value) or parse_money(ti.estimated_cost) or 0.0
+                value_is_estimated = False
+                if t_val <= 1.0 and ti.emd_amount and float(ti.emd_amount) > 0:
+                    t_val = round(float(ti.emd_amount) * 50.0, 2)
+                    value_is_estimated = True
+
+                real_title = _resolve_real_tender_title(clean_id, ti.nit_number)
+                t_name = real_title or ti.tender_name or ti.nit_number
+                t_scope = (
+                    real_title
+                    or ti.technical_specifications_summary
+                    or ti.technical_experience
+                    or ti.tender_name
+                    or ti.organization
+                    or ti.client
+                    or "General Procurement"
+                )
+                t_msme = str(ti.mse_purchase_preference or "").strip().lower() in ("yes", "true", "applicable", "1")
+                return {
+                    "tender_id": clean_id,
+                    "tender_name": t_name,
+                    "estimated_value": float(t_val),
+                    "value_is_estimated": value_is_estimated,
+                    "scope_of_work": str(t_scope).strip(),
+                    "submission_deadline": str(ti.bid_submission_end_date) if ti.bid_submission_end_date else None,
+                    "msme_relaxation_applicable": t_msme,
+                    "data_source": "postgres_tender_information"
+                }
+    except Exception as ti_err:
+        db.rollback()
+        logger.warning(f"Could not query TenderInformation for {clean_id}: {ti_err}")
+
+    # 2. Check PostgreSQL TenderProject
+    try:
+        proj = db.query(TenderProject).filter(
+            (TenderProject.id == clean_id) | (TenderProject.project_id == clean_id)
+        ).first()
+        if proj:
+            ti_proj = db.query(TenderInformation).filter(
+                (TenderInformation.tender_name == proj.tender_name)
+            ).first()
+            if ti_proj:
+                t_val = parse_money(ti_proj.tender_value) or parse_money(ti_proj.estimated_cost) or 0.0
+                value_is_estimated = False
+                if t_val <= 1.0 and ti_proj.emd_amount and float(ti_proj.emd_amount) > 0:
+                    t_val = round(float(ti_proj.emd_amount) * 50.0, 2)
+                    value_is_estimated = True
+
+                t_scope = (
+                    ti_proj.technical_specifications_summary
+                    or ti_proj.technical_experience
+                    or ti_proj.tender_name
+                    or proj.tender_name
+                    or "General Procurement"
+                )
+                t_msme = str(ti_proj.mse_purchase_preference or "").strip().lower() in ("yes", "true", "applicable", "1")
+                return {
+                    "tender_id": clean_id,
+                    "tender_name": proj.tender_name or ti_proj.tender_name,
+                    "estimated_value": float(t_val),
+                    "value_is_estimated": value_is_estimated,
+                    "scope_of_work": str(t_scope).strip(),
+                    "submission_deadline": str(ti_proj.bid_submission_end_date) if ti_proj.bid_submission_end_date else None,
+                    "msme_relaxation_applicable": t_msme,
+                    "data_source": "postgres_tender_project"
+                }
+    except Exception as proj_err:
+        db.rollback()
+        logger.warning(f"Could not query TenderProject for {clean_id}: {proj_err}")
+
+
+    # 3. Check Workspace Jobs (STORAGE_ROOT / jobs / {job_id} / tender_detail.json)
+    jobs_dir = STORAGE_ROOT / "jobs"
+    target_job_dir = jobs_dir / clean_id
+    if not (target_job_dir.exists() and (target_job_dir / "tender_detail.json").exists()):
+        matches = [
+            p for p in jobs_dir.iterdir()
+            if p.is_dir() and p.name.lower().startswith(clean_id.lower()) and (p / "tender_detail.json").exists()
+        ]
+        if matches:
+            target_job_dir = matches[0]
+
+    if target_job_dir.exists():
+        if (target_job_dir / "tender_detail.json").exists():
+            try:
+                with open(target_job_dir / "tender_detail.json", "r", encoding="utf-8") as f:
+                    payload = _json.load(f)
+
+                fields = {}
+                for sec in payload.get("infoSheetSections", []):
+                    for fld in sec.get("fields", []):
+                        lbl = fld.get("label") or fld.get("id") or ""
+                        key = fld.get("key") or ""
+                        val = fld.get("value")
+                        if lbl:
+                            fields[str(lbl)] = val
+                        if key:
+                            fields[str(key)] = val
+
+                # Direct extraction from published tender value fields
+                raw_val = (
+                    payload.get("tenderValue")
+                    or fields.get("tender_value_gst_inclusive")
+                    or fields.get("estimated_cost")
+                    or fields.get("tender_value")
+                )
+                val = parse_money(raw_val) or 0.0
+                value_is_estimated = False
+
+                # Non-circular secondary derivation:
+                # If buyer omitted total estimated value (common on GeM portals), derive via standard 2% EMD heuristic
+                if val == 0.0 and payload.get("emdAmount"):
+                    emd_f = parse_money(payload.get("emdAmount"))
+                    if emd_f and emd_f > 0:
+                        val = round(emd_f * 50.0, 2)  # Standard 2% EMD multiplier in GeM
+                        value_is_estimated = True
+
+                # Derive scope of work
+                scope = (
+                    fields.get("item_category")
+                    or fields.get("technical_specifications_summary")
+                    or payload.get("title")
+                    or fields.get("item")
+                    or payload.get("sector")
+                    or "General Procurement"
+                )
+
+                deadline = payload.get("deadline") or fields.get("bid_submission_end_date")
+
+                # Derive MSME relaxation flag
+                mse_rel = fields.get("mse_relaxation_experience_turnover")
+                mse_pref = fields.get("mse_purchase_preference")
+                msme_applicable = (
+                    mse_rel is True
+                    or str(mse_rel).strip().lower() in ("yes", "true", "applicable", "1", "yes | complete")
+                    or mse_pref is True
+                    or str(mse_pref).strip().lower() in ("yes", "true", "applicable", "1")
+                )
+
+                return {
+                    "tender_id": clean_id,
+                    "tender_name": payload.get("title") or target_job_dir.name,
+                    "estimated_value": float(val),
+                    "value_is_estimated": value_is_estimated,
+                    "scope_of_work": str(scope).strip(),
+                    "submission_deadline": str(deadline) if deadline else None,
+                    "msme_relaxation_applicable": bool(msme_applicable),
+                    "data_source": "workspace_job"
+                }
+            except Exception as e:
+                logger.warning(f"Error reading tender_detail.json for job {clean_id}: {e}")
+        else:
+            # Job directory exists but Celery background worker is still processing the PDF
+            return {
+                "tender_id": clean_id,
+                "tender_name": target_job_dir.name,
+                "estimated_value": 0.0,
+                "value_is_estimated": False,
+                "scope_of_work": "Extraction in progress",
+                "submission_deadline": None,
+                "msme_relaxation_applicable": False,
+                "data_source": "workspace_job_processing"
+            }
+
+    # 4. Check historical training set / backtest dataset
+    csv_path = STORAGE_ROOT.parent / "artifacts" / "training_set_win_loss.csv"
+    if not csv_path.exists():
+        csv_path = Path("artifacts/training_set_win_loss.csv")
+    if csv_path.exists():
+        try:
+            df_csv = pd.read_csv(csv_path)
+            num_id = int(clean_id) if clean_id.isdigit() else -999999
+            matched_rows = df_csv[
+                (df_csv["tender_no"].astype(str).str.strip() == clean_id)
+                | (df_csv["tender_id"] == num_id)
+            ]
+            if not matched_rows.empty:
+                row = matched_rows.iloc[0]
+                val = float(row.get("clean_tender_value") or row.get("tender_value") or 0.0)
+                t_name = str(row.get("tender_name") or row.get("tender_no") or clean_id)
+                deadline = str(row.get("bid_submission_end_date") or "")
+                msme_applicable = str(row.get("mse_purchase_preference") or "").strip().lower() in ("yes", "true", "1")
+                is_imputed = bool(row.get("tender_value_imputed", False))
+                return {
+                    "tender_id": clean_id,
+                    "tender_name": resolve_tender_title(t_name, clean_id),
+                    "estimated_value": val,
+                    "value_is_estimated": is_imputed,
+                    "scope_of_work": resolve_tender_title(t_name, clean_id),
+                    "submission_deadline": deadline if deadline and deadline.lower() not in ("nan", "nat", "none") else None,
+                    "msme_relaxation_applicable": msme_applicable,
+                    "data_source": "training_set_archive"
+                }
+        except Exception as csv_err:
+            logger.warning(f"Error searching training_set_win_loss.csv for tender {clean_id}: {csv_err}")
+
+    # If not found in any source
+    raise HTTPException(
+        status_code=404,
+        detail=f"Tender '{clean_id}' not found in database records, workspace jobs, or historical dataset."
+    )
+
+
+@router.get(
+    "/{tender_id}/pqc-credentials",
+    response_model=PQCCredentialRecommendationResponse,
+    summary="Get PQC Past-Performance Credential Recommendation (Read-Only)",
+    tags=["pqc", "tenders"]
+)
+@router.get(
+    "/{tender_id}/credentials/recommend",
+    response_model=PQCCredentialRecommendationResponse,
+    include_in_schema=False
+)
+def get_pqc_credential_recommendation(
+    tender_id: str,
+    override_value: Optional[float] = None,
+    override_scope: Optional[str] = None,
+    override_deadline: Optional[str] = None,
+    is_msme: bool = True,
+    msme_relaxation: Optional[bool] = None,
+    db: Session = Depends(get_db)
+) -> PQCCredentialRecommendationResponse:
+    """
+    Read-only PQC Past-Performance Credential Recommendation Endpoint.
+
+    Fetches that tender's estimated value, scope of work, submission deadline,
+    and MSME relaxation flag from existing tender data, loads all candidate records
+    from the pqr_credentials table, runs the credential matcher function from Phase 2
+    against them, and returns the full structured result as JSON:
+      - Qualification status ('QUALIFIED' / 'DISQUALIFIED')
+      - Strategy used ('1x80%', '2x50%', '3x40%', 'MSME_RELAXED', 'NO_MATCH')
+      - Matched credentials with project name, value, item, category, and document paths
+      - Computed thresholds (80%, 50%, 40%, MSME floor)
+      - Detailed human-readable rationale text
+      - Transparency indicators ('value_is_estimated', 'data_source', 'read_only')
+
+    STRICTLY READ-ONLY: Does not write or mutate any database records or tender fields.
+    """
+    # 1. Fetch tender input data from existing records
+    tender_info = _fetch_tender_pqc_input(tender_id=tender_id, db=db)
+
+    # 2. Allow optional query overrides for human reviewer what-if evaluation
+    if override_value is not None:
+        estimated_value = float(override_value)
+        value_is_estimated = False  # User explicitly specified the value
+    else:
+        estimated_value = float(tender_info["estimated_value"])
+        value_is_estimated = bool(tender_info.get("value_is_estimated", False))
+
+    scope_of_work = str(override_scope).strip() if override_scope is not None else str(tender_info["scope_of_work"])
+    submission_deadline = str(override_deadline).strip() if override_deadline is not None else tender_info["submission_deadline"]
+    msme_relaxation_applicable = bool(msme_relaxation) if msme_relaxation is not None else bool(tender_info["msme_relaxation_applicable"])
+
+
+    # 3. Guard against missing or non-positive estimated tender value
+    import math
+    if estimated_value is None or estimated_value <= 0 or (isinstance(estimated_value, float) and math.isnan(estimated_value)):
+        zero_thresholds = compute_thresholds(0.0)
+        from backend.app.services.pqr_credential_matcher import normalize_scope
+        return PQCCredentialRecommendationResponse(
+            tender_id=str(tender_id),
+            tender_name=tender_info.get("tender_name"),
+            estimated_value=0.0,
+            value_is_estimated=False,
+            scope_of_work=scope_of_work,
+            submission_deadline=str(submission_deadline) if submission_deadline else None,
+            msme_relaxation_applicable=msme_relaxation_applicable,
+            is_msme_vendor=is_msme,
+            qualification_status="CANNOT_EVALUATE",
+            qualifies=False,
+            strategy_used="VALUE_UNKNOWN",
+            matched_credentials=[],
+            closest_candidates=[],
+            computed_thresholds=zero_thresholds,
+            thresholds_required=zero_thresholds,
+            rationale=(
+                "Tender document extraction is currently in progress. Statutory past-performance "
+                "thresholds and PQC qualification will be calculated automatically once parsing completes."
+                if tender_info.get("data_source") == "workspace_job_processing" else
+                "Tender estimated value could not be determined from published tender documents or EMD heuristics "
+                "(estimated value is ₹0.00 or unstated). Statutory past-performance thresholds (1x80%, 2x50%, 3x40%) "
+                "cannot be calculated, so PQC qualification cannot be evaluated."
+            ),
+            target_scope=normalize_scope(scope_of_work),
+            eligible_count=0,
+            total_candidates_evaluated=0,
+            data_source=tender_info.get("data_source", "unknown"),
+            read_only=True
+        )
+
+    # 4. Load all candidate records from pqr_credentials table
+    candidates = db.query(PQRCredential).all()
+
+    # 5. Run pure in-memory credential matcher from Phase 2
+    match_result: PqcMatchResult = match_credentials(
+        tender_value=estimated_value,
+        tender_scope_text=scope_of_work,
+        tender_deadline=submission_deadline or date.today(),
+        candidates=candidates,
+        is_msme=is_msme,
+        msme_relaxation_applicable=msme_relaxation_applicable,
+    )
+
+    # 6. Map matched and closest credentials to response schema
+    matched_schemas: List[MatchedCredentialSchema] = [
+        MatchedCredentialSchema(
+            id=c.id,
+            project_name=c.project_name,
+            value=float(c.value),
+            item=str(c.item or ""),
+            item_category=str(c.item_category or ""),
+            completion_date=c.completion_date.isoformat() if c.completion_date else None,
+            document_paths=c.document_paths or {}
+        )
+        for c in (match_result.matched_credentials if match_result.qualifies else [])
+    ]
+
+    closest_schemas: List[MatchedCredentialSchema] = [
+        MatchedCredentialSchema(
+            id=c.id,
+            project_name=c.project_name,
+            value=float(c.value),
+            item=str(c.item or ""),
+            item_category=str(c.item_category or ""),
+            completion_date=c.completion_date.isoformat() if c.completion_date else None,
+            document_paths=c.document_paths or {}
+        )
+        for c in match_result.closest_candidates
+    ]
+
+    # Determine qualification status string
+    if match_result.strategy == "VALUE_UNKNOWN":
+        qual_status = "CANNOT_EVALUATE"
+    else:
+        qual_status = "QUALIFIED" if match_result.qualifies else "DISQUALIFIED"
+
+    # 7. Construct and return full structured JSON response
+    return PQCCredentialRecommendationResponse(
+        tender_id=str(tender_id),
+        tender_name=tender_info.get("tender_name"),
+        estimated_value=round(estimated_value, 2),
+        value_is_estimated=value_is_estimated,
+        scope_of_work=scope_of_work,
+        submission_deadline=str(submission_deadline) if submission_deadline else None,
+        msme_relaxation_applicable=msme_relaxation_applicable,
+        is_msme_vendor=is_msme,
+        qualification_status=qual_status,
+        qualifies=match_result.qualifies,
+        strategy_used=match_result.strategy,
+        matched_credentials=matched_schemas,
+        closest_candidates=closest_schemas,
+        computed_thresholds=match_result.thresholds_required,
+        thresholds_required=match_result.thresholds_required,
+        rationale=match_result.rationale,
+        target_scope=match_result.target_scope,
+        eligible_count=match_result.eligible_count,
+        total_candidates_evaluated=len(candidates),
+        data_source=tender_info.get("data_source", "unknown"),
+        read_only=True
+    )
+
+
+
+# =========================================================================
+# PQC CREDENTIAL DOCUMENT VIEWER ENDPOINT (READ-ONLY)
+# =========================================================================
+_ROOT_DIR = Path(".").resolve()
+_ALLOWED_PQC_DIRS = [
+    (_ROOT_DIR / "pqr-po").resolve(),
+    (_ROOT_DIR / "pqr-sap-gem-po").resolve(),
+    (_ROOT_DIR / "pqr-completion").resolve(),
+    (_ROOT_DIR / "pqr-performance-certificate").resolve(),
+    (_ROOT_DIR / "pqr_matched_files" / "pqr-po").resolve(),
+    (_ROOT_DIR / "pqr_matched_files" / "pqr-sap-gem-po").resolve(),
+    (_ROOT_DIR / "pqr_matched_files" / "pqr-completion").resolve(),
+    (_ROOT_DIR / "pqr_matched_files" / "pqr-performance-certificate").resolve(),
+]
+
+
+@router.get(
+    "/pqc-documents/view",
+    summary="View PQC Credential PDF Document",
+    tags=["pqc", "tenders"]
+)
+def view_pqc_document(path: str):
+    """
+    Safely serves a PQC credential PDF document given its relative path.
+    Enforces boundary containment first against ALLOWED_PQC_DIRS to prevent directory traversal
+    and avoid information disclosure via 404 probing.
+    """
+    if not path or not path.strip():
+        raise HTTPException(status_code=400, detail="Document path cannot be empty")
+
+    clean_rel = path.strip().replace("\\", "/").lstrip("/")
+
+    # 1. Resolve candidate paths against root and pqr_matched_files
+    candidate_1 = (_ROOT_DIR / clean_rel).resolve()
+    candidate_2 = (_ROOT_DIR / "pqr_matched_files" / clean_rel).resolve()
+
+    # 2. Strict Boundary Enforcement FIRST: must resolve inside ALLOWED_PQC_DIRS
+    safe_1 = any(candidate_1.is_relative_to(allowed_dir) for allowed_dir in _ALLOWED_PQC_DIRS)
+    safe_2 = any(candidate_2.is_relative_to(allowed_dir) for allowed_dir in _ALLOWED_PQC_DIRS)
+
+    if not safe_1 and not safe_2:
+        logger.warning(f"[SECURITY] Directory traversal attempt detected: path={path!r}")
+        raise HTTPException(status_code=403, detail="Access denied: path outside permitted document directories")
+
+    # 3. File existence check (only conducted on verified safe paths)
+    target_file: Optional[Path] = None
+    if safe_1 and candidate_1.is_file():
+        target_file = candidate_1
+    elif safe_2 and candidate_2.is_file():
+        target_file = candidate_2
+
+    if not target_file:
+        raise HTTPException(status_code=404, detail="PQC document file not found on disk")
+
+    # 4. Only serve PDF documents
+    if target_file.suffix.lower() != ".pdf":
+        raise HTTPException(status_code=403, detail="Access denied: only PDF documents may be viewed")
+
+    return FileResponse(
+        path=str(target_file),
+        media_type="application/pdf",
+        filename=target_file.name
+    )
+
+
 
 
 

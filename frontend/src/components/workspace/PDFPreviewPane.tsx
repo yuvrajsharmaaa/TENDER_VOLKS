@@ -26,7 +26,7 @@ export const PDFPreviewPane: React.FC<PDFPreviewPaneProps> = ({ activeDoc, infoS
 
   const isXlsxOutput = activeDoc.kind === "xlsx" || activeDoc.kind === "csv" || activeDoc.outputKind === "info_sheet";
   const isMentionedUnresolved = activeDoc.origin === "mentioned" && !activeDoc.resolved;
-  const isPdf = activeDoc.kind === "pdf" && activeDoc.url;
+  const isPdf = Boolean(activeDoc.kind === "pdf" && activeDoc.url && activeDoc.url !== "invalid" && !activeDoc.url.startsWith("invalid"));
 
   return (
     <div className="h-full flex flex-col bg-section-tint border border-divider rounded-xl overflow-hidden shadow-sm">
@@ -118,11 +118,17 @@ export const PDFPreviewPane: React.FC<PDFPreviewPaneProps> = ({ activeDoc, infoS
             </div>
             {/* Real PDF Viewport iframe */}
             <div className="flex-1 bg-card-bg border border-divider rounded-b-xl p-1 min-h-[600px] shadow-sm">
-              <iframe
-                src={activeDoc.url}
-                className="w-full h-full min-h-[600px] border-0 rounded-b-xl"
-                title={activeDoc.name}
-              />
+              {activeDoc.url && activeDoc.url !== "invalid" && !activeDoc.url.startsWith("invalid") ? (
+                <iframe
+                  src={activeDoc.url}
+                  className="w-full h-full min-h-[600px] border-0 rounded-b-xl"
+                  title={activeDoc.name}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full min-h-[600px] text-xs text-text-muted">
+                  Document source file unavailable for inline preview.
+                </div>
+              )}
             </div>
           </div>
         )}

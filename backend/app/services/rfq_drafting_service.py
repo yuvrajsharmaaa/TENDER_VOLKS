@@ -77,6 +77,8 @@ class RFQDraftingService:
         timeout: float = 30.0
     ):
         load_dotenv(ROOT_DIR / ".env.dev")
+        self.anthropic_api_key = os.getenv("ANTHROPIC_API_KEY", "")
+        self.anthropic_model = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-5-20250929")
         self.api_key = api_key or os.getenv("GROQ_API_KEY", os.getenv("LLM_API_KEY", ""))
         self.model_name = model_name or os.getenv("GROQ_ADVISORY_MODEL", "openai/gpt-oss-120b")
         self.timeout = timeout
@@ -191,35 +193,72 @@ BODY:
 <full body of the RFQ>
 """
 
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
-            "User-Agent": "TenderVolks-RFQ/1.0"
-        }
-        payload = {
-            "model": self.model_name,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ],
-            "temperature": 0.1
-        }
+        content = None
+        # ── Priority 1: Claude AI (Anthropic) ─────────────────────────────
+        if self.anthropic_api_key and self.anthropic_api_key != "disabled":
+            try:
+                try:
+                    import anthropic
+                    client = anthropic.Anthropic(api_key=self.anthropic_api_key, timeout=self.timeout)
+                    resp = client.messages.create(
+                        model=self.anthropic_model,
+                        max_tokens=2048,
+                        system=system_prompt,
+                        messages=[{"role": "user", "content": user_prompt}]
+                    )
+                    content = resp.content[0].text.strip()
+                except ImportError:
+                    headers = {
+                        "x-api-key": self.anthropic_api_key,
+                        "anthropic-version": "2023-06-01",
+                        "content-type": "application/json"
+                    }
+                    payload = {
+                        "model": self.anthropic_model,
+                        "max_tokens": 2048,
+                        "temperature": 0.1,
+                        "system": system_prompt,
+                        "messages": [{"role": "user", "content": user_prompt}]
+                    }
+                    r = httpx.post("https://api.anthropic.com/v1/messages", headers=headers, json=payload, timeout=self.timeout)
+                    if r.status_code == 200:
+                        content = r.json()["content"][0]["text"].strip()
+                    else:
+                        logger.warning("[RFQ_DRAFTING] Claude API error %d: %s", r.status_code, r.text)
+            except Exception as e:
+                logger.warning("[RFQ_DRAFTING] Claude RFQ call failed (%s). Falling back to Groq...", e)
 
-        try:
-            resp = httpx.post(self.api_url, headers=headers, json=payload, timeout=self.timeout)
-            if resp.status_code != 200:
-                if self.model_name != "qwen/qwen3.6-27b":
-                    payload["model"] = "qwen/qwen3.6-27b"
-                    resp = httpx.post(self.api_url, headers=headers, json=payload, timeout=self.timeout)
+        # ── Priority 2: Groq Fallback ─────────────────────────────────────
+        if not content:
+            headers = {
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json",
+                "User-Agent": "TenderVolks-RFQ/1.0"
+            }
+            payload = {
+                "model": self.model_name,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                "temperature": 0.1
+            }
+
+            try:
+                resp = httpx.post(self.api_url, headers=headers, json=payload, timeout=self.timeout)
                 if resp.status_code != 200:
-                    raise RuntimeError(f"Groq RFQ generation failed: {resp.text}")
-            content = resp.json()["choices"][0]["message"]["content"]
-        except Exception as api_err:
-            logger.warning("[RFQ_DRAFTING] Groq API call failed or timed out (%s). Using deterministic template fallback.", api_err)
-            # Deterministic template fallback formatting
-            items_text = "\n".join([f"- {it.get('item_name', 'Item')}: Qty {it.get('quantity', 'N/A')}, Location: {it.get('delivery_location', 'N/A')}, Spec: {it.get('technical_spec', 'N/A')}" for it in sanitized_items])
-            terms_text = "\n".join([f"- {k}: {v}" for k, v in sanitized_terms.items()])
-            content = f"""SUBJECT: RFQ: Equipment & Technical Pricing for Tender {request.tender_no} - {request.tender_title}
+                    if self.model_name != "qwen/qwen3.6-27b":
+                        payload["model"] = "qwen/qwen3.6-27b"
+                        resp = httpx.post(self.api_url, headers=headers, json=payload, timeout=self.timeout)
+                    if resp.status_code != 200:
+                        raise RuntimeError(f"Groq RFQ generation failed: {resp.text}")
+                content = resp.json()["choices"][0]["message"]["content"]
+            except Exception as api_err:
+                logger.warning("[RFQ_DRAFTING] LLM API call failed or timed out (%s). Using deterministic template fallback.", api_err)
+                # Deterministic template fallback formatting
+                items_text = "\n".join([f"- {it.get('item_name', 'Item')}: Qty {it.get('quantity', 'N/A')}, Location: {it.get('delivery_location', 'N/A')}, Spec: {it.get('technical_spec', 'N/A')}" for it in sanitized_items])
+                terms_text = "\n".join([f"- {k}: {v}" for k, v in sanitized_terms.items()])
+                content = f"""SUBJECT: RFQ: Equipment & Technical Pricing for Tender {request.tender_no} - {request.tender_title}
 BODY:
 Dear Sir/Madam,
 

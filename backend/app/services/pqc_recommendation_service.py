@@ -2,6 +2,7 @@ import os
 import json
 import time
 import logging
+import re
 import traceback
 from pathlib import Path
 from datetime import datetime
@@ -19,6 +20,7 @@ from backend.app.services.compliance.regulatory import (
 )
 from backend.app.services.tender_indexer import find_similar_tenders, build_tender_composite_text
 from backend.app.schemas.pqc_recommendation import resolve_tender_title
+from backend.app.services.claude_fit_cache import ClaudeFitCache
 
 logger = logging.getLogger("pqc_recommendation_service")
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent.parent
@@ -28,7 +30,7 @@ DEFAULT_WEIGHTS = {
     "compliance": 0.35,
     "similarity": 0.35,
     "ml_win_prob": 0.15,
-    "groq": 0.15
+    "claude": 0.15
 }
 
 
@@ -38,7 +40,7 @@ class PQCRecommendationService:
       Signal 1 (0.35): Deterministic Statutory & Commercial Compliance (F_hard rules passed / 8)
       Signal 2 (0.15): Persisted LightGBM 16-feature ML win probability (tiebreaker)
       Signal 3 (0.35): Qdrant Top-5 Nearest-Neighbor historical win rate (Won / Total)
-      Signal 4 (0.15): Groq LLM (llama-3.1-8b-instant) strategic fit score (0.0 to 1.0)
+      Signal 4 (0.15): Claude LLM (claude-haiku-4-5-20251001) strategic fit score (0.0 to 1.0)
     """
 
     def __init__(
@@ -46,12 +48,14 @@ class PQCRecommendationService:
         weights: Optional[Dict[str, float]] = None,
         model_path: Optional[Union[str, Path]] = None,
         vendor_profile: Optional[VendorProfile] = None,
-        groq_model: Optional[str] = None,
-        groq_api_key: Optional[str] = None
+        anthropic_api_key: Optional[str] = None,
+        anthropic_model: Optional[str] = None,
+        cache_db_path: Optional[Path] = None
     ):
         self.weights = weights or DEFAULT_WEIGHTS.copy()
         self.vendor_profile = vendor_profile or VendorProfile.from_yaml()
         self.compliance_service = RegulatoryComplianceService(default_profile=self.vendor_profile)
+        self.cache = ClaudeFitCache(db_path=cache_db_path)
         
         # Load ML model artifact
         self.model_path = Path(model_path or (ROOT_DIR / "artifacts" / "lgbm_win_predictor.joblib"))
@@ -59,12 +63,9 @@ class PQCRecommendationService:
         self.feature_cols = []
         self._load_ml_model()
 
-        # Groq configuration
-        # Note: Model ID can be overridden via GROQ_MODEL env var to handle upstream Groq deprecations.
-        # Fallback default: 'qwen/qwen3.6-27b' (active Groq model with json_mode support).
-        self.groq_model = groq_model or os.getenv("GROQ_MODEL", "qwen/qwen3.6-27b")
-        self.groq_api_key = groq_api_key or os.getenv("GROQ_API_KEY", os.getenv("LLM_API_KEY", ""))
-        self.groq_url = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1/chat/completions")
+        # Claude / Anthropic configuration (Signal 4)
+        self.anthropic_api_key = anthropic_api_key or os.getenv("ANTHROPIC_API_KEY", "")
+        self.anthropic_model = anthropic_model or os.getenv("ANTHROPIC_FAST_MODEL", os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5-20251001"))
 
         # Similarity signal availability (checked once to eliminate 600+ repetitive import warnings)
         self._similarity_available = self._check_similarity_support()
@@ -111,13 +112,16 @@ class PQCRecommendationService:
         """
         field_map = {
             "avg_annual_turnover_value_display": row_dict.get("avg_annual_turnover_value") or row_dict.get("annual_turnover"),
-            "working_capital_value_display": row_dict.get("working_capital_value"),
-            "experience_criteria_years": row_dict.get("technical_eligibility_age") or row_dict.get("technical_experience_years_req"),
+            "avg_annual_turnover_type_display": row_dict.get("avg_annual_turnover_type_display") or row_dict.get("avg_annual_turnover_type"),
+            "working_capital_value_display": row_dict.get("working_capital_value_display") or row_dict.get("working_capital_value"),
+            "working_capital_type_display": row_dict.get("working_capital_type_display") or row_dict.get("working_capital_type"),
+            "experience_criteria_years": row_dict.get("technical_eligibility_age") or row_dict.get("technical_experience_years_req") or row_dict.get("experience_criteria_years"),
             "pbg_percentage": row_dict.get("pbg_percentage"),
             "pbg_required": row_dict.get("pbg_required"),
             "bid_validity_days": row_dict.get("bid_validity_days"),
             "required_documents": row_dict.get("required_documents"),
             "mii_purchase_preference": row_dict.get("mii_purchase_preference"),
+            "mse_relaxation_experience_turnover": row_dict.get("mse_relaxation_experience_turnover") or row_dict.get("mse_relaxation_display"),
         }
 
         try:
@@ -164,12 +168,18 @@ class PQCRecommendationService:
             "incumbent_psu_list": ["IOCL", "AAI", "HPCL", "GAIL", "NTPC", "SAIL", "ONGC", "PGETL", "BPCL"]
         }
 
+        def _safe_float(val: Any, default: float = 0.0) -> float:
+            if val is None:
+                return default
+            try:
+                f = float(val)
+                return default if (isinstance(f, float) and np.isnan(f)) else f
+            except (ValueError, TypeError):
+                return default
+
         # Tender Value & EMD
         raw_tv = row_dict.get("tender_value") or row_dict.get("estimated_cost") or 0.0
-        try:
-            val_f = float(raw_tv) if raw_tv is not None else 0.0
-        except (ValueError, TypeError):
-            val_f = 0.0
+        val_f = _safe_float(raw_tv, default=0.0)
         
         tv_imputed = 0
         if val_f < 10_000.0 or val_f > 1_000_000_000.0:
@@ -179,34 +189,25 @@ class PQCRecommendationService:
         log_tv = float(np.log1p(val_f))
 
         raw_emd = row_dict.get("emd_amount") or 0.0
-        try:
-            emd_f = float(raw_emd) if raw_emd is not None else 0.0
-        except (ValueError, TypeError):
-            emd_f = 0.0
+        emd_f = _safe_float(raw_emd, default=0.0)
         emd_bounded = min(max(emd_f, 0.0), 100_000_000.0)
         log_emd = float(np.log1p(emd_bounded))
         emd_ratio = float(emd_bounded / profile["avg_annual_turnover"])
 
         # Turnover Ratio
         raw_to = row_dict.get("avg_annual_turnover_value") or 0.0
-        try:
-            to_f = float(raw_to) if raw_to is not None else 0.0
-        except (ValueError, TypeError):
-            to_f = 0.0
+        to_f = _safe_float(raw_to, default=0.0)
         turnover_req_app = 1 if to_f > 0 else 0
         turnover_ratio = float(to_f / profile["avg_annual_turnover"]) if turnover_req_app else 0.0
 
         # PBG, LD, Delivery, Bid Validity
-        pbg_pct = float(row_dict.get("pbg_percentage") or 0.0)
-        pbg_dur = float(row_dict.get("pbg_duration") or 0.0)
-        max_ld = float(row_dict.get("max_ld_percentage") or 0.0)
-        del_days = float(row_dict.get("delivery_time_supply") or row_dict.get("delivery_time_supply_days") or 0.0)
+        pbg_pct = _safe_float(row_dict.get("pbg_percentage"), default=0.0)
+        pbg_dur = _safe_float(row_dict.get("pbg_duration"), default=0.0)
+        max_ld = _safe_float(row_dict.get("max_ld_percentage"), default=0.0)
+        del_days = _safe_float(row_dict.get("delivery_time_supply") or row_dict.get("delivery_time_supply_days"), default=0.0)
         
         raw_bv = row_dict.get("bid_validity_days")
-        try:
-            bv_f = float(raw_bv) if raw_bv is not None else 90.0
-        except (ValueError, TypeError):
-            bv_f = 90.0
+        bv_f = _safe_float(raw_bv, default=90.0)
         bv_bounded = min(max(bv_f, 1.0), 365.0)
 
         # Flags
@@ -321,9 +322,9 @@ class PQCRecommendationService:
             return 0.19, 0.0, []
 
     # =========================================================================
-    # SIGNAL 4: GROQ LLM STRATEGIC FIT (TOP-50 ONLY)
+    # SIGNAL 4: CLAUDE LLM STRATEGIC FIT (TOP-50 ONLY)
     # =========================================================================
-    def evaluate_groq_strategic_fit(
+    def evaluate_claude_strategic_fit(
         self,
         tender_no: str,
         tender_name: str,
@@ -332,83 +333,175 @@ class PQCRecommendationService:
         compliance_status: str,
         ml_win_prob: float,
         similar_tenders: List[Dict[str, Any]],
-        timeout: float = 12.0
+        timeout: float = 12.0,
+        is_override: bool = False,
+        deadline: Optional[str] = None
     ) -> Tuple[float, str]:
-        """
-        Calls Groq API (llama-3.1-8b-instant) to assess qualitative strategic fit (0.0 to 1.0).
-        Safely defaults to 0.50 on any failure or missing key.
-        """
-        if not self.groq_api_key or self.groq_api_key == "disabled":
-            logger.error("[PQCService] Groq API key is empty or disabled! Returning 0.50 neutral fallback.")
-            print("[PQCService] Groq API key is empty or disabled! Returning 0.50 neutral fallback.")
-            return 0.50, "Groq LLM enrichment offline; using neutral baseline."
-
-        headers = {
-            "Authorization": f"Bearer {self.groq_api_key}",
-            "Content-Type": "application/json"
-        }
-
-        system_prompt = (
-            "You are a strategic bidding analyst for Volks Energie (an Indian electrical power systems vendor). "
-            "Evaluate the commercial and strategic fit of the following tender on a scale of 0.0 to 1.0.\n"
-            "Return ONLY a valid JSON object:\n"
-            "{\n"
-            '  "strategic_fit": <float between 0.0 and 1.0>,\n'
-            '  "strategic_rationale": "<1-2 sentence concise executive explanation>"\n'
-            "}"
+        # 1. Staleness check & Cache lookup (strictly bypassed if is_override=True)
+        payload_hash = ClaudeFitCache.compute_payload_hash(
+            tender_no=tender_no,
+            tender_name=tender_name,
+            organization=organization,
+            tender_value=tender_value,
+            compliance_status=compliance_status,
+            ml_win_prob=ml_win_prob,
+            similar_tenders=similar_tenders,
+            deadline=deadline
         )
 
-        user_content = f"""Tender Number: {tender_no}
-Title: {tender_name}
-Authority: {organization}
-Estimated Value: INR {tender_value:,.2f}
-Compliance Status: {compliance_status}
-ML Win Probability: {ml_win_prob:.1%}
-Top Historical Similar Tenders:
-{json.dumps(similar_tenders[:3], indent=2)}
-"""
+        if not is_override:
+            cached = self.cache.get(tender_no=tender_no, current_hash=payload_hash)
+            if cached is not None:
+                logger.info(f"[PQCService][CACHE_HIT] Reusing cached Claude strategic fit for {tender_no}: {cached[0]:.2f}")
+                return cached
+        else:
+            logger.info(f"[PQCService] is_override=True: Bypassing cache read for tender {tender_no}")
 
-        payload = {
-            "model": self.groq_model,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_content}
-            ],
-            "temperature": 0.1,
-            "response_format": {"type": "json_object"}
-        }
+        # 2. Trimmed system instruction (role, concise schema, no filler)
+        system_prompt = (
+            "You are a senior bidding analyst for Volks Energie (Indian electrical systems vendor). "
+            "Evaluate commercial and strategic fit of this tender (0.0 to 1.0). Return ONLY a JSON object:\n"
+            '{"strategic_fit": <float between 0.0 and 1.0>, "strategic_rationale": "<1-2 concise executive sentences>"}'
+        )
 
-        try:
-            with httpx.Client(timeout=timeout) as client:
-                resp = client.post(self.groq_url, headers=headers, json=payload)
-                if resp.status_code == 200:
-                    data = resp.json()
-                    raw_content = data["choices"][0]["message"]["content"]
-                    try:
-                        content = json.loads(raw_content)
-                    except Exception as json_err:
-                        logger.error(
-                            f"[PQCService] Groq JSON parsing failed for tender {tender_no}: {json_err} | Raw content: {raw_content!r}\n"
-                            f"Traceback:\n{traceback.format_exc()}"
-                        )
-                        return 0.50, f"Groq response parsing error ({json_err})."
+        # 3. Compact user prompt with compressed similar tenders JSON
+        compact_similar = [
+            {
+                "no": str(s.get("tender_no", "")).strip(),
+                "name": str(s.get("tender_name", ""))[:50].strip(),
+                "sim": round(float(s.get("similarity", 0.0)), 2),
+                "out": str(s.get("outcome", "")).strip()
+            }
+            for s in (similar_tenders or [])[:3]
+        ]
 
+        user_content = (
+            f"Tender: {tender_no}\n"
+            f"Title: {tender_name}\n"
+            f"Authority: {organization}\n"
+            f"Value: INR {tender_value:,.2f}\n"
+            f"Compliance: {compliance_status}\n"
+            f"ML Win Prob: {ml_win_prob:.1%}\n"
+            f"Precedents: {json.dumps(compact_similar, separators=(',', ':'))}"
+        )
+
+        if not self.anthropic_api_key or self.anthropic_api_key == "disabled":
+            logger.warning("[PQCService] Anthropic API key not configured or disabled. Returning 0.50 neutral fallback.")
+            return 0.50, "Claude strategic enrichment offline; using neutral baseline."
+
+        # 4. Bounded retries with exponential backoff & tight token limit (max_tokens=300)
+        max_retries = 2
+        delays = [1.0, 2.0]
+        max_tokens = 300
+
+        for attempt in range(max_retries + 1):
+            try:
+                raw_text = None
+                in_tok = 0
+                out_tok = 0
+                cache_read = 0
+                cache_create = 0
+
+                try:
+                    import anthropic
+                    client = anthropic.Anthropic(api_key=self.anthropic_api_key, timeout=timeout)
+                    system_blocks = [
+                        {
+                            "type": "text",
+                            "text": system_prompt,
+                            "cache_control": {"type": "ephemeral"}
+                        }
+                    ]
+                    resp = client.messages.create(
+                        model=self.anthropic_model,
+                        max_tokens=max_tokens,
+                        system=system_blocks,
+                        messages=[{"role": "user", "content": user_content}]
+                    )
+                    raw_text = resp.content[0].text.strip()
+                    in_tok = getattr(resp.usage, "input_tokens", 0)
+                    out_tok = getattr(resp.usage, "output_tokens", 0)
+                    cache_read = getattr(resp.usage, "cache_read_input_tokens", 0)
+                    cache_create = getattr(resp.usage, "cache_creation_input_tokens", 0)
+                except ImportError:
+                    headers = {
+                        "x-api-key": self.anthropic_api_key,
+                        "anthropic-version": "2023-06-01",
+                        "content-type": "application/json"
+                    }
+                    payload = {
+                        "model": self.anthropic_model,
+                        "max_tokens": max_tokens,
+                        "temperature": 0.1,
+                        "system": [
+                            {
+                                "type": "text",
+                                "text": system_prompt,
+                                "cache_control": {"type": "ephemeral"}
+                            }
+                        ],
+                        "messages": [{"role": "user", "content": user_content}]
+                    }
+                    with httpx.Client(timeout=timeout) as client:
+                        r = client.post("https://api.anthropic.com/v1/messages", headers=headers, json=payload)
+                        if r.status_code == 200:
+                            res_json = r.json()
+                            raw_text = res_json["content"][0]["text"].strip()
+                            usage = res_json.get("usage", {})
+                            in_tok = usage.get("input_tokens", 0)
+                            out_tok = usage.get("output_tokens", 0)
+                            cache_read = usage.get("cache_read_input_tokens", 0)
+                            cache_create = usage.get("cache_creation_input_tokens", 0)
+                        elif r.status_code == 429:
+                            raise RuntimeError(f"RateLimit 429: {r.text}")
+                        else:
+                            raise RuntimeError(f"HTTP {r.status_code}: {r.text}")
+
+                if raw_text:
+                    logger.info(
+                        f"[PQCService][Claude Token Usage] Tender: {tender_no} | "
+                        f"In: {in_tok} | Out: {out_tok} | CacheRead: {cache_read} | CacheCreate: {cache_create}"
+                    )
+                    clean = re.sub(r"^```(?:json)?\s*", "", raw_text)
+                    clean = re.sub(r"\s*```$", "", clean)
+                    content = json.loads(clean)
                     fit = float(content.get("strategic_fit", 0.50))
-                    fit = min(max(fit, 0.0), 1.0)
-                    rationale = str(content.get("strategic_rationale", "Strategic fit evaluated by Groq AI."))
-                    return round(fit, 4), rationale
-                elif resp.status_code == 429:
-                    logger.warning(f"[PQCService] Groq API rate limit (429) hit for tender {tender_no}: {resp.text}")
-                    return 0.50, "RATE_LIMIT_429"
+                    fit = round(min(max(fit, 0.0), 1.0), 4)
+                    rationale = str(content.get("strategic_rationale", "Strategic fit evaluated by Claude AI."))
+
+                    # Post-call cache store (strictly bypassed if is_override=True)
+                    if not is_override:
+                        self.cache.set(
+                            tender_no=tender_no,
+                            data_hash=payload_hash,
+                            strategic_fit=fit,
+                            strategic_rationale=rationale,
+                            input_tokens=in_tok,
+                            output_tokens=out_tok
+                        )
+                    else:
+                        logger.info(f"[PQCService] is_override=True: Bypassing cache write for tender {tender_no}")
+
+                    return fit, rationale
+
+            except Exception as e:
+                err_str = str(e).lower()
+                is_rate_limit = "rate_limit" in err_str or "429" in err_str
+                if attempt < max_retries:
+                    delay = delays[attempt]
+                    logger.warning(
+                        f"[PQCService] Call failed on attempt {attempt + 1}/{max_retries + 1} for {tender_no} ({e}). "
+                        f"Retrying in {delay}s with backoff..."
+                    )
+                    time.sleep(delay)
                 else:
-                    err_details = f"[PQCService] Groq API returned HTTP {resp.status_code} for tender {tender_no}: {resp.text}"
-                    logger.error(err_details)
-                    return 0.50, f"Groq enrichment unavailable (HTTP {resp.status_code})."
-        except Exception as e:
-            tb = traceback.format_exc()
-            err_details = f"[PQCService] Groq call failed for {tender_no}: {type(e).__name__}: {e}\nTraceback:\n{tb}"
-            logger.error(err_details)
-            return 0.50, f"Groq evaluation defaulted ({e})."
+                    if is_rate_limit:
+                        logger.error(f"[PQCService] Claude API rate limit (429) hit for tender {tender_no} after {max_retries + 1} attempts.")
+                        return 0.50, "RATE_LIMIT_429"
+                    logger.error(f"[PQCService] Claude strategic fit call failed for {tender_no} after {max_retries + 1} attempts: {e}")
+                    return 0.50, f"Claude evaluation defaulted ({e})."
+
+        return 0.50, "Claude evaluation returned empty response."
 
     # =========================================================================
     # COMPOSITE SCORING & MULTI-TENDER RANKING
@@ -416,7 +509,8 @@ Top Historical Similar Tenders:
     def score_single_tender(
         self,
         tender_dict: Dict[str, Any],
-        include_groq: bool = False,
+        include_claude: bool = False,
+        is_override: bool = False,
         org_win_rate: float = 0.0,
         incumbent_buyer: int = 0
     ) -> Dict[str, Any]:
@@ -456,19 +550,28 @@ Top Historical Similar Tenders:
         # 3. Signal 3: Similarity Track Record
         sim_score, avg_sim, similar_tenders = self.evaluate_similarity_signal(tender_dict, top_k=5)
 
-        # 4. Signal 4: Groq Strategic Fit (default 0.50 if not requested)
-        groq_score = 0.50
-        strategic_rationale = "Evaluated via deterministic compliance, LightGBM classifier, and Qdrant vector similarity."
-        if include_groq:
-            groq_score, strategic_rationale = self.evaluate_groq_strategic_fit(
+        # 4. Signal 4: Claude Strategic Fit (Short-circuit on DISQUALIFIED and CANNOT_EVALUATE)
+        if comp_status == "DISQUALIFIED":
+            claude_score = 0.0
+            disq_detail = f" ({'; '.join(disq_reasons[:2])})" if disq_reasons else ""
+            strategic_rationale = f"Skipped Claude enrichment: Disqualified by Hard Compliance Filter{disq_detail}."
+        elif tender_value <= 0.0:
+            claude_score = 0.50
+            strategic_rationale = "Skipped Claude enrichment: Tender value zero or unstated (CANNOT_EVALUATE)."
+        elif include_claude:
+            claude_score, strategic_rationale = self.evaluate_claude_strategic_fit(
                 tender_no=tender_no,
                 tender_name=tender_name,
                 organization=organization,
                 tender_value=tender_value,
                 compliance_status=comp_status,
                 ml_win_prob=ml_win_prob,
-                similar_tenders=similar_tenders
+                similar_tenders=similar_tenders,
+                is_override=is_override
             )
+        else:
+            claude_score = 0.50
+            strategic_rationale = "Evaluated via deterministic compliance, LightGBM classifier, and Qdrant vector similarity."
 
         # 5. Composite Score Calculation
         w = self.weights
@@ -476,7 +579,7 @@ Top Historical Similar Tenders:
             w["compliance"] * comp_score +
             w["similarity"] * sim_score +
             w["ml_win_prob"] * ml_win_prob +
-            w["groq"] * groq_score
+            w["claude"] * claude_score
         )
         composite = round(float(composite), 4)
 
@@ -492,7 +595,7 @@ Top Historical Similar Tenders:
                 "compliance_status": comp_status,
                 "ml_win_prob": ml_win_prob,
                 "similarity_score": sim_score,
-                "groq_fit_score": groq_score,
+                "claude_fit_score": claude_score,
                 "composite_score": composite
             },
             "similar_tenders": similar_tenders,
@@ -507,55 +610,73 @@ Top Historical Similar Tenders:
         self,
         tenders: List[Dict[str, Any]],
         top_k: int = 20,
-        include_groq: bool = True,
-        groq_top_n: int = 3
+        include_claude: bool = True,
+        claude_top_n: int = 50,
+        is_override: bool = False
     ) -> Dict[str, Any]:
         """
         Scores and ranks a collection of tenders.
-        Groq enrichment is applied only to top candidates (default 3) to strictly respect
-        the 8,000 TPM limit on Groq and eliminate latency stalls.
+        Claude enrichment is applied to top candidates (default 50).
         """
-        logger.info(f"[PQCService] Scoring and ranking N={len(tenders)} tenders (top_k={top_k}, include_groq={include_groq})...")
+        logger.info(f"[PQCService] Scoring and ranking N={len(tenders)} tenders (top_k={top_k}, include_claude={include_claude}, is_override={is_override})...")
 
-        # Step 1: Initial scoring with Groq=0.50 (fast, deterministic across all tenders)
+        # Step 1: Initial scoring with fast deterministic signals
         preliminary_scored = []
         for t in tenders:
-            scored = self.score_single_tender(t, include_groq=False)
+            scored = self.score_single_tender(t, include_claude=False, is_override=is_override)
             preliminary_scored.append(scored)
 
         # Sort descending by composite score
         preliminary_scored.sort(key=lambda x: x["composite_score"], reverse=True)
 
-        # Step 2: Groq enrichment on top candidates if requested
-        if include_groq and self.groq_api_key:
-            target_n = min(len(preliminary_scored), top_k, groq_top_n)
-            logger.info(f"[PQCService] Running Groq LLM enrichment for top {target_n} tenders...")
+        # Step 2: Claude enrichment on top eligible candidates if requested
+        if include_claude and self.anthropic_api_key:
+            # Sift out disqualified or zero-value tenders before LLM candidate enrichment
+            eligible_indices = [
+                idx for idx, item in enumerate(preliminary_scored[:top_k])
+                if item["score_decomposition"]["compliance_status"] != "DISQUALIFIED" and item["tender_value"] > 0.0
+            ]
+            target_indices = eligible_indices[:claude_top_n]
+            logger.info(f"[PQCService] Running Claude AI enrichment for {len(target_indices)} eligible top tenders...")
             rate_limited = False
-            for idx in range(target_n):
+            for loop_idx, idx in enumerate(target_indices):
                 if rate_limited:
                     break
                 item = preliminary_scored[idx]
-                groq_fit, rationale = self.evaluate_groq_strategic_fit(
+                claude_fit, rationale = self.evaluate_claude_strategic_fit(
                     tender_no=item["tender_no"],
                     tender_name=item["tender_name"],
                     organization=item["organization"],
                     tender_value=item["tender_value"],
                     compliance_status=item["score_decomposition"]["compliance_status"],
                     ml_win_prob=item["score_decomposition"]["ml_win_prob"],
-                    similar_tenders=item["similar_tenders"]
+                    similar_tenders=item["similar_tenders"],
+                    is_override=is_override
                 )
 
                 if rationale == "RATE_LIMIT_429":
                     logger.warning(
-                        f"[PQCService] Groq TPM rate limit hit on candidate #{idx + 1}. "
+                        f"[PQCService] Claude API rate limit (429) hit on candidate #{loop_idx + 1}. "
                         "Safely falling back remaining candidates to neutral 0.50 baseline without delay."
                     )
-                    item["score_decomposition"]["groq_fit_score"] = 0.50
-                    item["strategic_rationale"] = "Groq TPM rate limit reached; using neutral strategic baseline."
+                    w = self.weights
+                    for rem_idx in target_indices[loop_idx:]:
+                        rem_item = preliminary_scored[rem_idx]
+                        rem_item["score_decomposition"]["claude_fit_score"] = 0.50
+                        rem_item["strategic_rationale"] = "Claude rate limit reached; using neutral strategic baseline."
+                        decomp = rem_item["score_decomposition"]
+                        new_composite = (
+                            w["compliance"] * decomp["compliance_score"] +
+                            w["similarity"] * decomp["similarity_score"] +
+                            w["ml_win_prob"] * decomp["ml_win_prob"] +
+                            w["claude"] * decomp["claude_fit_score"]
+                        )
+                        rem_item["composite_score"] = round(float(new_composite), 4)
+                        rem_item["score_decomposition"]["composite_score"] = rem_item["composite_score"]
                     rate_limited = True
                     break
 
-                item["score_decomposition"]["groq_fit_score"] = groq_fit
+                item["score_decomposition"]["claude_fit_score"] = claude_fit
                 item["strategic_rationale"] = rationale
                 
                 # Recalculate composite
@@ -565,16 +686,16 @@ Top Historical Similar Tenders:
                     w["compliance"] * decomp["compliance_score"] +
                     w["similarity"] * decomp["similarity_score"] +
                     w["ml_win_prob"] * decomp["ml_win_prob"] +
-                    w["groq"] * decomp["groq_fit_score"]
+                    w["claude"] * decomp["claude_fit_score"]
                 )
                 item["composite_score"] = round(float(new_composite), 4)
                 item["score_decomposition"]["composite_score"] = item["composite_score"]
                 
-                # Respect rate limits between calls
-                if idx < target_n - 1:
-                    time.sleep(0.3)
+                # Batch pacing: 0.25s delay between live calls
+                if loop_idx < len(target_indices) - 1:
+                    time.sleep(0.25)
 
-            # Re-sort after Groq enrichment
+            # Re-sort after Claude enrichment
             preliminary_scored.sort(key=lambda x: x["composite_score"], reverse=True)
 
         # Step 3: Assign ranks and slice top_k

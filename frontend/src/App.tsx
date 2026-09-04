@@ -110,8 +110,8 @@ function App() {
       if (selectedTenderId === tenderId) {
         setSelectedTenderId(null);
       }
-    } catch (err) {
-      alert("Error deleting tender");
+    } catch (err: any) {
+      alert(`Error deleting tender: ${err?.message || "Operation failed"}`);
     }
   };
 

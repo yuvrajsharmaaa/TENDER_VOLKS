@@ -1,6 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import field_validator
-from typing import List, Union
+from typing import List, Union, Any
 import os
 
 class Settings(BaseSettings):
@@ -8,6 +8,17 @@ class Settings(BaseSettings):
     environment: str = "development"
     debug: bool = True
     log_level: str = "INFO"
+
+    @field_validator("debug", mode="before")
+    @classmethod
+    def parse_debug(cls, v: Any) -> bool:
+        if isinstance(v, str):
+            val = v.strip().lower()
+            if val in {"release", "prod", "production", "false", "0", "no", "off"}:
+                return False
+            if val in {"debug", "dev", "development", "true", "1", "yes", "on"}:
+                return True
+        return bool(v)
     
     # Databases
     database_url: str
@@ -30,6 +41,9 @@ class Settings(BaseSettings):
     
     # Third party integrations
     gemini_api_key: Union[str, None] = None
+    anthropic_api_key: Union[str, None] = None
+    anthropic_model: str = "claude-sonnet-4-5-20250929"
+    anthropic_fast_model: str = "claude-haiku-4-5-20251001"
     telegram_bot_token: Union[str, None] = None
     telegram_chat_id: Union[str, None] = None
     

@@ -30,7 +30,7 @@ class TenderInformation(Base):
     emd_amount = Column(Numeric, nullable=True)
     tender_fee = Column(Numeric, nullable=True)
     estimated_cost = Column(Numeric, nullable=True)
-    tender_value = Column(Numeric, nullable=True)
+    tender_value = Column(Text, nullable=True)
     security_deposit = Column(Numeric, nullable=True)
 
 
@@ -94,8 +94,8 @@ class TenderInformation(Base):
     emd_mode = Column(ARRAY(String), nullable=True)
 
     reverse_auction_applicable = Column(String(255), nullable=True)
-    mse_purchase_preference = Column(String(255), nullable=True)
-    mii_purchase_preference = Column(String(255), nullable=True)
+    mse_purchase_preference = Column(Boolean, nullable=True)
+    mii_purchase_preference = Column(Boolean, nullable=True)
     payment_terms_supply = Column(Numeric, nullable=True)
     payment_terms_installation = Column(Numeric, nullable=True)
     sd_percentage = Column(Numeric, nullable=True)

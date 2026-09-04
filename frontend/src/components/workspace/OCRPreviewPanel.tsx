@@ -35,7 +35,7 @@ export const OCRPreviewPanel: React.FC<OCRPreviewPanelProps> = ({ rawText }) => 
   };
 
   return (
-    <div className="space-y-4 flex flex-col h-[calc(100vh-220px)]">
+    <div className="space-y-4 flex flex-col h-full min-h-[350px]">
       {/* Search tool */}
       <div className="relative shrink-0 select-none">
         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />

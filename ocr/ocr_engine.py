@@ -25,6 +25,9 @@ class OcrEngine:
 
     @classmethod
     def _init_paddle(cls):
+        import os
+        if os.getenv("PADDLE_OCR_ENABLED", "true").lower() == "false":
+            return
         if not cls._paddle_attempted:
             cls._paddle_attempted = True
             try:
@@ -62,12 +65,16 @@ class OcrEngine:
 
     def run(self, image_path: Path) -> list[TextBlock]:
         cache_key = str(image_path)
+        blocks_cache_key = f"blocks_{cache_key}"
+
+        if blocks_cache_key in OcrEngine._cache:
+            return OcrEngine._cache[blocks_cache_key]
 
         # Primary pass: PaddleOCR
         if OcrEngine._paddle_instance is not None:
             try:
                 res = OcrEngine._paddle_instance.ocr(str(image_path), cls=True)
-                if res and res[0]:
+                if res and res[0] is not None:
                     text_blocks = []
                     for idx, line in enumerate(res[0]):
                         box, (text, conf) = line
@@ -83,6 +90,7 @@ class OcrEngine:
                             bounding_box={"x1": x1, "y1": y1, "x2": x2, "y2": y2},
                             language_hint=self.lang
                         ))
+                    OcrEngine._cache[blocks_cache_key] = text_blocks
                     return text_blocks
             except Exception as p_err:
                 import logging
@@ -147,4 +155,5 @@ class OcrEngine:
                 bounding_box={"x1": line["x1"], "y1": line["y1"], "x2": line["x2"], "y2": line["y2"]},
                 language_hint=self.lang,
             ))
+        OcrEngine._cache[blocks_cache_key] = text_blocks
         return text_blocks

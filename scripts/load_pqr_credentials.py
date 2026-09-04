@@ -169,11 +169,15 @@ def main():
         comp_doc = resolve_local_document_path(row.get("completion_document"), "pqr-completion")
         perf_doc = resolve_local_document_path(row.get("performance_certificate"), "pqr-performance-certificate")
 
+        proj_name = str(row["project_name"]).strip() if pd.notna(row.get("project_name")) else None
+        if proj_name and "RAS evelopment" in proj_name:
+            proj_name = proj_name.replace("RAS evelopment", "RAS Development")
+
         record = {
             "id": int(row["id"]),
             "team_id": int(row["team_id"]) if pd.notna(row.get("team_id")) else None,
             "team_name": str(row["team_name"]).strip() if pd.notna(row.get("team_name")) else None,
-            "project_name": str(row["project_name"]).strip() if pd.notna(row.get("project_name")) else None,
+            "project_name": proj_name,
             "value": clean_val,
             "item": str(row["item"]).strip() if pd.notna(row.get("item")) else None,
             "item_category": str(row["item_category"]).strip() if pd.notna(row.get("item_category")) else None,
