@@ -1,4 +1,6 @@
 import time
+import re
+import os
 from pathlib import Path
 from typing import Dict, Any, List, cast
 from backend.app.services.pdf_text_extractor import extract_pdf_text_hybrid
@@ -606,7 +608,46 @@ def ingest_parent_tender_pdf(
             except Exception as llm_err:
                 logger.warning("[LLM_FALLBACK] Non-fatal LLM resolution error: %s", llm_err)
 
-        generate_info_sheet_csv(infosheet_data, str(csv_path))
+        # Wire RegulatoryComplianceService to evaluate technical evaluation recommendation
+        te_curr = str(infosheet_data.get("te_recommendation_display", "")).strip()
+        if not te_curr or te_curr in ("NA", "N/A", "None", "⚠️ MISSING"):
+            try:
+                from backend.app.services.compliance.regulatory import RegulatoryComplianceService, ComplianceStatus
+                compliance_svc = RegulatoryComplianceService()
+                t_ident = infosheet_data.get("tender_id_display") or title_raw
+                if "bid_validity_days" not in infosheet_data or not infosheet_data["bid_validity_days"]:
+                    bv_str = str(infosheet_data.get("bid_validity_days_display", ""))
+                    m_bv = re.search(r"(\d+)", bv_str)
+                    if m_bv:
+                        infosheet_data["bid_validity_days"] = int(m_bv.group(1))
+                comp_res = compliance_svc.evaluate_compliance(tender_no=t_ident, extracted_fields=infosheet_data)
+                if comp_res.overall_status == ComplianceStatus.QUALIFIED:
+                    infosheet_data["te_recommendation_display"] = "Yes — Recommended"
+                    infosheet_data["te_rejection_reason_display"] = "N/A"
+                elif comp_res.overall_status == ComplianceStatus.DISQUALIFIED:
+                    infosheet_data["te_recommendation_display"] = "No — Rejected"
+                    infosheet_data["te_rejection_reason_display"] = "; ".join(comp_res.disqualification_reasons)
+                else:
+                    infosheet_data["te_recommendation_display"] = "Needs Review"
+                    infosheet_data["te_rejection_reason_display"] = "; ".join(comp_res.review_reasons)
+                
+                field_statuses = infosheet_data.setdefault("_info_sheet_statuses", {})
+                from backend.app.services.tender_mapper import FIELD_STATUS_OK, FIELD_STATUS_NOT_APPLICABLE
+                field_statuses["te_recommendation_display"] = FIELD_STATUS_OK
+                field_statuses["te_rejection_reason_display"] = FIELD_STATUS_NOT_APPLICABLE
+                if "te_recommendation_display" in infosheet_data.get("missing_fields", []):
+                    infosheet_data["missing_fields"].remove("te_recommendation_display")
+                if "te_rejection_reason_display" in infosheet_data.get("missing_fields", []):
+                    infosheet_data["missing_fields"].remove("te_rejection_reason_display")
+            except Exception as comp_err:
+                logger.warning("[COMPLIANCE_EVAL] Could not evaluate compliance for infosheet: %s", comp_err)
+
+        try:
+            generate_info_sheet_csv(infosheet_data, str(csv_path))
+        except PermissionError:
+            fallback_csv = csv_path.parent / f"{csv_path.stem}_latest{csv_path.suffix}"
+            logger.warning(f"[INFOSHEET] {csv_path} is locked/open in Excel. Saving to fallback: {fallback_csv}")
+            generate_info_sheet_csv(infosheet_data, str(fallback_csv))
     except Exception as e:
         logger.error(f"Failed to generate info sheet workbook for job {job_id}: {e}", exc_info=True)
 

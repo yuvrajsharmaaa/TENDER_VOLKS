@@ -186,7 +186,8 @@ class RegulatoryComplianceService:
             # Case-insensitive / normalized match
             a_norm = a.lower().replace("_", " ").strip()
             for k, v in field_map.items():
-                if k.lower().replace("_", " ").strip() == a_norm and v is not None:
+                k_norm = k.lower().replace("_display", "").replace("_", " ").strip()
+                if (k.lower().replace("_", " ").strip() == a_norm or k_norm == a_norm) and v is not None:
                     return v
         return None
 
@@ -587,7 +588,7 @@ class RegulatoryComplianceService:
         rule_name = "MIN_BID_VALIDITY"
         field_name = "bid_validity_days"
         field_obj = self._lookup_field(field_map, [
-            "bid_validity_days", "bid_validity", "bid_offer_validity",
+            "bid_validity_days", "bid_validity_days_display", "bid_validity", "bid_offer_validity",
             "Bid Validity Period", "Bid Offer Validity (Days)", "Bid Offer Validity"
         ])
 
