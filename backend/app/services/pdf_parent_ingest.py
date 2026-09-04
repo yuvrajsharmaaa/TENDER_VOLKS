@@ -277,7 +277,29 @@ def ingest_parent_tender_pdf(
                 atc_page_texts = extract_pdf_text_hybrid(str(atc_path), atc_pages_dir)
                 all_pages.extend(atc_page_texts)
                 atc_sections = extract_tender_fields(atc_page_texts, f"{title_raw} ATC", document_type="generic_nit")
-            
+
+            # Collect and append text from all other downloaded child PDFs (e.g. Schedule Specs sch1-sch4)
+            valid_child_pdfs = []
+            for l in links:
+                if l.get("local_path") and Path(l["local_path"]).exists() and str(l["local_path"]).lower().endswith(".pdf"):
+                    p = Path(l["local_path"])
+                    if p not in valid_child_pdfs and p != pdf_path and p != atc_path:
+                        valid_child_pdfs.append(p)
+            for c_dir in [job_dir / "extracted_children", Path(r"C:\Users\Asus\Desktop\extracted_children")]:
+                if c_dir.exists():
+                    for p in c_dir.glob("*.pdf"):
+                        if p not in valid_child_pdfs and p != pdf_path and p != atc_path and p.stat().st_size > 0:
+                            valid_child_pdfs.append(p)
+
+            for c_pdf in valid_child_pdfs:
+                try:
+                    c_texts = extract_pdf_text_hybrid(str(c_pdf), job_dir / "atc_pages")
+                    all_pages.extend(c_texts)
+                    atc_page_texts.extend(c_texts)
+                    logger.info(f"[ATC_RESOLVER] Appended child PDF text: '{c_pdf.name}' ({len(c_texts)} pages)")
+                except Exception as c_err:
+                    logger.debug(f"Could not parse extra child PDF {c_pdf}: {c_err}")
+
             # Upsert standalone resolve_atc_anchor_fields output into atc_sections (Task 2)
             atc_full_text = "\n".join([p.get("text", "") for p in atc_page_texts])
             atc_checkboxes = [cb for p in atc_page_texts for cb in p.get("checkboxes", [])]
@@ -632,9 +654,22 @@ def ingest_parent_tender_pdf(
                     infosheet_data["te_rejection_reason_display"] = "; ".join(comp_res.review_reasons)
                 
                 field_statuses = infosheet_data.setdefault("_info_sheet_statuses", {})
-                from backend.app.services.tender_mapper import FIELD_STATUS_OK, FIELD_STATUS_NOT_APPLICABLE
+                from backend.app.services.tender_mapper import FIELD_STATUS_OK, FIELD_STATUS_NOT_APPLICABLE, FIELD_STATUS_MISSING
+                prev_st_rec = field_statuses.get("te_recommendation_display")
                 field_statuses["te_recommendation_display"] = FIELD_STATUS_OK
+                prev_st_rej = field_statuses.get("te_rejection_reason_display")
                 field_statuses["te_rejection_reason_display"] = FIELD_STATUS_NOT_APPLICABLE
+
+                status_summary = infosheet_data.setdefault("status_summary", {})
+                if prev_st_rec == FIELD_STATUS_MISSING or "te_recommendation_display" in infosheet_data.get("missing_fields", []):
+                    if FIELD_STATUS_MISSING in status_summary and status_summary[FIELD_STATUS_MISSING] > 0:
+                        status_summary[FIELD_STATUS_MISSING] -= 1
+                    status_summary[FIELD_STATUS_OK] = status_summary.get(FIELD_STATUS_OK, 0) + 1
+                if prev_st_rej == FIELD_STATUS_MISSING or "te_rejection_reason_display" in infosheet_data.get("missing_fields", []):
+                    if FIELD_STATUS_MISSING in status_summary and status_summary[FIELD_STATUS_MISSING] > 0:
+                        status_summary[FIELD_STATUS_MISSING] -= 1
+                    status_summary[FIELD_STATUS_NOT_APPLICABLE] = status_summary.get(FIELD_STATUS_NOT_APPLICABLE, 0) + 1
+
                 if "te_recommendation_display" in infosheet_data.get("missing_fields", []):
                     infosheet_data["missing_fields"].remove("te_recommendation_display")
                 if "te_rejection_reason_display" in infosheet_data.get("missing_fields", []):

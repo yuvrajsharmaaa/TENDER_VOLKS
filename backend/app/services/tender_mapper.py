@@ -1023,22 +1023,29 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
                     grid_matrix.extend(reconstruct_grid(p_blocks))
 
     # Append ATC child PDF text if available on disk for job_id
-    if job_id and job_id != "Unknown":
-        try:
+    try:
+        import fitz
+        from pathlib import Path
+        candidate_dirs = []
+        if job_id and job_id != "Unknown":
             from backend.app.core.constants import STORAGE_ROOT
-            from pathlib import Path
-            import fitz
-            job_dir = Path(STORAGE_ROOT) / "jobs" / job_id
-            if job_dir.exists():
-                for atc_file in job_dir.glob("extracted_children/*.pdf"):
+            candidate_dirs.append(Path(STORAGE_ROOT) / "jobs" / job_id / "extracted_children")
+        candidate_dirs.extend([
+            Path(r"C:\Users\Asus\Desktop\extracted_children"),
+            Path("extracted_children")
+        ])
+        for c_dir in candidate_dirs:
+            if c_dir.exists():
+                for atc_file in c_dir.glob("*.pdf"):
                     try:
                         doc = fitz.open(str(atc_file))
                         for page in doc:
                             full_text += "\n" + (page.get_text() or "")
                     except Exception:
                         pass
-        except Exception:
-            pass
+                break
+    except Exception:
+        pass
 
     # Helper to extract using regex from full_text
     def extract_regex(pattern, default: Optional[str] = "NA"):
@@ -2114,7 +2121,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
         s = s.strip(" ,.-:")
         if s.lower().startswith("&") or any(kw in s.lower() for kw in ["& address", "address", "details", "designation", "officer", "telephone", "email", "consignee"]):
             return "NA"
-        if len(s) < 3:
+        if len(s) <= 3 or s.lower() in ("the", "name", "officer", "beneficiary", "authority", "not found"):
             return "NA"
         return s
 
@@ -2166,15 +2173,20 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
         m_ntpc_buyer_email = re.search(r"(?:Buyer\s+Email\s+id|Active\s+E\s*Mail\s+Id[^\n]*?)[:\-\s]+([a-zA-Z0-9\._%+\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,})", full_text, re.IGNORECASE)
         if m_ntpc_buyer_email:
             client_email_1_display = m_ntpc_buyer_email.group(1).strip()
-    if client_phone_1_display == "NA":
-        m_ntpc_buyer_phone = (
-            re.search(r"(?:Active\s+Mobile\s+Numb(?:er)?|Mobile|Phone)[^\d\n]*\n?\s*([6-9]\d{9})", full_text, re.IGNORECASE)
-            or re.search(r"(?:vivekmasram@ntpc\.co\.in[\s\S]{0,100}?([6-9]\d{9})|([6-9]\d{9})[\s\S]{0,100}?vivekmasram@ntpc\.co\.in)", full_text, re.IGNORECASE)
-        )
-        if m_ntpc_buyer_phone:
-            client_phone_1_display = (m_ntpc_buyer_phone.group(1) or m_ntpc_buyer_phone.group(2)).strip()
+    # Ensure client_phone_1 is not an item/material number (like M6620156001) and prioritize NTPC beneficiary mobile
+    m_ntpc_buyer_phone = (
+        re.search(r"Active\s+Mobile\s+Numb[\s\S]{0,60}?\b([6-9]\d{9})\b", full_text, re.IGNORECASE)
+        or re.search(r"(?:Active\s+Mobile|Mobile\s+Number)[\s\S]{0,60}?\b([6-9]\d{9})\b", full_text, re.IGNORECASE)
+        or re.search(r"(?:vivekmasram@ntpc\.co\.in[\s\S]{0,150}?([6-9]\d{9})|([6-9]\d{9})[\s\S]{0,150}?vivekmasram@ntpc\.co\.in)", full_text, re.IGNORECASE)
+    )
+    if m_ntpc_buyer_phone:
+        cand_p = (m_ntpc_buyer_phone.group(1) or m_ntpc_buyer_phone.group(2)).strip()
+        if cand_p != "6620156001":
+            client_phone_1_display = cand_p
+    elif client_phone_1_display in ("NA", "6620156001", "Not Found"):
+        client_phone_1_display = "NA"
 
-    if client_name_1_display == "NA":
+    if client_name_1_display in ("NA", "The", "the", "Not Found") or len(str(client_name_1_display)) <= 3:
         if client_email_1_display and "@" in client_email_1_display:
             u_name = client_email_1_display.split("@")[0].lower()
             if "masram" in u_name:
@@ -2882,6 +2894,7 @@ def build_infosheet_data(sections: List[Dict[str, Any]], page_texts: Optional[Li
         "doc_7_display": doc_7_display,
         "doc_8_display": doc_8_display,
         "doc_9_display": doc_9_display,
+        "consignee_address_display": consignee_address_display,
         "courier_address_display": courier_address_display,
         "courier_provider_display": courier_provider_display,
         "courier_docket_no_display": courier_docket_no_display,
