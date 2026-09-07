@@ -18,6 +18,9 @@ if hasattr(sys.stdout, "reconfigure"):
     except Exception:
         pass
 
+import logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+
 from backend.app.services.pdf_parent_ingest import ingest_parent_tender_pdf
 from backend.app.core.constants import STORAGE_ROOT
 from backend.app.services.tender_mapper import build_infosheet_data

@@ -1,8 +1,8 @@
 {
   "summary": {
     "total_fields_checked": 168,
-    "match_count": 156,
-    "accuracy_percentage": 92.85714285714286
+    "match_count": 146,
+    "accuracy_percentage": 86.90476190476191
   },
   "results": [
     {
@@ -58,14 +58,14 @@
       "tender_id": "GAIL Split Morena",
       "field_name": "delivery_time_supply_display",
       "expected": "90 Days",
-      "actual": "Not Specified",
+      "actual": "160 Days (total completion) — no distinct supply-only figure found in scoped clauses",
       "status": "MISMATCH"
     },
     {
       "tender_id": "GAIL Split Morena",
       "field_name": "delivery_time_installation_display",
       "expected": "90 Days",
-      "actual": "Not Specified",
+      "actual": "160 Days (total completion) — installation included in total period",
       "status": "MISMATCH"
     },
     {
@@ -170,15 +170,15 @@
       "tender_id": "GAIL Split Morena",
       "field_name": "client_name_2_display",
       "expected": "Shri D S DIVEKAR",
-      "actual": "Shri D S DIVEKAR",
-      "status": "MATCH"
+      "actual": "N/A",
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GAIL Split Morena",
       "field_name": "client_email_2_display",
       "expected": "dsd04504@gail.co.in",
-      "actual": "dsd04504@gail.co.in",
-      "status": "MATCH"
+      "actual": "N/A",
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GAIL Split Morena",
@@ -303,14 +303,14 @@
       "tender_id": "GAIL Vadodra",
       "field_name": "delivery_time_supply_display",
       "expected": "Part A: 180 Days | Part B: 120 Days",
-      "actual": "Part A: 180 Days | Part B: 120 Days",
-      "status": "MATCH"
+      "actual": "120 Days (4 months as stated) — supply of battery banks to be completed within 04 months from date of intimation",
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GAIL Vadodra",
       "field_name": "delivery_time_installation_display",
       "expected": "365 Days",
-      "actual": "Not Specified",
+      "actual": "365 Days (12 months total completion) — installation included in total contract period of 12 months from FOA/LOA",
       "status": "MISMATCH"
     },
     {
@@ -415,15 +415,15 @@
       "tender_id": "GAIL Vadodra",
       "field_name": "client_name_2_display",
       "expected": "Shri Tanmoy Shome",
-      "actual": "Shri Tanmoy Shome",
-      "status": "MATCH"
+      "actual": "N/A",
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GAIL Vadodra",
       "field_name": "client_email_2_display",
       "expected": "tshome@gail.co.in",
-      "actual": "tshome@gail.co.in",
-      "status": "MATCH"
+      "actual": "apurba@gail.co.in",
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GAIL Vadodra",
@@ -541,28 +541,28 @@
       "tender_id": "GAIL Visakhapatnam B&BC VRLA",
       "field_name": "delivery_time_supply_display",
       "expected": "105 Days",
-      "actual": "105 Days",
-      "status": "MATCH"
+      "actual": "105 Days (total delivery period) — no distinct supply-only figure found in scoped clauses",
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GAIL Visakhapatnam B&BC VRLA",
       "field_name": "delivery_time_installation_display",
       "expected": "105 Days",
-      "actual": "105 Days",
-      "status": "MATCH"
+      "actual": "105 Days (total delivery period) — installation timeline not separately specified in scoped clauses",
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GAIL Visakhapatnam B&BC VRLA",
       "field_name": "payment_terms_supply_display",
       "expected": "70.0",
-      "actual": "95%",
+      "actual": "⚠️ MISSING",
       "status": "MISMATCH"
     },
     {
       "tender_id": "GAIL Visakhapatnam B&BC VRLA",
       "field_name": "payment_terms_installation_display",
       "expected": "30.0",
-      "actual": "5%",
+      "actual": "⚠️ MISSING",
       "status": "MISMATCH"
     },
     {
@@ -667,15 +667,15 @@
       "tender_id": "GAIL Visakhapatnam B&BC VRLA",
       "field_name": "client_name_2_display",
       "expected": "Shri S. Patta",
-      "actual": "Shri S. Patta",
-      "status": "MATCH"
+      "actual": "Sh. Vishal Kumar",
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GAIL Visakhapatnam B&BC VRLA",
       "field_name": "client_email_2_display",
       "expected": "s.patta@gail.co.in",
-      "actual": "s.patta@gail.co.in",
-      "status": "MATCH"
+      "actual": "narasingha.rao@gail.co.in",
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GAIL Visakhapatnam B&BC VRLA",
@@ -800,14 +800,14 @@
       "tender_id": "GeM-Bidding-9062837",
       "field_name": "delivery_time_supply_display",
       "expected": "150 Days",
-      "actual": "Not Specified",
+      "actual": "150 Days (total completion) — no distinct supply-only figure found in scoped clauses",
       "status": "MISMATCH"
     },
     {
       "tender_id": "GeM-Bidding-9062837",
       "field_name": "delivery_time_installation_display",
       "expected": "150 Days",
-      "actual": "Not Specified",
+      "actual": "150 Days (total completion) — installation included in total period",
       "status": "MISMATCH"
     },
     {
@@ -926,8 +926,8 @@
       "tender_id": "GeM-Bidding-9062837",
       "field_name": "client_email_2_display",
       "expected": "sheewshankar@gail.co.in",
-      "actual": "sheewshankar@gail.co.in",
-      "status": "MATCH"
+      "actual": "⚠️ MISSING",
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GeM-Bidding-9062837",
@@ -1066,14 +1066,14 @@
       "tender_id": "GeM-Bidding-9487565",
       "field_name": "delivery_time_supply_display",
       "expected": "140 Days",
-      "actual": "Not Specified",
+      "actual": "140 Days (total completion) — no distinct supply-only figure found in scoped clauses",
       "status": "MISMATCH"
     },
     {
       "tender_id": "GeM-Bidding-9487565",
       "field_name": "delivery_time_installation_display",
       "expected": "140 Days",
-      "actual": "Not Specified",
+      "actual": "140 Days (total completion) — installation included in total period",
       "status": "MISMATCH"
     },
     {

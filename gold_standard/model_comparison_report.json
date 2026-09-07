@@ -1,0 +1,78 @@
+{
+  "role1_model": "claude-haiku-4-5-20251001",
+  "role2_model": "claude-sonnet-5",
+  "token_budget_per_tender": 20000,
+  "categories": [
+    {
+      "category": "contacts_bds",
+      "expected_fields": 25,
+      "sonnet_baseline_pct": 100.0,
+      "haiku_candidate_pct": 100.0,
+      "delta_pct": 0.0,
+      "deferrals": 0,
+      "status": "PASS"
+    },
+    {
+      "category": "bec_criteria",
+      "expected_fields": 32,
+      "sonnet_baseline_pct": 100.0,
+      "haiku_candidate_pct": 100.0,
+      "delta_pct": 0.0,
+      "deferrals": 0,
+      "status": "PASS"
+    },
+    {
+      "category": "payment_terms",
+      "expected_fields": 6,
+      "sonnet_baseline_pct": 100.0,
+      "haiku_candidate_pct": 100.0,
+      "delta_pct": 0.0,
+      "deferrals": 0,
+      "status": "PASS"
+    },
+    {
+      "category": "pbg_sd",
+      "expected_fields": 10,
+      "sonnet_baseline_pct": 100.0,
+      "haiku_candidate_pct": 100.0,
+      "delta_pct": 0.0,
+      "deferrals": 0,
+      "status": "PASS"
+    },
+    {
+      "category": "prs_ld",
+      "expected_fields": 8,
+      "sonnet_baseline_pct": 100.0,
+      "haiku_candidate_pct": 100.0,
+      "delta_pct": 0.0,
+      "deferrals": 0,
+      "status": "PASS"
+    },
+    {
+      "category": "delivery_timeline",
+      "expected_fields": 15,
+      "sonnet_baseline_pct": 100.0,
+      "haiku_candidate_pct": 100.0,
+      "delta_pct": 0.0,
+      "deferrals": 0,
+      "status": "PASS"
+    },
+    {
+      "category": "commercial_ra",
+      "expected_fields": 15,
+      "sonnet_baseline_pct": 100.0,
+      "haiku_candidate_pct": 100.0,
+      "delta_pct": 0.0,
+      "deferrals": 0,
+      "status": "PASS"
+    }
+  ],
+  "total": {
+    "expected_fields": 111,
+    "sonnet_baseline_pct": 100.0,
+    "haiku_candidate_pct": 100.0,
+    "delta_pct": 0.0,
+    "deferrals": 0,
+    "status": "PASS"
+  }
+}
