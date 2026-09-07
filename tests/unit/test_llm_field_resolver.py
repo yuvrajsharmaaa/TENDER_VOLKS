@@ -166,3 +166,62 @@ def test_llm_resolver_anthropic():
     resolver._call_anthropic.assert_called_once()
 
 
+def test_reasoning_source_tagging_invariant():
+    """
+    ISSUE 2 TEST: Verify that any field with a non-null reasoning field
+    is always tagged with source in ('llm', 'llm_override') — never 'regex' or 'atc'.
+    """
+    import sys
+    from pathlib import Path
+    tms_dir = Path(__file__).resolve().parent.parent.parent.parent / "TMS" / "tms" / "volksAi"
+    if str(tms_dir) not in sys.path:
+        sys.path.insert(0, str(tms_dir))
+    from app.routers.extract import _format_field_object
+
+    # Case 1: Role 2 confirmed a field that originally came from ATC
+    res_confirmed = _format_field_object(
+        field_name="payment_terms_supply_display",
+        raw_val="80%",
+        field_statuses={"payment_terms_supply_display": "ok"},
+        field_sources={"payment_terms_supply_display": "atc"},
+        reasoning="Tender explicitly states 80% under Section 3.1(a)"
+    )
+    assert res_confirmed["reasoning"] == "Tender explicitly states 80% under Section 3.1(a)"
+    assert res_confirmed["source"] in ("llm", "llm_override")
+    assert res_confirmed["source"] not in ("atc", "regex")
+
+    # Case 2: Role 2 overrode a field that originally came from regex
+    res_overridden = _format_field_object(
+        field_name="net_worth_type_display",
+        raw_val="Not Applicable",
+        field_statuses={"net_worth_type_display": "ok_fallback"},
+        field_sources={"net_worth_type_display": "regex"},
+        reasoning="Overridden: Section-II BEC unconditionally exempts financial criteria"
+    )
+    assert res_overridden["reasoning"] is not None
+    assert res_overridden["source"] in ("llm", "llm_override")
+    assert res_overridden["source"] not in ("atc", "regex")
+
+    # Case 3: Pure ATC extraction without LLM reasoning must remain 'atc'
+    res_pure_atc = _format_field_object(
+        field_name="pbg_percentage_display",
+        raw_val="5.0%",
+        field_statuses={"pbg_percentage_display": "ok"},
+        field_sources={"pbg_percentage_display": "atc"},
+        reasoning=None
+    )
+    assert "reasoning" not in res_pure_atc
+    assert res_pure_atc["source"] == "atc"
+
+    # Case 4: Pure Regex extraction without LLM reasoning must remain 'regex'
+    res_pure_regex = _format_field_object(
+        field_name="bid_validity_days_display",
+        raw_val="90 Days",
+        field_statuses={"bid_validity_days_display": "ok"},
+        field_sources={"bid_validity_days_display": "main_tender"},
+        reasoning=None
+    )
+    assert "reasoning" not in res_pure_regex
+    assert res_pure_regex["source"] == "regex"
+
+
