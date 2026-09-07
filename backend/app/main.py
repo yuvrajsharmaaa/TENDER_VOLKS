@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -54,6 +55,13 @@ async def lifespan(app: FastAPI):
         "environment": settings.environment,
         "debug": settings.debug
     }})
+
+    # Fail-loud validation for Anthropic Claude LLM provider
+    anthropic_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
+    placeholder_vals = ["your_claude_api_key_here", "your_anthropic_api_key_here", "your_key_here", "placeholder", "xxx"]
+    if not anthropic_key or any(p in anthropic_key.lower() for p in placeholder_vals):
+        raise RuntimeError("FATAL: ANTHROPIC_API_KEY is not configured or is a placeholder. Claude is required for tender field resolution.")
+    logger.info("Startup check passed: ANTHROPIC_API_KEY is configured.")
     
     # 1. Initialize PostgreSQL database tables
     try:

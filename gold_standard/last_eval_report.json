@@ -1,8 +1,8 @@
 {
   "summary": {
     "total_fields_checked": 168,
-    "match_count": 168,
-    "accuracy_percentage": 100.0
+    "match_count": 154,
+    "accuracy_percentage": 91.66666666666666
   },
   "results": [
     {
@@ -37,15 +37,15 @@
       "tender_id": "GAIL Split Morena",
       "field_name": "pbg_percentage_display",
       "expected": "5%",
-      "actual": "5%",
-      "status": "MATCH"
+      "actual": "Not Applicable",
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GAIL Split Morena",
       "field_name": "pbg_duration_display",
       "expected": "30",
-      "actual": "30",
-      "status": "MATCH"
+      "actual": "Not Applicable",
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GAIL Split Morena",
@@ -58,15 +58,15 @@
       "tender_id": "GAIL Split Morena",
       "field_name": "delivery_time_supply_display",
       "expected": "90 Days",
-      "actual": "90 Days",
-      "status": "MATCH"
+      "actual": "160 Days",
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GAIL Split Morena",
       "field_name": "delivery_time_installation_display",
       "expected": "90 Days",
-      "actual": "90 Days",
-      "status": "MATCH"
+      "actual": "160 Days",
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GAIL Split Morena",
@@ -149,8 +149,8 @@
       "tender_id": "GAIL Split Morena",
       "field_name": "net_worth_type_display",
       "expected": "Not Applicable",
-      "actual": "Not Applicable",
-      "status": "MATCH"
+      "actual": "Positive",
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GAIL Split Morena",
@@ -394,8 +394,8 @@
       "tender_id": "GAIL Vadodra",
       "field_name": "net_worth_type_display",
       "expected": "Not Applicable",
-      "actual": "Not Applicable",
-      "status": "MATCH"
+      "actual": "Positive",
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GAIL Vadodra",
@@ -555,15 +555,15 @@
       "tender_id": "GAIL Visakhapatnam B&BC VRLA",
       "field_name": "payment_terms_supply_display",
       "expected": "70.0",
-      "actual": "70.0",
-      "status": "MATCH"
+      "actual": "95%",
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GAIL Visakhapatnam B&BC VRLA",
       "field_name": "payment_terms_installation_display",
       "expected": "30.0",
-      "actual": "30.0",
-      "status": "MATCH"
+      "actual": "5%",
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GAIL Visakhapatnam B&BC VRLA",
@@ -597,8 +597,8 @@
       "tender_id": "GAIL Visakhapatnam B&BC VRLA",
       "field_name": "startup_relaxation_display",
       "expected": "Yes | Complete",
-      "actual": "Yes | Complete",
-      "status": "MATCH"
+      "actual": "No",
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GAIL Visakhapatnam B&BC VRLA",
@@ -646,8 +646,8 @@
       "tender_id": "GAIL Visakhapatnam B&BC VRLA",
       "field_name": "net_worth_type_display",
       "expected": "Not Applicable",
-      "actual": "Not Applicable",
-      "status": "MATCH"
+      "actual": "Positive",
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GAIL Visakhapatnam B&BC VRLA",
@@ -814,15 +814,15 @@
       "tender_id": "GeM-Bidding-9062837",
       "field_name": "payment_terms_supply_display",
       "expected": "80.0",
-      "actual": "80.0",
-      "status": "MATCH"
+      "actual": "80%",
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GeM-Bidding-9062837",
       "field_name": "payment_terms_installation_display",
       "expected": "20.0",
-      "actual": "20.0",
-      "status": "MATCH"
+      "actual": "20%",
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GeM-Bidding-9062837",
@@ -905,8 +905,8 @@
       "tender_id": "GeM-Bidding-9062837",
       "field_name": "net_worth_type_display",
       "expected": "Not Applicable",
-      "actual": "Not Applicable",
-      "status": "MATCH"
+      "actual": "Positive",
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GeM-Bidding-9062837",
@@ -1087,8 +1087,8 @@
       "tender_id": "GeM-Bidding-9487565",
       "field_name": "payment_terms_installation_display",
       "expected": "15%",
-      "actual": "15%",
-      "status": "MATCH"
+      "actual": "85%",
+      "status": "MISMATCH"
     },
     {
       "tender_id": "GeM-Bidding-9487565",

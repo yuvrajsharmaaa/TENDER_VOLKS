@@ -86,8 +86,14 @@ def run_gold_eval(
         sections = result.get("infoSheetSections", [])
         page_texts = result.get("rawTextPages", [])
 
-        # 2. Run production build_infosheet_data with job_id for ATC child resolution
-        infosheet_data = build_infosheet_data(sections, page_texts, job_id=job_id)
+        # 2. Use production infosheet_data directly from ingest (including Layer 2 Claude resolution)
+        infosheet_data = result.get("infosheet_data")
+        if not infosheet_data:
+            infosheet_data = build_infosheet_data(sections, page_texts, job_id=job_id)
+
+        llm_usage = infosheet_data.get("_llm_usage")
+        if llm_usage and (llm_usage.get("total_input_tokens", 0) > 0 or llm_usage.get("total_output_tokens", 0) > 0):
+            print(f"    [LLM TOKENS] In: {llm_usage['total_input_tokens']:,} | Out: {llm_usage['total_output_tokens']:,} | Cost: ${llm_usage['total_cost_usd']:.5f} USD ({llm_usage.get('model', 'claude-sonnet-5')})")
 
         # 3. Verify XLSX generation succeeds identically
         try:
