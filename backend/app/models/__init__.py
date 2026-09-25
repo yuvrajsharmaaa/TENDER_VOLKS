@@ -5,3 +5,14 @@ from backend.app.models.job import Job
 from backend.app.models.tender_outcome import TenderOutcome
 
 
+
+from backend.app.models.bid_compliance import (
+    Bidder,
+    BidSubmission,
+    BidderDocument,
+    ComplianceRequirement,
+    VerificationCheck,
+    ComplianceResult,
+    RiskAssessment,
+    AuditEvent,
+)

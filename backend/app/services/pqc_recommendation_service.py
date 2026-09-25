@@ -45,7 +45,7 @@ class PQCRecommendationService:
         weights: Optional[Dict[str, float]] = None,
         model_path: Optional[Union[str, Path]] = None,
         vendor_profile: Optional[VendorProfile] = None,
-        groq_model: str = "llama-3.1-8b-instant",
+        groq_model: Optional[str] = None,
         groq_api_key: Optional[str] = None
     ):
         self.weights = weights or DEFAULT_WEIGHTS.copy()
@@ -59,7 +59,7 @@ class PQCRecommendationService:
         self._load_ml_model()
 
         # Groq configuration
-        self.groq_model = groq_model
+        self.groq_model = groq_model or os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
         self.groq_api_key = groq_api_key or os.getenv("GROQ_API_KEY", os.getenv("LLM_API_KEY", ""))
         self.groq_url = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1/chat/completions")
 

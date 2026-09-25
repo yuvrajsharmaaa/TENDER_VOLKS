@@ -893,6 +893,104 @@ export const apiService = {
   },
 
   /**
+   * Bid compliance — submission details.
+   */
+  getBidSubmission: async (submissionId: string) => {
+    const response = await fetch(
+      `${BACKEND_URL}/compliance/bids/${submissionId}`
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to load bid submission (${response.status})`);
+    }
+
+    return (await response.json()) as import("../types/compliance").BidSubmission;
+  },
+
+  /**
+   * Bid compliance — complete dashboard.
+   */
+  getBidComplianceDashboard: async (submissionId: string) => {
+    const response = await fetch(
+      `${BACKEND_URL}/compliance/bids/${submissionId}/dashboard`
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to load compliance dashboard (${response.status})`);
+    }
+
+    return (await response.json()) as import("../types/compliance").ComplianceDashboardData;
+  },
+
+  /**
+   * Bid compliance — bidder documents.
+   */
+  getBidDocuments: async (submissionId: string) => {
+    const response = await fetch(
+      `${BACKEND_URL}/compliance/bids/${submissionId}/documents`
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to load bidder documents (${response.status})`);
+    }
+
+    return (await response.json()) as import("../types/compliance").BidderDocument[];
+  },
+
+  /**
+   * Bid compliance — audit trail.
+   */
+  getBidAudit: async (submissionId: string) => {
+    const response = await fetch(
+      `${BACKEND_URL}/compliance/bids/${submissionId}/audit`
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to load audit trail (${response.status})`);
+    }
+
+    return (await response.json()) as import("../types/compliance").AuditEvent[];
+  },
+
+  /**
+   * Run the complete compliance evaluation.
+   */
+  evaluateFullBidCompliance: async (submissionId: string) => {
+    const response = await fetch(
+      `${BACKEND_URL}/compliance/bids/${submissionId}/evaluate-full`,
+      { method: "POST" }
+    );
+
+    if (!response.ok) {
+      const body = await response.text();
+      throw new Error(
+        `Full compliance evaluation failed (${response.status}): ${body}`
+      );
+    }
+
+    return (await response.json()) as import("../types/compliance").FullComplianceResponse;
+  },
+
+  /**
+   * Run external verification adapters.
+   */
+  verifyExternalSources: async (submissionId: string) => {
+    const response = await fetch(
+      `${BACKEND_URL}/compliance/bids/${submissionId}/verify-external`,
+      { method: "POST" }
+    );
+
+    if (!response.ok) {
+      const body = await response.text();
+      throw new Error(
+        `External verification failed (${response.status}): ${body}`
+      );
+    }
+
+    return (await response.json()) as import("../types/compliance").ExternalVerificationResponse;
+  },
+
+  /**
    * PQC Recommendation Multi-Signal Composite Ranking
    */
   async recommendPQC(

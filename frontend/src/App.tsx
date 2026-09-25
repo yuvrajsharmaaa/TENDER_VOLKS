@@ -2,14 +2,15 @@ import { useState, useEffect } from "react";
 import { apiService } from "./services/api";
 import type { TenderDetail } from "./types/tender";
 import { WorkspaceHeader } from "./components/workspace/WorkspaceHeader";
+import { WorkspaceRail } from "./components/layout/WorkspaceRail";
 import type { FiltersState } from "./components/workspace/WorkspaceHeader";
-import { TenderCard } from "./components/workspace/TenderCard";
 import { TenderCardSkeleton } from "./components/workspace/TenderCardSkeleton";
 import { TenderDetailPane } from "./components/workspace/TenderDetailPane";
 import { PQCRecommendationPanel } from "./components/workspace/PQCRecommendationPanel";
 import { UploadModal } from "./components/workspace/UploadModal";
 import { NotifyChatBox } from "./components/NotifyChatBox";
-import { LayoutGrid, Loader2, Sparkles, Calendar, Activity, ArrowUpDown, SearchX } from "lucide-react";
+import ComplianceDashboard from "./components/compliance/ComplianceDashboard";
+import { ArrowUpDown, SearchX, ArrowRight } from "lucide-react";
 
 function App() {
   const [tenders, setTenders] = useState<TenderDetail[]>([]);
@@ -36,7 +37,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [sortBy, setSortBy] = useState<"deadline" | "value" | "ai_match" | "updated">("updated");
-  const [activeNavTab, setActiveNavTab] = useState<"tenders" | "recommendations">("tenders");
+  const [activeNavTab, setActiveNavTab] = useState<"tenders" | "recommendations" | "compliance">("tenders");
   const isBackendConnected = true;
 
   // Poll for background processing updates
@@ -302,7 +303,11 @@ function App() {
   const statsHighMatch = tenders.filter(t => t.parse_confidence >= 85).length;
 
   return (
-    <div className="h-screen w-screen flex flex-col overflow-hidden bg-app-bg text-text-primary">
+    <div
+      data-tv-app
+      className="h-screen w-screen flex flex-col overflow-hidden bg-[#0B0D0C]"
+    >
+
       <WorkspaceHeader
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
@@ -316,174 +321,371 @@ function App() {
         onNavTabChange={setActiveNavTab}
       />
 
-      <main className="flex-1 flex overflow-hidden p-6 gap-6 min-h-0">
-        {activeNavTab === "recommendations" ? (
-          <PQCRecommendationPanel
-            onSelectTender={(tenderNo) => {
-              const matched = tenders.find((t) => t.id === tenderNo || t.title.includes(tenderNo));
-              if (matched) {
-                setActiveNavTab("tenders");
-                setSelectedTenderId(matched.id);
+      <div className="flex flex-1 min-h-0">
+
+        <WorkspaceRail
+          activeTab={activeNavTab}
+          onTabChange={(tab) => {
+            setActiveNavTab(tab);
+            setSelectedTenderId(null);
+          }}
+          onUpload={() => setIsUploadModalOpen(true)}
+          onRefresh={fetchTenders}
+        />
+
+        <main
+          data-tv-main
+          className="flex-1 min-w-0 min-h-0 overflow-hidden"
+        >
+
+          {activeNavTab === "compliance" ? (
+
+            <ComplianceDashboard
+              submissionId="a3414dfa-0d06-4d93-a72e-1092902ea514"
+            />
+
+          ) : activeNavTab === "recommendations" ? (
+
+            <div className="h-full overflow-hidden p-5 lg:p-7">
+
+              <PQCRecommendationPanel
+                onSelectTender={(tenderNo) => {
+                  const matched = tenders.find(
+                    (t) =>
+                      t.id === tenderNo ||
+                      t.title.includes(tenderNo)
+                  );
+
+                  if (matched) {
+                    setActiveNavTab("tenders");
+                    setSelectedTenderId(matched.id);
+                  }
+                }}
+              />
+
+            </div>
+
+          ) : activeTender ? (
+
+            <TenderDetailPane
+              tender={activeTender}
+              onBack={() => setSelectedTenderId(null)}
+              onUpdateField={handleUpdateField}
+              onVerifyField={handleVerifyField}
+              onMarkReviewed={handleMarkReviewed}
+              onRetryParse={handleRetryParse}
+              onLinkDocument={handleLinkDocument}
+              onDelete={() =>
+                handleDeleteTender(activeTender.id)
               }
-            }}
-          />
-        ) : activeTender ? (
-          <TenderDetailPane
-            tender={activeTender}
-            onBack={() => setSelectedTenderId(null)}
-            onUpdateField={handleUpdateField}
-            onVerifyField={handleVerifyField}
-            onMarkReviewed={handleMarkReviewed}
-            onRetryParse={handleRetryParse}
-            onLinkDocument={handleLinkDocument}
-            onDelete={() => handleDeleteTender(activeTender.id)}
-          />
-        ) : (
-          <div className="flex-1 flex flex-col min-h-0 max-w-[1440px] mx-auto w-full">
-            
-            {/* ── Stats KPI row ──────────────────────────────────── */}
-            <div className="relative mb-5 shrink-0 select-none">
-              <div
-                className="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-1 no-scrollbar
-                  md:grid md:grid-cols-4 md:overflow-visible md:pb-0"
-              >
-                {[
-                  {
-                    label: "Live Tenders",
-                    value: statsLive,
-                    icon: <Activity className="h-5 w-5 stroke-[1.75]" aria-hidden />,
-                    iconContainerCls: "bg-[#EFF6FF] text-[#2563EB]",
-                  },
-                  {
-                    label: "Ingesting",
-                    value: statsNew,
-                    icon: <Loader2 className="h-5 w-5 animate-spin stroke-[1.75]" aria-hidden />,
-                    iconContainerCls: "bg-[#F3F4F6] text-[#6B7280]",
-                  },
-                  {
-                    label: "Closing Soon",
-                    value: statsClosing,
-                    icon: <Calendar className="h-5 w-5 stroke-[1.75]" aria-hidden />,
-                    iconContainerCls: "bg-[#FFFBEB] text-[#D97706]",
-                  },
-                  {
-                    label: "High Match",
-                    value: statsHighMatch,
-                    icon: <Sparkles className="h-5 w-5 stroke-[1.75]" aria-hidden />,
-                    iconContainerCls: "bg-[#F5F3FF] text-[#7C3AED]",
-                  },
-                ].map(({ label, value, icon, iconContainerCls }) => (
-                  <div
-                    key={label}
-                    className="bg-white border border-divider rounded-[12px] p-4
-                      shadow-xs flex items-center justify-between gap-3
-                      snap-start shrink-0 min-w-[170px] sm:min-w-[200px] md:min-w-0 md:shrink"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-xs font-medium text-text-muted mb-1 truncate tracking-[0.01em]">
-                        {label}
-                      </p>
-                      <p className={`text-[28px] font-semibold leading-none tabular-nums font-mono ${value === 0 ? "text-[#9CA3AF]" : "text-text-primary"}`}>
-                        {value}
-                      </p>
+            />
+
+          ) : (
+
+            <div className="h-full overflow-y-auto px-5 py-6 lg:px-8 lg:py-7">
+
+              <div className="max-w-[1480px] mx-auto">
+
+                <div className="flex items-end justify-between gap-5">
+
+                  <div>
+
+                    <div className="tv-page-kicker">
+                      Tender intelligence
                     </div>
-                    <div className={`h-10 w-10 shrink-0 flex items-center justify-center rounded-[10px] ${iconContainerCls}`}>
-                      {icon}
+
+                    <div className="tv-page-title mt-2">
+                      Live opportunities
+                    </div>
+
+                    <div className="tv-page-description">
+                      A focused command centre for discovering,
+                      filtering and reviewing procurement opportunities.
+                    </div>
+
+                  </div>
+
+                  <div className="hidden sm:flex items-center gap-2">
+
+                    <div className="
+                      px-3 py-1.5
+                      rounded-full
+                      border border-[#29312D]
+                      bg-[#141916]
+                      text-[9px]
+                      text-[#78847D]
+                    ">
+                      {sortedTenders.length} opportunities
+                    </div>
+
+                    <div className="
+                      flex items-center gap-1.5
+                      px-3 py-1.5
+                      rounded-full
+                      border border-[rgba(255,170,110,.12)]
+                      bg-[rgba(255,170,110,.035)]
+                      text-[9px]
+                      text-[#A58A75]
+                    ">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#FFAA6E]" />
+                      AI connected
+                    </div>
+
+                  </div>
+
+                </div>
+
+                <div className="tv-metric-grid">
+
+                  {[
+                    ["Live", statsLive, "Currently active"],
+                    ["Processing", statsNew, "Being ingested"],
+                    ["Closing soon", statsClosing, "Next 7 days"],
+                    ["High match", statsHighMatch, "AI confidence ≥85%"],
+                  ].map(([label, value, description]) => (
+                    <div
+                      key={String(label)}
+                      className="tv-metric"
+                    >
+
+                      <div className="tv-metric-label">
+                        {label}
+                      </div>
+
+                      <div className="tv-metric-value">
+                        {value}
+                      </div>
+
+                      <div className="tv-metric-description">
+                        {description}
+                      </div>
+
+                    </div>
+                  ))}
+
+                </div>
+
+                <div className="tv-opportunity-toolbar">
+
+                  <div>
+                    <div className="tv-opportunity-title">
+                      Opportunity queue
+                    </div>
+
+                    <div className="tv-opportunity-meta">
+                      Sorted by {sortBy.replace("_", " ")}
                     </div>
                   </div>
-                ))}
+
+                  <div className="tv-opportunity-sort">
+
+                    <ArrowUpDown />
+
+                    <select
+                      value={sortBy}
+                      onChange={(event) =>
+                        setSortBy(
+                          event.target.value as typeof sortBy
+                        )
+                      }
+                    >
+                      <option value="updated">
+                        Recently updated
+                      </option>
+
+                      <option value="deadline">
+                        Closing soon
+                      </option>
+
+                      <option value="value">
+                        Highest value
+                      </option>
+
+                      <option value="ai_match">
+                        Highest AI match
+                      </option>
+                    </select>
+
+                  </div>
+
+                </div>
+
+                {loading ? (
+
+                  <div className="tv-opportunity-grid">
+
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <TenderCardSkeleton key={i} />
+                    ))}
+
+                  </div>
+
+                ) : sortedTenders.length === 0 ? (
+
+                  <div className="
+                    min-h-[380px]
+                    rounded-[18px]
+                    border border-dashed border-[#303934]
+                    bg-[#111513]
+                    flex flex-col
+                    items-center justify-center
+                    text-center
+                  ">
+
+                    <SearchX className="h-7 w-7 text-[#59645E]" />
+
+                    <div className="text-sm font-semibold text-[#D3DAD5] mt-4">
+                      No matching opportunities
+                    </div>
+
+                    <div className="text-[10px] text-[#68746D] mt-2">
+                      Clear or widen your filters to see more tenders.
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleClearFilters}
+                      className="
+                        mt-5
+                        px-3 py-1.5
+                        rounded-[9px]
+                        border border-[#39443E]
+                        bg-[#181D1A]
+                        text-[9px]
+                        font-semibold
+                        text-[#A1AAA5]
+                      "
+                    >
+                      Clear filters
+                    </button>
+
+                  </div>
+
+                ) : (
+
+                  <div className="tv-opportunity-grid">
+
+                    {sortedTenders.map((tender) => (
+                      <div
+                        key={tender.id}
+                        className="tv-opportunity-card"
+                      >
+
+                        <div className="tv-opportunity-accent" />
+
+                        <div className="tv-opportunity-status">
+                          {tender.parse_status === "processing"
+                            ? "PROCESSING"
+                            : tender.review_status === "completed"
+                              ? "REVIEWED"
+                              : "OPEN"}
+                        </div>
+
+                        <div className="tv-opportunity-title">
+                          {tender.title}
+                        </div>
+
+                        <div className="tv-opportunity-agency">
+                          {tender.authorityName || "Procurement authority"}
+                        </div>
+
+                        <div className="tv-opportunity-details">
+
+                          <div className="tv-opportunity-detail">
+                            <div className="tv-opportunity-detail-label">
+                              Value
+                            </div>
+
+                            <div className="tv-opportunity-detail-value">
+                              {tender.tenderValue || "—"}
+                            </div>
+                          </div>
+
+                          <div className="tv-opportunity-detail">
+                            <div className="tv-opportunity-detail-label">
+                              AI match
+                            </div>
+
+                            <div className="tv-opportunity-detail-value">
+                              {Math.round(tender.parse_confidence || 0)}%
+                            </div>
+                          </div>
+
+                          <div className="tv-opportunity-detail">
+                            <div className="tv-opportunity-detail-label">
+                              Location
+                            </div>
+
+                            <div className="tv-opportunity-detail-value">
+                              {tender.location || "—"}
+                            </div>
+                          </div>
+
+                          <div className="tv-opportunity-detail">
+                            <div className="tv-opportunity-detail-label">
+                              Deadline
+                            </div>
+
+                            <div className="tv-opportunity-detail-value">
+                              {tender.deadline
+                                ? new Date(
+                                    tender.deadline
+                                  ).toLocaleDateString()
+                                : "—"}
+                            </div>
+                          </div>
+
+                        </div>
+
+                        <div className="tv-opportunity-footer">
+
+                          <div className="tv-opportunity-date">
+                            {tender.updated_at || "Recently updated"}
+                          </div>
+
+                          <button
+                            type="button"
+                            className="tv-opportunity-open"
+                            onClick={() =>
+                              handleSelectTender(tender)
+                            }
+                          >
+                            Open tender
+                            <ArrowRight className="h-3 w-3" />
+                          </button>
+
+                        </div>
+
+                      </div>
+                    ))}
+
+                  </div>
+
+                )}
+
               </div>
-              {/* Mobile scroll visual affordance gradient */}
-              <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-app-bg to-transparent md:hidden" />
+
             </div>
 
-            {/* ── Results toolbar ────────────────────────────────── */}
-            <div className="flex items-center justify-between mb-4 shrink-0 select-none">
-              <div>
-                <h2 className="text-sm font-medium text-text-primary font-sans tracking-[0.01em]">Tender Results</h2>
-                <p className="text-[11px] text-text-muted mt-0.5 font-mono tabular-nums">
-                  {sortedTenders.length} tender{sortedTenders.length !== 1 ? "s" : ""} found
-                </p>
-              </div>
+          )}
 
-              <div className="flex items-center gap-2">
-                {/* Sort control */}
-                <label htmlFor="sort-select" className="sr-only">Sort by</label>
-                <div className="flex items-center gap-1.5 bg-white border border-divider rounded-[8px] px-3 py-1.5 shadow-xs">
-                  <ArrowUpDown className="h-3.5 w-3.5 text-text-muted shrink-0" aria-hidden />
-                  <select
-                    id="sort-select"
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                    className="bg-transparent text-xs font-medium text-text-secondary
-                      focus:outline-none cursor-pointer font-sans appearance-none pr-1"
-                  >
-                    <option value="updated">Recently Updated</option>
-                    <option value="deadline">Deadline (Soonest)</option>
-                    <option value="value">Value (Highest)</option>
-                    <option value="ai_match">Match Score (Best)</option>
-                  </select>
-                </div>
+        </main>
 
-                {/* Card view badge */}
-                <div className="flex items-center gap-1.5 bg-white border border-divider px-3 py-1.5 rounded-[8px] text-xs text-text-secondary font-medium shadow-xs">
-                  <LayoutGrid className="h-3.5 w-3.5" aria-hidden />
-                  <span className="hidden sm:inline">Card View</span>
-                </div>
-              </div>
-            </div>
+      </div>
 
-            {/* ── Card grid / skeleton / empty ──────────────────── */}
-            {loading ? (
-              <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 pr-1 content-start pb-6">
-                {Array.from({ length: 6 }).map((_, i) => <TenderCardSkeleton key={i} />)}
-              </div>
-            ) : sortedTenders.length === 0 ? (
-              <div className="flex-1 border border-dashed border-divider rounded-2xl flex flex-col items-center justify-center p-10 text-center bg-card-bg/40 select-none">
-                <div className="h-14 w-14 bg-section-tint border border-divider rounded-2xl flex items-center justify-center mb-4">
-                  <SearchX className="h-7 w-7 text-text-disabled" aria-hidden />
-                </div>
-                <h3 className="text-sm font-bold text-text-secondary mb-1">No tenders match your filters</h3>
-                <p className="text-xs text-text-muted max-w-[260px] leading-relaxed">
-                  Try broadening your keyword, location, or value constraints to surface more results.
-                </p>
-                <button
-                  type="button"
-                  onClick={handleClearFilters}
-                  className="mt-5 px-4 py-2 bg-panel-bg hover:bg-section-tint border border-divider
-                    text-xs font-bold text-text-secondary rounded-xl transition-colors shadow-sm cursor-pointer
-                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success-green/40"
-                >
-                  Clear all filters
-                </button>
-              </div>
-            ) : (
-              <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 pr-1 content-start pb-6">
-                {sortedTenders.map((tender) => (
-                  <TenderCard
-                    key={tender.id}
-                    tender={tender}
-                    onOpen={() => handleSelectTender(tender)}
-                    onDelete={() => handleDeleteTender(tender.id)}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </main>
-
-      {/* Upload Modal Ingestion Zone */}
       <UploadModal
         isOpen={isUploadModalOpen}
-        onClose={() => setIsUploadModalOpen(false)}
+        onClose={() =>
+          setIsUploadModalOpen(false)
+        }
         onUpload={handleUploadTender}
       />
 
-      {/* Notify Team Telegram Chat Box */}
       <NotifyChatBox />
+
     </div>
   );
+
 }
 
 export default App;

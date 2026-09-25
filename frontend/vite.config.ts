@@ -22,6 +22,7 @@ export default defineConfig({
       '/jobs':     { target: 'http://127.0.0.1:8000', changeOrigin: true, agent: keepAliveAgent },
       '/storage':  { target: 'http://127.0.0.1:8000', changeOrigin: true, agent: keepAliveAgent },
       '/health':   { target: 'http://127.0.0.1:8000', changeOrigin: true, agent: keepAliveAgent },
+      '/compliance': { target: 'http://127.0.0.1:8000', changeOrigin: true, agent: keepAliveAgent },
     },
   },
 })

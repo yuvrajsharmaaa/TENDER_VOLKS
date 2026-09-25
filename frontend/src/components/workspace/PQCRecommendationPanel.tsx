@@ -101,7 +101,7 @@ export const PQCRecommendationPanel: React.FC<PQCRecommendationPanelProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#FAFAFA] overflow-y-auto p-4 sm:p-6 select-none font-sans">
+    <div data-premium-pqc="true" className="flex-1 flex flex-col h-full bg-[#FAFAFA] overflow-y-auto p-4 sm:p-6 select-none font-sans">
       {/* ── KPI & Control Header ──────────────────────────────────────── */}
       <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs mb-6">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">

@@ -26,6 +26,7 @@ from backend.app.core.constants import STORAGE_ROOT
 from backend.app.api import upload, jobs, visualizer
 from backend.app.api.routes.health import router as health_router
 from backend.app.api.routes.tenders import router as tenders_router
+from backend.app.api.routes.compliance import router as compliance_router
 from backend.app.api.routes.notify import router as notify_router
 
 # Setup structured logging prior to boot
@@ -62,6 +63,19 @@ async def lifespan(app: FastAPI):
         from backend.app.models.document import Document
         from backend.app.models.tender_information import TenderInformation
         from backend.app.models.job import Job
+
+        # SIH 26100 - AI Bid Compliance models
+        from backend.app.models.bid_compliance import (
+            Bidder,
+            BidSubmission,
+            BidderDocument,
+            ComplianceRequirement,
+            VerificationCheck,
+            ComplianceResult,
+            RiskAssessment,
+            AuditEvent,
+        )
+
         Base.metadata.create_all(bind=engine)
         logger.info("SQLAlchemy database tables verified")
     except Exception as e:
@@ -160,6 +174,7 @@ app.include_router(upload.router)
 app.include_router(jobs.router)
 app.include_router(visualizer.router)
 app.include_router(tenders_router)
+app.include_router(compliance_router)
 app.include_router(notify_router)
 app.include_router(dlq_router)
 
