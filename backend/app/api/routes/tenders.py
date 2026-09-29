@@ -1528,3 +1528,151 @@ async def recommend_pqc_tenders(
 
 
 
+
+
+# ==============================================================================
+# BIDDER COMPLIANCE DOCUMENT OCR
+# ==============================================================================
+
+@celery_app.task(name="backend.app.api.routes.tenders._run_bidder_document_ocr")
+def _run_bidder_document_ocr(document_id: str):
+    """
+    Processes a bidder compliance document using the existing OCR engine.
+
+    The bidder document has its own lifecycle and is intentionally kept
+    separate from the normal Tender Project Document model.
+    """
+    import json
+    from pathlib import Path
+
+    from backend.app.db.session import SessionLocal
+    from backend.app.core.constants import STORAGE_ROOT, JobStatus
+    from backend.app.repositories.job_repository import update_status
+    from backend.app.models.bid_compliance import BidderDocument
+    from ocr.pipeline import process_pdf
+
+    db = SessionLocal()
+
+    try:
+        doc = db.query(BidderDocument).filter(
+            BidderDocument.id == document_id
+        ).first()
+
+        if not doc:
+            logger.error(
+                f"[BIDDER_OCR] BidderDocument not found: {document_id}"
+            )
+            return
+
+        job_id = str(document_id)
+
+        job_dir = STORAGE_ROOT / "jobs" / job_id
+        job_dir.mkdir(parents=True, exist_ok=True)
+
+        pdf_path = job_dir / "original.pdf"
+        extraction_path = job_dir / "extracted_fields.json"
+
+        doc.ocr_status = "PROCESSING"
+        doc.extraction_status = "PROCESSING"
+        db.commit()
+
+        update_status(job_id, JobStatus.PROCESSING)
+
+        if not pdf_path.exists():
+            raise FileNotFoundError(
+                f"Bidder document PDF not found at {pdf_path}"
+            )
+
+        logger.info(
+            f"[BIDDER_OCR] Starting OCR for bidder document {document_id}"
+        )
+
+        process_pdf(
+            job_id=job_id,
+            pdf_path=pdf_path,
+            run_layoutlm=False
+        )
+
+        from backend.app.services.bidder_document_extractor import (
+            extract_bidder_fields
+        )
+
+        raw_ocr_path = job_dir / "raw_ocr.json"
+        bidder_extraction_path = job_dir / "bidder_extracted_fields.json"
+
+        if not raw_ocr_path.exists():
+            raise FileNotFoundError(
+                f"Raw OCR output not found at {raw_ocr_path}"
+            )
+
+        extracted_data = extract_bidder_fields(
+            document_type=str(doc.document_type or "OTHER"),
+            raw_ocr_path=raw_ocr_path,
+        )
+
+        with open(
+            bidder_extraction_path,
+            "w",
+            encoding="utf-8"
+        ) as f:
+            json.dump(
+                extracted_data,
+                f,
+                ensure_ascii=False,
+                indent=2
+            )
+
+        doc.extracted_data = extracted_data
+        doc.document_confidence = extracted_data.get(
+            "document_confidence"
+        )
+        doc.is_valid = extracted_data.get("is_valid")
+        doc.ocr_status = "COMPLETED"
+        doc.extraction_status = "COMPLETED"
+        doc.validation_reason = (
+            f"Bidder-specific extraction completed: "
+            f"{extracted_data.get('field_count', 0)} fields extracted."
+        )
+
+        db.commit()
+
+        update_status(
+            job_id,
+            JobStatus.COMPLETED,
+            result_path=str(bidder_extraction_path)
+        )
+
+        logger.info(
+            f"[BIDDER_OCR] OCR completed successfully for bidder document {document_id}"
+        )
+
+    except Exception as e:
+        logger.error(
+            f"[BIDDER_OCR] Processing failed for {document_id}: {e}",
+            exc_info=True
+        )
+
+        try:
+            doc = db.query(BidderDocument).filter(
+                BidderDocument.id == document_id
+            ).first()
+
+            if doc:
+                doc.ocr_status = "FAILED"
+                doc.extraction_status = "FAILED"
+                doc.validation_reason = str(e)
+                db.commit()
+
+            update_status(
+                str(document_id),
+                JobStatus.FAILED,
+                error_message=str(e)
+            )
+        except Exception as update_error:
+            logger.error(
+                f"[BIDDER_OCR] Failed to persist failure state: {update_error}",
+                exc_info=True
+            )
+
+    finally:
+        db.close()

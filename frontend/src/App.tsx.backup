@@ -11,32 +11,11 @@ import { UploadModal } from "./components/workspace/UploadModal";
 import { NotifyChatBox } from "./components/NotifyChatBox";
 import ComplianceDashboard from "./components/compliance/ComplianceDashboard";
 import { ArrowUpDown, SearchX, ArrowRight } from "lucide-react";
+import { RoleSelection } from "./components/RoleSelection";
 import BidderPortal from "./components/bidder/BidderPortal";
-import AuthScreen from "./components/auth/AuthScreen";
-import PortalSelection from "./components/auth/PortalSelection";
-import type { PortalType } from "./components/auth/PortalSelection";
-import { getCurrentUser, logout } from "./services/auth";
-import type { AuthUser } from "./services/auth";
 
 function App() {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [checkingSession, setCheckingSession] = useState(true);
-  const [selectedPortal, setSelectedPortal] = useState<PortalType | null>(null);
-
-  useEffect(() => {
-    const restoreSession = async () => {
-      try {
-        const currentUser = await getCurrentUser();
-        setUser(currentUser);
-      } catch {
-        setUser(null);
-      } finally {
-        setCheckingSession(false);
-      }
-    };
-
-    restoreSession();
-  }, []);
+  const [userRole, setUserRole] = useState<"bidder" | "officer" | null>(null);
   const [tenders, setTenders] = useState<TenderDetail[]>([]);
   const [selectedTenderId, setSelectedTenderId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -326,74 +305,12 @@ function App() {
   }).length;
   const statsHighMatch = tenders.filter(t => t.parse_confidence >= 85).length;
 
-  if (checkingSession) {
-    return (
-      <div className="min-h-screen bg-app-bg flex items-center justify-center">
-        <div className="text-sm text-text-secondary">
-          Loading TENDER VOLKS...
-        </div>
-      </div>
-    );
+  if (userRole === null) {
+    return <RoleSelection onSelect={setUserRole} />;
   }
 
-  if (!user && !selectedPortal) {
-    return (
-      <PortalSelection
-        onSelect={(portal) => {
-          setSelectedPortal(portal);
-        }}
-      />
-    );
-  }
-
-  if (!user && selectedPortal) {
-    return (
-      <AuthScreen
-        onAuthenticated={(authenticatedUser) => {
-          setUser(authenticatedUser);
-        }}
-      />
-    );
-  }
-
-  if (user && selectedPortal === "BIDDER" && user.role !== "BIDDER") {
-    return (
-      <PortalSelection
-        onSelect={(portal) => {
-          setSelectedPortal(portal);
-        }}
-      />
-    );
-  }
-
-  if (user && selectedPortal === "OFFICER" && user.role !== "OFFICER") {
-    return (
-      <PortalSelection
-        onSelect={(portal) => {
-          setSelectedPortal(portal);
-        }}
-      />
-    );
-  }
-
-  if (!user) {
-    return null;
-  }
-
-  if (user.role === "BIDDER") {
-    return (
-      <BidderPortal
-        onExit={async () => {
-          try {
-            await logout();
-          } catch {
-            // Ignore backend logout errors.
-          }
-
-          setUser(null);
-        }}
-      />
-    );
+  if (userRole === "bidder") {
+    return <BidderPortal onExit={() => setUserRole(null)} />;
   }
 
   return (

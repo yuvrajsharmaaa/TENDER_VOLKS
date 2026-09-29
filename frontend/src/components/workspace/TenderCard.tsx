@@ -1,6 +1,7 @@
 
 
-import React from "react";
+import React, { useRef } from "react";
+import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
 import type { TenderDetail } from "../../types/tender";
 import {
   MapPin, Building2, Calendar, FileText, ArrowRight,
@@ -14,6 +15,34 @@ interface TenderCardProps {
 }
 
 export const TenderCard: React.FC<TenderCardProps> = ({ tender, onOpen, onDelete }) => {
+  const cardRef = useRef<HTMLElement>(null);
+
+  const pointerX = useMotionValue(0);
+  const pointerY = useMotionValue(0);
+
+  const rotateX = useSpring(
+    useTransform(pointerY, [-0.5, 0.5], [4, -4]),
+    { stiffness: 180, damping: 18 }
+  );
+
+  const rotateY = useSpring(
+    useTransform(pointerX, [-0.5, 0.5], [-4, 4]),
+    { stiffness: 180, damping: 18 }
+  );
+
+  const handlePointerMove = (event: React.PointerEvent<HTMLElement>) => {
+    if (!cardRef.current || event.pointerType === "touch") return;
+
+    const rect = cardRef.current.getBoundingClientRect();
+
+    pointerX.set((event.clientX - rect.left) / rect.width - 0.5);
+    pointerY.set((event.clientY - rect.top) / rect.height - 0.5);
+  };
+
+  const handlePointerLeave = () => {
+    pointerX.set(0);
+    pointerY.set(0);
+  };
 
   /* ── Status badge ────────────────────────────────────────────── */
   const getStatusBadge = () => {
@@ -145,18 +174,45 @@ export const TenderCard: React.FC<TenderCardProps> = ({ tender, onOpen, onDelete
 
   /* ── Render ──────────────────────────────────────────────────── */
   return (
-    <article
+    <motion.article
+      data-premium-card="true" data-tv-tender-card="true"
+      ref={cardRef}
       onClick={onOpen}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(); } }}
       tabIndex={0}
       role="button"
       aria-label={`View tender: ${tender.title}`}
-      className={`group bg-white border border-divider rounded-[10px] p-5 flex flex-col gap-3.5
+      style={{
+        rotateX,
+        rotateY,
+        transformPerspective: 1100,
+      }}
+      whileHover={{
+        y: -5,
+        scale: 1.008,
+      }}
+      whileTap={{ scale: 0.995 }}
+      transition={{
+        type: "spring",
+        stiffness: 280,
+        damping: 24,
+      }}
+      className={`group relative overflow-hidden bg-white/90 border border-white/80 rounded-[16px] p-5 flex flex-col gap-3.5
         cursor-pointer select-none outline-none ${getBorderAccent()}
-        shadow-xs hover:border-gray-300 hover:shadow-sm
+        premium-shadow hover:border-white
         focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:ring-offset-2
-        transition-all duration-150`}
+        interactive-border`}
     >
+      <div
+        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{
+          background:
+            "radial-gradient(circle at 50% 0%, rgba(255,255,255,0.9), transparent 45%)",
+        }}
+      />
+
       {/* Badges row */}
       <div className="flex flex-wrap items-center gap-1.5">
         {getStatusBadge()}
@@ -237,14 +293,14 @@ export const TenderCard: React.FC<TenderCardProps> = ({ tender, onOpen, onDelete
             type="button"
             aria-label={`Open details for ${tender.title}`}
             onClick={(e) => { e.stopPropagation(); onOpen(); }}
-            className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-[6px] text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-1 cursor-pointer"
+            className="px-3 py-1.5 bg-white/80 border border-gray-200 rounded-[8px] text-xs font-semibold text-gray-700 hover:bg-gray-900 hover:text-white transition-all duration-200 flex items-center gap-1 cursor-pointer"
           >
             <span>View Tender</span>
             <ArrowRight className="h-3.5 w-3.5 text-gray-500 group-hover:translate-x-0.5 transition-transform duration-150" aria-hidden />
           </button>
         </div>
       </div>
-    </article>
+    </motion.article>
   );
 };
 
