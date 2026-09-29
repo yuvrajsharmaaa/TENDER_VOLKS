@@ -28,8 +28,6 @@ from backend.app.api.routes.health import router as health_router
 from backend.app.api.routes.tenders import router as tenders_router
 from backend.app.api.routes.compliance import router as compliance_router
 from backend.app.api.routes.notify import router as notify_router
-from backend.app.api.routes.auth import router as auth_router
-from backend.app.models.auth import User, AuthLog
 
 # Setup structured logging prior to boot
 setup_logging(log_level=settings.log_level, service_name="tender_backend")
@@ -179,7 +177,6 @@ app.include_router(tenders_router)
 app.include_router(compliance_router)
 app.include_router(notify_router)
 app.include_router(dlq_router)
-app.include_router(auth_router)
 
 # Mount Built React Frontend & SPA Fallback Route for Production LAN Access
 frontend_dist = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"

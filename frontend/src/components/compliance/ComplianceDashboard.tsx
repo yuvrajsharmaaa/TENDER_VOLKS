@@ -128,8 +128,10 @@ export default function ComplianceDashboard({
   >([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<
-    "evaluate" | "verify" | null
+    "evaluate" | "verify" | "decision" | null
   >(null);
+  const [officerName, setOfficerName] = useState("");
+  const [decisionReason, setDecisionReason] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const loadDashboard = async () => {
@@ -198,6 +200,46 @@ export default function ComplianceDashboard({
     }
   };
 
+  const recordDecision = async (
+    decision: "QUALIFIED" | "DISQUALIFIED" | "CLARIFICATION_REQUIRED"
+  ) => {
+    const name = officerName.trim();
+    const reason = decisionReason.trim();
+
+    if (!name) {
+      setError("Please enter the Procurement Officer name.");
+      return;
+    }
+
+    if (!reason) {
+      setError("Please enter a reason for the decision.");
+      return;
+    }
+
+    setActionLoading("decision");
+    setError(null);
+
+    try {
+      await apiService.recordFinalDecision(
+        submissionId,
+        decision,
+        name,
+        reason
+      );
+
+      await loadDashboard();
+      setDecisionReason("");
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to record the final decision."
+      );
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const missingDocuments = useMemo(() => {
     const required = dashboard?.compliance.results.find(
       (item) => item.requirement_code === "TENDER_REQUIRED_DOCUMENTS"
@@ -247,6 +289,7 @@ export default function ComplianceDashboard({
   const bidder = submission.bidder;
   const score = dashboard.submission.compliance_score ?? 0;
   const risk = dashboard.risk;
+  const aiAnalysis = risk?.ai_analysis;
 
   return (
     <div className="flex-1 min-h-0 overflow-y-auto bg-app-bg">
@@ -308,6 +351,139 @@ export default function ComplianceDashboard({
             </div>
           )}
         </section>
+
+        {/* AI Compliance Analysis */}
+        {aiAnalysis?.available && (
+          <section className="rounded-2xl border border-divider bg-white p-5 shadow-sm">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-[#587266]" />
+                  <h2 className="text-sm font-semibold">
+                    AI Compliance Analysis
+                  </h2>
+                </div>
+                <p className="mt-1 text-xs text-text-muted">
+                  Groq-generated explanation grounded in the deterministic
+                  compliance findings.
+                </p>
+              </div>
+
+              <span className="inline-flex w-fit items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
+                AI Analysis Available
+              </span>
+            </div>
+
+            <div className="mt-5 rounded-xl bg-section-tint p-4">
+              <p className="text-sm leading-6 text-text-secondary">
+                {aiAnalysis.summary}
+              </p>
+            </div>
+
+            <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <div className="rounded-xl border border-divider p-4">
+                <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-text-muted">
+                  Key Findings
+                </p>
+                <div className="mt-3 space-y-2">
+                  {aiAnalysis.key_findings.length > 0 ? (
+                    aiAnalysis.key_findings.map((item, index) => (
+                      <div
+                        key={`finding-${index}`}
+                        className="flex gap-2 text-xs leading-5 text-text-secondary"
+                      >
+                        <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#587266]" />
+                        <span>{item}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-text-muted">
+                      No additional findings.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-divider p-4">
+                <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-text-muted">
+                  Missing Evidence
+                </p>
+                <div className="mt-3 space-y-2">
+                  {aiAnalysis.missing_evidence.length > 0 ? (
+                    aiAnalysis.missing_evidence.map((item, index) => (
+                      <div
+                        key={`missing-${index}`}
+                        className="flex gap-2 text-xs leading-5 text-text-secondary"
+                      >
+                        <FileWarning className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" />
+                        <span>{item}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-text-muted">
+                      No missing evidence identified.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-divider p-4">
+                <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-text-muted">
+                  Inconsistencies
+                </p>
+                <div className="mt-3 space-y-2">
+                  {aiAnalysis.inconsistencies.length > 0 ? (
+                    aiAnalysis.inconsistencies.map((item, index) => (
+                      <div
+                        key={`inconsistency-${index}`}
+                        className="flex gap-2 text-xs leading-5 text-text-secondary"
+                      >
+                        <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" />
+                        <span>{item}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-text-muted">
+                      No supported inconsistencies detected.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-divider p-4">
+                <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-text-muted">
+                  Risk Reasoning
+                </p>
+                <div className="mt-3 space-y-2">
+                  {aiAnalysis.risk_reasoning.length > 0 ? (
+                    aiAnalysis.risk_reasoning.map((item, index) => (
+                      <div
+                        key={`risk-${index}`}
+                        className="flex gap-2 text-xs leading-5 text-text-secondary"
+                      >
+                        <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-600" />
+                        <span>{item}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-text-muted">
+                      No additional risk reasoning.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-xl border border-divider bg-white p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-text-muted">
+                Officer Review Guidance
+              </p>
+              <p className="mt-2 text-xs leading-5 text-text-secondary">
+                {aiAnalysis.officer_recommendation}
+              </p>
+            </div>
+          </section>
+        )}
 
         {/* Bidder identity */}
         <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -737,20 +913,121 @@ export default function ComplianceDashboard({
           </div>
         </section>
 
-        {/* Officer decision placeholder */}
-        <section className="rounded-2xl border border-blue-200 bg-blue-50/60 p-5">
-          <div className="flex items-start gap-3">
-            <ClipboardCheck className="mt-0.5 h-5 w-5 text-blue-700" />
+        {/* Procurement Officer decision */}
+        <section className="rounded-2xl border border-divider bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <h2 className="text-sm font-semibold text-blue-900">
-                Procurement Officer Review
-              </h2>
-              <p className="mt-1 max-w-3xl text-xs leading-relaxed text-blue-800">
-                AI and deterministic verification provide supporting evidence.
-                The final procurement decision should be recorded by the
-                authorized Procurement Officer.
+              <div className="flex items-center gap-2">
+                <ClipboardCheck className="h-4 w-4 text-text-secondary" />
+                <h2 className="text-sm font-semibold">
+                  Procurement Officer Review
+                </h2>
+              </div>
+              <p className="mt-1 max-w-3xl text-xs leading-relaxed text-text-muted">
+                Record the authorized officer&apos;s final procedural decision
+                after reviewing the automated compliance evidence.
               </p>
             </div>
+
+            {submission.final_decision && (
+              <div className="text-right">
+                <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-text-muted">
+                  Current Decision
+                </p>
+                <div className="mt-1">
+                  <StatusBadge status={submission.final_decision} />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {submission.final_decision && (
+            <div className="mt-4 rounded-xl bg-section-tint p-4">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                <div>
+                  <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-text-muted">
+                    Recorded By
+                  </p>
+                  <p className="mt-1 text-xs font-medium">
+                    {submission.final_decision_by || "—"}
+                  </p>
+                </div>
+                <div className="md:col-span-2">
+                  <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-text-muted">
+                    Decision Reason
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-text-secondary">
+                    {submission.final_decision_reason || "—"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-3">
+            <div className="lg:col-span-1">
+              <label className="text-[10px] font-bold uppercase tracking-[0.12em] text-text-muted">
+                Officer Name
+              </label>
+              <input
+                value={officerName}
+                onChange={(event) => setOfficerName(event.target.value)}
+                placeholder="e.g. Procurement Officer"
+                className="mt-2 w-full rounded-lg border border-divider bg-white px-3 py-2.5 text-xs outline-none placeholder:text-text-muted focus:border-[#587266]"
+              />
+            </div>
+
+            <div className="lg:col-span-2">
+              <label className="text-[10px] font-bold uppercase tracking-[0.12em] text-text-muted">
+                Decision Reason
+              </label>
+              <textarea
+                value={decisionReason}
+                onChange={(event) => setDecisionReason(event.target.value)}
+                rows={3}
+                placeholder="Enter the evidence-based reason for the officer decision."
+                className="mt-2 w-full resize-none rounded-lg border border-divider bg-white px-3 py-2.5 text-xs leading-5 outline-none placeholder:text-text-muted focus:border-[#587266]"
+              />
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => void recordDecision("QUALIFIED")}
+              disabled={actionLoading !== null}
+              className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"
+            >
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              Mark Qualified
+            </button>
+
+            <button
+              type="button"
+              onClick={() => void recordDecision("CLARIFICATION_REQUIRED")}
+              disabled={actionLoading !== null}
+              className="inline-flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-xs font-semibold text-amber-700 hover:bg-amber-100 disabled:opacity-50"
+            >
+              <AlertTriangle className="h-3.5 w-3.5" />
+              Request Clarification
+            </button>
+
+            <button
+              type="button"
+              onClick={() => void recordDecision("DISQUALIFIED")}
+              disabled={actionLoading !== null}
+              className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs font-semibold text-red-700 hover:bg-red-100 disabled:opacity-50"
+            >
+              <XCircle className="h-3.5 w-3.5" />
+              Mark Disqualified
+            </button>
+
+            {actionLoading === "decision" && (
+              <span className="inline-flex items-center gap-2 px-2 text-xs text-text-muted">
+                <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                Recording decision...
+              </span>
+            )}
           </div>
         </section>
       </div>

@@ -69,6 +69,130 @@ class ComplianceRequirementCreate(BaseModel):
     rule_definition: Optional[dict] = None
 
 
+class FinalDecisionRequest(BaseModel):
+    decision: str
+    officer_name: str
+    reason: str
+
+
+# ============================================================
+# PROCUREMENT OFFICER FINAL DECISION
+# ============================================================
+
+@router.post("/bids/{submission_id}/final-decision")
+def record_final_decision(
+    submission_id: str,
+    payload: FinalDecisionRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Record the Procurement Officer's final decision.
+
+    Supported decisions:
+      - QUALIFIED
+      - DISQUALIFIED
+      - CLARIFICATION_REQUIRED
+
+    This endpoint does not automatically determine the decision.
+    The Procurement Officer remains the final decision-maker.
+    """
+
+    allowed_decisions = {
+        "QUALIFIED",
+        "DISQUALIFIED",
+        "CLARIFICATION_REQUIRED",
+    }
+
+    decision = payload.decision.strip().upper()
+
+    if decision not in allowed_decisions:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Invalid decision. Allowed values: "
+                "QUALIFIED, DISQUALIFIED, CLARIFICATION_REQUIRED."
+            ),
+        )
+
+    officer_name = payload.officer_name.strip()
+    reason = payload.reason.strip()
+
+    if not officer_name:
+        raise HTTPException(
+            status_code=400,
+            detail="Officer name is required.",
+        )
+
+    if not reason:
+        raise HTTPException(
+            status_code=400,
+            detail="Decision reason is required.",
+        )
+
+    submission = (
+        db.query(BidSubmission)
+        .filter(BidSubmission.id == submission_id)
+        .first()
+    )
+
+    if not submission:
+        raise HTTPException(
+            status_code=404,
+            detail="Bid submission not found",
+        )
+
+    previous_decision = submission.final_decision
+    previous_status = submission.status
+
+    submission.final_decision = decision
+    submission.final_decision_by = officer_name
+    submission.final_decision_reason = reason
+
+    if decision == "QUALIFIED":
+        submission.status = "QUALIFIED"
+    elif decision == "DISQUALIFIED":
+        submission.status = "DISQUALIFIED"
+    else:
+        submission.status = "CLARIFICATION_REQUIRED"
+
+    audit_event = AuditEvent(
+        submission_id=submission_id,
+        event_type="FINAL_DECISION",
+        actor=officer_name,
+        description=(
+            f"Procurement Officer recorded final decision: {decision}. "
+            f"Reason: {reason}"
+        ),
+        source="PROCUREMENT_OFFICER",
+        before_value={
+            "final_decision": previous_decision,
+            "status": previous_status,
+        },
+        after_value={
+            "final_decision": decision,
+            "status": submission.status,
+            "final_decision_by": officer_name,
+            "final_decision_reason": reason,
+        },
+        event_metadata={
+            "decision_timestamp": utc_now().isoformat(),
+        },
+    )
+
+    db.add(audit_event)
+    db.commit()
+    db.refresh(submission)
+
+    return {
+        "submission_id": submission.id,
+        "status": submission.status,
+        "final_decision": submission.final_decision,
+        "final_decision_by": submission.final_decision_by,
+        "final_decision_reason": submission.final_decision_reason,
+        "recorded_at": utc_now().isoformat(),
+    }
+
+
 # ============================================================
 # BIDDER
 # ============================================================
@@ -651,6 +775,11 @@ def get_compliance_dashboard(
                 "risk_factors": risk.risk_factors,
                 "ai_summary": risk.ai_summary,
                 "ai_recommendation": risk.ai_recommendation,
+                "ai_analysis": (
+                    risk.risk_factors.get("ai_analysis")
+                    if isinstance(risk.risk_factors, dict)
+                    else None
+                ),
             }
             if risk
             else None
@@ -1218,8 +1347,9 @@ def evaluate_full_bid_compliance(
     submission_id: str,
     db: Session = Depends(get_db),
 ):
-    from app.services.tender_bid_compliance import evaluate_tender_requirements
-    from app.services.bid_compliance_engine import evaluate_submission
+    from backend.app.services.tender_bid_compliance import evaluate_tender_requirements
+    from backend.app.services.bid_compliance_engine import evaluate_submission
+    from backend.app.services.bid_compliance_ai_service import BidComplianceAIService
     from backend.app.models.bid_compliance import (
         BidSubmission,
         RiskAssessment,
@@ -1376,7 +1506,19 @@ def evaluate_full_bid_compliance(
         "checks": merged_checks,
     }
 
-    # 4. Persist the final score/risk to the bid submission.
+    # 4. Generate AI explanation from the deterministic compliance findings.
+    compliance_ai = BidComplianceAIService()
+
+    ai_analysis = compliance_ai.explain(
+        submission_id=submission_id,
+        compliance_score=compliance_score,
+        risk_level=risk_level,
+        checks=merged_checks,
+    )
+
+    overall_result["ai_analysis"] = ai_analysis
+
+    # 5. Persist the final score/risk to the bid submission.
     submission = (
         db.query(BidSubmission)
         .filter(BidSubmission.id == submission_id)
@@ -1415,6 +1557,7 @@ def evaluate_full_bid_compliance(
                 x for x in review_checks
                 if not x.get("mandatory", True)
             ]),
+            "ai_analysis": ai_analysis,
         }
         risk.ai_summary = (
             f"Full bid compliance evaluation completed. "

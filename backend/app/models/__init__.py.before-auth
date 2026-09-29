@@ -16,4 +16,3 @@ from backend.app.models.bid_compliance import (
     RiskAssessment,
     AuditEvent,
 )
-

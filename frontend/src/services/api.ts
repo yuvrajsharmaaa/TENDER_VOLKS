@@ -972,6 +972,40 @@ export const apiService = {
   },
 
   /**
+   * Record the Procurement Officer's final decision.
+   */
+  recordFinalDecision: async (
+    submissionId: string,
+    decision: "QUALIFIED" | "DISQUALIFIED" | "CLARIFICATION_REQUIRED",
+    officerName: string,
+    reason: string
+  ) => {
+    const response = await fetch(
+      `${BACKEND_URL}/compliance/bids/${submissionId}/final-decision`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          decision,
+          officer_name: officerName,
+          reason,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const body = await response.text();
+      throw new Error(
+        `Final decision failed (${response.status}): ${body}`
+      );
+    }
+
+    return response.json();
+  },
+
+  /**
    * Run external verification adapters.
    */
   verifyExternalSources: async (submissionId: string) => {

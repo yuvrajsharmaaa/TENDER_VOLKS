@@ -44,6 +44,16 @@ export interface ComplianceResult {
   expected?: unknown;
 }
 
+export interface BidComplianceAIAnalysis {
+  available: boolean;
+  summary: string;
+  key_findings: string[];
+  missing_evidence: string[];
+  inconsistencies: string[];
+  risk_reasoning: string[];
+  officer_recommendation: string;
+}
+
 export interface ComplianceDashboardData {
   submission: {
     id: string;
@@ -80,6 +90,7 @@ export interface ComplianceDashboardData {
     risk_factors?: Record<string, unknown>;
     ai_summary?: string | null;
     ai_recommendation?: string | null;
+    ai_analysis?: BidComplianceAIAnalysis | null;
   } | null;
 }
 
@@ -149,5 +160,6 @@ export interface FullComplianceResponse {
     mandatory_total: number;
     recommendation: string;
     checks: ComplianceResult[];
+    ai_analysis?: BidComplianceAIAnalysis | null;
   };
 }
